@@ -1,0 +1,27 @@
+.board {
+    display: grid;
+    grid-template-rows: repeat(8, 1fr);
+    grid-template-columns: repeat(8, 1fr);
+    aspect-ratio: 1/1;
+    height: 60vh;
+    background-color: rgb(103, 58, 5);
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.cell {
+    background-color: white;
+}
+
+.cell.light {
+    background-color: #f0d198;
+}
+
+.cell.dark {
+    background-color: #b58863;
+}
+
+.piece {
+    width: calc(60vh/8);
+    aspect-ratio: 1/1;
+}
