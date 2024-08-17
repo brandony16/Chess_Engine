@@ -11,6 +11,12 @@
 
 .cell {
     background-color: white;
+    position: relative;
+    aspect-ratio: 1/1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(60vh/8);
 }
 
 .cell.light {
@@ -22,6 +28,5 @@
 }
 
 .piece {
-    width: calc(60vh/8);
-    aspect-ratio: 1/1;
+    height: 70%;
 }

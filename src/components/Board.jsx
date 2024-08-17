@@ -1,21 +1,22 @@
-import Cell from "./Cell"
-import "./Board.css"
+import Cell from "./Cell";
+import "./Board.css";
 
-const Board = ({ board }) => {
-    return (
-        <div className="board">
-             {board.map((row, rowIndex) =>
-                row.map((square, colIndex) => (
-                    <Cell
-                        key={`${rowIndex}-${colIndex}`}
-                        piece={square}
-                        row={rowIndex}
-                        col={colIndex}
-                    />
-                ))
-            )}
-        </div>
-    )
-}
+const Board = ({ board, onSquareClick }) => {
+  return (
+    <div className="board">
+      {board.map((row, rowIndex) =>
+        row.map((square, colIndex) => (
+          <Cell
+            key={`${rowIndex}-${colIndex}`}
+            piece={square}
+            row={rowIndex}
+            col={colIndex}
+            onSquareClick={onSquareClick}
+          />
+        ))
+      )}
+    </div>
+  );
+};
 
-export default Board
+export default Board;
