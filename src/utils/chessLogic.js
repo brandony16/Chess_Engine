@@ -11,7 +11,15 @@ export function initializeBoard() {
   ];
 }
 
-export function isValidMove(board, startRow, startCol, endRow, endCol, player) {
+export function isValidMove(
+  board,
+  startRow,
+  startCol,
+  endRow,
+  endCol,
+  player,
+  gameState
+) {
   const piece = board[startRow][startCol];
   const target = board[endRow][endCol];
 
@@ -23,10 +31,9 @@ export function isValidMove(board, startRow, startCol, endRow, endCol, player) {
 
   switch (piece.toLowerCase()) {
     case "p": {
-      const direction = player === "w" ? -1 : 1; // White moves up (-1), Black moves down (+1)
-      const startRowForPlayer = player === "w" ? 6 : 1; // Starting row for white or black pawn
+      const direction = player === "w" ? -1 : 1;
+      const startRowForPlayer = player === "w" ? 6 : 1;
 
-      // Move forward 1 square
       if (
         startRow + direction === endRow &&
         startCol === endCol &&
@@ -35,23 +42,29 @@ export function isValidMove(board, startRow, startCol, endRow, endCol, player) {
         return true;
       }
 
-      // Move forward 2 squares on the first move
       if (
         startRow === startRowForPlayer &&
         startRow + 2 * direction === endRow &&
         startCol === endCol
       ) {
-        // Ensure the path is clear
         if (board[startRow + direction][startCol] === "-" && target === "-") {
           return true;
         }
       }
 
-      // Capture diagonally
       if (
         startRow + direction === endRow &&
         Math.abs(startCol - endCol) === 1 &&
         target !== "-"
+      ) {
+        return true;
+      }
+
+      if (
+        startRow + direction === endRow &&
+        Math.abs(startCol - endCol) === 1 &&
+        target === "-" &&
+        gameState.enPassant === endRow * 8 + endCol
       ) {
         return true;
       }
@@ -109,8 +122,16 @@ export function isValidMove(board, startRow, startCol, endRow, endCol, player) {
     case "k": {
       const rowDiff = Math.abs(startRow - endRow);
       const colDiff = Math.abs(startCol - endCol);
-      if(rowDiff <= 1 && colDiff <= 1) {
-        return true
+
+      if (rowDiff <= 1 && colDiff <= 1) {
+        return true;
+      }
+
+      if (rowDiff === 0 && colDiff === 2) {
+        const kingSide = endCol > startCol ? "kingside" : "queenside";
+        if (isCastlingLegal(board, player, gameState, kingSide)) {
+          return true;
+        }
       }
     }
   }
@@ -162,3 +183,43 @@ const diagIsClear = (board, startRow, startCol, endRow, endCol) => {
 
   return true;
 };
+
+function isCastlingLegal(board, player, gameState, side) {
+  const kingRow = player === "w" ? 7 : 0;
+  const rookCol = side === "kingside" ? 7 : 0;
+  const kingCol = 4;
+
+  // Check if the king or the corresponding rook has moved
+  if (gameState.kingMoved[player]) return false;
+  if (gameState.rookMoved[player][side]) return false;
+
+  // Ensure there are no pieces between the king and the rook
+  const colStart = Math.min(kingCol, rookCol) + 1;
+  const colEnd = Math.max(kingCol, rookCol) - 1;
+  for (let col = colStart; col <= colEnd; col++) {
+    if (board[kingRow][col] !== "-") return false;
+  }
+
+  // Check if the squares the king passes through, including the destination, are under attack
+  const kingDestCol = side === "kingside" ? 6 : 2;
+  if (
+    isSquareUnderAttack(board, kingRow, kingCol, player) ||
+    isSquareUnderAttack(
+      board,
+      kingRow,
+      kingCol + (kingDestCol - kingCol) / 2,
+      player
+    ) ||
+    isSquareUnderAttack(board, kingRow, kingDestCol, player)
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+// Placeholder function to check if a square is under attack
+function isSquareUnderAttack(board, row, col, player) {
+  // Implement logic to check if the square is attacked by any opponent pieces
+  return false;
+}
