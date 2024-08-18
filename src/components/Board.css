@@ -17,6 +17,7 @@
     justify-content: center;
     align-items: center;
     height: calc(60vh/8);
+    box-sizing: border-box;
 }
 
 .cell.light {
@@ -28,5 +29,7 @@
 }
 
 .piece {
-    height: 70%;
+    height: calc(60vh/8 * 0.7);
+    box-sizing: border-box;
+    position: absolute;
 }

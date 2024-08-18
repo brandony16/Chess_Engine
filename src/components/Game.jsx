@@ -23,9 +23,27 @@ const Game = () => {
   });
 
   const handleSquareClick = (row, col) => {
+    // Update selected piece instantly when clicking pieces of the same color so you dont have to double click to deselect then select
+    const target = board[row][col];
+    if (
+      currPlayer === "w" &&
+      target !== "-" &&
+      target === target.toUpperCase()
+    ) {
+      setSelectedPiece([row, col]);
+      return;
+    }
+    if (
+      currPlayer === "b" &&
+      target !== "-" &&
+      target === target.toLowerCase()
+    ) {
+      setSelectedPiece([row, col]);
+      return;
+    }
+
     if (selectedPiece) {
       const [selectedRow, selectedCol] = selectedPiece;
-
       if (
         isValidMove(
           board,
@@ -60,7 +78,7 @@ const Game = () => {
           newBoard[row][rookEndCol] = newBoard[row][rookStartCol];
           newBoard[row][rookStartCol] = "-";
           newBoard[row][col] = newBoard[selectedRow][selectedCol];
-          newBoard[selectedRow][selectedCol] = '-'
+          newBoard[selectedRow][selectedCol] = "-";
 
           const side = col > selectedCol ? "kingside" : "queenside";
           setGameState({
@@ -78,7 +96,6 @@ const Game = () => {
           newBoard[row][col] = newBoard[selectedRow][selectedCol];
           newBoard[selectedRow][selectedCol] = "-";
         }
-
 
         if (piece.toLowerCase() === "p" && Math.abs(selectedRow - row) === 2) {
           const enPassantRow = currPlayer === "w" ? row + 1 : row - 1;
@@ -106,7 +123,13 @@ const Game = () => {
     }
   };
 
-  return <Board board={board} onSquareClick={handleSquareClick} />;
+  return (
+    <Board
+      board={board}
+      onSquareClick={handleSquareClick}
+      selectedPiece={selectedPiece}
+    />
+  );
 };
 
 export default Game;
