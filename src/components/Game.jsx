@@ -2,11 +2,13 @@ import Board from "./Board";
 import { initializeBoard } from "../utils/chessLogic";
 import { useState } from "react";
 import { isValidMove } from "../utils/chessLogic";
+import PromotionModal from "./PromotionModal";
 
 const Game = () => {
   const [board, setBoard] = useState(initializeBoard());
   const [currPlayer, setCurrPlayer] = useState("w");
   const [selectedPiece, setSelectedPiece] = useState(null);
+  const [promotion, setPromotion] = useState(null);
   const [gameState, setGameState] = useState({
     enPassant: null,
     kingMoved: { w: false, b: false },
@@ -23,6 +25,8 @@ const Game = () => {
   });
 
   const handleSquareClick = (row, col) => {
+    setPromotion(null);
+    setSelectedPiece(null);
     // Update selected piece instantly when clicking pieces of the same color so you dont have to double click to deselect then select
     const target = board[row][col];
     if (
@@ -58,6 +62,15 @@ const Game = () => {
         const newBoard = [...board];
         const piece = board[selectedRow][selectedCol];
 
+        // Check for promotion
+        if (piece.toLowerCase() === "p" && (row === 0 || row === 7)) {
+          setPromotion({
+            from: [selectedRow, selectedCol],
+            to: [row, col],
+          });
+          return;
+        }
+
         // Handle en passant capture
         if (
           piece.toLowerCase() === "p" &&
@@ -65,7 +78,6 @@ const Game = () => {
           Math.abs(selectedCol - col) === 1 &&
           board[row][col] === "-"
         ) {
-          // Capture the pawn that's being taken en passant
           const enPassantRow = currPlayer === "w" ? row + 1 : row - 1;
           newBoard[enPassantRow][col] = "-";
         }
@@ -123,12 +135,35 @@ const Game = () => {
     }
   };
 
+  const handlePromotion = (newPiece) => {
+    const { from, to } = promotion;
+    const [fromRow, fromCol] = from;
+    const [toRow, toCol] = to;
+    const newBoard = [...board];
+
+    newBoard[fromRow][fromCol] = "-";
+    newBoard[toRow][toCol] = newPiece;
+
+    setBoard(newBoard);
+    setPromotion(null);
+    setSelectedPiece(null);
+    setCurrPlayer(currPlayer === "w" ? "b" : "w");
+  };
+
   return (
-    <Board
-      board={board}
-      onSquareClick={handleSquareClick}
-      selectedPiece={selectedPiece}
-    />
+    <>
+      <Board
+        board={board}
+        onSquareClick={handleSquareClick}
+        selectedPiece={selectedPiece}
+      />
+      {promotion && (
+        <PromotionModal
+          onPromote={handlePromotion}
+          currPlayer={currPlayer}
+        />
+      )}
+    </>
   );
 };
 
