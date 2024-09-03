@@ -218,8 +218,110 @@ function isCastlingLegal(board, player, gameState, side) {
   return true;
 }
 
-// Placeholder function to check if a square is under attack
-function isSquareUnderAttack(board, row, col, player) {
-  // Implement logic to check if the square is attacked by any opponent pieces
+function isSquareUnderAttack(board, endRow, endCol, player) {
+  const otherPlayer = player === 'w' ? 'b' : 'w'
+
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const piece = board[row][col];
+
+      if (
+        piece != "-" &&
+        (player === "w"
+          ? piece === piece.toLowerCase()
+          : piece === piece.toUpperCase())
+      ) {
+        // See if opponent can move to the square
+        if (isValidMove(board, row, col, endRow, endCol, otherPlayer)) {
+          return true;
+        }
+      }
+    }
+  }
   return false;
 }
+
+export function isInCheck(board, kingPosition, player) {
+  const [kingRow, kingCol] = kingPosition;
+  const otherPlayer = player === 'w' ? 'b' : 'w'
+
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const piece = board[row][col];
+
+      if (
+        piece != "-" &&
+        (player === "w"
+          ? piece === piece.toLowerCase()
+          : piece === piece.toUpperCase())
+      ) {
+        // See if opponent can move to take the king
+        if (isValidMove(board, row, col, kingRow, kingCol, otherPlayer)) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+export function isValidMoveWithCheck(
+  board,
+  startRow,
+  startCol,
+  endRow,
+  endCol,
+  player,
+  gameState
+) {
+  // Copy board
+  const boardCopy = JSON.parse(JSON.stringify(board));
+  // Simulate move
+  boardCopy[endRow][endCol] = boardCopy[startRow][startCol];
+  boardCopy[startRow][startCol] = "-";
+
+  const piece = board[startRow][startCol];
+
+  const newKingPosition =
+    piece.toLowerCase() === "k"
+      ? [endRow, endCol]
+      : gameState.kingPosition[player];
+  return (
+    !isInCheck(boardCopy, newKingPosition, player) &&
+    isValidMove(board, startRow, startCol, endRow, endCol, player, gameState)
+  );
+}
+
+export function mateOrStalemate(board, player, gameState) {
+  const kingPosition = gameState.kingPosition[player];
+  const inCheck = isInCheck(board, kingPosition, player);
+
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const piece = board[row][col];
+      if (
+        (piece !== "-" && player === "w" && piece === piece.toUpperCase()) ||
+        (player === "b" && piece === piece.toLowerCase())
+      ) {
+        for (let newRow = 0; newRow < 8; newRow++) {
+          for (let newCol = 0; newCol < 8; newCol++) {
+            if (
+              isValidMoveWithCheck(
+                board,
+                row,
+                col,
+                newRow,
+                newCol,
+                player,
+                gameState
+              )
+            ) {
+              return "none";
+            }
+          }
+        }
+      }
+    }
+  }
+  return inCheck ? "checkmate" : "stalemate";
+};

@@ -1,7 +1,7 @@
 import Board from "./Board";
 import { initializeBoard } from "../utils/chessLogic";
 import { useState } from "react";
-import { isValidMove } from "../utils/chessLogic";
+import { isValidMoveWithCheck, mateOrStalemate } from "../utils/chessLogic";
 import PromotionModal from "./PromotionModal";
 
 const Game = () => {
@@ -22,9 +22,17 @@ const Game = () => {
         queenside: false,
       },
     },
+    kingPosition: { w: [7, 4], b: [0, 4] },
+    gameOver: false,
+    gameEndState: 'none',
   });
 
   const handleSquareClick = (row, col) => {
+    if (gameState.gameOver) return;
+    if (mateOrStalemate(board, currPlayer, gameState) !== 'none') {
+      console.log(mateOrStalemate(board, currPlayer, gameState))
+      setGameState({...gameState, gameOver: true, gameEndState: mateOrStalemate(board, currPlayer, gameState)})
+    }
     setPromotion(null);
     setSelectedPiece(null);
     // Update selected piece instantly when clicking pieces of the same color so you dont have to double click to deselect then select
@@ -49,7 +57,7 @@ const Game = () => {
     if (selectedPiece) {
       const [selectedRow, selectedCol] = selectedPiece;
       if (
-        isValidMove(
+        isValidMoveWithCheck(
           board,
           selectedRow,
           selectedCol,
@@ -117,6 +125,16 @@ const Game = () => {
         } else {
           setGameState({ ...gameState, enPassant: null });
         }
+        // Updates king position
+        if (piece.toLowerCase() === "k") {
+          setGameState({
+            ...gameState,
+            kingPosition: {
+              ...gameState.kingPosition,
+              [currPlayer]: [row, col],
+            },
+          });
+        }
 
         setBoard(newBoard);
         setCurrPlayer(currPlayer === "w" ? "b" : "w");
@@ -158,10 +176,7 @@ const Game = () => {
         selectedPiece={selectedPiece}
       />
       {promotion && (
-        <PromotionModal
-          onPromote={handlePromotion}
-          currPlayer={currPlayer}
-        />
+        <PromotionModal onPromote={handlePromotion} currPlayer={currPlayer} />
       )}
     </>
   );
