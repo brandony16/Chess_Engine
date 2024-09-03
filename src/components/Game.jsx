@@ -3,6 +3,8 @@ import { initializeBoard } from "../utils/chessLogic";
 import { useState } from "react";
 import { isValidMoveWithCheck, mateOrStalemate } from "../utils/chessLogic";
 import PromotionModal from "./PromotionModal";
+import Sidebar from "./Sidebar";
+import "./UI.css"
 
 const Game = () => {
   const [board, setBoard] = useState(initializeBoard());
@@ -29,10 +31,7 @@ const Game = () => {
 
   const handleSquareClick = (row, col) => {
     if (gameState.gameOver) return;
-    if (mateOrStalemate(board, currPlayer, gameState) !== 'none') {
-      console.log(mateOrStalemate(board, currPlayer, gameState))
-      setGameState({...gameState, gameOver: true, gameEndState: mateOrStalemate(board, currPlayer, gameState)})
-    }
+    
     setPromotion(null);
     setSelectedPiece(null);
     // Update selected piece instantly when clicking pieces of the same color so you dont have to double click to deselect then select
@@ -119,7 +118,6 @@ const Game = () => {
 
         if (piece.toLowerCase() === "p" && Math.abs(selectedRow - row) === 2) {
           const enPassantRow = currPlayer === "w" ? row + 1 : row - 1;
-          console.log(enPassantRow);
           // Multiplying row by 8 then adding the col creates a unique identifier number for each square
           setGameState({ ...gameState, enPassant: enPassantRow * 8 + col });
         } else {
@@ -133,6 +131,7 @@ const Game = () => {
               ...gameState.kingPosition,
               [currPlayer]: [row, col],
             },
+            kingMoved: { ...gameState.kingMoved, [currPlayer]: true },
           });
         }
 
@@ -151,6 +150,10 @@ const Game = () => {
         setSelectedPiece([row, col]);
       }
     }
+    if (mateOrStalemate(board, currPlayer, gameState) !== 'none') {
+      setGameState({...gameState, gameOver: true, gameEndState: mateOrStalemate(board, currPlayer, gameState)})
+    }
+
   };
 
   const handlePromotion = (newPiece) => {
@@ -168,8 +171,32 @@ const Game = () => {
     setCurrPlayer(currPlayer === "w" ? "b" : "w");
   };
 
+  const resetGame = () => {
+    setBoard(initializeBoard());
+    setCurrPlayer('w');
+    setPromotion(null);
+    setSelectedPiece(null);
+    setGameState({
+      enPassant: null,
+      kingMoved: { w: false, b: false },
+      rookMoved: {
+        w: {
+          kingside: false,
+          queenside: false,
+        },
+        b: {
+          kingside: false,
+          queenside: false,
+        },
+      },
+      kingPosition: { w: [7, 4], b: [0, 4] },
+      gameOver: false,
+      gameEndState: 'none',
+    })
+  }
+
   return (
-    <>
+    <div className="body">
       <Board
         board={board}
         onSquareClick={handleSquareClick}
@@ -178,7 +205,8 @@ const Game = () => {
       {promotion && (
         <PromotionModal onPromote={handlePromotion} currPlayer={currPlayer} />
       )}
-    </>
+      <Sidebar currPlayer={currPlayer} resetGame={resetGame}/>
+    </div>
   );
 };
 

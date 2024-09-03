@@ -1,0 +1,19 @@
+.body {
+  display: flex;
+  gap: 4rem;
+}
+
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 15vw;
+}
+
+.turnText {
+  font-size: 2rem;
+  font-weight: bold;
+  padding: 2rem;
+
+}

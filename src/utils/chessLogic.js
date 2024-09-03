@@ -63,7 +63,7 @@ export function isValidMove(
       if (
         startRow + direction === endRow &&
         Math.abs(startCol - endCol) === 1 &&
-        target === "-" &&
+        target === "-" && 
         gameState.enPassant === endRow * 8 + endCol
       ) {
         return true;
@@ -122,7 +122,6 @@ export function isValidMove(
     case "k": {
       const rowDiff = Math.abs(startRow - endRow);
       const colDiff = Math.abs(startCol - endCol);
-
       if (rowDiff <= 1 && colDiff <= 1) {
         return true;
       }
@@ -241,7 +240,7 @@ function isSquareUnderAttack(board, endRow, endCol, player) {
   return false;
 }
 
-export function isInCheck(board, kingPosition, player) {
+export function isInCheck(board, kingPosition, player, gameState) {
   const [kingRow, kingCol] = kingPosition;
   const otherPlayer = player === 'w' ? 'b' : 'w'
 
@@ -256,7 +255,7 @@ export function isInCheck(board, kingPosition, player) {
           : piece === piece.toUpperCase())
       ) {
         // See if opponent can move to take the king
-        if (isValidMove(board, row, col, kingRow, kingCol, otherPlayer)) {
+        if (isValidMove(board, row, col, kingRow, kingCol, otherPlayer, gameState)) {
           return true;
         }
       }
@@ -287,7 +286,7 @@ export function isValidMoveWithCheck(
       ? [endRow, endCol]
       : gameState.kingPosition[player];
   return (
-    !isInCheck(boardCopy, newKingPosition, player) &&
+    !isInCheck(boardCopy, newKingPosition, player, gameState) &&
     isValidMove(board, startRow, startCol, endRow, endCol, player, gameState)
   );
 }
