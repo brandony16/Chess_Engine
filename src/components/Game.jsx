@@ -1,13 +1,14 @@
 import Board from "./Board";
 import { initializeBoard } from "../utils/chessLogic";
 import { useState } from "react";
-import { isValidMoveWithCheck, mateOrStalemate } from "../utils/chessLogic";
+import { isValidMoveWithCheck, isGameOver } from "../utils/chessLogic";
 import PromotionModal from "./PromotionModal";
 import Sidebar from "./Sidebar";
 import "./UI.css"
 
 const Game = () => {
   const [board, setBoard] = useState(initializeBoard());
+  const [boards, setBoards] = useState([initializeBoard()]);
   const [currPlayer, setCurrPlayer] = useState("w");
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [promotion, setPromotion] = useState(null);
@@ -30,6 +31,7 @@ const Game = () => {
   });
 
   const handleSquareClick = (row, col) => {
+    console.log(gameState.gameOver)
     if (gameState.gameOver) return;
     
     setPromotion(null);
@@ -135,6 +137,13 @@ const Game = () => {
           });
         }
 
+        const deepCopy = newBoard.map(row => [...row]);
+        console.log(isGameOver(board, currPlayer, gameState, [...boards, deepCopy]))
+        if (isGameOver(board, currPlayer, gameState, [...boards, deepCopy]) !== 'none') {
+          setGameState({...gameState, gameOver: true, gameEndState: isGameOver(board, currPlayer, gameState, boards)})
+        }
+
+        setBoards([...boards, deepCopy])
         setBoard(newBoard);
         setCurrPlayer(currPlayer === "w" ? "b" : "w");
       }
@@ -149,9 +158,6 @@ const Game = () => {
       ) {
         setSelectedPiece([row, col]);
       }
-    }
-    if (mateOrStalemate(board, currPlayer, gameState) !== 'none') {
-      setGameState({...gameState, gameOver: true, gameEndState: mateOrStalemate(board, currPlayer, gameState)})
     }
 
   };
@@ -173,6 +179,7 @@ const Game = () => {
 
   const resetGame = () => {
     setBoard(initializeBoard());
+    setBoards([initializeBoard()]);
     setCurrPlayer('w');
     setPromotion(null);
     setSelectedPiece(null);
@@ -205,7 +212,7 @@ const Game = () => {
       {promotion && (
         <PromotionModal onPromote={handlePromotion} currPlayer={currPlayer} />
       )}
-      <Sidebar currPlayer={currPlayer} resetGame={resetGame}/>
+      <Sidebar currPlayer={currPlayer} resetGame={resetGame} gameStatus={gameState.gameEndState} gameOver={gameState.gameOver}/>
     </div>
   );
 };

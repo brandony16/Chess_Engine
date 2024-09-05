@@ -63,7 +63,7 @@ export function isValidMove(
       if (
         startRow + direction === endRow &&
         Math.abs(startCol - endCol) === 1 &&
-        target === "-" && 
+        target === "-" &&
         gameState.enPassant === endRow * 8 + endCol
       ) {
         return true;
@@ -218,7 +218,7 @@ function isCastlingLegal(board, player, gameState, side) {
 }
 
 function isSquareUnderAttack(board, endRow, endCol, player) {
-  const otherPlayer = player === 'w' ? 'b' : 'w'
+  const otherPlayer = player === "w" ? "b" : "w";
 
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
@@ -242,7 +242,7 @@ function isSquareUnderAttack(board, endRow, endCol, player) {
 
 export function isInCheck(board, kingPosition, player, gameState) {
   const [kingRow, kingCol] = kingPosition;
-  const otherPlayer = player === 'w' ? 'b' : 'w'
+  const otherPlayer = player === "w" ? "b" : "w";
 
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
@@ -255,7 +255,9 @@ export function isInCheck(board, kingPosition, player, gameState) {
           : piece === piece.toUpperCase())
       ) {
         // See if opponent can move to take the king
-        if (isValidMove(board, row, col, kingRow, kingCol, otherPlayer, gameState)) {
+        if (
+          isValidMove(board, row, col, kingRow, kingCol, otherPlayer, gameState)
+        ) {
           return true;
         }
       }
@@ -273,6 +275,16 @@ export function isValidMoveWithCheck(
   player,
   gameState
 ) {
+
+  const target = board[endRow][endCol]
+  console.log(target, player, startRow, startCol)
+  
+  // Prevent moving to piece of same color
+  if (player === "w" && target !== "-" && target === target.toUpperCase())
+    return false;
+  if (player === "b" && target !== "-" && target === target.toLowerCase())
+    return false;
+
   // Copy board
   const boardCopy = JSON.parse(JSON.stringify(board));
   // Simulate move
@@ -291,16 +303,21 @@ export function isValidMoveWithCheck(
   );
 }
 
-export function mateOrStalemate(board, player, gameState) {
+export function isGameOver(board, player, gameState, boards) {
   const kingPosition = gameState.kingPosition[player];
-  const inCheck = isInCheck(board, kingPosition, player);
+  const otherPlayer = player === 'w' ? 'b' : 'w'
+  const inCheck = isInCheck(board, kingPosition, otherPlayer);
+
+  if (threefoldRep(boards)) {
+    return "Draw by repetition";
+  }
 
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
       const piece = board[row][col];
       if (
-        (piece !== "-" && player === "w" && piece === piece.toUpperCase()) ||
-        (player === "b" && piece === piece.toLowerCase())
+        (piece !== "-" && otherPlayer === "w" && piece === piece.toUpperCase()) ||
+        (otherPlayer === "b" && piece === piece.toLowerCase())
       ) {
         for (let newRow = 0; newRow < 8; newRow++) {
           for (let newCol = 0; newCol < 8; newCol++) {
@@ -311,10 +328,13 @@ export function mateOrStalemate(board, player, gameState) {
                 col,
                 newRow,
                 newCol,
-                player,
+                otherPlayer,
                 gameState
               )
             ) {
+              console.log(
+                "Alleged move:" + piece + " " + newRow + " " + newCol
+              );
               return "none";
             }
           }
@@ -323,4 +343,42 @@ export function mateOrStalemate(board, player, gameState) {
     }
   }
   return inCheck ? "checkmate" : "stalemate";
-};
+}
+
+function threefoldRep(boards) {
+  const freqMap = [];
+
+  for (let i = 0; i < boards.length; i++) {
+    let found = false;
+
+    for (let j = 0; j < freqMap.length; j++) {
+      if (boardsEqual(boards[i], freqMap[j].board)) {
+        freqMap[j].count++;
+        found = true;
+        break;
+      }
+    }
+
+    if (!found) {
+      freqMap.push({ board: boards[i], count: 1 });
+    }
+  }
+  for (let i = 0; i < freqMap.length; i++) {
+    if (freqMap[i].count >= 3) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function boardsEqual(board1, board2) {
+  if (board1.length !== board2.length) return false;
+  for (let i = 0; i < board1.length; i++) {
+    if (board1[i].length !== board2[i].length) return false;
+    for (let j = 0; j < board1[i].length; j++) {
+      if (board1[i][j] !== board2[i][j]) return false;
+    }
+  }
+  return true;
+}
