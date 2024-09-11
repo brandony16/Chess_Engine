@@ -127,6 +127,12 @@ export function isValidMove(
       }
 
       if (rowDiff === 0 && colDiff === 2) {
+        if (player === 'w'){
+          if (gameState) return
+        } else if (player === 'b'){
+          if (gameState) return
+        }
+
         const kingSide = endCol > startCol ? "kingside" : "queenside";
         if (isCastlingLegal(board, player, gameState, kingSide)) {
           return true;
@@ -251,7 +257,7 @@ export function isInCheck(board, kingPosition, player, gameState) {
       if (
         piece != "-" &&
         (player === "w"
-          ? piece === piece.toLowerCase()
+          ? piece === piece.toLowerCase() // See if piece is the opposite color of the king
           : piece === piece.toUpperCase())
       ) {
         // See if opponent can move to take the king
@@ -277,7 +283,6 @@ export function isValidMoveWithCheck(
 ) {
 
   const target = board[endRow][endCol]
-  console.log(target, player, startRow, startCol)
   
   // Prevent moving to piece of same color
   if (player === "w" && target !== "-" && target === target.toUpperCase())
@@ -304,9 +309,9 @@ export function isValidMoveWithCheck(
 }
 
 export function isGameOver(board, player, gameState, boards) {
-  const kingPosition = gameState.kingPosition[player];
   const otherPlayer = player === 'w' ? 'b' : 'w'
-  const inCheck = isInCheck(board, kingPosition, otherPlayer);
+  const kingPosition = gameState.kingPosition[otherPlayer];
+  const inCheck = isInCheck(board, kingPosition, otherPlayer, gameState);
 
   if (threefoldRep(boards)) {
     return "Draw by repetition";
@@ -332,9 +337,6 @@ export function isGameOver(board, player, gameState, boards) {
                 gameState
               )
             ) {
-              console.log(
-                "Alleged move:" + piece + " " + newRow + " " + newCol
-              );
               return "none";
             }
           }

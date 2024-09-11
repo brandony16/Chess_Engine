@@ -31,7 +31,7 @@ const Game = () => {
   });
 
   const handleSquareClick = (row, col) => {
-    console.log(gameState.gameOver)
+    console.log(gameState)
     if (gameState.gameOver) return;
     
     setPromotion(null);
@@ -138,7 +138,6 @@ const Game = () => {
         }
 
         const deepCopy = newBoard.map(row => [...row]);
-        console.log(isGameOver(board, currPlayer, gameState, [...boards, deepCopy]))
         if (isGameOver(board, currPlayer, gameState, [...boards, deepCopy]) !== 'none') {
           setGameState({...gameState, gameOver: true, gameEndState: isGameOver(board, currPlayer, gameState, boards)})
         }
