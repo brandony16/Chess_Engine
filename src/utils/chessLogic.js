@@ -384,3 +384,10 @@ function boardsEqual(board1, board2) {
   }
   return true;
 }
+
+export const getLegalMoves = (board, player, gameState) => {
+
+}
+
+
+const pawnMoves =
