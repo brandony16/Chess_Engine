@@ -6,3 +6,12 @@ Currently, two official plugins are available:
 
 - [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+
+
+
+
+
+# TO-DO
+- Fix Castling Not Working
+- Get En Passant Moves when getting all legal moves
+- Develop A Basic Material-Based Evaluation Function

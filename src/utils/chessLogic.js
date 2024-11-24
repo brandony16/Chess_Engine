@@ -388,6 +388,3 @@ function boardsEqual(board1, board2) {
 export const getLegalMoves = (board, player, gameState) => {
 
 }
-
-
-const pawnMoves =

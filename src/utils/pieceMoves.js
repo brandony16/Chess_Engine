@@ -20,34 +20,37 @@ export const getPawnMoves = (board, row, col, player) => {
   }
 
   // Capture
-  // CURRENTLY WILL BREAK IF PAWN ON EDGE OF BOARD
-  const rightSquare = board[row + direction][col + 1]
-  if (rightSquare !== '-') {
-    if (player === 'w') {
-      if (rightSquare === rightSquare.toLowerCase()) {
-        moves.append([row+direction, col+1])
+  // Only proceed if the col is between 0 and 7
+  if (col + 1 <= 7) {
+    const rightSquare = board[row + direction][col + 1]
+    if (rightSquare !== '-') {
+      if (player === 'w') {
+        if (rightSquare === rightSquare.toLowerCase()) {
+          moves.append([row+direction, col+1])
+        }
       }
-    }
-    if (player === 'b') {
-      if (rightSquare === rightSquare.toUpperCase()) {
-        moves.append([row+direction, col+1])
+      if (player === 'b') {
+        if (rightSquare === rightSquare.toUpperCase()) {
+          moves.append([row+direction, col+1])
+        }
       }
     }
   }
-
-  const leftSquare = board[row + direction][col - 1]
-  if (leftSquare !== '-') {
-    if (player === 'w') {
-      if (leftSquare === leftSquare.toLowerCase()) {
-        moves.append([row+direction, col-1])
+  if (col - 1 >= 0) {
+    const leftSquare = board[row + direction][col - 1]
+    if (leftSquare !== '-') {
+      if (player === 'w') {
+        if (leftSquare === leftSquare.toLowerCase()) {
+          moves.append([row+direction, col-1])
+        }
       }
-    }
-    if (player === 'b') {
-      if (leftSquare === leftSquare.toUpperCase()) {
-        moves.append([row+direction, col-1])
+      if (player === 'b') {
+        if (leftSquare === leftSquare.toUpperCase()) {
+          moves.append([row+direction, col-1])
+        }
       }
-    }
-  } 
+    } 
+  }
 
   // IMPLEMENT EN PASSANT LOGIC
 };
