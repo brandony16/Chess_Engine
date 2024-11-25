@@ -31,7 +31,6 @@ const Game = () => {
   });
 
   const handleSquareClick = (row, col) => {
-    console.log(gameState)
     if (gameState.gameOver) return;
     
     setPromotion(null);
@@ -70,7 +69,6 @@ const Game = () => {
       ) {
         const newBoard = [...board];
         const piece = board[selectedRow][selectedCol];
-
         // Check for promotion
         if (piece.toLowerCase() === "p" && (row === 0 || row === 7)) {
           setPromotion({

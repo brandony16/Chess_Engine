@@ -1,5 +1,4 @@
 const Sidebar = ({ currPlayer, resetGame, gameStatus, gameOver }) => {
-  console.log(gameOver)
   return (
     <div className="sidebar">
       <div className="turnText">{currPlayer === 'w' ? "White's Turn" : "Black's Turn"}</div>

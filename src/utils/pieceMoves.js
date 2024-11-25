@@ -1,11 +1,12 @@
-export const getPawnMoves = (board, row, col, player) => {
+// Get moves for individual pieces
+const getPawnMoves = (board, row, col, player, gameState) => {
   const direction = player === "w" ? -1 : 1;
 
   const moves = [];
 
   // Move 1 square
   if (board[row + direction][col] === "-") {
-    moves.append([row + direction, col]);
+    moves.append([[row, col], [row + direction, col]]);
   }
 
   // Move 2 squares
@@ -15,7 +16,7 @@ export const getPawnMoves = (board, row, col, player) => {
       board[row + direction][col] === "-" &&
       board[row + direction * 2][col] === "-"
     ) {
-      moves.append([row + direction * 2, col]);
+      moves.append([[row, col], [row + direction * 2, col]]);
     }
   }
 
@@ -26,12 +27,12 @@ export const getPawnMoves = (board, row, col, player) => {
     if (rightSquare !== '-') {
       if (player === 'w') {
         if (rightSquare === rightSquare.toLowerCase()) {
-          moves.append([row+direction, col+1])
+          moves.append([[row, col], [row+direction, col+1]])
         }
       }
       if (player === 'b') {
         if (rightSquare === rightSquare.toUpperCase()) {
-          moves.append([row+direction, col+1])
+          moves.append([[row, col], [row+direction, col+1]])
         }
       }
     }
@@ -41,21 +42,27 @@ export const getPawnMoves = (board, row, col, player) => {
     if (leftSquare !== '-') {
       if (player === 'w') {
         if (leftSquare === leftSquare.toLowerCase()) {
-          moves.append([row+direction, col-1])
+          moves.append([[row, col], [row+direction, col-1]])
         }
       }
       if (player === 'b') {
         if (leftSquare === leftSquare.toUpperCase()) {
-          moves.append([row+direction, col-1])
+          moves.append([[row, col], [row+direction, col-1]])
         }
       }
     } 
   }
 
-  // IMPLEMENT EN PASSANT LOGIC
+  // En Passant
+  if (gameState.enPassant) {
+    const enPassantRow = Math.floor(gameState.enPassant / 8)
+    const enPassantCol = gameState.enPassant % 8
+
+    moves.append([enPassantRow, enPassantCol])
+  }
 };
 
-export const getRookMoves = (board, row, col) => {
+const getRookMoves = (board, row, col) => {
   const directions = [
     [0, 1],
     [0, -1],
@@ -74,7 +81,7 @@ export const getRookMoves = (board, row, col) => {
       0 <= currCol < 8 &&
       board[currRow][currCol] === "-"
     ) {
-      moves.append([currRow, currCol]);
+      moves.append([[row,col], [currRow, currCol]]);
 
       currRow += dir[0];
       currCol += dir[1];
@@ -84,7 +91,7 @@ export const getRookMoves = (board, row, col) => {
   return moves;
 };
 
-export const getKnightmoves = (board, row, col) => {
+const getKnightMoves = (board, row, col) => {
   // Knight can move 2 in one direction and 1 in the other in and way. These moves repesent that
   const baseMoves = [
     [2, 1],
@@ -103,14 +110,14 @@ export const getKnightmoves = (board, row, col) => {
     const newCol = col + move[1];
 
     if (0 <= newRow < 8 && 0 <= newCol < 8 && board[newRow][newCol] === "-") {
-      moves.append([newRow, newCol]);
+      moves.append([[row, col], [newRow, newCol]]);
     }
   }
 
   return moves;
 };
 
-export const getBishopMoves = (board, row, col) => {
+const getBishopMoves = (board, row, col) => {
   const directions = [
     [1, 1],
     [1, -1],
@@ -130,7 +137,7 @@ export const getBishopMoves = (board, row, col) => {
       0 <= currCol < 8 &&
       board[currRow][currCol] === "-"
     ) {
-      moves.append([currRow, currCol]);
+      moves.append([[row, col], [currRow, currCol]]);
 
       currRow += dir[0];
       currCol += dir[1];
@@ -140,7 +147,7 @@ export const getBishopMoves = (board, row, col) => {
   return moves;
 };
 
-export const getQueenMoves = (board, row, col) => {
+const getQueenMoves = (board, row, col) => {
   const directions = [
     [1, 1],
     [1, -1],
@@ -164,7 +171,7 @@ export const getQueenMoves = (board, row, col) => {
       0 <= currCol < 8 &&
       board[currRow][currCol] === "-"
     ) {
-      moves.append([currRow, currCol]);
+      moves.append([[row, col], [currRow, currCol]]);
 
       currRow += dir[0];
       currCol += dir[1];
@@ -174,7 +181,7 @@ export const getQueenMoves = (board, row, col) => {
   return moves;
 };
 
-export const getKingMoves = (
+const getKingMoves = (
   board,
   row,
   col,
@@ -199,16 +206,89 @@ export const getKingMoves = (
     const newCol = col + move[1];
 
     if (0 <= newRow < 8 && 0 <= newCol < 8 && board[newRow][newCol] === "-") {
-      moves.append([newRow, newCol]);
+      moves.append([[row, col], [newRow, newCol]]);
     }
   }
 
   if (canCastleKing) {
-    moves.append([row, col + 2]);
+    moves.append([[row, col], [row, col + 2]]);
   }
   if (canCastleQueen) {
-    moves.append([row, col - 2]);
+    moves.append([[row, col], [row, col - 2]]);
   }
 
   return moves;
 };
+
+// Get all moces of individual pieces. Dont need king because you can only have one.
+const getAllPawnMoves = (board, player, gameState) => {
+  let moves = []
+  const piece = player === 'w' ? 'P' : 'p'
+
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (board[r][c] === piece) {
+        moves = [...moves, ...getPawnMoves(board, r, c, player, gameState)]
+      }
+    }
+  }
+}
+const getAllRookMoves = (board, player) => {
+  let moves = []
+  const piece = player === 'w' ? 'R' : 'r'
+
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (board[r][c] === piece) {
+        moves = [...moves, ...getRookMoves(board, r, c, player)]
+      }
+    }
+  }
+}
+const getAllKightMoves = (board, player) => {
+  let moves = []
+  const piece = player === 'w' ? 'N' : 'n'
+
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (board[r][c] === piece) {
+        moves = [...moves, ...getKnightMoves(board, r, c)]
+      }
+    }
+  }
+}
+const getAllBishopMoves = (board, player) => {
+  let moves = []
+  const piece = player === 'w' ? 'B' : 'b'
+
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (board[r][c] === piece) {
+        moves = [...moves, ...getBishopMoves(board, r, c)]
+      }
+    }
+  }
+}
+const getAllQueenMoves = (board, player) => {
+  let moves = []
+  const piece = player === 'w' ? 'Q' : 'q'
+
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      if (board[r][c] === piece) {
+        moves = [...moves, ...getQueenMoves(board, r, c)]
+      }
+    }
+  }
+}
+
+export const getLegalMoves = (board, player, gameState) => {
+  const [kingRow, kingCol] = gameState.kingPosition[player]
+  
+  const pawnMoves = getAllPawnMoves(board, player, gameState);
+  const rookMoves = getAllRookMoves(board, player);
+  const knightMoves = getAllKightMoves(board, player);
+  const bishopMoves = getAllBishopMoves(board, player);
+  const queenMoves = getAllQueenMoves(board, player);
+  const kingMoves = getKingMoves(board, kingRow, kingCol, )
+}

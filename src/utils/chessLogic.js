@@ -126,13 +126,12 @@ export function isValidMove(
         return true;
       }
 
+      // Castling
       if (rowDiff === 0 && colDiff === 2) {
-        if (player === 'w'){
-          if (gameState) return
-        } else if (player === 'b'){
-          if (gameState) return
-        }
+        // Check if the king moved
+        if (gameState.kingMoved[player]) return
 
+        // Determine which side we are castling then see if it is legal
         const kingSide = endCol > startCol ? "kingside" : "queenside";
         if (isCastlingLegal(board, player, gameState, kingSide)) {
           return true;
@@ -383,8 +382,4 @@ function boardsEqual(board1, board2) {
     }
   }
   return true;
-}
-
-export const getLegalMoves = (board, player, gameState) => {
-
 }
