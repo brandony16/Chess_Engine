@@ -13,11 +13,11 @@ const getPawnMoves = (board, row, col, player, gameState) => {
   }
 
   // Move 2 squares
-  if ((player === "w" && row === 7) || (player == "b" && row === 1)) {
+  if ((player === "w" && row === 6) || (player == "b" && row === 1)) {
     // Check if pawn is on starting rank and if both squares in front of pawn are clear
     if (
       board[row + direction][col] === "-" &&
-      board[row + direction * 2][col] === "-"
+      board[row + (direction * 2)][col] === "-"
     ) {
       moves.push([
         [row, col],
@@ -75,8 +75,18 @@ const getPawnMoves = (board, row, col, player, gameState) => {
   if (gameState.enPassant) {
     const enPassantRow = Math.floor(gameState.enPassant / 8);
     const enPassantCol = gameState.enPassant % 8;
-
-    moves.push([enPassantRow, enPassantCol]);
+    console.log('enpassant check started')
+    if (Math.abs(col - enPassantCol) === 1) {
+      console.log('first check passed', enPassantRow, enPassantCol )
+      if (player === 'w' && (row - enPassantRow) === -1) {
+        console.log('player white, second check passed')
+        moves.push([[row, col], [enPassantRow, enPassantCol]]);
+      }
+      if (player === 'b' && (row - enPassantRow) === 1) {
+        console.log('player black, second check passed')
+        moves.push([[row, col], [enPassantRow, enPassantCol]]);
+      }
+    }
   }
 
   return moves;
@@ -91,10 +101,10 @@ const getRookMoves = (board, row, col) => {
   ];
   const moves = [];
 
-  for (let i = 0; i < directions.length; i++) {
+  for (const dir of directions) {
     // Add dir[0] & dir[1] to not include starting square
-    let currRow = row + directions[i][0];
-    let currCol = col + directions[i][1];
+    let currRow = row + dir[0];
+    let currCol = col + dir[1];
     while (
       currRow >= 0 &&
       currRow < 8 &&
@@ -107,8 +117,8 @@ const getRookMoves = (board, row, col) => {
         [currRow, currCol],
       ]);
 
-      currRow += directions[i][0];
-      currCol += directions[i][1];
+      currRow += dir[0];
+      currCol += dir[1];
     }
   }
   return moves;
@@ -128,7 +138,7 @@ const getKnightMoves = (board, row, col) => {
   ];
   const moves = [];
 
-  for (const move in baseMoves) {
+  for (const move of baseMoves) {
     const newRow = row + move[0];
     const newCol = col + move[1];
 
@@ -159,7 +169,7 @@ const getBishopMoves = (board, row, col) => {
 
   const moves = [];
 
-  for (const dir in directions) {
+  for (const dir of directions) {
     // Add dir[0] & dir[1] to not include starting square
     let currRow = row + dir[0];
     let currCol = col + dir[1];
@@ -198,7 +208,7 @@ const getQueenMoves = (board, row, col) => {
 
   const moves = [];
 
-  for (const dir in directions) {
+  for (const dir of directions) {
     // Add dir[0] & dir[1] to not include starting square
     let currRow = row + dir[0];
     let currCol = col + dir[1];
@@ -239,7 +249,7 @@ const getKingMoves = (board, row, col, player, gameState) => {
 
   const moves = [];
 
-  for (const move in baseMoves) {
+  for (const move of baseMoves) {
     const newRow = row + move[0];
     const newCol = col + move[1];
 
@@ -273,7 +283,7 @@ const getKingMoves = (board, row, col, player, gameState) => {
   return moves;
 };
 
-// Get all moces of individual pieces. Dont need king because you can only have one.
+// Get all moves of individual pieces. Dont need king because you can only have one.
 const getAllPawnMoves = (board, player, gameState) => {
   let moves = [];
   const piece = player === "w" ? "P" : "p";
@@ -345,7 +355,9 @@ const getAllQueenMoves = (board, player) => {
   return moves;
 };
 
-export const getLegalMoves = (board, player, gameState) => {
+import { isValidMoveWithCheck } from "./chessLogic";
+
+export const getAllMoves = (board, player, gameState) => {
   // Determine where the king is
   const [kingRow, kingCol] = gameState.kingPosition[player];
 
@@ -357,6 +369,22 @@ export const getLegalMoves = (board, player, gameState) => {
   const queenMoves = getAllQueenMoves(board, player);
   const kingMoves = getKingMoves(board, kingRow, kingCol, player, gameState);
 
+/*
+  console.log(player + ' moves: ')
+  console.log("Pawn Moves: ")
+  console.log(pawnMoves)
+  console.log("Rook Moves: ")
+  console.log(rookMoves)
+  console.log("Knight Moves: ")
+  console.log(knightMoves)
+  console.log("Bishop Moves: ")
+  console.log(bishopMoves)
+  console.log("Queen Moves: ")
+  console.log(queenMoves)
+  console.log("King Moves: ")
+  console.log(kingMoves)
+*/  
+  
   // Combine all moves into one array
   const allMoves = [
     ...pawnMoves,
@@ -367,5 +395,18 @@ export const getLegalMoves = (board, player, gameState) => {
     ...kingMoves,
   ];
 
-  return allMoves;
+  // Filter out invalid moves. Mainly those that put the king in check
+  const validMoves = allMoves.filter(move =>
+    isValidMoveWithCheck(
+      board,
+      move[0][0], // Start row
+      move[0][1], // Start col
+      move[1][0], // End row
+      move[1][1], // End col
+      player,
+      gameState
+    )
+  );
+
+  return validMoves;
 };

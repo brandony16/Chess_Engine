@@ -6,7 +6,7 @@ import PromotionModal from "./PromotionModal";
 import Sidebar from "./Sidebar";
 import "./UI.css"
 
-import { getLegalMoves } from "../utils/pieceMoves";
+import { getAllMoves } from "../utils/pieceMoves";
 
 const Game = () => {
   const [board, setBoard] = useState(initializeBoard());
@@ -33,7 +33,6 @@ const Game = () => {
   });
 
   const handleSquareClick = (row, col) => {
-    console.log(getLegalMoves(board, currPlayer, gameState))
     if (gameState.gameOver) return;
     
     setPromotion(null);
@@ -142,7 +141,7 @@ const Game = () => {
         if (isGameOver(board, currPlayer, gameState, [...boards, deepCopy]) !== 'none') {
           setGameState({...gameState, gameOver: true, gameEndState: isGameOver(board, currPlayer, gameState, boards)})
         }
-
+        console.log(getAllMoves(board, currPlayer === 'w' ? 'b' : 'w', gameState));      
         setBoards([...boards, deepCopy])
         setBoard(newBoard);
         setCurrPlayer(currPlayer === "w" ? "b" : "w");
