@@ -6,6 +6,8 @@ import PromotionModal from "./PromotionModal";
 import Sidebar from "./Sidebar";
 import "./UI.css"
 
+import { getLegalMoves } from "../utils/pieceMoves";
+
 const Game = () => {
   const [board, setBoard] = useState(initializeBoard());
   const [boards, setBoards] = useState([initializeBoard()]);
@@ -31,6 +33,7 @@ const Game = () => {
   });
 
   const handleSquareClick = (row, col) => {
+    console.log(getLegalMoves(board, currPlayer, gameState))
     if (gameState.gameOver) return;
     
     setPromotion(null);

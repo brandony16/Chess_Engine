@@ -188,7 +188,7 @@ const diagIsClear = (board, startRow, startCol, endRow, endCol) => {
   return true;
 };
 
-function isCastlingLegal(board, player, gameState, side) {
+export function isCastlingLegal(board, player, gameState, side) {
   const kingRow = player === "w" ? 7 : 0;
   const rookCol = side === "kingside" ? 7 : 0;
   const kingCol = 4;

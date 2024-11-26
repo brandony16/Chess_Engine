@@ -12,8 +12,7 @@ Currently, two official plugins are available:
 
 
 # TO-DO
-- DONE - Fix Castling Not Working 
-- DONE - Get En Passant Moves when getting all legal moves
-- Implement Castling logic into king moves function
+- DONE - Implement Castling logic into king moves function
+- Complete getLegalMoves function
 - Prune all moves that leave the king in check
 - Develop A Basic Material-Based Evaluation Function
