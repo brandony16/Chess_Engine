@@ -357,7 +357,7 @@ const getAllQueenMoves = (board, player) => {
 
 import { isValidMoveWithCheck } from "./chessLogic";
 
-export const getAllMoves = (board, player, gameState) => {
+export const getLegalMoves = (board, player, gameState) => {
   // Determine where the king is
   const [kingRow, kingCol] = gameState.kingPosition[player];
 
