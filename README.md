@@ -12,7 +12,6 @@ Currently, two official plugins are available:
 
 
 # TO-DO
-- DONE - Implement Castling logic into king moves function
-- Complete getLegalMoves function
+- Fix move getting functions not finding captures
 - Prune all moves that leave the king in check
 - Develop A Basic Material-Based Evaluation Function

@@ -75,15 +75,12 @@ const getPawnMoves = (board, row, col, player, gameState) => {
   if (gameState.enPassant) {
     const enPassantRow = Math.floor(gameState.enPassant / 8);
     const enPassantCol = gameState.enPassant % 8;
-    console.log('enpassant check started')
+
     if (Math.abs(col - enPassantCol) === 1) {
-      console.log('first check passed', enPassantRow, enPassantCol )
       if (player === 'w' && (row - enPassantRow) === -1) {
-        console.log('player white, second check passed')
         moves.push([[row, col], [enPassantRow, enPassantCol]]);
       }
       if (player === 'b' && (row - enPassantRow) === 1) {
-        console.log('player black, second check passed')
         moves.push([[row, col], [enPassantRow, enPassantCol]]);
       }
     }
@@ -119,6 +116,7 @@ const getRookMoves = (board, row, col) => {
 
       currRow += dir[0];
       currCol += dir[1];
+
     }
   }
   return moves;
@@ -369,7 +367,7 @@ export const getLegalMoves = (board, player, gameState) => {
   const queenMoves = getAllQueenMoves(board, player);
   const kingMoves = getKingMoves(board, kingRow, kingCol, player, gameState);
 
-/*
+///*
   console.log(player + ' moves: ')
   console.log("Pawn Moves: ")
   console.log(pawnMoves)
@@ -383,7 +381,7 @@ export const getLegalMoves = (board, player, gameState) => {
   console.log(queenMoves)
   console.log("King Moves: ")
   console.log(kingMoves)
-*/  
+//*/  
   
   // Combine all moves into one array
   const allMoves = [

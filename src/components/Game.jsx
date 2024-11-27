@@ -1,13 +1,11 @@
 import Board from "./Board";
 import { initializeBoard } from "../utils/chessLogic";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { isValidMoveWithCheck, isGameOver } from "../utils/chessLogic";
-import { getBestMove } from "./Engine/Bondmonkey";
+import { getBestMove } from "./Engines/Bondmonkey_V2";
 import PromotionModal from "./PromotionModal";
 import Sidebar from "./Sidebar";
 import "./UI.css";
-
-import { getLegalMoves } from "../utils/pieceMoves";
 
 const Game = () => {
   const [board, setBoard] = useState(initializeBoard());
@@ -36,7 +34,7 @@ const Game = () => {
 
   const makeEngineMove = () => {
     // Get best move in the position
-    const bestMove = getBestMove(board, currPlayer, gameState);
+    const bestMove = getBestMove(board, currPlayer, gameState, 1);
 
     // Extract both squares in the move
     const [fromRow, fromCol] = bestMove[0];
@@ -257,9 +255,7 @@ const Game = () => {
             gameEndState: isGameOver(board, currPlayer, gameState, boards),
           });
         }
-        console.log(
-          getLegalMoves(board, currPlayer === "w" ? "b" : "w", gameState)
-        );
+
         setBoards([...boards, deepCopy]);
         setBoard(newBoard);
         setCurrPlayer(currPlayer === "w" ? "b" : "w");
@@ -318,6 +314,12 @@ const Game = () => {
       gameEndState: "none",
     });
   };
+
+  useEffect(() => {
+    if (currPlayer !== userSide && !gameState.gameOver) {
+      makeEngineMove();
+    }
+  }, [currPlayer, userSide, gameState, board])
 
   return (
     <div className="body">
