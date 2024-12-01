@@ -34,7 +34,7 @@ const Game = () => {
 
   const makeEngineMove = () => {
     // Get best move in the position
-    const bestMove = getBestMove(board, currPlayer, gameState, 1);
+    const bestMove = getBestMove(board, currPlayer, gameState, 2);
 
     // Extract both squares in the move
     const [fromRow, fromCol] = bestMove[0];

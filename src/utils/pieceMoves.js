@@ -17,7 +17,7 @@ const getPawnMoves = (board, row, col, player, gameState) => {
     // Check if pawn is on starting rank and if both squares in front of pawn are clear
     if (
       board[row + direction][col] === "-" &&
-      board[row + (direction * 2)][col] === "-"
+      board[row + direction * 2][col] === "-"
     ) {
       moves.push([
         [row, col],
@@ -77,11 +77,17 @@ const getPawnMoves = (board, row, col, player, gameState) => {
     const enPassantCol = gameState.enPassant % 8;
 
     if (Math.abs(col - enPassantCol) === 1) {
-      if (player === 'w' && (row - enPassantRow) === -1) {
-        moves.push([[row, col], [enPassantRow, enPassantCol]]);
+      if (player === "w" && row - enPassantRow === -1) {
+        moves.push([
+          [row, col],
+          [enPassantRow, enPassantCol],
+        ]);
       }
-      if (player === 'b' && (row - enPassantRow) === 1) {
-        moves.push([[row, col], [enPassantRow, enPassantCol]]);
+      if (player === "b" && row - enPassantRow === 1) {
+        moves.push([
+          [row, col],
+          [enPassantRow, enPassantCol],
+        ]);
       }
     }
   }
@@ -89,7 +95,7 @@ const getPawnMoves = (board, row, col, player, gameState) => {
   return moves;
 };
 
-const getRookMoves = (board, row, col) => {
+const getRookMoves = (board, row, col, player) => {
   const directions = [
     [0, 1],
     [0, -1],
@@ -102,28 +108,42 @@ const getRookMoves = (board, row, col) => {
     // Add dir[0] & dir[1] to not include starting square
     let currRow = row + dir[0];
     let currCol = col + dir[1];
-    while (
-      currRow >= 0 &&
-      currRow < 8 &&
-      currCol >= 0 &&
-      currCol < 8 &&
-      board[currRow][currCol] === "-"
-    ) {
-      moves.push([
-        [row, col],
-        [currRow, currCol],
-      ]);
+
+    const opponentPieces = player === "w" ? "pnbrqk" : "PNBRQK";
+
+    while (currRow >= 0 && currRow < 8 && currCol >= 0 && currCol < 8) {
+      const target = board[currRow][currCol];
+
+      // Check if square is empty
+      if (target === "-") {
+        moves.push([
+          [row, col],
+          [currRow, currCol],
+        ]);
+      }
+
+      // Check if the target is an enemy piece
+      if (opponentPieces.includes(target)) {
+        moves.push([
+          [row, col],
+          [currRow, currCol],
+        ]);
+      }
+
+      // If the target is not empty and not an enemy piece, it is a friendly piece and the loop stops.
+      if (target !== "-" && !opponentPieces.includes(target)) {
+        break;
+      }
 
       currRow += dir[0];
       currCol += dir[1];
-
     }
   }
   return moves;
 };
 
-const getKnightMoves = (board, row, col) => {
-  // Knight can move 2 in one direction and 1 in the other in and way. These moves repesent that
+const getKnightMoves = (board, row, col, player) => {
+  // Knight can move 2 in one direction and 1 in the other in any way
   const baseMoves = [
     [2, 1],
     [2, -1],
@@ -136,28 +156,32 @@ const getKnightMoves = (board, row, col) => {
   ];
   const moves = [];
 
+  // Determine opponent pieces based on player
+  const opponentPieces = player === "w" ? "pnbrqk" : "PNBRQK";
+
   for (const move of baseMoves) {
     const newRow = row + move[0];
     const newCol = col + move[1];
 
-    if (
-      0 <= newRow &&
-      newRow < 8 &&
-      0 <= newCol &&
-      newCol < 8 &&
-      board[newRow][newCol] === "-"
-    ) {
-      moves.push([
-        [row, col],
-        [newRow, newCol],
-      ]);
+    // Check if within bounds
+    if (0 <= newRow && newRow < 8 && 0 <= newCol && newCol < 8) {
+      const targetCell = board[newRow][newCol];
+
+      // Check if square is empty
+      if (targetCell === "-") {
+        moves.push([[row, col], [newRow, newCol]]);
+      }
+      // Check if target cell contains an opponent's piece
+      if (opponentPieces.includes(targetCell)) {
+        moves.push([[row, col], [newRow, newCol]]);
+      }
     }
   }
 
   return moves;
 };
 
-const getBishopMoves = (board, row, col) => {
+const getBishopMoves = (board, row, col, player) => {
   const directions = [
     [1, 1],
     [1, -1],
@@ -172,17 +196,31 @@ const getBishopMoves = (board, row, col) => {
     let currRow = row + dir[0];
     let currCol = col + dir[1];
 
-    while (
-      0 <= currRow &&
-      currRow < 8 &&
-      0 <= currCol &&
-      currCol < 8 &&
-      board[currRow][currCol] === "-"
-    ) {
-      moves.push([
-        [row, col],
-        [currRow, currCol],
-      ]);
+    const opponentPieces = player === "w" ? "pnbrqk" : "PNBRQK";
+
+    while (currRow >= 0 && currRow < 8 && currCol >= 0 && currCol < 8) {
+      const target = board[currRow][currCol];
+
+      // Check if square is empty
+      if (target === "-") {
+        moves.push([
+          [row, col],
+          [currRow, currCol],
+        ]);
+      }
+
+      // Check if the target is an enemy piece
+      if (opponentPieces.includes(target)) {
+        moves.push([
+          [row, col],
+          [currRow, currCol],
+        ]);
+      }
+
+      // If the target is not empty and not an enemy piece, it is a friendly piece and the loop stops.
+      if (target !== "-" && !opponentPieces.includes(target)) {
+        break;
+      }
 
       currRow += dir[0];
       currCol += dir[1];
@@ -192,7 +230,7 @@ const getBishopMoves = (board, row, col) => {
   return moves;
 };
 
-const getQueenMoves = (board, row, col) => {
+const getQueenMoves = (board, row, col, player) => {
   const directions = [
     [1, 1],
     [1, -1],
@@ -211,17 +249,31 @@ const getQueenMoves = (board, row, col) => {
     let currRow = row + dir[0];
     let currCol = col + dir[1];
 
-    while (
-      0 <= currRow &&
-      currRow < 8 &&
-      0 <= currCol &&
-      currCol < 8 &&
-      board[currRow][currCol] === "-"
-    ) {
-      moves.push([
-        [row, col],
-        [currRow, currCol],
-      ]);
+    const opponentPieces = player === "w" ? "pnbrqk" : "PNBRQK";
+
+    while (currRow >= 0 && currRow < 8 && currCol >= 0 && currCol < 8) {
+      const target = board[currRow][currCol];
+
+      // Check if square is empty
+      if (target === "-") {
+        moves.push([
+          [row, col],
+          [currRow, currCol],
+        ]);
+      }
+
+      // Check if the target is an enemy piece
+      if (opponentPieces.includes(target)) {
+        moves.push([
+          [row, col],
+          [currRow, currCol],
+        ]);
+      }
+
+      // If the target is not empty and not an enemy piece, it is a friendly piece and the loop stops.
+      if (target !== "-" && !opponentPieces.includes(target)) {
+        break;
+      }
 
       currRow += dir[0];
       currCol += dir[1];
@@ -248,20 +300,29 @@ const getKingMoves = (board, row, col, player, gameState) => {
   const moves = [];
 
   for (const move of baseMoves) {
-    const newRow = row + move[0];
-    const newCol = col + move[1];
+    const currRow = row + move[0];
+    const currCol = col + move[1];
 
-    if (
-      0 <= newRow &&
-      newRow < 8 &&
-      0 <= newCol &&
-      newCol < 8 &&
-      board[newRow][newCol] === "-"
-    ) {
-      moves.push([
-        [row, col],
-        [newRow, newCol],
-      ]);
+    const opponentPieces = player === "w" ? "pnbrqk" : "PNBRQK";
+
+    if (currRow >= 0 && currRow < 8 && currCol >= 0 && currCol < 8) {
+      const target = board[currRow][currCol];
+
+      // Check if square is empty
+      if (target === "-") {
+        moves.push([
+          [row, col],
+          [currRow, currCol],
+        ]);
+      }
+
+      // Check if the target is an enemy piece
+      if (opponentPieces.includes(target)) {
+        moves.push([
+          [row, col],
+          [currRow, currCol],
+        ]);
+      }
     }
   }
 
@@ -296,6 +357,7 @@ const getAllPawnMoves = (board, player, gameState) => {
 
   return moves;
 };
+
 const getAllRookMoves = (board, player) => {
   let moves = [];
   const piece = player === "w" ? "R" : "r";
@@ -310,6 +372,7 @@ const getAllRookMoves = (board, player) => {
 
   return moves;
 };
+
 const getAllKightMoves = (board, player) => {
   let moves = [];
   const piece = player === "w" ? "N" : "n";
@@ -317,13 +380,14 @@ const getAllKightMoves = (board, player) => {
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       if (board[r][c] === piece) {
-        moves = [...moves, ...getKnightMoves(board, r, c)];
+        moves = [...moves, ...getKnightMoves(board, r, c, player)];
       }
     }
   }
 
   return moves;
 };
+
 const getAllBishopMoves = (board, player) => {
   let moves = [];
   const piece = player === "w" ? "B" : "b";
@@ -331,13 +395,14 @@ const getAllBishopMoves = (board, player) => {
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       if (board[r][c] === piece) {
-        moves = [...moves, ...getBishopMoves(board, r, c)];
+        moves = [...moves, ...getBishopMoves(board, r, c, player)];
       }
     }
   }
 
   return moves;
 };
+
 const getAllQueenMoves = (board, player) => {
   let moves = [];
   const piece = player === "w" ? "Q" : "q";
@@ -345,7 +410,7 @@ const getAllQueenMoves = (board, player) => {
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       if (board[r][c] === piece) {
-        moves = [...moves, ...getQueenMoves(board, r, c)];
+        moves = [...moves, ...getQueenMoves(board, r, c, player)];
       }
     }
   }
@@ -367,22 +432,22 @@ export const getLegalMoves = (board, player, gameState) => {
   const queenMoves = getAllQueenMoves(board, player);
   const kingMoves = getKingMoves(board, kingRow, kingCol, player, gameState);
 
-///*
-  console.log(player + ' moves: ')
-  console.log("Pawn Moves: ")
-  console.log(pawnMoves)
-  console.log("Rook Moves: ")
-  console.log(rookMoves)
-  console.log("Knight Moves: ")
-  console.log(knightMoves)
-  console.log("Bishop Moves: ")
-  console.log(bishopMoves)
-  console.log("Queen Moves: ")
-  console.log(queenMoves)
-  console.log("King Moves: ")
-  console.log(kingMoves)
-//*/  
-  
+
+  // console.log(player + " moves: ");
+  // console.log("Pawn Moves: ");
+  // console.log(pawnMoves);
+  // console.log("Rook Moves: ");
+  // console.log(rookMoves);
+  // console.log("Knight Moves: ");
+  // console.log(knightMoves);
+  // console.log("Bishop Moves: ");
+  // console.log(bishopMoves);
+  // console.log("Queen Moves: ");
+  // console.log(queenMoves);
+  // console.log("King Moves: ");
+  // console.log(kingMoves);
+
+
   // Combine all moves into one array
   const allMoves = [
     ...pawnMoves,
@@ -394,7 +459,7 @@ export const getLegalMoves = (board, player, gameState) => {
   ];
 
   // Filter out invalid moves. Mainly those that put the king in check
-  const validMoves = allMoves.filter(move =>
+  const validMoves = allMoves.filter((move) =>
     isValidMoveWithCheck(
       board,
       move[0][0], // Start row
