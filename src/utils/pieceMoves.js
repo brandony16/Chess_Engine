@@ -285,7 +285,7 @@ const getQueenMoves = (board, row, col, player) => {
 
 import { isCastlingLegal } from "./chessLogic";
 
-const getKingMoves = (board, row, col, player, gameState) => {
+export const getKingMoves = (board, row, col, player, gameState) => {
   const baseMoves = [
     [1, 1],
     [1, -1],
@@ -343,7 +343,7 @@ const getKingMoves = (board, row, col, player, gameState) => {
 };
 
 // Get all moves of individual pieces. Dont need king because you can only have one.
-const getAllPawnMoves = (board, player, gameState) => {
+export const getAllPawnMoves = (board, player, gameState) => {
   let moves = [];
   const piece = player === "w" ? "P" : "p";
 
@@ -358,7 +358,7 @@ const getAllPawnMoves = (board, player, gameState) => {
   return moves;
 };
 
-const getAllRookMoves = (board, player) => {
+export const getAllRookMoves = (board, player) => {
   let moves = [];
   const piece = player === "w" ? "R" : "r";
 
@@ -373,7 +373,7 @@ const getAllRookMoves = (board, player) => {
   return moves;
 };
 
-const getAllKightMoves = (board, player) => {
+export const getAllKnightMoves = (board, player) => {
   let moves = [];
   const piece = player === "w" ? "N" : "n";
 
@@ -388,7 +388,7 @@ const getAllKightMoves = (board, player) => {
   return moves;
 };
 
-const getAllBishopMoves = (board, player) => {
+export const getAllBishopMoves = (board, player) => {
   let moves = [];
   const piece = player === "w" ? "B" : "b";
 
@@ -403,7 +403,7 @@ const getAllBishopMoves = (board, player) => {
   return moves;
 };
 
-const getAllQueenMoves = (board, player) => {
+export const getAllQueenMoves = (board, player) => {
   let moves = [];
   const piece = player === "w" ? "Q" : "q";
 
@@ -427,26 +427,10 @@ export const getLegalMoves = (board, player, gameState) => {
   // Get all moves
   const pawnMoves = getAllPawnMoves(board, player, gameState);
   const rookMoves = getAllRookMoves(board, player);
-  const knightMoves = getAllKightMoves(board, player);
+  const knightMoves = getAllKnightMoves(board, player);
   const bishopMoves = getAllBishopMoves(board, player);
   const queenMoves = getAllQueenMoves(board, player);
   const kingMoves = getKingMoves(board, kingRow, kingCol, player, gameState);
-
-
-  // console.log(player + " moves: ");
-  // console.log("Pawn Moves: ");
-  // console.log(pawnMoves);
-  // console.log("Rook Moves: ");
-  // console.log(rookMoves);
-  // console.log("Knight Moves: ");
-  // console.log(knightMoves);
-  // console.log("Bishop Moves: ");
-  // console.log(bishopMoves);
-  // console.log("Queen Moves: ");
-  // console.log(queenMoves);
-  // console.log("King Moves: ");
-  // console.log(kingMoves);
-
 
   // Combine all moves into one array
   const allMoves = [

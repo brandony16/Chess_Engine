@@ -12,6 +12,4 @@ Currently, two official plugins are available:
 
 
 # TO-DO
-- Fix move getting functions not finding captures
-- Prune all moves that leave the king in check
 - Develop A Basic Material-Based Evaluation Function
