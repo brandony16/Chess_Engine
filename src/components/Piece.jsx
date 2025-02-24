@@ -1,3 +1,6 @@
+/* 
+  Returns an image of the piece specified
+*/
 const Piece = ({ type }) => {
   const pieceImages = {
     r: "BlackRook.png",

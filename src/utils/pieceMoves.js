@@ -1,4 +1,9 @@
-// Get moves for individual pieces
+import { isCastlingLegal } from "./chessLogic";
+import { isValidMoveWithCheck } from "./chessLogic";
+
+/*
+ Get all moves for a specific piece not considering checks
+*/
 const getPawnMoves = (board, row, col, player, gameState) => {
   const direction = player === "w" ? -1 : 1;
 
@@ -27,7 +32,7 @@ const getPawnMoves = (board, row, col, player, gameState) => {
   }
 
   // Capture
-  // Only proceed if the col is between 0 and 7
+  // Only proceed if the capture col is in the board (between 0 and 7) 
   if (col + 1 <= 7) {
     const rightSquare = board[row + direction][col + 1];
     if (rightSquare !== "-") {
@@ -130,8 +135,8 @@ const getRookMoves = (board, row, col, player) => {
         ]);
       }
 
-      // If the target is not empty and not an enemy piece, it is a friendly piece and the loop stops.
-      if (target !== "-" && !opponentPieces.includes(target)) {
+      // If the target square is not empty, the loop stops because rooks cannot go through pieces.
+      if (target !== "-") {
         break;
       }
 
@@ -167,12 +172,8 @@ const getKnightMoves = (board, row, col, player) => {
     if (0 <= newRow && newRow < 8 && 0 <= newCol && newCol < 8) {
       const targetCell = board[newRow][newCol];
 
-      // Check if square is empty
-      if (targetCell === "-") {
-        moves.push([[row, col], [newRow, newCol]]);
-      }
-      // Check if target cell contains an opponent's piece
-      if (opponentPieces.includes(targetCell)) {
+      // Check if square is empty or is an enemy piece
+      if (targetCell === "-" || opponentPieces.includes(targetCell)) {
         moves.push([[row, col], [newRow, newCol]]);
       }
     }
@@ -217,8 +218,8 @@ const getBishopMoves = (board, row, col, player) => {
         ]);
       }
 
-      // If the target is not empty and not an enemy piece, it is a friendly piece and the loop stops.
-      if (target !== "-" && !opponentPieces.includes(target)) {
+      // If the target is not empty, the loop stops as bishops cannot hop over other pieces
+      if (target !== "-") {
         break;
       }
 
@@ -231,6 +232,7 @@ const getBishopMoves = (board, row, col, player) => {
 };
 
 const getQueenMoves = (board, row, col, player) => {
+  // Rook + Bishop directions combined
   const directions = [
     [1, 1],
     [1, -1],
@@ -270,8 +272,8 @@ const getQueenMoves = (board, row, col, player) => {
         ]);
       }
 
-      // If the target is not empty and not an enemy piece, it is a friendly piece and the loop stops.
-      if (target !== "-" && !opponentPieces.includes(target)) {
+      // If the target is not empty, the loop stops as queens cannot hop over other pieces
+      if (target !== "-") {
         break;
       }
 
@@ -282,8 +284,6 @@ const getQueenMoves = (board, row, col, player) => {
 
   return moves;
 };
-
-import { isCastlingLegal } from "./chessLogic";
 
 export const getKingMoves = (board, row, col, player, gameState) => {
   const baseMoves = [
@@ -305,6 +305,7 @@ export const getKingMoves = (board, row, col, player, gameState) => {
 
     const opponentPieces = player === "w" ? "pnbrqk" : "PNBRQK";
 
+    // Check if king is on board after the move
     if (currRow >= 0 && currRow < 8 && currCol >= 0 && currCol < 8) {
       const target = board[currRow][currCol];
 
@@ -342,7 +343,7 @@ export const getKingMoves = (board, row, col, player, gameState) => {
   return moves;
 };
 
-// Get all moves of individual pieces. Dont need king because you can only have one.
+// Get all moves of types pieces. Dont need king because you can only have one.
 export const getAllPawnMoves = (board, player, gameState) => {
   let moves = [];
   const piece = player === "w" ? "P" : "p";
@@ -418,13 +419,10 @@ export const getAllQueenMoves = (board, player) => {
   return moves;
 };
 
-import { isValidMoveWithCheck } from "./chessLogic";
-
+// Gets all legal moves in the position. Filters out those that put the king in check, etc.
 export const getLegalMoves = (board, player, gameState) => {
-  // Determine where the king is
   const [kingRow, kingCol] = gameState.kingPosition[player];
 
-  // Get all moves
   const pawnMoves = getAllPawnMoves(board, player, gameState);
   const rookMoves = getAllRookMoves(board, player);
   const knightMoves = getAllKnightMoves(board, player);
@@ -432,7 +430,6 @@ export const getLegalMoves = (board, player, gameState) => {
   const queenMoves = getAllQueenMoves(board, player);
   const kingMoves = getKingMoves(board, kingRow, kingCol, player, gameState);
 
-  // Combine all moves into one array
   const allMoves = [
     ...pawnMoves,
     ...rookMoves,
@@ -442,7 +439,7 @@ export const getLegalMoves = (board, player, gameState) => {
     ...kingMoves,
   ];
 
-  // Filter out invalid moves. Mainly those that put the king in check
+  // Filter out invalid moves. Mainly those that put the king in check.
   const validMoves = allMoves.filter((move) =>
     isValidMoveWithCheck(
       board,

@@ -7,9 +7,11 @@ import PromotionModal from "./PromotionModal";
 import Sidebar from "./Sidebar";
 import "./UI.css";
 
+// Runs the game
 const Game = () => {
+  // STATES
   const [board, setBoard] = useState(initializeBoard());
-  const [boards, setBoards] = useState([initializeBoard()]);
+  const [boards, setBoards] = useState([initializeBoard()]); 
   const [currPlayer, setCurrPlayer] = useState("w");
   const [userSide, setUserSide] = useState("w");
   const [selectedPiece, setSelectedPiece] = useState(null);
@@ -32,20 +34,21 @@ const Game = () => {
     gameEndState: "none",
   });
 
+  // FUNCTIONS
+
+  // Gets the engine move then plays it
   const makeEngineMove = () => {
-    // Get best move in the position
     const bestMove = getBestMove(board, currPlayer, gameState, 2);
 
-    // Extract both squares in the move
     const [fromRow, fromCol] = bestMove[0];
     const [toRow, toCol] = bestMove[1];
 
-    // Make move
     const newBoard = [...board];
     newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
     newBoard[fromRow][fromCol] = "-";
 
     const piece = newBoard[toRow][toCol];
+
     // UPDATE GAME STATE
     // Updates En Passant
     if (piece.toLowerCase() === "p" && Math.abs(toRow - fromRow) === 2) {
@@ -102,7 +105,7 @@ const Game = () => {
         });
       }
     }
-    // Update if rook moved from starting square for black
+    // Update if rook moved from starting square for white
     if (piece === "R") {
       if (fromRow === 7 && fromCol === 0) {
         setGameState({
@@ -123,7 +126,7 @@ const Game = () => {
         });
       }
     }
-    // Check if game is now over
+    // Check if game is over and updates state if it is
     const deepCopy = newBoard.map((row) => [...row]);
     if (
       isGameOver(board, currPlayer, gameState, [...boards, deepCopy]) !== "none"
@@ -139,11 +142,10 @@ const Game = () => {
     setCurrPlayer(currPlayer === "w" ? "b" : "w");
   };
 
+  // Handles when a square is clicked
   const handleSquareClick = (row, col) => {
     if (gameState.gameOver) return;
 
-    setPromotion(null);
-    setSelectedPiece(null);
     // Update selected piece instantly when clicking pieces of the same color so you dont have to double click to deselect then select
     const target = board[row][col];
     if (
@@ -162,7 +164,8 @@ const Game = () => {
       setSelectedPiece([row, col]);
       return;
     }
-
+    
+    // If a piece is selected, move there if legal
     if (selectedPiece) {
       const [selectedRow, selectedCol] = selectedPiece;
       if (
@@ -178,6 +181,7 @@ const Game = () => {
       ) {
         const newBoard = [...board];
         const piece = board[selectedRow][selectedCol];
+
         // Check for promotion
         if (piece.toLowerCase() === "p" && (row === 0 || row === 7)) {
           setPromotion({
@@ -186,8 +190,16 @@ const Game = () => {
           });
           return;
         }
+        
+        // If castling, set corresponding board, else move normally
+        if (piece.toLowerCase() === "k" && Math.abs(selectedCol - col) === 2) {
+          handleCastle(newBoard, row, col, selectedRow, selectedCol);
+        } else {
+          newBoard[row][col] = newBoard[selectedRow][selectedCol];
+          newBoard[selectedRow][selectedCol] = "-";
+        }
 
-        // Handle en passant capture
+        // Remove enemy piece if en passant capture
         if (
           piece.toLowerCase() === "p" &&
           Math.abs(selectedRow - row) === 1 &&
@@ -198,33 +210,7 @@ const Game = () => {
           newBoard[enPassantRow][col] = "-";
         }
 
-        // Handle castling
-        if (piece.toLowerCase() === "k" && Math.abs(selectedCol - col) === 2) {
-          const rookStartCol = col > selectedCol ? 7 : 0;
-          const rookEndCol = col > selectedCol ? col - 1 : col + 1;
-
-          newBoard[row][rookEndCol] = newBoard[row][rookStartCol];
-          newBoard[row][rookStartCol] = "-";
-          newBoard[row][col] = newBoard[selectedRow][selectedCol];
-          newBoard[selectedRow][selectedCol] = "-";
-
-          const side = col > selectedCol ? "kingside" : "queenside";
-          setGameState({
-            ...gameState,
-            kingMoved: { ...gameState.kingMoved, [currPlayer]: true },
-            rookMoved: {
-              ...gameState.rookMoved,
-              [currPlayer]: {
-                ...gameState.rookMoved[currPlayer],
-                [side]: true,
-              },
-            },
-          });
-        } else {
-          newBoard[row][col] = newBoard[selectedRow][selectedCol];
-          newBoard[selectedRow][selectedCol] = "-";
-        }
-
+        // Sets en passant row if pawn moves 2 squares, clears en passant row if it doesn't
         if (piece.toLowerCase() === "p" && Math.abs(selectedRow - row) === 2) {
           const enPassantRow = currPlayer === "w" ? row + 1 : row - 1;
           // Multiplying row by 8 then adding the col creates a unique identifier number for each square
@@ -232,7 +218,8 @@ const Game = () => {
         } else {
           setGameState({ ...gameState, enPassant: null });
         }
-        // Updates king position
+
+        // Updates king position if king moved
         if (piece.toLowerCase() === "k") {
           setGameState({
             ...gameState,
@@ -244,6 +231,7 @@ const Game = () => {
           });
         }
 
+        // Update state if game is over
         const deepCopy = newBoard.map((row) => [...row]);
         if (
           isGameOver(board, currPlayer, gameState, [...boards, deepCopy]) !==
@@ -255,15 +243,18 @@ const Game = () => {
             gameEndState: isGameOver(board, currPlayer, gameState, boards),
           });
         }
-
+        
+        // Update states
         setBoards([...boards, deepCopy]);
         setBoard(newBoard);
         setCurrPlayer(currPlayer === "w" ? "b" : "w");
       }
 
+      // If not a valid move, deselect the piece
       setSelectedPiece(null);
     } else {
       const piece = board[row][col];
+      // Selects the piece if no piece is selected
       if (
         piece !== "-" &&
         ((currPlayer === "b" && piece === piece.toLowerCase()) ||
@@ -274,6 +265,7 @@ const Game = () => {
     }
   };
 
+  // Handles a promoting pawn
   const handlePromotion = (newPiece) => {
     const { from, to } = promotion;
     const [fromRow, fromCol] = from;
@@ -289,6 +281,7 @@ const Game = () => {
     setCurrPlayer(currPlayer === "w" ? "b" : "w");
   };
 
+  // Resets the game
   const resetGame = () => {
     setBoard(initializeBoard());
     setBoards([initializeBoard()]);
@@ -315,6 +308,31 @@ const Game = () => {
     });
   };
 
+  // Handles castling
+  const handleCastle = (newBoard, row, col, selectedRow, selectedCol) => {
+    const rookStartCol = col > selectedCol ? 7 : 0;
+    const rookEndCol = col > selectedCol ? col - 1 : col + 1;
+
+    newBoard[row][rookEndCol] = newBoard[row][rookStartCol];
+    newBoard[row][rookStartCol] = "-";
+    newBoard[row][col] = newBoard[selectedRow][selectedCol];
+    newBoard[selectedRow][selectedCol] = "-";
+
+    const side = col > selectedCol ? "kingside" : "queenside";
+    setGameState({
+      ...gameState,
+      kingMoved: { ...gameState.kingMoved, [currPlayer]: true },
+      rookMoved: {
+        ...gameState.rookMoved,
+        [currPlayer]: {
+          ...gameState.rookMoved[currPlayer],
+          [side]: true,
+        },
+      },
+    });
+  }
+
+  // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !gameState.gameOver) {
       makeEngineMove();

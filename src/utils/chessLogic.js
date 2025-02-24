@@ -11,6 +11,7 @@ export function initializeBoard() {
   ];
 }
 
+// Determines whether a move is valid
 export function isValidMove(
   board,
   startRow,
@@ -34,6 +35,7 @@ export function isValidMove(
       const direction = player === "w" ? -1 : 1;
       const startRowForPlayer = player === "w" ? 6 : 1;
 
+      // Move pawn 1 square forward
       if (
         startRow + direction === endRow &&
         startCol === endCol &&
@@ -42,6 +44,7 @@ export function isValidMove(
         return true;
       }
 
+      // Move pawn 2 squares forward
       if (
         startRow === startRowForPlayer &&
         startRow + 2 * direction === endRow &&
@@ -52,6 +55,7 @@ export function isValidMove(
         }
       }
 
+      // Capture a piece
       if (
         startRow + direction === endRow &&
         Math.abs(startCol - endCol) === 1 &&
@@ -60,6 +64,7 @@ export function isValidMove(
         return true;
       }
 
+      // En Passant capture
       if (
         startRow + direction === endRow &&
         Math.abs(startCol - endCol) === 1 &&
@@ -91,30 +96,21 @@ export function isValidMove(
       break;
     }
     case "b": {
-      const rowDiff = Math.abs(startRow - endRow);
-      const colDiff = Math.abs(startCol - endCol);
-
-      if (
-        rowDiff === colDiff &&
-        diagIsClear(board, startRow, startCol, endRow, endCol)
-      ) {
+      if (diagIsClear(board, startRow, startCol, endRow, endCol)) {
         return true;
       }
       break;
     }
     case "q": {
+      // Moving horizontally or vertically
       if (startRow === endRow || startCol === endCol) {
         if (pathIsClear(board, startRow, startCol, endRow, endCol)) {
           return true;
         }
       }
-      const rowDiff = Math.abs(startRow - endRow);
-      const colDiff = Math.abs(startCol - endCol);
 
-      if (
-        rowDiff === colDiff &&
-        diagIsClear(board, startRow, startCol, endRow, endCol)
-      ) {
+      // Moving Diagonally
+      if (diagIsClear(board, startRow, startCol, endRow, endCol)) {
         return true;
       }
       break;
@@ -122,14 +118,15 @@ export function isValidMove(
     case "k": {
       const rowDiff = Math.abs(startRow - endRow);
       const colDiff = Math.abs(startCol - endCol);
+
+      // Moving one square
       if (rowDiff <= 1 && colDiff <= 1) {
         return true;
       }
 
       // Castling
       if (rowDiff === 0 && colDiff === 2) {
-        // Check if the king moved
-        if (gameState.kingMoved[player]) return
+        if (gameState.kingMoved[player]) return;
 
         // Determine which side we are castling then see if it is legal
         const kingSide = endCol > startCol ? "kingside" : "queenside";
@@ -139,9 +136,12 @@ export function isValidMove(
       }
     }
   }
+  return false;
 }
 
+// Determines whether a straignt path from a starting square to an ending square is free of pieces
 const pathIsClear = (board, startRow, startCol, endRow, endCol) => {
+  // Moving horizontally
   if (startRow === endRow) {
     const minCol = Math.min(startCol, endCol);
     const maxCol = Math.max(startCol, endCol);
@@ -152,6 +152,8 @@ const pathIsClear = (board, startRow, startCol, endRow, endCol) => {
       }
     }
   }
+
+  // Moving vertically
   if (startCol === endCol) {
     const maxRow = Math.max(startRow, endRow);
     const minRow = Math.min(startRow, endRow);
@@ -166,7 +168,9 @@ const pathIsClear = (board, startRow, startCol, endRow, endCol) => {
   return true;
 };
 
+// Determines whether a diagonal from the start square to the end square is clear
 const diagIsClear = (board, startRow, startCol, endRow, endCol) => {
+  // Not a diagonal
   if (Math.abs(endRow - startRow) !== Math.abs(endCol - startCol)) {
     return false;
   }
@@ -177,6 +181,7 @@ const diagIsClear = (board, startRow, startCol, endRow, endCol) => {
   let currentRow = startRow + rowDirection;
   let currentCol = startCol + colDirection;
 
+  // Loop until you reach the end square. Don't check the end square
   while (currentRow !== endRow && currentCol !== endCol) {
     if (board[currentRow][currentCol] !== "-") {
       return false;
@@ -188,6 +193,7 @@ const diagIsClear = (board, startRow, startCol, endRow, endCol) => {
   return true;
 };
 
+// Determines whether castling is legal
 export function isCastlingLegal(board, player, gameState, side) {
   const kingRow = player === "w" ? 7 : 0;
   const rookCol = side === "kingside" ? 7 : 0;
@@ -222,6 +228,7 @@ export function isCastlingLegal(board, player, gameState, side) {
   return true;
 }
 
+// Determines whether a square is under attack. Used for checking castling legality
 function isSquareUnderAttack(board, endRow, endCol, player) {
   const otherPlayer = player === "w" ? "b" : "w";
 
@@ -232,7 +239,7 @@ function isSquareUnderAttack(board, endRow, endCol, player) {
       if (
         piece != "-" &&
         (player === "w"
-          ? piece === piece.toLowerCase()
+          ? piece === piece.toLowerCase() // Find pieces of the opposite player
           : piece === piece.toUpperCase())
       ) {
         // See if opponent can move to the square
@@ -245,6 +252,7 @@ function isSquareUnderAttack(board, endRow, endCol, player) {
   return false;
 }
 
+// Determines whether a given king is under attack
 export function isInCheck(board, kingPosition, player, gameState) {
   const [kingRow, kingCol] = kingPosition;
   const otherPlayer = player === "w" ? "b" : "w";
@@ -271,6 +279,7 @@ export function isInCheck(board, kingPosition, player, gameState) {
   return false;
 }
 
+// Determines whether a move is legal considering checks
 export function isValidMoveWithCheck(
   board,
   startRow,
@@ -280,23 +289,22 @@ export function isValidMoveWithCheck(
   player,
   gameState
 ) {
+  const target = board[endRow][endCol];
 
-  const target = board[endRow][endCol]
-  
   // Prevent moving to piece of same color
   if (player === "w" && target !== "-" && target === target.toUpperCase())
     return false;
   if (player === "b" && target !== "-" && target === target.toLowerCase())
     return false;
 
-  // Copy board
-  const boardCopy = JSON.parse(JSON.stringify(board));
   // Simulate move
+  const boardCopy = JSON.parse(JSON.stringify(board));
   boardCopy[endRow][endCol] = boardCopy[startRow][startCol];
   boardCopy[startRow][startCol] = "-";
 
   const piece = board[startRow][startCol];
 
+  // Gets the kings position for the check function
   const newKingPosition =
     piece.toLowerCase() === "k"
       ? [endRow, endCol]
@@ -307,21 +315,25 @@ export function isValidMoveWithCheck(
   );
 }
 
+// Determines whether the game is over (Draw or Mate)
 export function isGameOver(board, player, gameState, boards) {
-  const otherPlayer = player === 'w' ? 'b' : 'w'
+  const otherPlayer = player === "w" ? "b" : "w";
   const kingPosition = gameState.kingPosition[otherPlayer];
   const inCheck = isInCheck(board, kingPosition, otherPlayer, gameState);
 
+  // Checks for threefold repetition
   if (threefoldRep(boards)) {
     return "Draw by repetition";
   }
 
+  // Checks if the other player has a legal move. If they do, the game is not over.
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
       const piece = board[row][col];
       if (
-        (piece !== "-" && otherPlayer === "w" && piece === piece.toUpperCase()) ||
-        (otherPlayer === "b" && piece === piece.toLowerCase())
+        piece !== "-" &&
+        ((otherPlayer === "w" && piece === piece.toUpperCase()) ||
+          (otherPlayer === "b" && piece === piece.toLowerCase()))
       ) {
         for (let newRow = 0; newRow < 8; newRow++) {
           for (let newCol = 0; newCol < 8; newCol++) {
@@ -343,9 +355,12 @@ export function isGameOver(board, player, gameState, boards) {
       }
     }
   }
+  // If the opponent has no legal move and is in check, it is a checkmate.
+  // If the opponent has no legal move but is not in check, it is a stalemate.
   return inCheck ? "checkmate" : "stalemate";
 }
 
+// Determines whether the same position has been reached 3 times, meaning a draw
 function threefoldRep(boards) {
   const freqMap = [];
 
@@ -373,6 +388,7 @@ function threefoldRep(boards) {
   return false;
 }
 
+// Compares two board and determines whether they have the same position
 function boardsEqual(board1, board2) {
   if (board1.length !== board2.length) return false;
   for (let i = 0; i < board1.length; i++) {

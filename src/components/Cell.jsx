@@ -1,5 +1,8 @@
 import Piece from "./Piece";
 
+/*
+  Squares on the board
+*/
 const Cell = ({ piece, row, col, onSquareClick, isSelected }) => {
   const style = {
     border: isSelected ? "5px solid white" : 'none',

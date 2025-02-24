@@ -1,6 +1,7 @@
 import Cell from "./Cell";
 import "./Board.css";
 
+// Creates the board out of Cells
 const Board = ({ board, onSquareClick, selectedPiece }) => {
   return (
     <div className="board">
