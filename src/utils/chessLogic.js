@@ -140,7 +140,7 @@ export function isValidMove(
 }
 
 // Determines whether a straignt path from a starting square to an ending square is free of pieces
-const pathIsClear = (board, startRow, startCol, endRow, endCol) => {
+export const pathIsClear = (board, startRow, startCol, endRow, endCol) => {
   // Moving horizontally
   if (startRow === endRow) {
     const minCol = Math.min(startCol, endCol);
@@ -169,7 +169,7 @@ const pathIsClear = (board, startRow, startCol, endRow, endCol) => {
 };
 
 // Determines whether a diagonal from the start square to the end square is clear
-const diagIsClear = (board, startRow, startCol, endRow, endCol) => {
+export const diagIsClear = (board, startRow, startCol, endRow, endCol) => {
   // Not a diagonal
   if (Math.abs(endRow - startRow) !== Math.abs(endCol - startCol)) {
     return false;
@@ -229,7 +229,7 @@ export function isCastlingLegal(board, player, gameState, side) {
 }
 
 // Determines whether a square is under attack. Used for checking castling legality
-function isSquareUnderAttack(board, endRow, endCol, player) {
+export function isSquareUnderAttack(board, endRow, endCol, player) {
   const otherPlayer = player === "w" ? "b" : "w";
 
   for (let row = 0; row < 8; row++) {
@@ -361,7 +361,7 @@ export function isGameOver(board, player, gameState, boards) {
 }
 
 // Determines whether the same position has been reached 3 times, meaning a draw
-function threefoldRep(boards) {
+export function threefoldRep(boards) {
   const freqMap = [];
 
   for (let i = 0; i < boards.length; i++) {
@@ -389,7 +389,7 @@ function threefoldRep(boards) {
 }
 
 // Compares two board and determines whether they have the same position
-function boardsEqual(board1, board2) {
+export function boardsEqual(board1, board2) {
   if (board1.length !== board2.length) return false;
   for (let i = 0; i < board1.length; i++) {
     if (board1[i].length !== board2[i].length) return false;
