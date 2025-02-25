@@ -28,7 +28,7 @@ describe("initializeBoard", () => {
   });
 });
 
-describe("isValidMove", () => {
+describe("isValidMovePawns", () => {
   let board;
   let gameState;
 
@@ -37,40 +37,120 @@ describe("isValidMove", () => {
     gameState = {
       enPassant: null,
       kingMoved: { w: false, b: false },
-      rookMoved: { w: {}, b: {} },
+      rookMoved: {
+        w: {
+          kingside: false,
+          queenside: false,
+        },
+        b: {
+          kingside: false,
+          queenside: false,
+        },
+      },
       kingPosition: { w: [7, 4], b: [0, 4] },
     };
   });
 
-  it("should allow a white pawn to move forward one square", () => {
-    expect(isValidMove(board, 6, 4, 5, 4, "w", gameState)).toBe(true);
-  });
+  it("should not allow movement to a piece of the same color", () => {
+    expect(isValidMove(board, 0, 0, 1, 0, "b", gameState)).toBe(false);
+    expect(isValidMove(board, 7, 2, 6, 1, "w", gameState)).toBe(false);
+  })
 
-  it("should allow a black pawn to move forward one square", () => {
+  it("should allow a pawn to move forward one square", () => {
+    expect(isValidMove(board, 6, 4, 5, 4, "w", gameState)).toBe(true);
     expect(isValidMove(board, 1, 4, 2, 4, "b", gameState)).toBe(true);
   });
 
-  it("should allow a white pawn to move forward two squares from its starting position", () => {
+  it("should allow a pawn to move forward two squares", () => {
     expect(isValidMove(board, 6, 4, 4, 4, "w", gameState)).toBe(true);
+    expect(isValidMove(board, 1, 4, 3, 4, "b", gameState)).toBe(true);
   });
 
   it("should prevent a pawn from moving backward", () => {
-    expect(isValidMove(board, 6, 4, 7, 4, "w", gameState)).toBe(false);
+    board[0][0] = '-';
+    board[7][0] = '-';
+    expect(isValidMove(board, 6, 0, 7, 0, "w", gameState)).toBe(false);
+    expect(isValidMove(board, 1, 0, 0, 0, "b", gameState)).toBe(false);
   });
 
-  it("should prevent a white pawn from capturing forward", () => {
-    expect(isValidMove(board, 6, 4, 5, 4, "w", gameState)).toBe(true);
-    expect(isValidMove(board, 6, 4, 5, 3, "w", gameState)).toBe(false);
+  it("should prevent a pawn from capturing a piece in front of it", () => {
+    board[4][4] = 'P';
+    board[3][4] = 'p';
+    expect(isValidMove(board, 4, 4, 3, 4, "w", gameState)).toBe(false);
+    expect(isValidMove(board, 3, 4, 4, 4, "b", gameState)).toBe(false);
   });
 
-  it("should allow a knight to move in an L shape", () => {
-    expect(isValidMove(board, 7, 1, 5, 2, "w", gameState)).toBe(true);
+  it("should only allow diagonal movement when capturing", () => {
+    expect(isValidMove(board, 1, 0, 2, 1, "b", gameState)).toBe(false);
+    expect(isValidMove(board, 6, 0, 5, 1, "w", gameState)).toBe(false);
+
+    board[2][1] = 'P';
+    board[5][1] = 'p';
+
+    expect(isValidMove(board, 1, 0, 2, 1, "b", gameState)).toBe(true);
+    expect(isValidMove(board, 6, 0, 5, 1, "w", gameState)).toBe(true);
   });
 
-  it("should prevent a rook from moving diagonally", () => {
-    expect(isValidMove(board, 7, 0, 6, 1, "w", gameState)).toBe(false);
-  });
+  it("should allow enpassant capture when it is valid", () => {
+    board[3][1] = "P";
+    board[3][0] = 'p';
+
+    gameState.enPassant = 16;
+    expect(isValidMove(board, 3, 1, 2, 0, "w", gameState)).toBe(true);
+    expect(isValidMove(board, 3, 0, 4, 1, "b", gameState)).toBe(false);
+    
+    gameState.enPassant = 33;
+    expect(isValidMove(board, 3, 1, 2, 0, "w", gameState)).toBe(false);
+    expect(isValidMove(board, 3, 0, 4, 1, "b", gameState)).toBe(true);
+
+    gameState.enPassant = null;
+    expect(isValidMove(board, 3, 1, 2, 0, "w", gameState)).toBe(false);
+    expect(isValidMove(board, 3, 0, 4, 1, "b", gameState)).toBe(false);
+  })
 });
+
+// RBNQ = Rook Bishop Knight Queen
+describe("isValidMoveRBNQ", () => {
+  let board;
+  let gameState;
+
+  beforeEach(() => {
+    board = initializeBoard();
+    gameState = {
+      enPassant: null,
+      kingMoved: { w: false, b: false },
+      rookMoved: {
+        w: {
+          kingside: false,
+          queenside: false,
+        },
+        b: {
+          kingside: false,
+          queenside: false,
+        },
+      },
+      kingPosition: { w: [7, 4], b: [0, 4] },
+    };
+  });
+
+  it("should not allow the rook to move off the board", () => {
+    expect(isValidMove(board, 0, 0, -1, 0, 'b', gameState)).toBe(false);
+    expect(isValidMove(board, 7, 0, 8, 0, 'w', gameState)).toBe(false);
+  });
+
+  it("should not allow the rook to move through pieces", () => {
+    expect(isValidMove(board, 0, 0, 4, 0, 'b', gameState)).toBe(false);
+    expect(isValidMove(board, 7, 0, 4, 0, 'w', gameState)).toBe(false);
+  });
+
+  it("should not allow the rook to move diagonally", () => {
+    board[1] = ["-","-","-","-","-","-","-","-"];
+    board[6] = ["-","-","-","-","-","-","-","-"];
+
+    expect(isValidMove(board, 0, 0, 4, 4, 'b', gameState)).toBe(false);
+    expect(isValidMove(board, 7, 0, 5, 2, 'w', gameState)).toBe(false);
+  });
+})
 
 describe("pathIsClear", () => {
   let board;
@@ -327,8 +407,8 @@ describe("isGameOver", () => {
     for (let i = 0; i < board.length; i++) {
       board[i] = ["-", "-", "-", "-", "-", "-", "-", "-"];
     }
-    board[7][4] = 'K';
-    board[0][4] = 'k';
+    board[7][4] = "K";
+    board[0][4] = "k";
 
     gameState = {
       enPassant: null,
@@ -348,52 +428,74 @@ describe("isGameOver", () => {
   });
 
   it("should identify a stalemate", () => {
-    board[1][2] = 'Q';
-    board[1][6] = 'Q';
-    expect(isGameOver(board, 'w', gameState, boards)).toBe("stalemate");
+    board[1][2] = "Q";
+    board[1][6] = "Q";
+    expect(isGameOver(board, "w", gameState, boards)).toBe("stalemate");
 
-    board[0][0] = 'R';
-    board[0][3] = 'n';
-    expect(isGameOver(board, 'w', gameState, boards)).toBe("stalemate");
+    board[0][0] = "R";
+    board[0][3] = "n";
+    expect(isGameOver(board, "w", gameState, boards)).toBe("stalemate");
   });
 
   it("should identify checkmate", () => {
-    board[7][0] = 'r';
-    board[6][0] = 'r';
-    expect(isGameOver(board, 'b', gameState, boards)).toBe("checkmate");
+    board[7][0] = "r";
+    board[6][0] = "r";
+    expect(isGameOver(board, "b", gameState, boards)).toBe("checkmate");
 
-    board[7][3] = 'N';
-    board[6][5] = 'q';
-    expect(isGameOver(board, 'b', gameState, boards)).toBe("checkmate");
+    board[7][3] = "N";
+    board[6][5] = "q";
+    expect(isGameOver(board, "b", gameState, boards)).toBe("checkmate");
   });
 });
 
-// describe("threefoldRep", () => {
-//   let board;
-//   let gameState;
+describe("threefoldRep", () => {
+  let boards;
 
-//   beforeEach(() => {
-//     board = initializeBoard();
-//     gameState = {
-//       enPassant: null,
-//       kingMoved: { w: false, b: false },
-//       rookMoved: { w: {}, b: {} },
-//       kingPosition: { w: [7, 4], b: [0, 4] },
-//     };
-//   });
-// });
+  beforeEach(() => {
+    boards = [initializeBoard()];
+  });
 
-// describe("boardsEqual", () => {
-//   let board;
-//   let gameState;
+  it("should return false when there is no threefold repetition", () => {
+    let newBoard = initializeBoard();
+    newBoard[0][0] = "-";
+    boards.push(newBoard);
 
-//   beforeEach(() => {
-//     board = initializeBoard();
-//     gameState = {
-//       enPassant: null,
-//       kingMoved: { w: false, b: false },
-//       rookMoved: { w: {}, b: {} },
-//       kingPosition: { w: [7, 4], b: [0, 4] },
-//     };
-//   });
-// });
+    newBoard[1][0] = "-";
+    boards.push(newBoard);
+
+    expect(threefoldRep(boards)).toBe(false);
+  });
+
+  it("should return true when there is a threefold repetition", () => {
+    let newBoard = initializeBoard();
+    newBoard[1][0] = "-";
+
+    boards.push(newBoard);
+    boards.push(initializeBoard());
+    boards.push(newBoard);
+    boards.push(initializeBoard());
+
+    expect(threefoldRep(boards)).toBe(true);
+  });
+});
+
+describe("boardsEqual", () => {
+  let board;
+
+  beforeEach(() => {
+    board = initializeBoard();
+  });
+
+  it("should return false when the boards do not have the same position", () => {
+    let diffBoard = initializeBoard();
+    diffBoard[1][0] = "-";
+
+    expect(boardsEqual(board, diffBoard)).toBe(false);
+  });
+
+  it("should return true when the boards have the same position", () => {
+    let sameBoard = initializeBoard();
+
+    expect(boardsEqual(board, sameBoard)).toBe(true);
+  });
+});

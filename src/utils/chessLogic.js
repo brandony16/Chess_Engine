@@ -21,6 +21,19 @@ export function isValidMove(
   player,
   gameState
 ) {
+  if (
+    startRow < 0 ||
+    startRow > 7 ||
+    startCol < 0 ||
+    startCol > 7 ||
+    endCol < 0 ||
+    endCol > 7 ||
+    endRow < 0 ||
+    endRow > 7
+  ) {
+    return false;
+  }
+
   const piece = board[startRow][startCol];
   const target = board[endRow][endCol];
 
