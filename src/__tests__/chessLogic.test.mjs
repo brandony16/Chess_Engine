@@ -34,27 +34,13 @@ describe("isValidMovePawns", () => {
 
   beforeEach(() => {
     board = initializeBoard();
-    gameState = {
-      enPassant: null,
-      kingMoved: { w: false, b: false },
-      rookMoved: {
-        w: {
-          kingside: false,
-          queenside: false,
-        },
-        b: {
-          kingside: false,
-          queenside: false,
-        },
-      },
-      kingPosition: { w: [7, 4], b: [0, 4] },
-    };
+    gameState = {};
   });
 
   it("should not allow movement to a piece of the same color", () => {
     expect(isValidMove(board, 0, 0, 1, 0, "b", gameState)).toBe(false);
     expect(isValidMove(board, 7, 2, 6, 1, "w", gameState)).toBe(false);
-  })
+  });
 
   it("should allow a pawn to move forward one square", () => {
     expect(isValidMove(board, 6, 4, 5, 4, "w", gameState)).toBe(true);
@@ -67,15 +53,15 @@ describe("isValidMovePawns", () => {
   });
 
   it("should prevent a pawn from moving backward", () => {
-    board[0][0] = '-';
-    board[7][0] = '-';
+    board[0][0] = "-";
+    board[7][0] = "-";
     expect(isValidMove(board, 6, 0, 7, 0, "w", gameState)).toBe(false);
     expect(isValidMove(board, 1, 0, 0, 0, "b", gameState)).toBe(false);
   });
 
   it("should prevent a pawn from capturing a piece in front of it", () => {
-    board[4][4] = 'P';
-    board[3][4] = 'p';
+    board[4][4] = "P";
+    board[3][4] = "p";
     expect(isValidMove(board, 4, 4, 3, 4, "w", gameState)).toBe(false);
     expect(isValidMove(board, 3, 4, 4, 4, "b", gameState)).toBe(false);
   });
@@ -84,8 +70,8 @@ describe("isValidMovePawns", () => {
     expect(isValidMove(board, 1, 0, 2, 1, "b", gameState)).toBe(false);
     expect(isValidMove(board, 6, 0, 5, 1, "w", gameState)).toBe(false);
 
-    board[2][1] = 'P';
-    board[5][1] = 'p';
+    board[2][1] = "P";
+    board[5][1] = "p";
 
     expect(isValidMove(board, 1, 0, 2, 1, "b", gameState)).toBe(true);
     expect(isValidMove(board, 6, 0, 5, 1, "w", gameState)).toBe(true);
@@ -93,12 +79,12 @@ describe("isValidMovePawns", () => {
 
   it("should allow enpassant capture when it is valid", () => {
     board[3][1] = "P";
-    board[3][0] = 'p';
+    board[3][0] = "p";
 
     gameState.enPassant = 16;
     expect(isValidMove(board, 3, 1, 2, 0, "w", gameState)).toBe(true);
     expect(isValidMove(board, 3, 0, 4, 1, "b", gameState)).toBe(false);
-    
+
     gameState.enPassant = 33;
     expect(isValidMove(board, 3, 1, 2, 0, "w", gameState)).toBe(false);
     expect(isValidMove(board, 3, 0, 4, 1, "b", gameState)).toBe(true);
@@ -106,18 +92,178 @@ describe("isValidMovePawns", () => {
     gameState.enPassant = null;
     expect(isValidMove(board, 3, 1, 2, 0, "w", gameState)).toBe(false);
     expect(isValidMove(board, 3, 0, 4, 1, "b", gameState)).toBe(false);
-  })
+  });
 });
 
-// RBNQ = Rook Bishop Knight Queen
-describe("isValidMoveRBNQ", () => {
+describe("isValidMoveRook", () => {
   let board;
   let gameState;
 
   beforeEach(() => {
     board = initializeBoard();
+    gameState = {};
+  });
+
+  it("should not allow the rook to move off the board", () => {
+    expect(isValidMove(board, 0, 0, -1, 0, "b", gameState)).toBe(false);
+    expect(isValidMove(board, 7, 0, 8, 0, "w", gameState)).toBe(false);
+  });
+
+  it("should not allow the rook to move through pieces", () => {
+    expect(isValidMove(board, 0, 0, 4, 0, "b", gameState)).toBe(false);
+    expect(isValidMove(board, 7, 0, 4, 0, "w", gameState)).toBe(false);
+  });
+
+  it("should not allow the rook to move diagonally", () => {
+    board[1] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    board[6] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+
+    expect(isValidMove(board, 0, 0, 4, 4, "b", gameState)).toBe(false);
+    expect(isValidMove(board, 7, 0, 5, 2, "w", gameState)).toBe(false);
+  });
+
+  it("should allow the rook to move horizontally and vertically", () => {
+    board[1] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    board[6] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+
+    expect(isValidMove(board, 0, 0, 4, 0, "b", gameState)).toBe(true);
+    expect(isValidMove(board, 0, 0, 7, 0, "b", gameState)).toBe(true);
+    expect(isValidMove(board, 7, 0, 4, 0, "w", gameState)).toBe(true);
+    expect(isValidMove(board, 7, 0, 0, 0, "w", gameState)).toBe(true);
+
+    board[4][4] = "R";
+    board[4][0] = "r";
+
+    expect(isValidMove(board, 4, 4, 4, 7, "w", gameState)).toBe(true);
+    expect(isValidMove(board, 4, 4, 4, 0, "w", gameState)).toBe(true);
+    expect(isValidMove(board, 4, 0, 4, 2, "b", gameState)).toBe(true);
+    expect(isValidMove(board, 4, 0, 4, 4, "b", gameState)).toBe(true);
+  });
+});
+
+describe("isValidMoveBishop", () => {
+  let board;
+  let gameState;
+
+  beforeEach(() => {
+    board = initializeBoard();
+    gameState = {};
+  });
+
+  it("should not allow movement not on a diagonal", () => {
+    board[1] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    board[6] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+
+    expect(isValidMove(board, 0, 2, 4, 2, "b", gameState)).toBe(false);
+    expect(isValidMove(board, 7, 2, 4, 2, "w", gameState)).toBe(false);
+  });
+
+  it("should not allow movement through pieces", () => {
+    expect(isValidMove(board, 0, 2, 3, 0, "b", gameState)).toBe(false);
+    expect(isValidMove(board, 7, 2, 5, 0, "w", gameState)).toBe(false);
+
+    board[1] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    board[6] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    board[2][4] = "B";
+    board[4][2] = "b";
+    expect(isValidMove(board, 2, 4, 5, 1, "w", gameState)).toBe(false);
+    expect(isValidMove(board, 4, 2, 1, 5, "b", gameState)).toBe(false);
+  });
+
+  it("should allow moves that are valid", () => {
+    board[1] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    board[6] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    expect(isValidMove(board, 0, 2, 3, 5, "b", gameState)).toBe(true);
+    expect(isValidMove(board, 7, 2, 5, 0, "w", gameState)).toBe(true);
+
+    board[2][0] = "P";
+    board[5][0] = "p";
+    expect(isValidMove(board, 0, 2, 2, 0, "b", gameState)).toBe(true);
+    expect(isValidMove(board, 7, 2, 5, 0, "w", gameState)).toBe(true);
+  });
+});
+
+describe("isValidMoveKnight", () => {
+  let board;
+  let gameState;
+
+  beforeEach(() => {
+    board = initializeBoard();
+    gameState = {};
+  });
+
+  it("should not allow non L shaped moves", () => {
+    expect(isValidMove(board, 7, 1, 3, 1, "w", gameState)).toBe(false);
+    expect(isValidMove(board, 7, 1, 5, 3, "w", gameState)).toBe(false);
+    expect(isValidMove(board, 0, 1, 2, 1, "b", gameState)).toBe(false);
+    expect(isValidMove(board, 0, 1, 2, 3, "b", gameState)).toBe(false);
+  });
+
+  it("should allow legal knight moves", () => {
+    expect(isValidMove(board, 7, 1, 5, 2, "w", gameState)).toBe(true);
+    expect(isValidMove(board, 7, 1, 5, 0, "w", gameState)).toBe(true);
+    expect(isValidMove(board, 0, 1, 2, 2, "b", gameState)).toBe(true);
+    expect(isValidMove(board, 0, 1, 2, 0, "b", gameState)).toBe(true);
+
+    board[4][2] = "N";
+    board[3][4] = "n";
+
+    expect(isValidMove(board, 4, 2, 3, 4, "w", gameState)).toBe(true);
+    expect(isValidMove(board, 3, 4, 4, 2, "b", gameState)).toBe(true);
+  });
+});
+
+describe("isValidMoveQueen", () => {
+  let board;
+  let gameState;
+
+  beforeEach(() => {
+    board = initializeBoard();
+    gameState = {};
+  });
+
+  it("should not allow movement not on a diagonal or on a line", () => {
+    board[1] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    board[6] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+
+    expect(isValidMove(board, 7, 3, 5, 2, "w", gameState)).toBe(false);
+    expect(isValidMove(board, 0, 3, 2, 2, "b", gameState)).toBe(false);
+  });
+
+  it("should not allow movement through pieces", () => {
+    expect(isValidMove(board, 7, 3, 5, 3, "w", gameState)).toBe(false);
+    expect(isValidMove(board, 7, 3, 5, 1, "w", gameState)).toBe(false);
+    expect(isValidMove(board, 0, 3, 5, 3, "b", gameState)).toBe(false);
+    expect(isValidMove(board, 0, 3, 2, 1, "b", gameState)).toBe(false);
+  });
+
+  it("should allow legal queen moves", () => {
+    board[1] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    board[6] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+
+    expect(isValidMove(board, 7, 3, 4, 3, "w", gameState)).toBe(true);
+    expect(isValidMove(board, 7, 3, 4, 6, "w", gameState)).toBe(true);
+    expect(isValidMove(board, 0, 3, 4, 3, "b", gameState)).toBe(true);
+    expect(isValidMove(board, 0, 3, 3, 0, "b", gameState)).toBe(true);
+
+    expect(isValidMove(board, 0, 3, 7, 3, "b", gameState)).toBe(true);
+    expect(isValidMove(board, 7, 3, 0, 3, "w", gameState)).toBe(true);
+  });
+});
+
+describe("isValidMoveKing", () => {
+  let board;
+  let gameState;
+
+  beforeEach(() => {
+    board = initializeBoard();
+
+    board[0] = ["r", "-", "-", "-", "k", "-", "-", "r"];
+    board[1] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    board[6] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    board[7] = ["R", "-", "-", "-", "K", "-", "-", "R"];
+
     gameState = {
-      enPassant: null,
       kingMoved: { w: false, b: false },
       rookMoved: {
         w: {
@@ -129,28 +275,43 @@ describe("isValidMoveRBNQ", () => {
           queenside: false,
         },
       },
-      kingPosition: { w: [7, 4], b: [0, 4] },
     };
   });
 
-  it("should not allow the rook to move off the board", () => {
-    expect(isValidMove(board, 0, 0, -1, 0, 'b', gameState)).toBe(false);
-    expect(isValidMove(board, 7, 0, 8, 0, 'w', gameState)).toBe(false);
+  it("should not allow the king to move more than one square", () => {
+    expect(isValidMove(board, 0, 4, 2, 4, "b", gameState)).toBe(false);
+    expect(isValidMove(board, 7, 4, 5, 4, "w", gameState)).toBe(false);
+    expect(isValidMove(board, 0, 4, 2, 2, "b", gameState)).toBe(false);
+    expect(isValidMove(board, 7, 4, 5, 2, "w", gameState)).toBe(false);
   });
 
-  it("should not allow the rook to move through pieces", () => {
-    expect(isValidMove(board, 0, 0, 4, 0, 'b', gameState)).toBe(false);
-    expect(isValidMove(board, 7, 0, 4, 0, 'w', gameState)).toBe(false);
+  it("should allow the king to move one square", () => {
+    expect(isValidMove(board, 0, 4, 0, 3, "b", gameState)).toBe(true);
+    expect(isValidMove(board, 0, 4, 1, 3, "b", gameState)).toBe(true);
+    expect(isValidMove(board, 0, 4, 1, 4, "b", gameState)).toBe(true);
+    expect(isValidMove(board, 7, 4, 7, 3, "w", gameState)).toBe(true);
+    expect(isValidMove(board, 7, 4, 6, 3, "w", gameState)).toBe(true);
+    expect(isValidMove(board, 7, 4, 6, 4, "w", gameState)).toBe(true);
   });
 
-  it("should not allow the rook to move diagonally", () => {
-    board[1] = ["-","-","-","-","-","-","-","-"];
-    board[6] = ["-","-","-","-","-","-","-","-"];
+  it("should not allow castling if the king has moved", () => {
+    gameState.kingMoved.w = true;
+    expect(isValidMove(board, 7, 4, 7, 6, "w", gameState)).toBe(false);
+    expect(isValidMove(board, 7, 4, 7, 2, "w", gameState)).toBe(false);
 
-    expect(isValidMove(board, 0, 0, 4, 4, 'b', gameState)).toBe(false);
-    expect(isValidMove(board, 7, 0, 5, 2, 'w', gameState)).toBe(false);
+    gameState.kingMoved.b = true;
+    expect(isValidMove(board, 0, 4, 0, 6, "b", gameState)).toBe(false);
+    expect(isValidMove(board, 0, 4, 0, 2, "b", gameState)).toBe(false);
   });
-})
+
+  it("should allow castling if it is legal", () => {
+    expect(isValidMove(board, 7, 4, 7, 6, "w", gameState)).toBe(true);
+    expect(isValidMove(board, 7, 4, 7, 2, "w", gameState)).toBe(true);
+
+    expect(isValidMove(board, 0, 4, 0, 2, "b", gameState)).toBe(true);
+    expect(isValidMove(board, 0, 4, 0, 6, "b", gameState)).toBe(true);
+  });
+});
 
 describe("pathIsClear", () => {
   let board;

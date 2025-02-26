@@ -1,13 +1,14 @@
 export function initializeBoard() {
   return [
-    ["r", "n", "b", "q", "k", "b", "n", "r"],
-    ["p", "p", "p", "p", "p", "p", "p", "p"],
-    ["-", "-", "-", "-", "-", "-", "-", "-"],
-    ["-", "-", "-", "-", "-", "-", "-", "-"],
-    ["-", "-", "-", "-", "-", "-", "-", "-"],
-    ["-", "-", "-", "-", "-", "-", "-", "-"],
-    ["P", "P", "P", "P", "P", "P", "P", "P"],
-    ["R", "N", "B", "Q", "K", "B", "N", "R"],
+    ["r", "n", "b", "q", "k", "b", "n", "r"], // 0
+    ["p", "p", "p", "p", "p", "p", "p", "p"], // 1
+    ["-", "-", "-", "-", "-", "-", "-", "-"], // 2
+    ["-", "-", "-", "-", "-", "-", "-", "-"], // 3
+    ["-", "-", "-", "-", "-", "-", "-", "-"], // 4 
+    ["-", "-", "-", "-", "-", "-", "-", "-"], // 5 
+    ["P", "P", "P", "P", "P", "P", "P", "P"], // 6
+    ["R", "N", "B", "Q", "K", "B", "N", "R"], // 7
+  //  0    1    2    3    4    5    6    7
   ];
 }
 
@@ -139,7 +140,7 @@ export function isValidMove(
 
       // Castling
       if (rowDiff === 0 && colDiff === 2) {
-        if (gameState.kingMoved[player]) return;
+        if (gameState.kingMoved[player]) return false;
 
         // Determine which side we are castling then see if it is legal
         const kingSide = endCol > startCol ? "kingside" : "queenside";
@@ -147,6 +148,7 @@ export function isValidMove(
           return true;
         }
       }
+      return false;
     }
   }
   return false;
