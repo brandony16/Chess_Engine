@@ -4,11 +4,11 @@ export function initializeBoard() {
     ["p", "p", "p", "p", "p", "p", "p", "p"], // 1
     ["-", "-", "-", "-", "-", "-", "-", "-"], // 2
     ["-", "-", "-", "-", "-", "-", "-", "-"], // 3
-    ["-", "-", "-", "-", "-", "-", "-", "-"], // 4 
-    ["-", "-", "-", "-", "-", "-", "-", "-"], // 5 
+    ["-", "-", "-", "-", "-", "-", "-", "-"], // 4
+    ["-", "-", "-", "-", "-", "-", "-", "-"], // 5
     ["P", "P", "P", "P", "P", "P", "P", "P"], // 6
     ["R", "N", "B", "Q", "K", "B", "N", "R"], // 7
-  //  0    1    2    3    4    5    6    7
+    //0    1    2    3    4    5    6    7
   ];
 }
 
@@ -140,7 +140,7 @@ export function isValidMove(
 
       // Castling
       if (rowDiff === 0 && colDiff === 2) {
-        if (gameState.kingMoved[player]) return false ;
+        if (gameState.kingMoved[player]) return false;
 
         // Determine which side we are castling then see if it is legal
         const kingSide = endCol > startCol ? "kingside" : "queenside";
@@ -414,3 +414,104 @@ export function boardsEqual(board1, board2) {
   }
   return true;
 }
+
+export const updateGameState = (
+  board,
+  fromRow,
+  fromCol,
+  toRow,
+  toCol,
+  player,
+  gameState,
+  boards
+) => {
+  const piece = board[toRow][toCol];
+  let newGameState = { ...gameState };
+
+  if (piece.toLowerCase() === "p" && Math.abs(toRow - fromRow) === 2) {
+    const enPassantRow = player === "w" ? toRow + 1 : toRow - 1;
+    // Multiplying row by 8 then adding the col creates a unique identifier number for each square
+    newGameState = { ...newGameState, enPassant: enPassantRow * 8 + toCol };
+  } else {
+    newGameState = { ...newGameState, enPassant: null };
+  }
+  // Updates king position
+  if (piece.toLowerCase() === "k") {
+    newGameState = {
+      ...newGameState,
+      kingPosition: {
+        ...gameState.kingPosition,
+        [player]: [toRow, toCol],
+      },
+      kingMoved: { ...gameState.kingMoved, [player]: true },
+    };
+  }
+  // Udates game state if castling
+  if (piece.toLowerCase() === "k" && Math.abs(toCol - fromCol) === 2) {
+    const side = toCol > fromCol ? "kingside" : "queenside";
+    newGameState = {
+      ...newGameState,
+      kingMoved: { ...newGameState.kingMoved, [player]: true },
+      rookMoved: {
+        ...newGameState.rookMoved,
+        [player]: {
+          ...newGameState.rookMoved[player],
+          [side]: true,
+        },
+      },
+    };
+  }
+  // Update if rook moved from starting square for black
+  if (piece === "r") {
+    if (fromRow === 0 && fromCol === 0) {
+      newGameState = {
+        ...newGameState,
+        rookMoved: {
+          ...newGameState.rookMoved,
+          b: { ...newGameState.rookMoved.b, queenside: true },
+        },
+      };
+    }
+    if (fromRow === 0 && fromCol === 7) {
+      newGameState = {
+        ...newGameState,
+        rookMoved: {
+          ...newGameState.rookMoved,
+          b: { ...newGameState.rookMoved.b, kingside: true },
+        },
+      };
+    }
+  }
+  // Update if rook moved from starting square for white
+  if (piece === "R") {
+    if (fromRow === 7 && fromCol === 0) {
+      newGameState = {
+        ...newGameState,
+        rookMoved: {
+          ...newGameState.rookMoved,
+          w: { ...newGameState.rookMoved.w, queenside: true },
+        },
+      };
+    }
+    if (fromRow === 7 && fromCol === 7) {
+      newGameState = {
+        ...newGameState,
+        rookMoved: {
+          ...newGameState.rookMoved,
+          w: { ...newGameState.rookMoved.w, kingside: true },
+        },
+      };
+    }
+  }
+  // Check if game is over and updates state if it is
+  const deepCopy = board.map((row) => [...row]);
+  if (isGameOver(board, player, newGameState, [...boards, deepCopy]) !== "none") {
+    newGameState = {
+      ...newGameState,
+      gameOver: true,
+      gameEndState: isGameOver(board, player, newGameState, boards),
+    };
+  }
+
+  return newGameState;
+};

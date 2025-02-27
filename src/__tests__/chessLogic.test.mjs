@@ -10,6 +10,7 @@ import {
   isGameOver,
   threefoldRep,
   boardsEqual,
+  updateGameState,
 } from "../utils/chessLogic";
 
 describe("initializeBoard", () => {
@@ -658,5 +659,56 @@ describe("boardsEqual", () => {
     let sameBoard = initializeBoard();
 
     expect(boardsEqual(board, sameBoard)).toBe(true);
+  });
+});
+
+describe("updateGameState", () => {
+  let board;
+  let gameState;
+  let boards;
+
+  beforeEach(() => {
+    board = initializeBoard();
+
+    gameState = {
+      enPassant: null,
+      kingMoved: { w: false, b: false },
+      rookMoved: {
+        w: {
+          kingside: false,
+          queenside: false,
+        },
+        b: {
+          kingside: false,
+          queenside: false,
+        },
+      },
+      kingPosition: { w: [7, 4], b: [0, 4] },
+      gameOver: false,
+      gameEndState: "none",
+    };
+
+    boards = [initializeBoard()];
+  });
+
+  it("should do nothing if there is no state to update", () => {
+    expect(updateGameState(board, 1, 0, 2, 0, "b", gameState, boards)).toEqual(
+      gameState
+    );
+  });
+
+  it("should update the enpassant if a pawn moves two squares", () => {
+    board[3][0] = board[1][0];
+    board[1][0] = "-";
+    let state = updateGameState(board, 1, 0, 3, 0, "b", gameState, boards);
+    boards = [...boards, board];
+
+    expect(state.enPassant).toBe(16);
+
+    board[5][2] = board[7][1];
+    board[7][1] = "-";
+    state = updateGameState(board, 7, 1, 5, 2, "w", state, boards);
+
+    expect(state.enPassant).toBe(null);
   });
 });

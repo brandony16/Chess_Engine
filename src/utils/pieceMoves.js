@@ -32,7 +32,7 @@ const getPawnMoves = (board, row, col, player, gameState) => {
   }
 
   // Capture
-  // Only proceed if the capture col is in the board (between 0 and 7) 
+  // Only proceed if the capture col is in the board (between 0 and 7)
   if (col + 1 <= 7) {
     const rightSquare = board[row + direction][col + 1];
     if (rightSquare !== "-") {
@@ -174,7 +174,10 @@ const getKnightMoves = (board, row, col, player) => {
 
       // Check if square is empty or is an enemy piece
       if (targetCell === "-" || opponentPieces.includes(targetCell)) {
-        moves.push([[row, col], [newRow, newCol]]);
+        moves.push([
+          [row, col],
+          [newRow, newCol],
+        ]);
       }
     }
   }

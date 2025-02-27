@@ -38,7 +38,7 @@ const Game = () => {
 
   // Gets the engine move then plays it
   const makeEngineMove = () => {
-    const bestMove = getBestMove(board, currPlayer, gameState, 2);
+    const bestMove = getBestMove(board, currPlayer, gameState, 2, boards);
 
     const [fromRow, fromCol] = bestMove[0];
     const [toRow, toCol] = bestMove[1];
@@ -68,7 +68,7 @@ const Game = () => {
       board[toRow + direction][toCol] = '-';
     }
 
-    // UPDATE GAME STATE
+    // UPDATES GAME STATE
     // Updates En Passant
     if (piece.toLowerCase() === "p" && Math.abs(toRow - fromRow) === 2) {
       const enPassantRow = currPlayer === "w" ? toRow + 1 : toRow - 1;

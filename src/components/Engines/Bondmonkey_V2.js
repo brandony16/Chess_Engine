@@ -1,7 +1,8 @@
+import { updateGameState } from "../../utils/chessLogic";
 import { getLegalMoves } from "../../utils/pieceMoves";
 
 // V2: Plays moves purely based on material
-export const getBestMove = (board, player, gameState, depth) => {
+export const getBestMove = (board, player, gameState, depth, boards) => {
   const moves = getLegalMoves(board, player, gameState);
 
   let bestMove = null;
@@ -10,6 +11,8 @@ export const getBestMove = (board, player, gameState, depth) => {
   for (const move of moves) {
     const [fromRow, fromCol] = move[0];
     const [toRow, toCol] = move[1];
+    let simGameState = { ...gameState };
+    let simBoards = [ ...boards ];
 
     const newBoard = board.map((row) => [...row]);
 
@@ -43,9 +46,26 @@ export const getBestMove = (board, player, gameState, depth) => {
       newBoard[toRow + direction][toCol] = "-";
     }
 
-    // NEED TO UDPATE GAME STATE
+    // UPDATE GAME STATE
+    simGameState = updateGameState(
+      board,
+      fromRow,
+      fromCol,
+      toRow,
+      toCol,
+      player,
+      simGameState,
+      simBoards
+    );
+    simBoards = [...simBoards, newBoard];
 
-    const moveEval = minimax(newBoard, depth - 1, player, gameState);
+    const moveEval = minimax(
+      newBoard,
+      depth - 1,
+      player,
+      simGameState,
+      simBoards
+    );
 
     if (
       (player === "w" && moveEval > bestEval) ||
@@ -59,7 +79,7 @@ export const getBestMove = (board, player, gameState, depth) => {
   return bestMove;
 };
 
-const minimax = (board, depth, player, gameState) => {
+const minimax = (board, depth, player, gameState, boards) => {
   // Break conditions. Stops searching if the depth is reached or if the game is over
   if (depth === 0 || gameState.gameOver) {
     return evaluatePosition(board);
@@ -73,6 +93,8 @@ const minimax = (board, depth, player, gameState) => {
     for (const move of moves) {
       const [fromRow, fromCol] = move[0];
       const [toRow, toCol] = move[1];
+      let simGameState = { ...gameState };
+      let simBoards = [ ...boards ];
 
       // Simulate the move
       const newBoard = board.map((row) => [...row]);
@@ -97,7 +119,7 @@ const minimax = (board, depth, player, gameState) => {
       // If en passant, need to remove the captured pawn
       if (
         newBoard[toRow][toCol].toLowerCase() === "p" &&
-        gameState.enPassant &&
+        simGameState.enPassant &&
         toRow * 8 + toCol
       ) {
         let direction = player === "w" ? 1 : -1;
@@ -105,9 +127,20 @@ const minimax = (board, depth, player, gameState) => {
         newBoard[toRow + direction][toCol] = "-";
       }
 
-      // NEED TO UDPATE GAME STATE
+      // UDPATE GAME STATE
+      gameState = updateGameState(
+        newBoard,
+        fromRow,
+        fromCol,
+        toRow,
+        toCol,
+        player,
+        simGameState,
+        boards
+      );
+      simBoards = [ ...simBoards, newBoard ];
 
-      const currEval = minimax(newBoard, depth - 1, "b", gameState);
+      const currEval = minimax(newBoard, depth - 1, "b", simGameState);
 
       maxEval = Math.max(maxEval, currEval);
     }
@@ -119,6 +152,8 @@ const minimax = (board, depth, player, gameState) => {
     for (const move of moves) {
       const [fromRow, fromCol] = move[0];
       const [toRow, toCol] = move[1];
+      let simGameState = { ...gameState };
+      let simBoards = [ ...boards ];
 
       // Simluate Move
       const newBoard = board.map((row) => [...row]);
@@ -143,7 +178,7 @@ const minimax = (board, depth, player, gameState) => {
       // If en passant, need to remove the captured pawn
       if (
         newBoard[toRow][toCol].toLowerCase() === "p" &&
-        gameState.enPassant &&
+        simGameState.enPassant &&
         toRow * 8 + toCol
       ) {
         let direction = player === "w" ? 1 : -1;
@@ -152,8 +187,19 @@ const minimax = (board, depth, player, gameState) => {
       }
 
       // UPDATE GAME STATE
+      simGameState = updateGameState(
+        newBoard,
+        fromRow,
+        fromCol,
+        toRow,
+        toCol,
+        player,
+        simGameState,
+        simBoards
+      );
+      simBoards = [ ...simBoards, newBoard ];
 
-      const currEval = minimax(newBoard, depth - 1, "w", gameState);
+      const currEval = minimax(newBoard, depth - 1, "w", simGameState);
 
       minEval = Math.min(minEval, currEval);
     }
