@@ -49,6 +49,25 @@ const Game = () => {
 
     const piece = newBoard[toRow][toCol];
 
+    // If castling, need to move the rook
+    if (piece.toLowerCase() === 'k' && Math.abs(fromCol, toCol) === 2) {
+      // fromCol is bigger when castling queenside
+      if (fromCol - toCol == 2) {
+        board[fromRow][3] = board[fromRow][0];
+        board[fromRow][0] = '-';
+      } else {
+        board[fromRow][5] = board[fromRow][7];
+        board[fromRow][7] = '-';
+      }
+    }
+
+    // If en passant, need to remove the captured pawn
+    if (piece.toLowerCase() === 'p' && gameState.enPassant && (toRow*8 + toCol)) {
+      let direction = currPlayer === 'w' ? 1 : -1;
+
+      board[toRow + direction][toCol] = '-';
+    }
+
     // UPDATE GAME STATE
     // Updates En Passant
     if (piece.toLowerCase() === "p" && Math.abs(toRow - fromRow) === 2) {

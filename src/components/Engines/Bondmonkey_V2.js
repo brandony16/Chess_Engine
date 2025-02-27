@@ -17,16 +17,39 @@ export const getBestMove = (board, player, gameState, depth) => {
     newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
     newBoard[fromRow][fromCol] = "-";
 
-    const moveEval = minimax(
-      newBoard,
-      depth - 1,
-      player,
-      gameState
-    );
+    // If castling, need to move the rook
+    if (
+      newBoard[toRow][toCol].toLowerCase() === "k" &&
+      Math.abs(fromCol, toCol) === 2
+    ) {
+      // fromCol is bigger when castling queenside
+      if (fromCol - toCol == 2) {
+        newBoard[fromRow][3] = newBoard[fromRow][0];
+        newBoard[fromRow][0] = "-";
+      } else {
+        newBoard[fromRow][5] = newBoard[fromRow][7];
+        newBoard[fromRow][7] = "-";
+      }
+    }
+
+    // If en passant, need to remove the captured pawn
+    if (
+      newBoard[toRow][toCol].toLowerCase() === "p" &&
+      gameState.enPassant &&
+      toRow * 8 + toCol
+    ) {
+      let direction = player === "w" ? 1 : -1;
+
+      newBoard[toRow + direction][toCol] = "-";
+    }
+
+    // NEED TO UDPATE GAME STATE
+
+    const moveEval = minimax(newBoard, depth - 1, player, gameState);
 
     if (
-      (player === "w" && moveEval > bestEval) || // Maximizing player
-      (player === "b" && moveEval < bestEval)    // Minimizing player
+      (player === "w" && moveEval > bestEval) ||
+      (player === "b" && moveEval < bestEval)
     ) {
       bestEval = moveEval;
       bestMove = move;
@@ -56,7 +79,34 @@ const minimax = (board, depth, player, gameState) => {
       newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
       newBoard[fromRow][fromCol] = "-";
 
-      // Recursively call the minimax function
+      // If castling, need to move the rook
+      if (
+        newBoard[toRow][toCol].toLowerCase() === "k" &&
+        Math.abs(fromCol, toCol) === 2
+      ) {
+        // fromCol is bigger when castling queenside
+        if (fromCol - toCol == 2) {
+          newBoard[fromRow][3] = newBoard[fromRow][0];
+          newBoard[fromRow][0] = "-";
+        } else {
+          newBoard[fromRow][5] = newBoard[fromRow][7];
+          newBoard[fromRow][7] = "-";
+        }
+      }
+
+      // If en passant, need to remove the captured pawn
+      if (
+        newBoard[toRow][toCol].toLowerCase() === "p" &&
+        gameState.enPassant &&
+        toRow * 8 + toCol
+      ) {
+        let direction = player === "w" ? 1 : -1;
+
+        newBoard[toRow + direction][toCol] = "-";
+      }
+
+      // NEED TO UDPATE GAME STATE
+
       const currEval = minimax(newBoard, depth - 1, "b", gameState);
 
       maxEval = Math.max(maxEval, currEval);
@@ -74,6 +124,34 @@ const minimax = (board, depth, player, gameState) => {
       const newBoard = board.map((row) => [...row]);
       newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
       newBoard[fromRow][fromCol] = "-";
+
+      // If castling, need to move the rook
+      if (
+        newBoard[toRow][toCol].toLowerCase() === "k" &&
+        Math.abs(fromCol, toCol) === 2
+      ) {
+        // fromCol is bigger when castling queenside
+        if (fromCol - toCol == 2) {
+          newBoard[fromRow][3] = newBoard[fromRow][0];
+          newBoard[fromRow][0] = "-";
+        } else {
+          newBoard[fromRow][5] = newBoard[fromRow][7];
+          newBoard[fromRow][7] = "-";
+        }
+      }
+
+      // If en passant, need to remove the captured pawn
+      if (
+        newBoard[toRow][toCol].toLowerCase() === "p" &&
+        gameState.enPassant &&
+        toRow * 8 + toCol
+      ) {
+        let direction = player === "w" ? 1 : -1;
+
+        newBoard[toRow + direction][toCol] = "-";
+      }
+
+      // UPDATE GAME STATE
 
       const currEval = minimax(newBoard, depth - 1, "w", gameState);
 

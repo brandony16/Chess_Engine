@@ -8,7 +8,7 @@ describe("Chess Move Functions", () => {
 
   it("should generate correct moves for a pawn", () => {
     const board = JSON.parse(JSON.stringify(emptyBoard));
-    board[6][3] = "P"; // Place a white pawn at d2
+    board[6][3] = "P";
 
     const gameState = { enPassant: null };
     const moves = getAllPawnMoves(board, "w", gameState);
@@ -78,23 +78,23 @@ describe("Chess Move Functions", () => {
 
   it("should generate correct moves for a bishop", () => {
     const board = JSON.parse(JSON.stringify(emptyBoard));
-    board[3][3] = "B"; // Place a white bishop at d4
+    board[3][3] = "B"; 
 
     const moves = getAllBishopMoves(board, "w");
-    expect(moves.length).toBe(13); // Diagonals
+    expect(moves.length).toBe(13); 
   });
 
   it("should generate correct moves for a queen", () => {
     const board = JSON.parse(JSON.stringify(emptyBoard));
-    board[4][4] = "Q"; // Place a white queen at e5
+    board[4][4] = "Q";
 
     const moves = getAllQueenMoves(board, "w");
-    expect(moves.length).toBe(27); // 8 horizontal, 8 vertical, 13 diagonal
+    expect(moves.length).toBe(27);
   });
 
   it("should generate correct moves for a king", () => {
     const board = JSON.parse(JSON.stringify(emptyBoard));
-    board[4][4] = "K"; // Place a white king at e5
+    board[4][4] = "K";
 
     const gameState = {
       kingMoved: { w: true },
@@ -107,7 +107,7 @@ describe("Chess Move Functions", () => {
     };
     const moves = getKingMoves(board, 4, 4, "w", gameState);
 
-    expect(moves.length).toBe(8); // One square in all directions
+    expect(moves.length).toBe(8); 
   });
 
   it("should generate all legal moves for all pieces", () => {
@@ -133,6 +133,6 @@ describe("Chess Move Functions", () => {
 
     const moves = getLegalMoves(board, "w", gameState);
 
-    expect(moves.length).toBe(20); // Ensure moves are generated
+    expect(moves.length).toBe(20); 
   });
 });

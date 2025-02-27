@@ -140,7 +140,7 @@ export function isValidMove(
 
       // Castling
       if (rowDiff === 0 && colDiff === 2) {
-        if (gameState.kingMoved[player]) return false;
+        if (gameState.kingMoved[player]) return false ;
 
         // Determine which side we are castling then see if it is legal
         const kingSide = endCol > startCol ? "kingside" : "queenside";
