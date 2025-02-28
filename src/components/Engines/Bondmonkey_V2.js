@@ -57,7 +57,7 @@ export const getBestMove = (board, player, gameState, depth, boards) => {
       simGameState,
       simBoards
     );
-    simBoards = [...simBoards, newBoard];
+    simBoards = [ ...simBoards, newBoard.map(row => [...row]) ];
 
     const moveEval = minimax(
       newBoard,
@@ -138,7 +138,7 @@ const minimax = (board, depth, player, gameState, boards) => {
         simGameState,
         boards
       );
-      simBoards = [ ...simBoards, newBoard ];
+      simBoards = [ ...simBoards, newBoard.map(row => [...row]) ];
 
       const currEval = minimax(newBoard, depth - 1, "b", simGameState);
 
@@ -197,7 +197,7 @@ const minimax = (board, depth, player, gameState, boards) => {
         simGameState,
         simBoards
       );
-      simBoards = [ ...simBoards, newBoard ];
+      simBoards = [ ...simBoards, newBoard.map(row => [...row]) ];
 
       const currEval = minimax(newBoard, depth - 1, "w", simGameState);
 

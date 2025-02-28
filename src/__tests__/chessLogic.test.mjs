@@ -701,7 +701,7 @@ describe("updateGameState", () => {
     board[3][0] = board[1][0];
     board[1][0] = "-";
     let state = updateGameState(board, 1, 0, 3, 0, "b", gameState, boards);
-    boards = [...boards, board];
+    boards = [...boards, board.map((row) => [...row])];
 
     expect(state.enPassant).toBe(16);
 
@@ -711,4 +711,68 @@ describe("updateGameState", () => {
 
     expect(state.enPassant).toBe(null);
   });
+
+  it("should update king position when the king moves", () => {
+    board[7][3] = "K";
+    board[7][4] = "-";
+    let state = updateGameState(board, 7, 4, 7, 3, "w", gameState, boards);
+    boards = [...boards, board.map((row) => [...row])];
+
+    expect(state.kingPosition.w).toEqual([7, 3]);
+
+    board[0][3] = "k";
+    board[0][4] = "-";
+    state = updateGameState(board, 0, 4, 0, 3, "b", state, boards);
+
+    expect(state.kingPosition.b).toEqual([0, 3]);
+  });
+
+  it("should update the state correctly when castling", () => {
+    board[7][5] = "R";
+    board[7][6] = "K";
+    board[7][4] = "-";
+    board[7][7] = "-";
+    let state = updateGameState(board, 7, 4, 7, 6, "w", gameState, boards);
+    boards = [...boards, board.map((row) => [...row])];
+
+    expect(state.kingPosition.w).toEqual([7, 6]);
+    expect(state.kingMoved.w).toBe(true);
+    expect(state.rookMoved.w.kingside).toBe(true);
+    expect(state.rookMoved.w.queenside).toBe(false);
+
+    board[0][3] = "r";
+    board[0][2] = "k";
+    board[0][1] = "-";
+    board[0][0] = "-";
+    board[0][4] = "-";
+    state = updateGameState(board, 0, 4, 0, 2, "b", state, boards);
+
+    expect(state.kingPosition.b).toEqual([0, 2]);
+    expect(state.kingMoved.b).toBe(true);
+    expect(state.rookMoved.b.queenside).toBe(true);
+    expect(state.rookMoved.b.kingside).toBe(false);
+  });
+
+  it("should update the state when a rook moves", () => {
+    board[6][0] = "-";
+    board[4][0] = "R";
+    board[7][0] = "-";
+    let state = updateGameState(board, 7, 0, 4, 0, "w", gameState, boards);
+    boards = [...boards, board.map((row) => [...row])];
+
+    expect(state.rookMoved.w.queenside).toBe(true);
+    expect(state.rookMoved.w.kingside).toBe(false);
+
+    board[1][7] = "-";
+    board[0][7] = "-";
+    board[3][7] = "r";
+    state = updateGameState(board, 0, 7, 3, 7, "b", state, boards);
+
+    expect(state.rookMoved.b.kingside).toBe(true);
+    expect(state.rookMoved.b.queenside).toBe(false);
+  });
+
+  it("should update when the game is over", () => {
+    
+  })
 });
