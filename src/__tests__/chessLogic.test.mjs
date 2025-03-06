@@ -11,6 +11,7 @@ import {
   threefoldRep,
   boardsEqual,
   updateGameState,
+  insufficientMaterial,
 } from "../utils/chessLogic";
 
 describe("initializeBoard", () => {
@@ -772,7 +773,86 @@ describe("updateGameState", () => {
     expect(state.rookMoved.b.queenside).toBe(false);
   });
 
-  it("should update when the game is over", () => {
-    
-  })
+  it("should update when the game is over by mate", () => {
+    for (let i = 0; i < board.length; i++) {
+      board[i] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    }
+    board[7][4] = "K";
+    board[0][4] = "k";
+
+    board[6][4] = "q";
+    board[1][4] = "r";
+
+    let state = updateGameState(board, 6, 0, 6, 4, "b", gameState, boards);
+
+    expect(state.gameOver).toBe(true);
+    expect(state.gameEndState).toBe("checkmate");
+  });
+
+  it("should update when the game is over by stalemate", () => {
+    for (let i = 0; i < board.length; i++) {
+      board[i] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    }
+    board[7][4] = "K";
+    board[0][4] = "k";
+
+    board[1][3] = "R";
+    board[1][5] = "R";
+
+    let state = updateGameState(board, 1, 0, 1, 3, "w", gameState, boards);
+
+    expect(state.gameOver).toBe(true);
+    expect(state.gameEndState).toBe("stalemate");
+  });
+
+  it("should not update gameOver when the player has a move", () => {
+    for (let i = 0; i < board.length; i++) {
+      board[i] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    }
+    board[7][4] = "K";
+    board[0][4] = "k";
+
+    board[6][4] = "q";
+    board[1][4] = "r";
+    board[4][2] = "B";
+
+    let state = updateGameState(board, 6, 0, 6, 4, "b", gameState, boards);
+
+    expect(state.gameOver).toBe(false);
+    expect(state.gameEndState).toBe("none");
+  });
+});
+
+describe("insufficientMaterial", () => {
+  let board;
+
+  beforeEach(() => {
+    board = initializeBoard();
+  });
+
+  it("should correctly identify when there is sufficient material", () => {
+    for (let i = 0; i < board.length; i++) {
+      board[i] = ["-", "-", "-", "-", "-", "-", "-", "-"];
+    }
+    board[7][4] = "K";
+    board[0][4] = "k";
+    expect(insufficientMaterial(board)).toBe(true);
+
+    board[4][0] = "P";
+    board[3][0] = "p";
+    expect(insufficientMaterial(board)).toBe(false);
+    board[4][0] = "-";
+    board[3][0] = "-";
+
+    board[6][4] = "N";
+    board[1][4] = "b";
+    expect(insufficientMaterial(board)).toBe(true);
+
+    board[6][4] = "R";
+    expect(insufficientMaterial(board)).toBe(false);
+
+    board[6][4] = "N";
+    board[5][2] = "B";
+    expect(insufficientMaterial(board)).toBe(false);
+  });
 });

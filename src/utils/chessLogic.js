@@ -336,10 +336,13 @@ export function isGameOver(board, player, gameState, boards) {
   const kingPosition = gameState.kingPosition[otherPlayer];
   const inCheck = isInCheck(board, kingPosition, otherPlayer, gameState);
 
-  // Checks for threefold repetition
   if (threefoldRep(boards)) {
     return "Draw by repetition";
   }
+  if (insufficientMaterial(board)) {
+    return "Draw by insufficient material";
+  }
+  // TODO: 50 Move Rule. No capture or pawn move in 50 moves
 
   // Checks if the other player has a legal move. If they do, the game is not over.
   for (let row = 0; row < 8; row++) {
@@ -414,6 +417,37 @@ export function boardsEqual(board1, board2) {
   }
   return true;
 }
+
+// Determines whether there is sufficient material to checkmate
+export const insufficientMaterial = (board) => {
+  let numWhitePieces = 0;
+  let numBlackPieces = 0;
+
+  for (let r = 0; r < board.length; r++) {
+    for (let c = 0; c < board[0].length; c++) {
+      const square = board[r][c];
+      if (square !== '-' && square === square.toUpperCase()) {
+        numWhitePieces++;
+        if (square === "Q" || square === "R" || square === "P") {
+          return false;
+        }
+      }
+      if (square !== '-' && square === square.toLowerCase()) {
+        numBlackPieces++;
+        if (square === "q" || square === "r" || square === "p") {
+          return false;
+        }
+      }
+    }
+  }
+
+  // 2 because theres always the kings
+  if (numWhitePieces > 2 || numBlackPieces > 2) {
+    return false;
+  }
+
+  return true;
+};
 
 export const updateGameState = (
   board,
@@ -505,7 +539,9 @@ export const updateGameState = (
   }
   // Check if game is over and updates state if it is
   const deepCopy = board.map((row) => [...row]);
-  if (isGameOver(board, player, newGameState, [...boards, deepCopy]) !== "none") {
+  if (
+    isGameOver(board, player, newGameState, [...boards, deepCopy]) !== "none"
+  ) {
     newGameState = {
       ...newGameState,
       gameOver: true,
