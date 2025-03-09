@@ -685,6 +685,7 @@ describe("updateGameState", () => {
         },
       },
       kingPosition: { w: [7, 4], b: [0, 4] },
+      fiftyMoveCounter: 0,
       gameOver: false,
       gameEndState: "none",
     };
@@ -693,6 +694,8 @@ describe("updateGameState", () => {
   });
 
   it("should do nothing if there is no state to update", () => {
+    board[1][0] = '-';
+    board[2][0] = 'p';
     expect(updateGameState(board, 1, 0, 2, 0, "b", gameState, boards)).toEqual(
       gameState
     );
@@ -773,6 +776,19 @@ describe("updateGameState", () => {
     expect(state.rookMoved.b.queenside).toBe(false);
   });
 
+  
+  it ("should increment the 50 move counter and reset it", () => {
+    board[7][1] = '-';
+    board[5][2] = 'K';
+    let state = updateGameState(board, 7, 1, 5, 2, 'w', gameState, boards);
+    expect(state.fiftyMoveCounter).toEqual(1);
+
+    board[1][4] = '-';
+    board[3][4] = 'p';
+    state = updateGameState(board, 1, 4, 3, 4, 'b', gameState, boards);
+    expect(state.fiftyMoveCounter).toEqual(0);
+  })
+
   it("should update when the game is over by mate", () => {
     for (let i = 0; i < board.length; i++) {
       board[i] = ["-", "-", "-", "-", "-", "-", "-", "-"];
@@ -804,6 +820,13 @@ describe("updateGameState", () => {
     expect(state.gameOver).toBe(true);
     expect(state.gameEndState).toBe("stalemate");
   });
+
+  it("should update when the game is over by 50 move rule", () => {
+    let state = {...gameState, fiftyMoveCounter: 100}
+
+    state = updateGameState(board, 7, 1, 5, 2, 'w', state, boards);
+    expect(state.gameEndState).toBe("Draw by 50 move rule");
+  })
 
   it("should not update gameOver when the player has a move", () => {
     for (let i = 0; i < board.length; i++) {

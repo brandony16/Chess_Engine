@@ -1,7 +1,7 @@
 import Board from "./Board";
-import { initializeBoard } from "../utils/chessLogic";
+import { initializeBoard, updateGameState } from "../utils/chessLogic";
 import { useEffect, useState } from "react";
-import { isValidMoveWithCheck, isGameOver } from "../utils/chessLogic";
+import { isValidMoveWithCheck } from "../utils/chessLogic";
 import { getBestMove } from "./Engines/Bondmonkey_V2";
 import PromotionModal from "./PromotionModal";
 import Sidebar from "./Sidebar";
@@ -30,6 +30,7 @@ const Game = () => {
       },
     },
     kingPosition: { w: [7, 4], b: [0, 4] },
+    fiftyMoveCounter: 0,
     gameOver: false,
     gameEndState: "none",
   });
@@ -68,97 +69,13 @@ const Game = () => {
       board[toRow + direction][toCol] = '-';
     }
 
-    // UPDATES GAME STATE
-    // Updates En Passant
-    if (piece.toLowerCase() === "p" && Math.abs(toRow - fromRow) === 2) {
-      const enPassantRow = currPlayer === "w" ? toRow + 1 : toRow - 1;
-      // Multiplying row by 8 then adding the col creates a unique identifier number for each square
-      setGameState({ ...gameState, enPassant: enPassantRow * 8 + toCol });
-    } else {
-      setGameState({ ...gameState, enPassant: null });
-    }
-    // Updates king position
-    if (piece.toLowerCase() === "k") {
-      setGameState({
-        ...gameState,
-        kingPosition: {
-          ...gameState.kingPosition,
-          [currPlayer]: [toRow, toCol],
-        },
-        kingMoved: { ...gameState.kingMoved, [currPlayer]: true },
-      });
-    }
-    // Udates game state if castling
-    if (piece.toLowerCase() === "k" && Math.abs(toCol - fromCol) === 2) {
-      const side = toCol > fromCol ? "kingside" : "queenside";
-      setGameState({
-        ...gameState,
-        kingMoved: { ...gameState.kingMoved, [currPlayer]: true },
-        rookMoved: {
-          ...gameState.rookMoved,
-          [currPlayer]: {
-            ...gameState.rookMoved[currPlayer],
-            [side]: true,
-          },
-        },
-      });
-    }
-    // Update if rook moved from starting square for black
-    if (piece === "r") {
-      if (fromRow === 0 && fromCol === 0) {
-        setGameState({
-          ...gameState,
-          rookMoved: {
-            ...gameState.rookMoved,
-            b: { ...gameState.rookMoved.b, queenside: true },
-          },
-        });
-      }
-      if (fromRow === 0 && fromCol === 7) {
-        setGameState({
-          ...gameState,
-          rookMoved: {
-            ...gameState.rookMoved,
-            b: { ...gameState.rookMoved.b, kingside: true },
-          },
-        });
-      }
-    }
-    // Update if rook moved from starting square for white
-    if (piece === "R") {
-      if (fromRow === 7 && fromCol === 0) {
-        setGameState({
-          ...gameState,
-          rookMoved: {
-            ...gameState.rookMoved,
-            w: { ...gameState.rookMoved.w, queenside: true },
-          },
-        });
-      }
-      if (fromRow === 7 && fromCol === 7) {
-        setGameState({
-          ...gameState,
-          rookMoved: {
-            ...gameState.rookMoved,
-            w: { ...gameState.rookMoved.w, kingside: true },
-          },
-        });
-      }
-    }
-    // Check if game is over and updates state if it is
-    const deepCopy = newBoard.map((row) => [...row]);
-    if (
-      isGameOver(board, currPlayer, gameState, [...boards, deepCopy]) !== "none"
-    ) {
-      setGameState({
-        ...gameState,
-        gameOver: true,
-        gameEndState: isGameOver(board, currPlayer, gameState, boards),
-      });
-    }
-
+    let newState = updateGameState(newBoard, fromRow, fromCol, toRow, toCol, currPlayer, gameState, boards);
+    
+    setGameState(newState);
     setBoard(newBoard);
+    setBoards([...boards, newBoard.map((row) => [...row])]);
     setCurrPlayer(currPlayer === "w" ? "b" : "w");
+
   };
 
   // Handles when a square is clicked
@@ -229,42 +146,11 @@ const Game = () => {
           newBoard[enPassantRow][col] = "-";
         }
 
-        // Sets en passant row if pawn moves 2 squares, clears en passant row if it doesn't
-        if (piece.toLowerCase() === "p" && Math.abs(selectedRow - row) === 2) {
-          const enPassantRow = currPlayer === "w" ? row + 1 : row - 1;
-          // Multiplying row by 8 then adding the col creates a unique identifier number for each square
-          setGameState({ ...gameState, enPassant: enPassantRow * 8 + col });
-        } else {
-          setGameState({ ...gameState, enPassant: null });
-        }
-
-        // Updates king position if king moved
-        if (piece.toLowerCase() === "k") {
-          setGameState({
-            ...gameState,
-            kingPosition: {
-              ...gameState.kingPosition,
-              [currPlayer]: [row, col],
-            },
-            kingMoved: { ...gameState.kingMoved, [currPlayer]: true },
-          });
-        }
-
-        // Update state if game is over
-        const deepCopy = newBoard.map((row) => [...row]);
-        if (
-          isGameOver(board, currPlayer, gameState, [...boards, deepCopy]) !==
-          "none"
-        ) {
-          setGameState({
-            ...gameState,
-            gameOver: true,
-            gameEndState: isGameOver(board, currPlayer, gameState, boards),
-          });
-        }
+        let newState = updateGameState(newBoard, selectedRow, selectedCol, row, col, currPlayer, gameState, boards);
         
         // Update states
-        setBoards([...boards, deepCopy]);
+        setGameState(newState);
+        setBoards([...boards, newBoard.map((row) => [...row])]);
         setBoard(newBoard);
         setCurrPlayer(currPlayer === "w" ? "b" : "w");
       }
@@ -354,7 +240,9 @@ const Game = () => {
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !gameState.gameOver) {
-      makeEngineMove();
+      setTimeout(() => {
+        makeEngineMove();
+      }, 500)
     }
   }, [currPlayer, userSide, gameState, board])
 

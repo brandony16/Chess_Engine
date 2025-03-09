@@ -1,3 +1,5 @@
+import { getLegalMoves } from "./pieceMoves";
+
 export function initializeBoard() {
   return [
     ["r", "n", "b", "q", "k", "b", "n", "r"], // 0
@@ -228,14 +230,15 @@ export function isCastlingLegal(board, player, gameState, side) {
   // Check if the squares the king passes through, including the destination, are under attack
   const kingDestCol = side === "kingside" ? 6 : 2;
   if (
-    isSquareUnderAttack(board, kingRow, kingCol, player) ||
+    isSquareUnderAttack(board, kingRow, kingCol, player, gameState) ||
     isSquareUnderAttack(
       board,
       kingRow,
       kingCol + (kingDestCol - kingCol) / 2,
-      player
+      player,
+      gameState
     ) ||
-    isSquareUnderAttack(board, kingRow, kingDestCol, player)
+    isSquareUnderAttack(board, kingRow, kingDestCol, player, gameState)
   ) {
     return false;
   }
@@ -244,7 +247,7 @@ export function isCastlingLegal(board, player, gameState, side) {
 }
 
 // Determines whether a square is under attack. Used for checking castling legality
-export function isSquareUnderAttack(board, endRow, endCol, player) {
+export function isSquareUnderAttack(board, endRow, endCol, player, gameState) {
   const otherPlayer = player === "w" ? "b" : "w";
 
   for (let row = 0; row < 8; row++) {
@@ -258,7 +261,9 @@ export function isSquareUnderAttack(board, endRow, endCol, player) {
           : piece === piece.toUpperCase())
       ) {
         // See if opponent can move to the square
-        if (isValidMove(board, row, col, endRow, endCol, otherPlayer)) {
+        if (
+          isValidMove(board, row, col, endRow, endCol, otherPlayer, gameState)
+        ) {
           return true;
         }
       }
@@ -342,37 +347,18 @@ export function isGameOver(board, player, gameState, boards) {
   if (insufficientMaterial(board)) {
     return "Draw by insufficient material";
   }
+  // 100 because both players moving is 1 move
+  if (gameState.fiftyMoveCounter >= 100) {
+    return "Draw by 50 move rule";
+  }
+
   // TODO: 50 Move Rule. No capture or pawn move in 50 moves
 
   // Checks if the other player has a legal move. If they do, the game is not over.
-  for (let row = 0; row < 8; row++) {
-    for (let col = 0; col < 8; col++) {
-      const piece = board[row][col];
-      if (
-        piece !== "-" &&
-        ((otherPlayer === "w" && piece === piece.toUpperCase()) ||
-          (otherPlayer === "b" && piece === piece.toLowerCase()))
-      ) {
-        for (let newRow = 0; newRow < 8; newRow++) {
-          for (let newCol = 0; newCol < 8; newCol++) {
-            if (
-              isValidMoveWithCheck(
-                board,
-                row,
-                col,
-                newRow,
-                newCol,
-                otherPlayer,
-                gameState
-              )
-            ) {
-              return "none";
-            }
-          }
-        }
-      }
-    }
+  if (getLegalMoves(board, otherPlayer, gameState).length > 0) {
+    return "none";
   }
+
   // If the opponent has no legal move and is in check, it is a checkmate.
   // If the opponent has no legal move but is not in check, it is a stalemate.
   return inCheck ? "checkmate" : "stalemate";
@@ -426,13 +412,13 @@ export const insufficientMaterial = (board) => {
   for (let r = 0; r < board.length; r++) {
     for (let c = 0; c < board[0].length; c++) {
       const square = board[r][c];
-      if (square !== '-' && square === square.toUpperCase()) {
+      if (square !== "-" && square === square.toUpperCase()) {
         numWhitePieces++;
         if (square === "Q" || square === "R" || square === "P") {
           return false;
         }
       }
-      if (square !== '-' && square === square.toLowerCase()) {
+      if (square !== "-" && square === square.toLowerCase()) {
         numBlackPieces++;
         if (square === "q" || square === "r" || square === "p") {
           return false;
@@ -537,6 +523,20 @@ export const updateGameState = (
       };
     }
   }
+
+  const thingOnPrevSquare = boards[boards.length - 1][toRow][toCol];
+  if (piece.toLowerCase() !== "p" && thingOnPrevSquare === "-") {
+    newGameState = {
+      ...newGameState,
+      fiftyMoveCounter: gameState.fiftyMoveCounter + 1,
+    };
+  } else {
+    newGameState = {
+      ...newGameState,
+      fiftyMoveCounter: 0,
+    };
+  }
+
   // Check if game is over and updates state if it is
   const deepCopy = board.map((row) => [...row]);
   if (

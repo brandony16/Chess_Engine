@@ -12,7 +12,7 @@ export const getBestMove = (board, player, gameState, depth, boards) => {
     const [fromRow, fromCol] = move[0];
     const [toRow, toCol] = move[1];
     let simGameState = { ...gameState };
-    let simBoards = [ ...boards ];
+    let simBoards = [...boards];
 
     const newBoard = board.map((row) => [...row]);
 
@@ -48,7 +48,7 @@ export const getBestMove = (board, player, gameState, depth, boards) => {
 
     // UPDATE GAME STATE
     simGameState = updateGameState(
-      board,
+      newBoard,
       fromRow,
       fromCol,
       toRow,
@@ -57,12 +57,12 @@ export const getBestMove = (board, player, gameState, depth, boards) => {
       simGameState,
       simBoards
     );
-    simBoards = [ ...simBoards, newBoard.map(row => [...row]) ];
+    simBoards = [...simBoards, newBoard.map((row) => [...row])];
 
     const moveEval = minimax(
       newBoard,
       depth - 1,
-      player,
+      player === "w" ? "b" : "w",
       simGameState,
       simBoards
     );
@@ -94,7 +94,7 @@ const minimax = (board, depth, player, gameState, boards) => {
       const [fromRow, fromCol] = move[0];
       const [toRow, toCol] = move[1];
       let simGameState = { ...gameState };
-      let simBoards = [ ...boards ];
+      let simBoards = [...boards];
 
       // Simulate the move
       const newBoard = board.map((row) => [...row]);
@@ -104,7 +104,7 @@ const minimax = (board, depth, player, gameState, boards) => {
       // If castling, need to move the rook
       if (
         newBoard[toRow][toCol].toLowerCase() === "k" &&
-        Math.abs(fromCol, toCol) === 2
+        Math.abs(fromCol - toCol) === 2
       ) {
         // fromCol is bigger when castling queenside
         if (fromCol - toCol == 2) {
@@ -128,7 +128,7 @@ const minimax = (board, depth, player, gameState, boards) => {
       }
 
       // UDPATE GAME STATE
-      gameState = updateGameState(
+      simGameState = updateGameState(
         newBoard,
         fromRow,
         fromCol,
@@ -138,7 +138,7 @@ const minimax = (board, depth, player, gameState, boards) => {
         simGameState,
         boards
       );
-      simBoards = [ ...simBoards, newBoard.map(row => [...row]) ];
+      simBoards = [...simBoards, newBoard.map((row) => [...row])];
 
       const currEval = minimax(newBoard, depth - 1, "b", simGameState);
 
@@ -153,7 +153,7 @@ const minimax = (board, depth, player, gameState, boards) => {
       const [fromRow, fromCol] = move[0];
       const [toRow, toCol] = move[1];
       let simGameState = { ...gameState };
-      let simBoards = [ ...boards ];
+      let simBoards = [...boards];
 
       // Simluate Move
       const newBoard = board.map((row) => [...row]);
@@ -163,7 +163,7 @@ const minimax = (board, depth, player, gameState, boards) => {
       // If castling, need to move the rook
       if (
         newBoard[toRow][toCol].toLowerCase() === "k" &&
-        Math.abs(fromCol, toCol) === 2
+        Math.abs(fromCol - toCol) === 2
       ) {
         // fromCol is bigger when castling queenside
         if (fromCol - toCol == 2) {
@@ -178,8 +178,7 @@ const minimax = (board, depth, player, gameState, boards) => {
       // If en passant, need to remove the captured pawn
       if (
         newBoard[toRow][toCol].toLowerCase() === "p" &&
-        simGameState.enPassant &&
-        toRow * 8 + toCol
+        simGameState.enPassant === toRow * 8 + toCol
       ) {
         let direction = player === "w" ? 1 : -1;
 
@@ -197,7 +196,7 @@ const minimax = (board, depth, player, gameState, boards) => {
         simGameState,
         simBoards
       );
-      simBoards = [ ...simBoards, newBoard.map(row => [...row]) ];
+      simBoards = [...simBoards, newBoard.map((row) => [...row])];
 
       const currEval = minimax(newBoard, depth - 1, "w", simGameState);
 
