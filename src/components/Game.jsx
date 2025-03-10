@@ -11,7 +11,7 @@ import "./UI.css";
 const Game = () => {
   // STATES
   const [board, setBoard] = useState(initializeBoard());
-  const [boards, setBoards] = useState([initializeBoard()]); 
+  const [boards, setBoards] = useState([initializeBoard()]);
   const [currPlayer, setCurrPlayer] = useState("w");
   const [userSide, setUserSide] = useState("w");
   const [selectedPiece, setSelectedPiece] = useState(null);
@@ -45,37 +45,53 @@ const Game = () => {
     const [toRow, toCol] = bestMove[1];
 
     const newBoard = [...board];
-    newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
+    if (bestMove[2]) {
+      newBoard[toRow][toCol] = bestMove[2];
+    } else {
+      newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
+    }
     newBoard[fromRow][fromCol] = "-";
 
     const piece = newBoard[toRow][toCol];
 
     // If castling, need to move the rook
-    if (piece.toLowerCase() === 'k' && Math.abs(fromCol, toCol) === 2) {
+    if (piece.toLowerCase() === "k" && Math.abs(fromCol, toCol) === 2) {
       // fromCol is bigger when castling queenside
       if (fromCol - toCol == 2) {
         board[fromRow][3] = board[fromRow][0];
-        board[fromRow][0] = '-';
+        board[fromRow][0] = "-";
       } else {
         board[fromRow][5] = board[fromRow][7];
-        board[fromRow][7] = '-';
+        board[fromRow][7] = "-";
       }
     }
 
     // If en passant, need to remove the captured pawn
-    if (piece.toLowerCase() === 'p' && gameState.enPassant && (toRow*8 + toCol)) {
-      let direction = currPlayer === 'w' ? 1 : -1;
+    if (
+      piece.toLowerCase() === "p" &&
+      gameState.enPassant &&
+      toRow * 8 + toCol
+    ) {
+      let direction = currPlayer === "w" ? 1 : -1;
 
-      board[toRow + direction][toCol] = '-';
+      board[toRow + direction][toCol] = "-";
     }
 
-    let newState = updateGameState(newBoard, fromRow, fromCol, toRow, toCol, currPlayer, gameState, boards);
-    
+    let newState = updateGameState(
+      newBoard,
+      fromRow,
+      fromCol,
+      toRow,
+      toCol,
+      currPlayer,
+      gameState,
+      boards
+    );
+
     setGameState(newState);
     setBoard(newBoard);
     setBoards([...boards, newBoard.map((row) => [...row])]);
     setCurrPlayer(currPlayer === "w" ? "b" : "w");
-
   };
 
   // Handles when a square is clicked
@@ -100,7 +116,7 @@ const Game = () => {
       setSelectedPiece([row, col]);
       return;
     }
-    
+
     // If a piece is selected, move there if legal
     if (selectedPiece) {
       const [selectedRow, selectedCol] = selectedPiece;
@@ -126,7 +142,7 @@ const Game = () => {
           });
           return;
         }
-        
+
         // If castling, set corresponding board, else move normally
         if (piece.toLowerCase() === "k" && Math.abs(selectedCol - col) === 2) {
           handleCastle(newBoard, row, col, selectedRow, selectedCol);
@@ -140,14 +156,23 @@ const Game = () => {
           piece.toLowerCase() === "p" &&
           Math.abs(selectedRow - row) === 1 &&
           Math.abs(selectedCol - col) === 1 &&
-          board[row][col] === "-"
+          newBoard[row][col] === "-"
         ) {
-          const enPassantRow = currPlayer === "w" ? row + 1 : row - 1;
-          newBoard[enPassantRow][col] = "-";
+          const direction = currPlayer === "w" ? 1 : -1;
+          newBoard[row + direction][col] = "-";
         }
 
-        let newState = updateGameState(newBoard, selectedRow, selectedCol, row, col, currPlayer, gameState, boards);
-        
+        let newState = updateGameState(
+          newBoard,
+          selectedRow,
+          selectedCol,
+          row,
+          col,
+          currPlayer,
+          gameState,
+          boards
+        );
+
         // Update states
         setGameState(newState);
         setBoards([...boards, newBoard.map((row) => [...row])]);
@@ -235,16 +260,16 @@ const Game = () => {
         },
       },
     });
-  }
+  };
 
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !gameState.gameOver) {
       setTimeout(() => {
         makeEngineMove();
-      }, 500)
+      }, 500);
     }
-  }, [currPlayer, userSide, gameState, board])
+  }, [currPlayer, userSide, gameState, board]);
 
   return (
     <div className="body">

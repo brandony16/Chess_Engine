@@ -17,7 +17,11 @@ export const getBestMove = (board, player, gameState, depth, boards) => {
     const newBoard = board.map((row) => [...row]);
 
     // Simulate Move
-    newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
+    if (move[2]) {
+      newBoard[toRow][toCol] = move[2];
+    } else {
+      newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
+    }
     newBoard[fromRow][fromCol] = "-";
 
     // If castling, need to move the rook
@@ -82,7 +86,7 @@ export const getBestMove = (board, player, gameState, depth, boards) => {
 const minimax = (board, depth, player, gameState, boards) => {
   // Break conditions. Stops searching if the depth is reached or if the game is over
   if (depth === 0 || gameState.gameOver) {
-    return evaluatePosition(board);
+    return evaluatePosition(board, player, gameState);
   }
 
   const moves = getLegalMoves(board, player, gameState);
@@ -98,7 +102,11 @@ const minimax = (board, depth, player, gameState, boards) => {
 
       // Simulate the move
       const newBoard = board.map((row) => [...row]);
-      newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
+      if (move[2]) {
+        newBoard[toRow][toCol] = move[2];
+      } else {
+        newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
+      }
       newBoard[fromRow][fromCol] = "-";
 
       // If castling, need to move the rook
@@ -157,7 +165,11 @@ const minimax = (board, depth, player, gameState, boards) => {
 
       // Simluate Move
       const newBoard = board.map((row) => [...row]);
-      newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
+      if (move[2]) {
+        newBoard[toRow][toCol] = move[2];
+      } else {
+        newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
+      }
       newBoard[fromRow][fromCol] = "-";
 
       // If castling, need to move the rook
@@ -222,7 +234,13 @@ const weights = {
   K: 1000000,
 };
 
-const evaluatePosition = (board) => {
+const evaluatePosition = (board, player, gameState) => {
+  if (player === 'w' && gameState.gameEndState === 'checkmate') {
+    return -Infinity;
+  } else if (player === 'b' && gameState.gameEndState === 'checkmate') {
+    return Infinity;
+  }
+  
   let evaluation = 0;
 
   for (const row of board) {

@@ -11,10 +11,20 @@ const getPawnMoves = (board, row, col, player, gameState) => {
 
   // Move 1 square
   if (board[row + direction][col] === "-") {
-    moves.push([
-      [row, col],
-      [row + direction, col],
-    ]);
+    if (row + direction === 7) {
+      ["q", "r", "b", "n"].forEach((promo) => {
+        moves.push([[row, col], [row + direction, col], promo]);
+      });
+    } else if (row + direction === 0) {
+      ["Q", "R", "B", "N"].forEach((promo) => {
+        moves.push([[row, col], [row + direction, col], promo]);
+      });
+    } else {
+      moves.push([
+        [row, col],
+        [row + direction, col],
+      ]);
+    }
   }
 
   // Move 2 squares
@@ -36,16 +46,24 @@ const getPawnMoves = (board, row, col, player, gameState) => {
   if (col + 1 <= 7) {
     const rightSquare = board[row + direction][col + 1];
     if (rightSquare !== "-") {
-      if (player === "w") {
-        if (rightSquare === rightSquare.toLowerCase()) {
+      if (player === "w" && rightSquare === rightSquare.toLowerCase()) {
+        if (row + direction === 0) {
+          ["Q", "R", "B", "N"].forEach((promo) => {
+            moves.push([[row, col], [row + direction, col + 1], promo]);
+          });
+        } else {
           moves.push([
             [row, col],
             [row + direction, col + 1],
           ]);
         }
       }
-      if (player === "b") {
-        if (rightSquare === rightSquare.toUpperCase()) {
+      if (player === "b" && rightSquare === rightSquare.toUpperCase()) {
+        if (row + direction === 7) {
+          ["q", "r", "b", "n"].forEach((promo) => {
+            moves.push([[row, col], [row + direction, col + 1], promo]);
+          });
+        } else {
           moves.push([
             [row, col],
             [row + direction, col + 1],
@@ -57,16 +75,24 @@ const getPawnMoves = (board, row, col, player, gameState) => {
   if (col - 1 >= 0) {
     const leftSquare = board[row + direction][col - 1];
     if (leftSquare !== "-") {
-      if (player === "w") {
-        if (leftSquare === leftSquare.toLowerCase()) {
+      if (player === "w" && leftSquare === leftSquare.toLowerCase()) {
+        if (row + direction === 0) {
+          ["Q", "R", "B", "N"].forEach((promo) => {
+            moves.push([[row, col], [row + direction, col - 1], promo]);
+          });
+        } else {
           moves.push([
             [row, col],
             [row + direction, col - 1],
           ]);
         }
       }
-      if (player === "b") {
-        if (leftSquare === leftSquare.toUpperCase()) {
+      if (player === "b" && leftSquare === leftSquare.toUpperCase()) {
+        if (row + direction === 0) {
+          ["q", "r", "b", "n"].forEach((promo) => {
+            moves.push([[row, col], [row + direction, col - 1], promo]);
+          });
+        } else {
           moves.push([
             [row, col],
             [row + direction, col - 1],
