@@ -21,7 +21,6 @@ export function isValidMove(
   startCol,
   endRow,
   endCol,
-  player,
   gameState
 ) {
   if (
@@ -38,6 +37,16 @@ export function isValidMove(
   }
 
   const piece = board[startRow][startCol];
+  if (piece === "-") {
+    return false;
+  }
+  let player;
+  if (piece.toUpperCase() === piece) {
+    player = "w";
+  } else {
+    player = "b";
+  }
+
   const target = board[endRow][endCol];
 
   // Prevent moving to piece of same color
@@ -248,12 +257,9 @@ export function isCastlingLegal(board, player, gameState, side) {
 
 // Determines whether a square is under attack. Used for checking castling legality
 export function isSquareUnderAttack(board, endRow, endCol, player, gameState) {
-  const otherPlayer = player === "w" ? "b" : "w";
-
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
       const piece = board[row][col];
-
       if (
         piece != "-" &&
         (player === "w"
@@ -261,9 +267,7 @@ export function isSquareUnderAttack(board, endRow, endCol, player, gameState) {
           : piece === piece.toUpperCase())
       ) {
         // See if opponent can move to the square
-        if (
-          isValidMove(board, row, col, endRow, endCol, otherPlayer, gameState)
-        ) {
+        if (isValidMove(board, row, col, endRow, endCol, gameState)) {
           return true;
         }
       }
@@ -275,7 +279,6 @@ export function isSquareUnderAttack(board, endRow, endCol, player, gameState) {
 // Determines whether a given king is under attack
 export function isInCheck(board, player, gameState) {
   const [kingRow, kingCol] = gameState.kingPosition[player];
-  const otherPlayer = player === "w" ? "b" : "w";
 
   for (let row = 0; row < 8; row++) {
     for (let col = 0; col < 8; col++) {
@@ -288,9 +291,7 @@ export function isInCheck(board, player, gameState) {
           : piece === piece.toUpperCase())
       ) {
         // See if opponent can move to take the king
-        if (
-          isValidMove(board, row, col, kingRow, kingCol, otherPlayer, gameState)
-        ) {
+        if (isValidMove(board, row, col, kingRow, kingCol, gameState)) {
           return true;
         }
       }
@@ -324,13 +325,13 @@ export function isValidMoveWithCheck(
     [endRow, endCol],
   ]);
 
-  if (board[startRow][startCol].toLowerCase() === 'k') {
+  if (board[startRow][startCol].toLowerCase() === "k") {
     tempState.kingPosition[player] = [endRow, endCol];
   }
 
   return (
     !isInCheck(newBoard, player, tempState) &&
-    isValidMove(board, startRow, startCol, endRow, endCol, player, tempState)
+    isValidMove(board, startRow, startCol, endRow, endCol, tempState)
   );
 }
 
@@ -587,4 +588,32 @@ export const simulateMove = (board, move) => {
   }
 
   return newBoard;
+};
+
+export const sortMoves = (board, moves) => {
+  const pieceValues = {
+    K: 900,
+    Q: 90,
+    R: 50,
+    B: 30,
+    N: 30,
+    P: 10,
+    "-": 0,
+  };
+
+  return moves.sort((move1, move2) => {
+    const [from1, to1, promo1 = null] = move1;
+    const [from2, to2, promo2 = null] = move2;
+
+    const captured1 = board[to1[0]][to1[1]];
+    const captured2 = board[to2[0]][to2[1]];
+
+    const piece1 = promo1 ? promo1 : board[from1[0]][from1[1]];
+    const piece2 = promo2 ? promo2 : board[from2[0]][from2[1]];
+
+    const value1 = pieceValues[captured1] - pieceValues[piece1];
+    const value2 = pieceValues[captured2] - pieceValues[piece2];
+
+    return value2 - value1;
+  });
 };

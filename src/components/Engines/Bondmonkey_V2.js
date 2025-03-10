@@ -1,54 +1,23 @@
-import { isInCheck, simulateMove, updateGameState } from "../../utils/chessLogic";
+import { simulateMove, sortMoves, updateGameState } from "../../utils/chessLogic";
 import { getLegalMoves } from "../../utils/pieceMoves";
 
 // V2: Plays moves purely based on material
 export const getBestMove = (board, player, gameState, depth, boards) => {
   const moves = getLegalMoves(board, player, gameState);
+  const sortedMoves = sortMoves(board, moves);
 
   let bestMove = null;
   let bestEval = player === "w" ? -Infinity : Infinity;
+  let alpha = -Infinity;
+  let beta = Infinity;
 
-  for (const move of moves) {
-    const [fromRow, fromCol] = move[0];
-    const [toRow, toCol] = move[1];
+  for (const move of sortedMoves) {
+    let newBoard = simulateMove(board, move);
     let simGameState = { ...gameState };
     let simBoards = [...boards];
-
-    const newBoard = board.map((row) => [...row]);
-
-    // Simulate Move
-    if (move[2]) {
-      newBoard[toRow][toCol] = move[2];
-    } else {
-      newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
-    }
-    newBoard[fromRow][fromCol] = "-";
-
-    // If castling, need to move the rook
-    if (
-      newBoard[toRow][toCol].toLowerCase() === "k" &&
-      Math.abs(fromCol, toCol) === 2
-    ) {
-      // fromCol is bigger when castling queenside
-      if (fromCol - toCol == 2) {
-        newBoard[fromRow][3] = newBoard[fromRow][0];
-        newBoard[fromRow][0] = "-";
-      } else {
-        newBoard[fromRow][5] = newBoard[fromRow][7];
-        newBoard[fromRow][7] = "-";
-      }
-    }
-
-    // If en passant, need to remove the captured pawn
-    if (
-      newBoard[toRow][toCol].toLowerCase() === "p" &&
-      gameState.enPassant &&
-      toRow * 8 + toCol
-    ) {
-      let direction = player === "w" ? 1 : -1;
-
-      newBoard[toRow + direction][toCol] = "-";
-    }
+    
+    const [fromRow, fromCol] = move[0];
+    const [toRow, toCol] = move[1];
 
     // UPDATE GAME STATE
     simGameState = updateGameState(
@@ -68,7 +37,9 @@ export const getBestMove = (board, player, gameState, depth, boards) => {
       depth - 1,
       player === "w" ? "b" : "w",
       simGameState,
-      simBoards
+      simBoards,
+      alpha,
+      beta
     );
 
     if (
@@ -78,28 +49,35 @@ export const getBestMove = (board, player, gameState, depth, boards) => {
       bestEval = moveEval;
       bestMove = move;
     }
+
+    if (player === "w") {
+      alpha = Math.max(alpha, moveEval);
+    } else {
+      beta = Math.min(beta, moveEval);
+    }
+
+    if (beta <= alpha) {
+      break;
+    }
   }
 
   return bestMove;
 };
 
-const minimax = (board, depth, player, gameState, boards) => {
+const minimax = (board, depth, player, gameState, boards, alpha, beta) => {
   // Break conditions. Stops searching if the depth is reached or if the game is over
   if (depth === 0 || gameState.gameOver) {
     return evaluatePosition(board, player, gameState);
   }
 
   const moves = getLegalMoves(board, player, gameState);
-  if (moves.length === 0) {
-    const mateEval = player === 'w' ? -Infinity : Infinity
-    return isInCheck(board, player, gameState) ? mateEval : 0;
-  }
+  const sortedMoves = sortMoves(board, moves);
 
   if (player === "w") {
     // White tries to maximize the evaluation
     let maxEval = -Infinity;
 
-    for (const move of moves) {
+    for (const move of sortedMoves) {
       let newBoard = simulateMove(board, move);
       let simGameState = { ...gameState };
       let simBoards = [...boards];
@@ -120,9 +98,15 @@ const minimax = (board, depth, player, gameState, boards) => {
       );
       simBoards = [...simBoards, newBoard.map((row) => [...row])];
 
-      const currEval = minimax(newBoard, depth - 1, "b", simGameState);
+      const currEval = minimax(newBoard, depth - 1, "b", simGameState, simBoards, alpha, beta);
+
 
       maxEval = Math.max(maxEval, currEval);
+      alpha = Math.max(alpha, currEval);
+
+      if (beta <= alpha) {
+        break;
+      }
     }
     return maxEval;
   } else {
@@ -150,9 +134,14 @@ const minimax = (board, depth, player, gameState, boards) => {
       );
       simBoards = [...simBoards, newBoard.map((row) => [...row])];
 
-      const currEval = minimax(newBoard, depth - 1, "b", simGameState);
+      const currEval = minimax(newBoard, depth - 1, "b", simGameState, simBoards, alpha, beta);
 
       minEval = Math.min(minEval, currEval);
+      beta = Math.min(beta, currEval);
+
+      if (beta <= alpha) {
+        break;
+      }
     }
     return minEval;
   }

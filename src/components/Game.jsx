@@ -39,7 +39,7 @@ const Game = () => {
 
   // Gets the engine move then plays it
   const makeEngineMove = () => {
-    const bestMove = getBestMove(board, currPlayer, gameState, 2, boards);
+    const bestMove = getBestMove(board, currPlayer, gameState, 4, boards);
 
     const [fromRow, fromCol] = bestMove[0];
     const [toRow, toCol] = bestMove[1];
@@ -268,7 +268,7 @@ const Game = () => {
     if (currPlayer !== userSide && !gameState.gameOver) {
       setTimeout(() => {
         makeEngineMove();
-      }, 500);
+      }, 0);
     }
   }, [currPlayer, userSide, gameState, board]);
 
