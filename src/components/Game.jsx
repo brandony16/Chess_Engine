@@ -233,6 +233,7 @@ const Game = () => {
         },
       },
       kingPosition: { w: [7, 4], b: [0, 4] },
+      fiftyMoveCounter: 0,
       gameOver: false,
       gameEndState: "none",
     });

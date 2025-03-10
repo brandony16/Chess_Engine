@@ -451,14 +451,12 @@ export const getAllQueenMoves = (board, player) => {
 // Gets all legal moves in the position. Filters out those that put the king in check, etc.
 export const getLegalMoves = (board, player, gameState) => {
   const [kingRow, kingCol] = gameState.kingPosition[player];
-
   const pawnMoves = getAllPawnMoves(board, player, gameState);
   const rookMoves = getAllRookMoves(board, player);
   const knightMoves = getAllKnightMoves(board, player);
   const bishopMoves = getAllBishopMoves(board, player);
   const queenMoves = getAllQueenMoves(board, player);
   const kingMoves = getKingMoves(board, kingRow, kingCol, player, gameState);
-
   const allMoves = [
     ...pawnMoves,
     ...rookMoves,

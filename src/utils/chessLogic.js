@@ -273,8 +273,8 @@ export function isSquareUnderAttack(board, endRow, endCol, player, gameState) {
 }
 
 // Determines whether a given king is under attack
-export function isInCheck(board, kingPosition, player, gameState) {
-  const [kingRow, kingCol] = kingPosition;
+export function isInCheck(board, player, gameState) {
+  const [kingRow, kingCol] = gameState.kingPosition[player];
   const otherPlayer = player === "w" ? "b" : "w";
 
   for (let row = 0; row < 8; row++) {
@@ -310,6 +310,7 @@ export function isValidMoveWithCheck(
   gameState
 ) {
   const target = board[endRow][endCol];
+  const tempState = structuredClone(gameState);
 
   // Prevent moving to piece of same color
   if (player === "w" && target !== "-" && target === target.toUpperCase())
@@ -318,28 +319,25 @@ export function isValidMoveWithCheck(
     return false;
 
   // Simulate move
-  const boardCopy = JSON.parse(JSON.stringify(board));
-  boardCopy[endRow][endCol] = boardCopy[startRow][startCol];
-  boardCopy[startRow][startCol] = "-";
+  const newBoard = simulateMove(board, [
+    [startRow, startCol],
+    [endRow, endCol],
+  ]);
 
-  const piece = board[startRow][startCol];
+  if (board[startRow][startCol].toLowerCase() === 'k') {
+    tempState.kingPosition[player] = [endRow, endCol];
+  }
 
-  // Gets the kings position for the check function
-  const newKingPosition =
-    piece.toLowerCase() === "k"
-      ? [endRow, endCol]
-      : gameState.kingPosition[player];
   return (
-    !isInCheck(boardCopy, newKingPosition, player, gameState) &&
-    isValidMove(board, startRow, startCol, endRow, endCol, player, gameState)
+    !isInCheck(newBoard, player, tempState) &&
+    isValidMove(board, startRow, startCol, endRow, endCol, player, tempState)
   );
 }
 
 // Determines whether the game is over (Draw or Mate)
 export function isGameOver(board, player, gameState, boards) {
   const otherPlayer = player === "w" ? "b" : "w";
-  const kingPosition = gameState.kingPosition[otherPlayer];
-  const inCheck = isInCheck(board, kingPosition, otherPlayer, gameState);
+  const inCheck = isInCheck(board, otherPlayer, gameState);
 
   if (threefoldRep(boards)) {
     return "Draw by repetition";
@@ -352,13 +350,10 @@ export function isGameOver(board, player, gameState, boards) {
     return "Draw by 50 move rule";
   }
 
-  // TODO: 50 Move Rule. No capture or pawn move in 50 moves
-
   // Checks if the other player has a legal move. If they do, the game is not over.
   if (getLegalMoves(board, otherPlayer, gameState).length > 0) {
     return "none";
   }
-
   // If the opponent has no legal move and is in check, it is a checkmate.
   // If the opponent has no legal move but is not in check, it is a stalemate.
   return inCheck ? "checkmate" : "stalemate";
@@ -435,6 +430,7 @@ export const insufficientMaterial = (board) => {
   return true;
 };
 
+// Updates the game state given a board, move, player, previous state, and previous boards
 export const updateGameState = (
   board,
   fromRow,
@@ -550,4 +546,45 @@ export const updateGameState = (
   }
 
   return newGameState;
+};
+
+export const simulateMove = (board, move) => {
+  const [fromRow, fromCol] = move[0];
+  const [toRow, toCol] = move[1];
+
+  // Simulate the move
+  const newBoard = board.map((row) => [...row]);
+  if (move[2]) {
+    newBoard[toRow][toCol] = move[2];
+  } else {
+    newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
+  }
+  newBoard[fromRow][fromCol] = "-";
+
+  // If castling, need to move the rook
+  if (
+    newBoard[toRow][toCol].toLowerCase() === "k" &&
+    Math.abs(fromCol - toCol) === 2
+  ) {
+    // fromCol is bigger when castling queenside
+    if (fromCol - toCol == 2) {
+      newBoard[fromRow][3] = newBoard[fromRow][0];
+      newBoard[fromRow][0] = "-";
+    } else {
+      newBoard[fromRow][5] = newBoard[fromRow][7];
+      newBoard[fromRow][7] = "-";
+    }
+  }
+
+  // If en passant, need to remove the captured pawn
+  if (
+    newBoard[toRow][toCol].toLowerCase() === "p" &&
+    Math.abs(toRow - fromRow) === 1 &&
+    Math.abs(toCol - fromCol) === 1 &&
+    newBoard[toRow][toCol] === "-"
+  ) {
+    newBoard[fromRow][toCol] = "-";
+  }
+
+  return newBoard;
 };

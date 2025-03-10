@@ -1,4 +1,4 @@
-import { updateGameState } from "../../utils/chessLogic";
+import { isInCheck, simulateMove, updateGameState } from "../../utils/chessLogic";
 import { getLegalMoves } from "../../utils/pieceMoves";
 
 // V2: Plays moves purely based on material
@@ -90,50 +90,22 @@ const minimax = (board, depth, player, gameState, boards) => {
   }
 
   const moves = getLegalMoves(board, player, gameState);
+  if (moves.length === 0) {
+    const mateEval = player === 'w' ? -Infinity : Infinity
+    return isInCheck(board, player, gameState) ? mateEval : 0;
+  }
+
   if (player === "w") {
     // White tries to maximize the evaluation
     let maxEval = -Infinity;
 
     for (const move of moves) {
-      const [fromRow, fromCol] = move[0];
-      const [toRow, toCol] = move[1];
+      let newBoard = simulateMove(board, move);
       let simGameState = { ...gameState };
       let simBoards = [...boards];
-
-      // Simulate the move
-      const newBoard = board.map((row) => [...row]);
-      if (move[2]) {
-        newBoard[toRow][toCol] = move[2];
-      } else {
-        newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
-      }
-      newBoard[fromRow][fromCol] = "-";
-
-      // If castling, need to move the rook
-      if (
-        newBoard[toRow][toCol].toLowerCase() === "k" &&
-        Math.abs(fromCol - toCol) === 2
-      ) {
-        // fromCol is bigger when castling queenside
-        if (fromCol - toCol == 2) {
-          newBoard[fromRow][3] = newBoard[fromRow][0];
-          newBoard[fromRow][0] = "-";
-        } else {
-          newBoard[fromRow][5] = newBoard[fromRow][7];
-          newBoard[fromRow][7] = "-";
-        }
-      }
-
-      // If en passant, need to remove the captured pawn
-      if (
-        newBoard[toRow][toCol].toLowerCase() === "p" &&
-        simGameState.enPassant &&
-        toRow * 8 + toCol
-      ) {
-        let direction = player === "w" ? 1 : -1;
-
-        newBoard[toRow + direction][toCol] = "-";
-      }
+      
+      const [fromRow, fromCol] = move[0];
+      const [toRow, toCol] = move[1];
 
       // UDPATE GAME STATE
       simGameState = updateGameState(
@@ -158,46 +130,14 @@ const minimax = (board, depth, player, gameState, boards) => {
     let minEval = Infinity;
 
     for (const move of moves) {
-      const [fromRow, fromCol] = move[0];
-      const [toRow, toCol] = move[1];
+      let newBoard = simulateMove(board, move);
       let simGameState = { ...gameState };
       let simBoards = [...boards];
+      
+      const [fromRow, fromCol] = move[0];
+      const [toRow, toCol] = move[1];
 
-      // Simluate Move
-      const newBoard = board.map((row) => [...row]);
-      if (move[2]) {
-        newBoard[toRow][toCol] = move[2];
-      } else {
-        newBoard[toRow][toCol] = newBoard[fromRow][fromCol];
-      }
-      newBoard[fromRow][fromCol] = "-";
-
-      // If castling, need to move the rook
-      if (
-        newBoard[toRow][toCol].toLowerCase() === "k" &&
-        Math.abs(fromCol - toCol) === 2
-      ) {
-        // fromCol is bigger when castling queenside
-        if (fromCol - toCol == 2) {
-          newBoard[fromRow][3] = newBoard[fromRow][0];
-          newBoard[fromRow][0] = "-";
-        } else {
-          newBoard[fromRow][5] = newBoard[fromRow][7];
-          newBoard[fromRow][7] = "-";
-        }
-      }
-
-      // If en passant, need to remove the captured pawn
-      if (
-        newBoard[toRow][toCol].toLowerCase() === "p" &&
-        simGameState.enPassant === toRow * 8 + toCol
-      ) {
-        let direction = player === "w" ? 1 : -1;
-
-        newBoard[toRow + direction][toCol] = "-";
-      }
-
-      // UPDATE GAME STATE
+      // UDPATE GAME STATE
       simGameState = updateGameState(
         newBoard,
         fromRow,
@@ -206,11 +146,11 @@ const minimax = (board, depth, player, gameState, boards) => {
         toCol,
         player,
         simGameState,
-        simBoards
+        boards
       );
       simBoards = [...simBoards, newBoard.map((row) => [...row])];
 
-      const currEval = minimax(newBoard, depth - 1, "w", simGameState);
+      const currEval = minimax(newBoard, depth - 1, "b", simGameState);
 
       minEval = Math.min(minEval, currEval);
     }

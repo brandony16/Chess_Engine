@@ -12,7 +12,9 @@ import {
   boardsEqual,
   updateGameState,
   insufficientMaterial,
+  simulateMove,
 } from "../utils/chessLogic";
+import { getLegalMoves } from "../utils/pieceMoves";
 
 describe("initializeBoard", () => {
   it("should return the correct initial chess board setup", () => {
@@ -464,8 +466,8 @@ describe("isInCheck", () => {
   });
 
   it("should identify when the king is not in check", () => {
-    expect(isInCheck(board, [7, 4], "w", gameState)).toBe(false);
-    expect(isInCheck(board, [0, 4], "b", gameState)).toBe(false);
+    expect(isInCheck(board, "w", gameState)).toBe(false);
+    expect(isInCheck(board, "b", gameState)).toBe(false);
 
     board[1] = ["-", "-", "-", "-", "-", "-", "-", "-"];
     board[6] = ["-", "-", "-", "-", "-", "-", "-", "-"];
@@ -474,13 +476,13 @@ describe("isInCheck", () => {
     board[4][7] = "b";
     board[6][5] = "P";
 
-    expect(isInCheck(board, [7, 4], "w", gameState)).toBe(false);
+    expect(isInCheck(board, "w", gameState)).toBe(false);
 
     board[3][4] = "Q";
     board[1][4] = "p";
     board[4][0] = "B";
     board[1][3] = "p";
-    expect(isInCheck(board, [0, 4], "b", gameState)).toBe(false);
+    expect(isInCheck(board, "b", gameState)).toBe(false);
   });
 
   it("should identify when the king is in check", () => {
@@ -488,19 +490,19 @@ describe("isInCheck", () => {
     board[6] = ["-", "-", "-", "-", "-", "-", "-", "-"];
     board[3][4] = "q";
 
-    expect(isInCheck(board, [7, 4], "w", gameState)).toBe(true);
+    expect(isInCheck(board, "w", gameState)).toBe(true);
 
     board[6][4] = "P";
     board[4][7] = "b";
 
-    expect(isInCheck(board, [7, 4], "w", gameState)).toBe(true);
+    expect(isInCheck(board, "w", gameState)).toBe(true);
 
     board[3][4] = "Q";
-    expect(isInCheck(board, [0, 4], "b", gameState)).toBe(true);
+    expect(isInCheck(board, "b", gameState)).toBe(true);
 
     board[1][4] = "p";
     board[4][0] = "B";
-    expect(isInCheck(board, [0, 4], "b", gameState)).toBe(true);
+    expect(isInCheck(board, "b", gameState)).toBe(true);
   });
 });
 
