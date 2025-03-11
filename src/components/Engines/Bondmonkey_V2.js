@@ -1,6 +1,7 @@
 import { simulateMove, sortMoves, updateGameState } from "../../utils/chessLogic";
 import { getLegalMoves } from "../../utils/pieceMoves";
 
+
 // V2: Plays moves purely based on material
 export const getBestMove = (board, player, gameState, depth, boards) => {
   const moves = getLegalMoves(board, player, gameState);

@@ -9,7 +9,6 @@ import {
   isValidMoveWithCheck,
   isGameOver,
   threefoldRep,
-  boardsEqual,
   updateGameState,
   insufficientMaterial,
 } from "../utils/chessLogic";
@@ -639,27 +638,6 @@ describe("threefoldRep", () => {
     boards.push(initializeBoard());
 
     expect(threefoldRep(boards)).toBe(true);
-  });
-});
-
-describe("boardsEqual", () => {
-  let board;
-
-  beforeEach(() => {
-    board = initializeBoard();
-  });
-
-  it("should return false when the boards do not have the same position", () => {
-    let diffBoard = initializeBoard();
-    diffBoard[1][0] = "-";
-
-    expect(boardsEqual(board, diffBoard)).toBe(false);
-  });
-
-  it("should return true when the boards have the same position", () => {
-    let sameBoard = initializeBoard();
-
-    expect(boardsEqual(board, sameBoard)).toBe(true);
   });
 });
 
