@@ -313,6 +313,7 @@ export function isGameOver(board, player, gameState, boards) {
   if (getLegalMoves(board, otherPlayer, gameState).length > 0) {
     return "none";
   }
+
   // If the opponent has no legal move and is in check, it is a checkmate.
   // If the opponent has no legal move but is not in check, it is a stalemate.
   return inCheck ? "checkmate" : "stalemate";
@@ -368,7 +369,7 @@ export const updateGameState = (
   boards
 ) => {
   const piece = board[toRow][toCol];
-  let newGameState = { ...gameState };
+  let newGameState = structuredClone(gameState);
 
   if (piece.toLowerCase() === "p" && Math.abs(toRow - fromRow) === 2) {
     const enPassantRow = player === "w" ? toRow + 1 : toRow - 1;
@@ -412,7 +413,7 @@ export const updateGameState = (
   } else {
     newGameState.fiftyMoveCounter = 0;
   }
-
+  
   // Check if game is over and updates state if it is
   const deepCopy = board.map((row) => [...row]);
   const gameOverState = isGameOver(board, player, newGameState, [
@@ -560,4 +561,15 @@ const canPieceAttackSquare = (board, row, col, targetRow, targetCol) => {
     }
   }
   return false;
+};
+
+export const doesMovePutInCheck = (board, player, move, gameState) => {
+  const newBoard = simulateMove(board, move);
+  const newState = { kingPosition: { ...gameState.kingPosition } };
+
+  if (board[move[0][0]][move[0][1]].toLowerCase() === "k") {
+    newState.kingPosition[player] = move[1];
+  }
+
+  return isInCheck(newBoard, player, newState);
 };

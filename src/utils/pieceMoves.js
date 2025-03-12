@@ -1,11 +1,16 @@
-import { isCastlingLegal } from "./chessLogic";
-import { isValidMoveWithCheck } from "./chessLogic";
+import { doesMovePutInCheck, isCastlingLegal } from "./chessLogic";
 
 /*
  Get all moves for a specific piece not considering checks
 */
 const getPawnMoves = (board, row, col, player, gameState) => {
   const direction = player === "w" ? -1 : 1;
+  const opponentPiece = (piece) => {
+    piece !== "-" &&
+      (player === "w" ? 
+        piece === piece.toLowerCase() :
+        piece === piece.toUpperCase());
+  };
 
   const moves = [];
 
@@ -42,84 +47,25 @@ const getPawnMoves = (board, row, col, player, gameState) => {
   }
 
   // Capture
-  // Only proceed if the capture col is in the board (between 0 and 7)
-  if (col + 1 <= 7) {
-    const rightSquare = board[row + direction][col + 1];
-    if (rightSquare !== "-") {
-      if (player === "w" && rightSquare === rightSquare.toLowerCase()) {
-        if (row + direction === 0) {
-          ["Q", "R", "B", "N"].forEach((promo) => {
-            moves.push([[row, col], [row + direction, col + 1], promo]);
-          });
-        } else {
-          moves.push([
-            [row, col],
-            [row + direction, col + 1],
-          ]);
-        }
-      }
-      if (player === "b" && rightSquare === rightSquare.toUpperCase()) {
-        if (row + direction === 7) {
-          ["q", "r", "b", "n"].forEach((promo) => {
-            moves.push([[row, col], [row + direction, col + 1], promo]);
-          });
-        } else {
-          moves.push([
-            [row, col],
-            [row + direction, col + 1],
-          ]);
-        }
-      }
+  const xChange = [-1, 1];
+  xChange.forEach((dx) => {
+    const newCol = col + dx;
+    if (
+      newCol >= 0 &&
+      newCol <= 7 &&
+      opponentPiece(board[row + direction][newCol])
+    ) {
+      moves.push([row, col], [row + direction, newCol]);
     }
-  }
-  if (col - 1 >= 0) {
-    const leftSquare = board[row + direction][col - 1];
-    if (leftSquare !== "-") {
-      if (player === "w" && leftSquare === leftSquare.toLowerCase()) {
-        if (row + direction === 0) {
-          ["Q", "R", "B", "N"].forEach((promo) => {
-            moves.push([[row, col], [row + direction, col - 1], promo]);
-          });
-        } else {
-          moves.push([
-            [row, col],
-            [row + direction, col - 1],
-          ]);
-        }
-      }
-      if (player === "b" && leftSquare === leftSquare.toUpperCase()) {
-        if (row + direction === 0) {
-          ["q", "r", "b", "n"].forEach((promo) => {
-            moves.push([[row, col], [row + direction, col - 1], promo]);
-          });
-        } else {
-          moves.push([
-            [row, col],
-            [row + direction, col - 1],
-          ]);
-        }
-      }
-    }
-  }
+  });
 
   // En Passant
-  if (gameState.enPassant) {
+  if (gameState.enPassant !== null) {
     const enPassantRow = Math.floor(gameState.enPassant / 8);
     const enPassantCol = gameState.enPassant % 8;
 
-    if (Math.abs(col - enPassantCol) === 1) {
-      if (player === "w" && row - enPassantRow === -1) {
-        moves.push([
-          [row, col],
-          [enPassantRow, enPassantCol],
-        ]);
-      }
-      if (player === "b" && row - enPassantRow === 1) {
-        moves.push([
-          [row, col],
-          [enPassantRow, enPassantCol],
-        ]);
-      }
+    if (Math.abs(col - enPassantCol) === 1 && row + direction === enPassantRow) {
+      moves.push([[row, col], [enPassantRow, enPassantCol]]);
     }
   }
 
@@ -145,16 +91,8 @@ const getRookMoves = (board, row, col, player) => {
     while (currRow >= 0 && currRow < 8 && currCol >= 0 && currCol < 8) {
       const target = board[currRow][currCol];
 
-      // Check if square is empty
-      if (target === "-") {
-        moves.push([
-          [row, col],
-          [currRow, currCol],
-        ]);
-      }
-
-      // Check if the target is an enemy piece
-      if (opponentPieces.includes(target)) {
+      // Check if square is empty or has enemy piece
+      if (target === "-" || opponentPieces.includes(target)) {
         moves.push([
           [row, col],
           [currRow, currCol],
@@ -231,16 +169,8 @@ const getBishopMoves = (board, row, col, player) => {
     while (currRow >= 0 && currRow < 8 && currCol >= 0 && currCol < 8) {
       const target = board[currRow][currCol];
 
-      // Check if square is empty
-      if (target === "-") {
-        moves.push([
-          [row, col],
-          [currRow, currCol],
-        ]);
-      }
-
-      // Check if the target is an enemy piece
-      if (opponentPieces.includes(target)) {
+      // Check if square is empty or is an enemy piece
+      if (target === "-" || opponentPieces.includes(target)) {
         moves.push([
           [row, col],
           [currRow, currCol],
@@ -285,16 +215,8 @@ const getQueenMoves = (board, row, col, player) => {
     while (currRow >= 0 && currRow < 8 && currCol >= 0 && currCol < 8) {
       const target = board[currRow][currCol];
 
-      // Check if square is empty
-      if (target === "-") {
-        moves.push([
-          [row, col],
-          [currRow, currCol],
-        ]);
-      }
-
-      // Check if the target is an enemy piece
-      if (opponentPieces.includes(target)) {
+      // Check if square is empty or is an enemy piece
+      if (target === "-" || opponentPieces.includes(target)) {
         moves.push([
           [row, col],
           [currRow, currCol],
@@ -339,15 +261,7 @@ export const getKingMoves = (board, row, col, player, gameState) => {
       const target = board[currRow][currCol];
 
       // Check if square is empty
-      if (target === "-") {
-        moves.push([
-          [row, col],
-          [currRow, currCol],
-        ]);
-      }
-
-      // Check if the target is an enemy piece
-      if (opponentPieces.includes(target)) {
+      if (target === "-" || opponentPieces.includes(target)) {
         moves.push([
           [row, col],
           [currRow, currCol],
@@ -380,7 +294,7 @@ export const getAllPawnMoves = (board, player, gameState) => {
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       if (board[r][c] === piece) {
-        moves = [...moves, ...getPawnMoves(board, r, c, player, gameState)];
+        moves.push(...getPawnMoves(board, r, c, player, gameState));
       }
     }
   }
@@ -395,7 +309,7 @@ export const getAllRookMoves = (board, player) => {
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       if (board[r][c] === piece) {
-        moves = [...moves, ...getRookMoves(board, r, c, player)];
+        moves.push(...getRookMoves(board, r, c, player));
       }
     }
   }
@@ -410,7 +324,7 @@ export const getAllKnightMoves = (board, player) => {
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       if (board[r][c] === piece) {
-        moves = [...moves, ...getKnightMoves(board, r, c, player)];
+        moves.push(...getKnightMoves(board, r, c, player));
       }
     }
   }
@@ -425,7 +339,7 @@ export const getAllBishopMoves = (board, player) => {
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       if (board[r][c] === piece) {
-        moves = [...moves, ...getBishopMoves(board, r, c, player)];
+        moves.push(...getBishopMoves(board, r, c, player));
       }
     }
   }
@@ -440,7 +354,7 @@ export const getAllQueenMoves = (board, player) => {
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       if (board[r][c] === piece) {
-        moves = [...moves, ...getQueenMoves(board, r, c, player)];
+        moves.push(...getQueenMoves(board, r, c, player));
       }
     }
   }
@@ -466,18 +380,10 @@ export const getLegalMoves = (board, player, gameState) => {
     ...kingMoves,
   ];
 
-  // Filter out invalid moves. Mainly those that put the king in check.
+  // Filter moves that put the king in check.
   const validMoves = allMoves.filter((move) =>
-    isValidMoveWithCheck(
-      board,
-      move[0][0], // Start row
-      move[0][1], // Start col
-      move[1][0], // End row
-      move[1][1], // End col
-      player,
-      gameState
-    )
+    !doesMovePutInCheck(board, player, move, gameState)
   );
-
+  
   return validMoves;
 };

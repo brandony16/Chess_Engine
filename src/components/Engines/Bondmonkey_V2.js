@@ -14,8 +14,8 @@ export const getBestMove = (board, player, gameState, depth, boards) => {
 
   for (const move of sortedMoves) {
     let newBoard = simulateMove(board, move);
-    let simGameState = { ...gameState };
-    let simBoards = [...boards];
+    let simGameState = structuredClone(gameState);
+    let simBoards = [...boards];  
     
     const [fromRow, fromCol] = move[0];
     const [toRow, toCol] = move[1];
@@ -80,7 +80,7 @@ const minimax = (board, depth, player, gameState, boards, alpha, beta) => {
 
     for (const move of sortedMoves) {
       let newBoard = simulateMove(board, move);
-      let simGameState = { ...gameState };
+      let simGameState = structuredClone(gameState);
       let simBoards = [...boards];
       
       const [fromRow, fromCol] = move[0];
@@ -116,7 +116,7 @@ const minimax = (board, depth, player, gameState, boards, alpha, beta) => {
 
     for (const move of moves) {
       let newBoard = simulateMove(board, move);
-      let simGameState = { ...gameState };
+      let simGameState = structuredClone(gameState);
       let simBoards = [...boards];
       
       const [fromRow, fromCol] = move[0];
@@ -165,10 +165,11 @@ const weights = {
 };
 
 const evaluatePosition = (board, player, gameState) => {
+  // Needs to be a big number but not infinity because then it wont update the move
   if (player === 'w' && gameState.gameEndState === 'checkmate') {
-    return -Infinity;
+    return -10000000;
   } else if (player === 'b' && gameState.gameEndState === 'checkmate') {
-    return Infinity;
+    return 10000000;
   }
   
   let evaluation = 0;
