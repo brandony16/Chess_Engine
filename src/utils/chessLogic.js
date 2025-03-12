@@ -429,6 +429,8 @@ export const updateGameState = (
 };
 
 export const simulateMove = (board, move) => {
+  if (move.length === 0) return [];
+  
   const [fromRow, fromCol] = move[0];
   const [toRow, toCol] = move[1];
 
@@ -480,16 +482,16 @@ export const sortMoves = (board, moves) => {
     "-": 0,
   };
 
-  return moves.sort((move1, move2) => {
+  return moves.slice().sort((move1, move2) => {
     const [from1, to1, promo1 = null] = move1;
     const [from2, to2, promo2 = null] = move2;
-
-    const captured1 = board[to1[0]][to1[1]];
-    const captured2 = board[to2[0]][to2[1]];
-
-    const piece1 = promo1 ? promo1 : board[from1[0]][from1[1]];
-    const piece2 = promo2 ? promo2 : board[from2[0]][from2[1]];
-
+    
+    const captured1 = board[to1[0]][to1[1]].toUpperCase();
+    const captured2 = board[to2[0]][to2[1]].toUpperCase();
+    
+    const piece1 = promo1 ? promo1.toUpperCase() : board[from1[0]][from1[1]].toUpperCase();
+    const piece2 = promo2 ? promo2.toUpperCase() : board[from2[0]][from2[1]].toUpperCase();
+    
     const value1 = pieceValues[captured1] - pieceValues[piece1];
     const value2 = pieceValues[captured2] - pieceValues[piece2];
 
@@ -498,7 +500,7 @@ export const sortMoves = (board, moves) => {
 };
 
 // Simplified attack function that can disregard moves like castling, enpassant, etc.
-const canPieceAttackSquare = (board, row, col, targetRow, targetCol) => {
+export const canPieceAttackSquare = (board, row, col, targetRow, targetCol) => {
   const piece = board[row][col];
   const pieceType = piece.toLowerCase();
   const rowDiff = targetRow - row;

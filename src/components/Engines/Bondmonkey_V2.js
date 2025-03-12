@@ -7,10 +7,11 @@ export const getBestMove = (board, player, gameState, depth, boards) => {
   const moves = getLegalMoves(board, player, gameState);
   const sortedMoves = sortMoves(board, moves);
 
-  let bestMove = null;
+  let bestMove = sortedMoves[0] || null;
   let bestEval = player === "w" ? -Infinity : Infinity;
   let alpha = -Infinity;
   let beta = Infinity;
+
 
   for (const move of sortedMoves) {
     let newBoard = simulateMove(board, move);
@@ -95,7 +96,7 @@ const minimax = (board, depth, player, gameState, boards, alpha, beta) => {
         toCol,
         player,
         simGameState,
-        boards
+        simBoards
       );
       simBoards = [...simBoards, newBoard.map((row) => [...row])];
 
@@ -114,7 +115,7 @@ const minimax = (board, depth, player, gameState, boards, alpha, beta) => {
     // Black tries to minimize the evaluation
     let minEval = Infinity;
 
-    for (const move of moves) {
+    for (const move of sortedMoves) {
       let newBoard = simulateMove(board, move);
       let simGameState = structuredClone(gameState);
       let simBoards = [...boards];
@@ -131,11 +132,11 @@ const minimax = (board, depth, player, gameState, boards, alpha, beta) => {
         toCol,
         player,
         simGameState,
-        boards
+        simBoards
       );
       simBoards = [...simBoards, newBoard.map((row) => [...row])];
 
-      const currEval = minimax(newBoard, depth - 1, "b", simGameState, simBoards, alpha, beta);
+      const currEval = minimax(newBoard, depth - 1, "w", simGameState, simBoards, alpha, beta);
 
       minEval = Math.min(minEval, currEval);
       beta = Math.min(beta, currEval);

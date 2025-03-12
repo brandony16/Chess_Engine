@@ -11,6 +11,10 @@ import {
   threefoldRep,
   updateGameState,
   insufficientMaterial,
+  simulateMove,
+  sortMoves,
+  canPieceAttackSquare,
+  doesMovePutInCheck,
 } from "../utils/chessLogic";
 
 describe("initializeBoard", () => {
@@ -672,8 +676,8 @@ describe("updateGameState", () => {
   });
 
   it("should do nothing if there is no state to update", () => {
-    board[1][0] = '-';
-    board[2][0] = 'p';
+    board[1][0] = "-";
+    board[2][0] = "p";
     expect(updateGameState(board, 1, 0, 2, 0, "b", gameState, boards)).toEqual(
       gameState
     );
@@ -754,18 +758,17 @@ describe("updateGameState", () => {
     expect(state.rookMoved.b.queenside).toBe(false);
   });
 
-  
-  it ("should increment the 50 move counter and reset it", () => {
-    board[7][1] = '-';
-    board[5][2] = 'K';
-    let state = updateGameState(board, 7, 1, 5, 2, 'w', gameState, boards);
+  it("should increment the 50 move counter and reset it", () => {
+    board[7][1] = "-";
+    board[5][2] = "K";
+    let state = updateGameState(board, 7, 1, 5, 2, "w", gameState, boards);
     expect(state.fiftyMoveCounter).toEqual(1);
 
-    board[1][4] = '-';
-    board[3][4] = 'p';
-    state = updateGameState(board, 1, 4, 3, 4, 'b', gameState, boards);
+    board[1][4] = "-";
+    board[3][4] = "p";
+    state = updateGameState(board, 1, 4, 3, 4, "b", gameState, boards);
     expect(state.fiftyMoveCounter).toEqual(0);
-  })
+  });
 
   it("should update when the game is over by mate", () => {
     for (let i = 0; i < board.length; i++) {
@@ -800,11 +803,11 @@ describe("updateGameState", () => {
   });
 
   it("should update when the game is over by 50 move rule", () => {
-    let state = {...gameState, fiftyMoveCounter: 100}
+    let state = { ...gameState, fiftyMoveCounter: 100 };
 
-    state = updateGameState(board, 7, 1, 5, 2, 'w', state, boards);
+    state = updateGameState(board, 7, 1, 5, 2, "w", state, boards);
     expect(state.gameEndState).toBe("Draw by 50 move rule");
-  })
+  });
 
   it("should not update gameOver when the player has a move", () => {
     for (let i = 0; i < board.length; i++) {
@@ -855,5 +858,321 @@ describe("insufficientMaterial", () => {
     board[6][4] = "N";
     board[5][2] = "B";
     expect(insufficientMaterial(board)).toBe(false);
+  });
+});
+
+describe("simulateMove", () => {
+  let board;
+
+  beforeEach(() => {
+    board = initializeBoard();
+  });
+
+  it("should move a piece to an empty square", () => {
+    const move = [
+      [6, 4],
+      [4, 4],
+    ];
+    const newBoard = simulateMove(board, move);
+    expect(newBoard[4][4]).toBe("P");
+    expect(newBoard[6][4]).toBe("-");
+  });
+
+  it("should capture a piece", () => {
+    board[3][3] = "p";
+    board[4][4] = "P";
+    const move = [
+      [4, 4],
+      [3, 3],
+    ];
+    const newBoard = simulateMove(board, move);
+    expect(newBoard[3][3]).toBe("P");
+    expect(newBoard[4][4]).toBe("-");
+  });
+
+  it("should castle kingside", () => {
+    board[7][5] = "-";
+    board[7][6] = "-";
+
+    const move = [
+      [7, 4],
+      [7, 6],
+    ];
+    const newBoard = simulateMove(board, move);
+    expect(newBoard[7][6]).toBe("K");
+    expect(newBoard[7][5]).toBe("R");
+    expect(newBoard[7][4]).toBe("-");
+    expect(newBoard[7][7]).toBe("-");
+  });
+
+  it("should castle queenside", () => {
+    board[7][1] = "-";
+    board[7][2] = "-";
+    board[7][3] = "-";
+
+    const move = [
+      [7, 4],
+      [7, 2],
+    ];
+    const newBoard = simulateMove(board, move);
+    expect(newBoard[7][2]).toBe("K");
+    expect(newBoard[7][3]).toBe("R");
+    expect(newBoard[7][4]).toBe("-");
+    expect(newBoard[7][0]).toBe("-");
+  });
+
+  it("should handle en passant", () => {
+    board[3][3] = "p"; // Black pawn at d4
+    board[3][4] = "P"; // White pawn at e2
+    const move = [
+      [3, 4],
+      [2, 3],
+    ];
+    let newBoard = simulateMove(board, move);
+
+    expect(newBoard[2][3]).toBe("P");
+    expect(newBoard[3][3]).toBe("-");
+    expect(newBoard[3][4]).toBe("-");
+  });
+});
+
+describe("sortMoves", () => {
+  let board;
+  let moves;
+
+  beforeEach(() => {
+    // Sample board setup (8x8)
+    board = [
+      ["q", "-", "-", "-", "k", "b", "n", "r"],
+      ["-", "P", "-", "p", "p", "p", "p", "p"],
+      ["p", "p", "p", "-", "-", "-", "-", "-"],
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+      ["n", "-", "P", "P", "-", "-", "-", "B"],
+      ["-", "-", "N", "-", "-", "P", "q", "-"],
+      ["P", "P", "-", "-", "-", "P", "B", "P"],
+      ["R", "-", "-", "Q", "K", "-", "-", "R"],
+    ];
+
+    moves = [
+      [
+        [6, 1],
+        [4, 1],
+      ], // Move pawn
+      [
+        [5, 2],
+        [4, 0], 
+      ], // Knight captures knight
+      [
+        [6, 7],
+        [5, 6],
+      ], // Pawn Captures Queen
+      [
+        [4, 7],
+        [5, 6],
+      ], // Bishop captures queen
+    ];
+  });
+
+  it("sorts moves by capture value difference", () => {
+    const sortedMoves = sortMoves(board, moves);
+    console.log(sortedMoves);
+
+    expect(sortedMoves[0]).toEqual([
+      [6, 7],
+      [5, 6],
+    ]); // Pawn takes queen
+    expect(sortedMoves[1]).toEqual([
+      [4, 7],
+      [5, 6],
+    ]); // Bishop takes queen
+    expect(sortedMoves[2]).toEqual([
+      [5, 2],
+      [4, 0], 
+    ]); // Knight takes knight
+    expect(sortedMoves[3]).toEqual([
+      [6, 1],
+      [4, 1],
+    ]); // Pawn move
+  });
+
+  it("does not modify the original moves array", () => {
+    const originalMoves = [...moves.map((move) => [...move])];
+    
+    sortMoves(board, moves);
+    
+    expect(moves).toEqual(originalMoves);
+  });
+
+  it("handles empty move list", () => {
+    expect(sortMoves(board, [])).toEqual([]);
+  });
+
+  it("treats promotion as promoting piece", () => {
+    const promotionMove = [[1, 1], [0, 0], "R"];
+    moves.push(promotionMove);
+
+    const sortedMoves = sortMoves(board, moves);
+    expect(sortedMoves[2]).toEqual(promotionMove);
+  });
+});
+
+describe("canPieceAttackSquare", () => {
+  let board;
+
+  beforeEach(() => {
+    board = [
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+    ];
+  });
+
+  it("should return true if a white pawn can attack diagonally", () => {
+    board[4][4] = "P"; 
+    expect(canPieceAttackSquare(board, 4, 4, 3, 3)).toBe(true);
+    expect(canPieceAttackSquare(board, 4, 4, 3, 5)).toBe(true);
+  });
+
+  it("should return false if a white pawn cannot attack forward", () => {
+    board[4][4] = "P";
+    expect(canPieceAttackSquare(board, 4, 4, 3, 4)).toBe(false);
+  });
+
+  it("should return true if a black pawn can attack diagonally", () => {
+    board[4][4] = "p";
+    expect(canPieceAttackSquare(board, 4, 4, 5, 3)).toBe(true);
+    expect(canPieceAttackSquare(board, 4, 4, 5, 5)).toBe(true);
+  });
+
+  it("should return false if a black pawn cannot attack forward", () => {
+    board[4][4] = "p";
+    expect(canPieceAttackSquare(board, 4, 4, 5, 4)).toBe(false);
+  });
+
+  it("should return true if a knight can attack in an L-shape", () => {
+    board[4][4] = "N";
+    expect(canPieceAttackSquare(board, 4, 4, 6, 5)).toBe(true);
+    expect(canPieceAttackSquare(board, 4, 4, 6, 3)).toBe(true);
+    expect(canPieceAttackSquare(board, 4, 4, 2, 5)).toBe(true);
+    expect(canPieceAttackSquare(board, 4, 4, 2, 3)).toBe(true);
+  });
+
+  it("should return false if a knight cannot attack an invalid square", () => {
+    board[4][4] = "N";
+    expect(canPieceAttackSquare(board, 4, 4, 4, 6)).toBe(false);
+  });
+
+  it("should return true if a bishop can attack diagonally", () => {
+    board[4][4] = "B";
+    expect(canPieceAttackSquare(board, 4, 4, 6, 6)).toBe(true);
+    expect(canPieceAttackSquare(board, 4, 4, 2, 2)).toBe(true);
+  });
+
+  it("should return false if a bishop cannot attack when obstructed", () => {
+    board[4][4] = "B";
+    board[5][5] = "P"; 
+    expect(canPieceAttackSquare(board, 4, 4, 6, 6)).toBe(false);
+  });
+
+  it("should return true if a rook can attack along rows or columns", () => {
+    board[4][4] = "R";
+    expect(canPieceAttackSquare(board, 4, 4, 4, 7)).toBe(true);
+    expect(canPieceAttackSquare(board, 4, 4, 7, 4)).toBe(true);
+  });
+
+  it("should return false if a rook cannot attack when obstructed", () => {
+    board[4][4] = "R";
+    board[4][6] = "P"; 
+    expect(canPieceAttackSquare(board, 4, 4, 4, 7)).toBe(false);
+  });
+
+  it("should return true if a queen can attack diagonally, horizontally, or vertically", () => {
+    board[4][4] = "Q";
+    expect(canPieceAttackSquare(board, 4, 4, 7, 4)).toBe(true);
+    expect(canPieceAttackSquare(board, 4, 4, 4, 7)).toBe(true);
+    expect(canPieceAttackSquare(board, 4, 4, 7, 7)).toBe(true);
+  });
+
+  it("should return false if a queen cannot attack due to obstruction", () => {
+    board[4][4] = "Q";
+    board[6][6] = "P";
+    expect(canPieceAttackSquare(board, 4, 4, 7, 7)).toBe(false);
+  });
+
+  it("should return true if a king can attack one square in any direction", () => {
+    board[4][4] = "K";
+    expect(canPieceAttackSquare(board, 4, 4, 5, 4)).toBe(true);
+    expect(canPieceAttackSquare(board, 4, 4, 5, 5)).toBe(true);
+    expect(canPieceAttackSquare(board, 4, 4, 3, 3)).toBe(true);
+  });
+
+  it("should return false if a king tries to attack more than one square away", () => {
+    board[4][4] = "K";
+    expect(canPieceAttackSquare(board, 4, 4, 6, 6)).toBe(false);
+  });
+});
+
+describe("doesMovePutInCheck", () => {
+  let board, gameState;
+
+  beforeEach(() => {
+    board = [
+      ["r", "n", "b", "q", "k", "b", "n", "r"],
+      ["p", "p", "p", "p", "p", "p", "p", "p"],
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+      ["P", "P", "P", "P", "P", "P", "P", "P"],
+      ["R", "N", "B", "Q", "K", "B", "N", "R"],
+    ];
+
+    gameState = {
+      kingPosition: {
+        w: [7, 4],
+        b: [0, 4],
+      },
+    };
+  });
+
+  it("should return false when a move does not put the player in check", () => {
+    const move = [[6, 4], [4, 4]];
+
+    expect(doesMovePutInCheck(board, "w", move, gameState)).toBe(false);
+  });
+
+  it("should return true when a move puts the player in check", () => {
+    const move = [[6, 5], [4, 5]];
+
+    board[0][3] = "-"; 
+    board[4][7] = "q"; 
+
+    expect(doesMovePutInCheck(board, "w", move, gameState)).toBe(true);
+  });
+
+  it("be false when the king moves out of check", () => {
+    const move = [[7, 4], [6, 4]]; 
+    board[6][5] = '-';
+    board[4][5] = 'P';
+    board[6][4] = '-';
+    board[0][3] = "-"; 
+    board[4][7] = "q"; 
+
+    expect(doesMovePutInCheck(board, "w", move, gameState)).toBe(false);
+  });
+
+  it("should not modify the board state directly", () => {
+    const move = [[6, 4], [4, 4]]; 
+
+    const boardCopy = board.map(row => [...row]); 
+
+    doesMovePutInCheck(board, "w", move, gameState);
+
+    expect(board).toEqual(boardCopy); 
   });
 });

@@ -1,5 +1,13 @@
-import { getLegalMoves, getAllPawnMoves, getAllRookMoves, getAllKnightMoves, getAllBishopMoves, getAllQueenMoves, getKingMoves } from '../utils/pieceMoves';
-import { initializeBoard } from '../utils/chessLogic'
+import {
+  getLegalMoves,
+  getAllPawnMoves,
+  getAllRookMoves,
+  getAllKnightMoves,
+  getAllBishopMoves,
+  getAllQueenMoves,
+  getKingMoves,
+} from "../utils/pieceMoves";
+import { initializeBoard } from "../utils/chessLogic";
 
 describe("Chess Move Functions", () => {
   const emptyBoard = Array(8)
@@ -78,10 +86,10 @@ describe("Chess Move Functions", () => {
 
   it("should generate correct moves for a bishop", () => {
     const board = JSON.parse(JSON.stringify(emptyBoard));
-    board[3][3] = "B"; 
+    board[3][3] = "B";
 
     const moves = getAllBishopMoves(board, "w");
-    expect(moves.length).toBe(13); 
+    expect(moves.length).toBe(13);
   });
 
   it("should generate correct moves for a queen", () => {
@@ -107,11 +115,11 @@ describe("Chess Move Functions", () => {
     };
     const moves = getKingMoves(board, 4, 4, "w", gameState);
 
-    expect(moves.length).toBe(8); 
+    expect(moves.length).toBe(8);
   });
 
   it("should generate all legal moves for all pieces", () => {
-    const board = initializeBoard()
+    const board = initializeBoard();
 
     const gameState = {
       enPassant: null,
@@ -133,6 +141,21 @@ describe("Chess Move Functions", () => {
 
     const moves = getLegalMoves(board, "w", gameState);
 
-    expect(moves.length).toBe(20); 
+    expect(moves.length).toBe(20);
+
+    const otherBoard = [
+      ["r", "n", "-", "-", "k", "b", "n", "r"],
+      ["-", "-", "-", "p", "p", "p", "p", "p"],
+      ["p", "p", "p", "-", "-", "-", "-", "-"],
+      ["-", "-", "-", "-", "-", "-", "-", "-"],
+      ["-", "-", "P", "P", "-", "-", "-", "-"],
+      ["-", "-", "N", "-", "-", "P", "q", "-"],
+      ["P", "P", "-", "-", "-", "P", "B", "P"],
+      ["R", "-", "B", "Q", "K", "-", "-", "R"],
+    ];
+
+    const otherMoves = getLegalMoves(otherBoard, "w", gameState);
+
+    expect(otherMoves.length).toBe(35);
   });
 });
