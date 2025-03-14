@@ -26,7 +26,7 @@ export const getWhiteBitboards = (bitboards) => {
   }
 }
 
-export const getWhitePieceLocations = (bitboards) => {
+export const getWhitePieces = (bitboards) => {
   return (
     bitboards.whitePawns |
     bitboards.whiteKnights |
@@ -49,7 +49,7 @@ export const getBlackBitboards = (bitboards) => {
   }
 }
 
-export const getBlackPieceLocations = (bitboards) => {
+export const getBlackPieces = (bitboards) => {
   return (
     bitboards.blackPawns |
     bitboards.blackKnights |
@@ -61,7 +61,11 @@ export const getBlackPieceLocations = (bitboards) => {
 }
 
 export const getPlayerBoard = (player, bitboards) => {
-  return player === 'w' ? getWhitePieceLocations(bitboards) : getBlackPieceLocations(bitboards);
+  return player === 'w' ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+}
+
+export const getEmptySquares = (bitboards) => {
+  return ~(getWhitePieces(bitboards) | getBlackPieces(bitboards));
 }
 
 // Converts the pieces to the correct string for the cell class rendering
@@ -79,6 +83,7 @@ export const getPieceAtSquare = (square, bitboards) => {
       return piece;
     }
   }
+
   return null;
 };
 

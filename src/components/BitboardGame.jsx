@@ -26,22 +26,24 @@ const BitboardGame = () => {
   const handleSquareClick = (row, col) => {
     const square = row * 8 + col;
 
-    if (selectedPiece === null) {
-      if (isPlayersPieceAtSquare(currPlayer, square, bitboards)) {
-        setSelectedPiece(square);
-      }
+    if (isPlayersPieceAtSquare(currPlayer, square, bitboards)) {
+      setSelectedPiece(square);
       return;
-    } else if (isValidMove(bitboards, selectedPiece, square, currPlayer)) {
-      const newBitboards = makeMove(bitboards, selectedPiece, square);
-      setSelectedPiece(null);
-      setBitboards(newBitboards);
-      setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
+    }
+
+    if (selectedPiece !== null) {
+      if (isValidMove(bitboards, selectedPiece, square, currPlayer)) {
+        const newBitboards = makeMove(bitboards, selectedPiece, square);
+        setSelectedPiece(null);
+        setBitboards(newBitboards);
+        setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
+      }
     }
   };
-
   // Resets the game
   const resetGame = () => {
     setUserSide((prev) => (prev === "w" ? "b" : "w"));
+    setBitboards(initialBitboards);
   };
 
   // Runs the engine move after the user makes a move
