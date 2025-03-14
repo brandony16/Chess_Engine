@@ -164,6 +164,45 @@ const getRookMovesForSquare = (bitboards, player, from) => {
 
 const generateQueenMoves = (from, bitboards) => {};
 
-const getQueenMovesForSquare = (bitboards, player, from) => {};
+const getQueenMovesForSquare = (bitboards, player, from) => {
+  let queenBitboard = 1n << BigInt(from);
+  let moves = 0n;
 
-const getKingMovesForSquare = (bitboards, player, from) => {};
+  const allPieces = getAllPieces(bitboards);
+  const friendlyPieces =
+    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+
+  // Orthogonal Moves
+  moves |= slide(queenBitboard, 1n, FILE_H_MASK, allPieces); // Right
+  moves |= slide(queenBitboard, -1n, FILE_A_MASK, allPieces); // Left
+  moves |= slide(queenBitboard, 8n, RANK_8_MASK, allPieces); // Up
+  moves |= slide(queenBitboard, -8n, RANK_1_MASK, allPieces); // Down
+
+  // Diagonal Moves
+  moves |= slide(queenBitboard, 9n, FILE_A_MASK & RANK_8_MASK, allPieces); // Up-right
+  moves |= slide(queenBitboard, 7n, FILE_H_MASK & RANK_8_MASK, allPieces); // Up-left
+  moves |= slide(queenBitboard, -7n, FILE_H_MASK & RANK_1_MASK, allPieces); // Down-right
+  moves |= slide(queenBitboard, -9n, FILE_A_MASK & RANK_1_MASK, allPieces); // Down-left
+
+  return moves & ~friendlyPieces;
+};
+
+const getKingMovesForSquare = (bitboards, player, from) => {
+  let kingBitboard = 1n << BigInt(from);
+  let moves = 0n;
+
+  const friendlyPieces =
+    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+
+  moves |= kingBitboard << 8n; // Up
+  moves |= kingBitboard >> 8n; // Down
+  moves |= (kingBitboard << 1n) & FILE_A_MASK; // Right
+  moves |= (kingBitboard >> 1n) & FILE_H_MASK; // Left
+  moves |= (kingBitboard << 9n) & FILE_A_MASK & RANK_8_MASK; // Up-right
+  moves |= (kingBitboard << 7n) & FILE_H_MASK & RANK_8_MASK; // Up-left
+  moves |= (kingBitboard >> 9n) & FILE_H_MASK & RANK_1_MASK; // Down-left
+  moves |= (kingBitboard >> 7n) & FILE_A_MASK & RANK_1_MASK; // Down-right
+
+  // Remove squares occupied by own pieces
+  return moves & ~friendlyPieces;
+};
