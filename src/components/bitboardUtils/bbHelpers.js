@@ -14,6 +14,13 @@ export const initialBitboards = {
   blackKings: BigInt("0x1000000000000000"),
 };
 
+// MASKS
+
+export const FILE_H_MASK = 0x7f7f7f7f7f7f7f7fn;
+export const FILE_A_MASK = 0xfefefefefefefefen;
+export const RANK_8_MASK = 0x00ffffffffffffffn;
+export const RANK_1_MASK = 0xffffffffffffff00n;
+
 // Gets the white bitboards
 export const getWhiteBitboards = (bitboards) => {
   return {
@@ -60,6 +67,10 @@ export const getBlackPieces = (bitboards) => {
   );
 }
 
+export const getAllPieces = (bitboards) => {
+  return BigInt(getWhitePieces(bitboards) | getBlackPieces(bitboards));
+}
+
 export const getPlayerBoard = (player, bitboards) => {
   return player === 'w' ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
 }
@@ -93,3 +104,24 @@ export const isPlayersPieceAtSquare = (player, square, bitboards) => {
   // Move square to first bit and check if it is one
   return Boolean((playerBoard >> BigInt(square)) & BigInt(1));
 }
+
+// Slides along a given shift
+export const slide = (pieceBitboard, shift, mask, allPieces) => {
+  let attack = 0n;
+  let pos = pieceBitboard;
+
+  while (true) {
+    pos = (pos & mask) << shift;
+
+    if (!pos) break; // Stop if no valid position remains
+
+    if (pos & allPieces) { // Stop at the first occupied square
+      attack |= pos;
+      break;
+    }
+
+    attack |= pos;
+  }
+
+  return attack;
+};

@@ -1,4 +1,14 @@
-import { getBlackPieces, getEmptySquares, getWhitePieces } from "./bbHelpers";
+import {
+  FILE_A_MASK,
+  FILE_H_MASK,
+  getAllPieces,
+  getBlackPieces,
+  getEmptySquares,
+  getWhitePieces,
+  RANK_1_MASK,
+  RANK_8_MASK,
+  slide,
+} from "./bbHelpers";
 
 // Gets the legal moves of a piece
 export const getLegalMoves = (bitboards, piece, from, player) => {
@@ -53,25 +63,36 @@ const generatePawnMoves = (player, bitboards) => {
 };
 
 const getPawnMovesForSquare = (bitboards, player, from) => {
-   const specificPawn = 1n << BigInt(from);
-      
-   const emptySquares = getEmptySquares(bitboards);
-   const enemyPieces = player === "w" ? getBlackPieces(bitboards) : getWhitePieces(bitboards);
- 
-   // Generates moves for the pawn
-   if (player === "w") {
-     const singlePush = (specificPawn << 8n) & emptySquares;
-     const doublePush = ((specificPawn & 0x000000000000ff00n) << 16n) & emptySquares & (emptySquares << 8n);
-     const leftCapture = (specificPawn << 7n) & enemyPieces & 0xfefefefefefefefen;
-     const rightCapture = (specificPawn << 9n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
-     return singlePush | doublePush | leftCapture | rightCapture;
-   } else {
-     const singlePush = (specificPawn >> 8n) & emptySquares;
-     const doublePush = ((specificPawn & 0x00ff000000000000n) >> 16n) & emptySquares & (emptySquares >> 8n);
-     const leftCapture = (specificPawn >> 9n) & enemyPieces & 0xfefefefefefefefen;
-     const rightCapture = (specificPawn >> 7n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
-     return singlePush | doublePush | leftCapture | rightCapture;
-   }
+  const specificPawn = 1n << BigInt(from);
+
+  const emptySquares = getEmptySquares(bitboards);
+  const enemyPieces =
+    player === "w" ? getBlackPieces(bitboards) : getWhitePieces(bitboards);
+
+  // Generates moves for the pawn
+  if (player === "w") {
+    const singlePush = (specificPawn << 8n) & emptySquares;
+    const doublePush =
+      ((specificPawn & 0x000000000000ff00n) << 16n) &
+      emptySquares &
+      (emptySquares << 8n);
+    const leftCapture =
+      (specificPawn << 7n) & enemyPieces & 0xfefefefefefefefen;
+    const rightCapture =
+      (specificPawn << 9n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
+    return singlePush | doublePush | leftCapture | rightCapture;
+  } else {
+    const singlePush = (specificPawn >> 8n) & emptySquares;
+    const doublePush =
+      ((specificPawn & 0x00ff000000000000n) >> 16n) &
+      emptySquares &
+      (emptySquares >> 8n);
+    const leftCapture =
+      (specificPawn >> 9n) & enemyPieces & 0xfefefefefefefefen;
+    const rightCapture =
+      (specificPawn >> 7n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
+    return singlePush | doublePush | leftCapture | rightCapture;
+  }
 };
 
 const generateKnightMoves = (from, bitboards) => {};
@@ -82,19 +103,19 @@ const getKnightMovesForSquare = (bitboards, player, from) => {
   // Define masks to prevent wrap-around issues
   const notAFile = 0xfefefefefefefefen; // Blocks moves that wrap from H->A
   const notABFile = 0xfcfcfcfcfcfcfcfcn; // Blocks A and B files
-  const notHFile = 0x7f7f7f7f7f7f7f7fn; // Blocks moves that wrap from A->H 
+  const notHFile = 0x7f7f7f7f7f7f7f7fn; // Blocks moves that wrap from A->H
   const notHGFile = 0x3f3f3f3f3f3f3f3fn; // Blocks H and G files
 
   // Generate raw knight moves
   let moves =
-    ((knightBitboard << 6n) & notHGFile) |  // Left 2, Up 1
+    ((knightBitboard << 6n) & notHGFile) | // Left 2, Up 1
     ((knightBitboard << 10n) & notABFile) | // Right 2, Up 1
-    ((knightBitboard >> 6n) & notABFile) |  // RIght 2, Down 1
+    ((knightBitboard >> 6n) & notABFile) | // RIght 2, Down 1
     ((knightBitboard >> 10n) & notHGFile) | // Left 2, Down 1
-    ((knightBitboard << 15n) & notHFile) |  // Up 2, Left 1
-    ((knightBitboard << 17n) & notAFile) |  // Up 2, Right 1
-    ((knightBitboard >> 17n) & notHFile) |  // Down 2, Left 1
-    ((knightBitboard >> 15n) & notAFile);   // Down 2, Right 1
+    ((knightBitboard << 15n) & notHFile) | // Up 2, Left 1
+    ((knightBitboard << 17n) & notAFile) | // Up 2, Right 1
+    ((knightBitboard >> 17n) & notHFile) | // Down 2, Left 1
+    ((knightBitboard >> 15n) & notAFile); // Down 2, Right 1
 
   // Get player's pieces to mask out self-captures
   const friendlyPieces =
@@ -102,26 +123,47 @@ const getKnightMovesForSquare = (bitboards, player, from) => {
 
   // Remove moves that land on friendly pieces
   return moves & ~friendlyPieces;
-}
+};
 
 const generateBishopMoves = (from, bitboards) => {};
 
 const getBishopMovesForSquare = (bitboards, player, from) => {
-  
-}
+  let bishopBitboard = 1n << BigInt(from);
+  let moves = 0n;
+
+  // Get occupied squares
+  const allPieces = getAllPieces(bitboards);
+  const friendlyPieces =
+    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+
+  moves |= slide(bishopBitboard, 9n, FILE_A_MASK & RANK_8_MASK, allPieces); // Up-right
+  moves |= slide(bishopBitboard, 7n, FILE_H_MASK & RANK_8_MASK, allPieces); // Up-left
+  moves |= slide(bishopBitboard, -7n, FILE_H_MASK & RANK_1_MASK, allPieces); // Down-right
+  moves |= slide(bishopBitboard, -9n, FILE_A_MASK & RANK_1_MASK, allPieces); // Down-left
+
+  return moves & ~friendlyPieces;
+};
 
 const generateRookMoves = (from, bitboards) => {};
 
 const getRookMovesForSquare = (bitboards, player, from) => {
-  
-}
+  let rookBitboard = 1n << BigInt(from);
+  let moves = 0n;
+
+  const allPieces = getAllPieces(bitboards);
+  const friendlyPieces =
+    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+
+  moves |= slide(rookBitboard, 1n, FILE_H_MASK, allPieces);
+  moves |= slide(rookBitboard, -1n, FILE_A_MASK, allPieces);
+  moves |= slide(rookBitboard, 8n, RANK_8_MASK, allPieces);
+  moves |= slide(rookBitboard, -8n, RANK_1_MASK, allPieces);
+
+  return moves & ~friendlyPieces;
+};
 
 const generateQueenMoves = (from, bitboards) => {};
 
-const getQueenMovesForSquare = (bitboards, player, from) => {
-  
-}
+const getQueenMovesForSquare = (bitboards, player, from) => {};
 
-const getKingMovesForSquare = (bitboards, player, from) => {
-
-};
+const getKingMovesForSquare = (bitboards, player, from) => {};
