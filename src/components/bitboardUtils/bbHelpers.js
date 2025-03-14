@@ -116,7 +116,7 @@ export const slide = (pieceBitboard, shift, mask, allPieces) => {
     if (!pos) break; // Stop if no valid position remains
 
     if (pos & allPieces) { // Stop at the first occupied square
-      attack |= pos;
+      attack |= pos; 
       break;
     }
 
@@ -125,3 +125,18 @@ export const slide = (pieceBitboard, shift, mask, allPieces) => {
 
   return attack;
 };
+
+export const bigIntFullRep = (bitboard) => {
+  let boardStr = "";
+  
+  for (let rank = 7; rank >= 0; rank--) { // Ranks go from 8 (top) to 1 (bottom)
+    let row = "";
+    for (let file = 0; file < 8; file++) { // Files go from A (left) to H (right)
+      let square = BigInt(1) << BigInt(rank * 8 + file);
+      row += (bitboard & square) ? "1 " : "0 ";
+    }
+    boardStr += row.trim() + "\n"; // Add each row to the board string
+  }
+
+  return boardStr;
+}
