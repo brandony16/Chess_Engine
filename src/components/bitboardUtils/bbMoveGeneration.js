@@ -6,27 +6,55 @@ export const getLegalMoves = (bitboards, piece, from, player) => {
     case "P":
       return getPawnMovesForSquare(bitboards, player, from);
     case "N":
-      return generateKnightMoves(from, bitboards);
+      return getKnightMovesForSquare(bitboards, player, from);
     case "B":
-      return generateBishopMoves(from, bitboards);
+      return getBishopMovesForSquare(bitboards, player, from);
     case "R":
-      return generateRookMoves(from, bitboards);
+      return getRookMovesForSquare(bitboards, player, from);
     case "Q":
-      return generateQueenMoves(from, bitboards);
+      return getQueenMovesForSquare(bitboards, player, from);
     case "K":
-      return generateKingMoves(from, player, bitboards);
+      return getKingMovesForSquare(bitboards, player, from);
     default:
       return BigInt(0); // No legal moves
   }
 };
 
+// Generates all pawn moves
+const generatePawnMoves = (player, bitboards) => {
+  const emptySquares = getEmptySquares(bitboards);
+
+  if (player === "w") {
+    let enemyPieces = getBlackPieces(bitboards);
+    let pawnBoard = bitboards.whitePawns;
+
+    let singlePush = (pawnBoard << 8n) & emptySquares;
+
+    let doublePush = ((singlePush & 0x0000000000ff0000n) << 8n) & emptySquares;
+
+    // Captures (ensuring it doesn't wrap from H file to A file)
+    let leftCapture = (pawnBoard << 7n) & enemyPieces & 0xfefefefefefefefen;
+    let rightCapture = (pawnBoard << 9n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
+
+    return singlePush | doublePush | leftCapture | rightCapture;
+  } else {
+    let enemyPieces = getWhitePieces(bitboards);
+    let pawnBoard = bitboards.blackPawns;
+
+    let singlePush = (pawnBoard >> 8n) & emptySquares;
+
+    let doublePush = ((singlePush & 0x00ff000000000000n) >> 8n) & emptySquares;
+
+    let leftCapture = (pawnBoard >> 9n) & enemyPieces & 0xfefefefefefefefen;
+    let rightCapture = (pawnBoard >> 7n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
+
+    return singlePush | doublePush | leftCapture | rightCapture;
+  }
+};
+
 const getPawnMovesForSquare = (bitboards, player, from) => {
-   const pawnBitboard = player === "w" ? bitboards.whitePawns : bitboards.blackPawns;
-   // Isolate the specific pawn using its bit.
-   const specificPawn = pawnBitboard & (1n << BigInt(from));
-   
-   if (!specificPawn) return 0n;
-   
+   const specificPawn = 1n << BigInt(from);
+      
    const emptySquares = getEmptySquares(bitboards);
    const enemyPieces = player === "w" ? getBlackPieces(bitboards) : getWhitePieces(bitboards);
  
@@ -48,10 +76,52 @@ const getPawnMovesForSquare = (bitboards, player, from) => {
 
 const generateKnightMoves = (from, bitboards) => {};
 
+const getKnightMovesForSquare = (bitboards, player, from) => {
+  let knightBitboard = 1n << BigInt(from);
+
+  // Define masks to prevent wrap-around issues
+  const notAFile = 0xfefefefefefefefen; // Blocks moves that wrap from H->A
+  const notABFile = 0xfcfcfcfcfcfcfcfcn; // Blocks A and B files
+  const notHFile = 0x7f7f7f7f7f7f7f7fn; // Blocks moves that wrap from A->H 
+  const notHGFile = 0x3f3f3f3f3f3f3f3fn; // Blocks H and G files
+
+  // Generate raw knight moves
+  let moves =
+    ((knightBitboard << 6n) & notHGFile) |  // Left 2, Up 1
+    ((knightBitboard << 10n) & notABFile) | // Right 2, Up 1
+    ((knightBitboard >> 6n) & notABFile) |  // RIght 2, Down 1
+    ((knightBitboard >> 10n) & notHGFile) | // Left 2, Down 1
+    ((knightBitboard << 15n) & notHFile) |  // Up 2, Left 1
+    ((knightBitboard << 17n) & notAFile) |  // Up 2, Right 1
+    ((knightBitboard >> 17n) & notHFile) |  // Down 2, Left 1
+    ((knightBitboard >> 15n) & notAFile);   // Down 2, Right 1
+
+  // Get player's pieces to mask out self-captures
+  const friendlyPieces =
+    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+
+  // Remove moves that land on friendly pieces
+  return moves & ~friendlyPieces;
+}
+
 const generateBishopMoves = (from, bitboards) => {};
+
+const getBishopMovesForSquare = (bitboards, player, from) => {
+  
+}
 
 const generateRookMoves = (from, bitboards) => {};
 
+const getRookMovesForSquare = (bitboards, player, from) => {
+  
+}
+
 const generateQueenMoves = (from, bitboards) => {};
 
-const generateKingMoves = (from, bitboards) => {};
+const getQueenMovesForSquare = (bitboards, player, from) => {
+  
+}
+
+const getKingMovesForSquare = (bitboards, player, from) => {
+
+};
