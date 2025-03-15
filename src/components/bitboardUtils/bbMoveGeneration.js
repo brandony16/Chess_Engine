@@ -1,4 +1,4 @@
-import { filterIllegalMoves } from "./bbChessLogic";
+import { isKingsideCastleLegal, isQueensideCastleLegal } from "./bbChessLogic";
 import {
   bitScanForward,
   FILE_A_MASK,
@@ -15,11 +15,18 @@ import {
 } from "./bbHelpers";
 
 // Gets the legal moves of a piece
-export const getPieceMoves = (bitboards, piece, from, player) => {
+export const getPieceMoves = (
+  bitboards,
+  piece,
+  from,
+  player,
+  castlingRights,
+  onlyCaptures = false
+) => {
   let moves = null;
   switch (piece) {
     case "P":
-      moves = getPawnMovesForSquare(bitboards, player, from);
+      moves = getPawnMovesForSquare(bitboards, player, from, onlyCaptures);
       break;
     case "N":
       moves = getKnightMovesForSquare(bitboards, player, from);
@@ -34,7 +41,7 @@ export const getPieceMoves = (bitboards, piece, from, player) => {
       moves = getQueenMovesForSquare(bitboards, player, from);
       break;
     case "K":
-      moves = getKingMovesForSquare(bitboards, player, from);
+      moves = getKingMovesForSquare(bitboards, player, from, castlingRights);
       break;
     default:
       moves = BigInt(0); // No legal moves
@@ -43,61 +50,49 @@ export const getPieceMoves = (bitboards, piece, from, player) => {
   return moves;
 };
 
-export const getAllLegalMoves = (bitboards, player) => {
+// Gets all moves for a player
+export const getAllPlayerMoves = (
+  bitboards,
+  player,
+  castlingRights,
+  onlyCaptures = false
+) => {
   let allMoves = 0n;
   // Get player's overall pieces bitboard.
-  const playerPieces = player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
-  
+  const playerPieces =
+    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+
   let pieces = playerPieces;
   while (pieces !== 0n) {
-    // Store first bit and remove it from the bitboard
     const square = bitScanForward(pieces);
     pieces &= pieces - 1n;
-    
+
     const piece = getPieceAtSquare(square, bitboards);
     const formattedPiece = pieceSymbols[piece].toUpperCase();
-    
-    const pieceMoves = getPieceMoves(bitboards, formattedPiece, square, player);
-    
+
+    const pieceMoves = getPieceMoves(
+      bitboards,
+      formattedPiece,
+      square,
+      player,
+      castlingRights,
+      onlyCaptures
+    );
+
     allMoves |= pieceMoves;
   }
-  
-  return allMoves
-}
 
-// Generates all pawn moves
-const generatePawnMoves = (player, bitboards) => {
-  const emptySquares = getEmptySquares(bitboards);
-
-  if (player === "w") {
-    let enemyPieces = getBlackPieces(bitboards);
-    let pawnBoard = bitboards.whitePawns;
-
-    let singlePush = (pawnBoard << 8n) & emptySquares;
-
-    let doublePush = ((singlePush & 0x0000000000ff0000n) << 8n) & emptySquares;
-
-    // Captures (ensuring it doesn't wrap from H file to A file)
-    let leftCapture = (pawnBoard << 7n) & enemyPieces & 0xfefefefefefefefen;
-    let rightCapture = (pawnBoard << 9n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
-
-    return singlePush | doublePush | leftCapture | rightCapture;
-  } else {
-    let enemyPieces = getWhitePieces(bitboards);
-    let pawnBoard = bitboards.blackPawns;
-
-    let singlePush = (pawnBoard >> 8n) & emptySquares;
-
-    let doublePush = ((singlePush & 0x00ff000000000000n) >> 8n) & emptySquares;
-
-    let leftCapture = (pawnBoard >> 9n) & enemyPieces & 0xfefefefefefefefen;
-    let rightCapture = (pawnBoard >> 7n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
-
-    return singlePush | doublePush | leftCapture | rightCapture;
-  }
+  return allMoves;
 };
 
-export const getPawnMovesForSquare = (bitboards, player, from) => {
+
+/* SPECIFIC PIECE MOVE FUNCTIONS */
+export const getPawnMovesForSquare = (
+  bitboards,
+  player,
+  from,
+  attacksOnly = false
+) => {
   const specificPawn = 1n << BigInt(from);
 
   const emptySquares = getEmptySquares(bitboards);
@@ -106,22 +101,31 @@ export const getPawnMovesForSquare = (bitboards, player, from) => {
 
   // Generates moves for the pawn
   if (player === "w") {
-    const singlePush = (specificPawn << 8n) & emptySquares;
-    const doublePush =
-      ((specificPawn & 0x000000000000ff00n) << 16n) &
-      emptySquares &
-      (emptySquares << 8n);
+    let singlePush = 0n;
+    let doublePush = 0n;
+    if (!attacksOnly) {
+      singlePush = (specificPawn << 8n) & emptySquares;
+      doublePush =
+        ((specificPawn & 0x000000000000ff00n) << 16n) &
+        emptySquares &
+        (emptySquares << 8n);
+    }
     const leftCapture =
       (specificPawn << 7n) & enemyPieces & 0xfefefefefefefefen;
     const rightCapture =
       (specificPawn << 9n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
     return singlePush | doublePush | leftCapture | rightCapture;
   } else {
-    const singlePush = (specificPawn >> 8n) & emptySquares;
-    const doublePush =
-      ((specificPawn & 0x00ff000000000000n) >> 16n) &
-      emptySquares &
-      (emptySquares >> 8n);
+    let singlePush = 0n;
+    let doublePush = 0n;
+    if (!attacksOnly) {
+      singlePush = (specificPawn >> 8n) & emptySquares;
+      doublePush =
+        ((specificPawn & 0x00ff000000000000n) >> 16n) &
+        emptySquares &
+        (emptySquares >> 8n);
+    }
+
     const leftCapture =
       (specificPawn >> 9n) & enemyPieces & 0xfefefefefefefefen;
     const rightCapture =
@@ -129,8 +133,6 @@ export const getPawnMovesForSquare = (bitboards, player, from) => {
     return singlePush | doublePush | leftCapture | rightCapture;
   }
 };
-
-const generateKnightMoves = (from, bitboards) => {};
 
 export const getKnightMovesForSquare = (bitboards, player, from) => {
   let knightBitboard = 1n << BigInt(from);
@@ -160,8 +162,6 @@ export const getKnightMovesForSquare = (bitboards, player, from) => {
   return moves & ~friendlyPieces;
 };
 
-const generateBishopMoves = (from, bitboards) => {};
-
 export const getBishopMovesForSquare = (bitboards, player, from) => {
   let bishopBitboard = 1n << BigInt(from);
   let moves = 0n;
@@ -179,8 +179,6 @@ export const getBishopMovesForSquare = (bitboards, player, from) => {
   return moves & ~friendlyPieces;
 };
 
-const generateRookMoves = (from, bitboards) => {};
-
 export const getRookMovesForSquare = (bitboards, player, from) => {
   let rookBitboard = 1n << BigInt(from);
   let moves = 0n;
@@ -196,8 +194,6 @@ export const getRookMovesForSquare = (bitboards, player, from) => {
 
   return moves & ~friendlyPieces;
 };
-
-const generateQueenMoves = (from, bitboards) => {};
 
 export const getQueenMovesForSquare = (bitboards, player, from) => {
   let queenBitboard = 1n << BigInt(from);
@@ -222,13 +218,19 @@ export const getQueenMovesForSquare = (bitboards, player, from) => {
   return moves & ~friendlyPieces;
 };
 
-export const getKingMovesForSquare = (bitboards, player, from) => {
+export const getKingMovesForSquare = (
+  bitboards,
+  player,
+  from,
+  castlingRights
+) => {
   let kingBitboard = 1n << BigInt(from);
   let moves = 0n;
 
   const friendlyPieces =
     player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
 
+  /* BASE MOVES */
   moves |= kingBitboard << 8n; // Up
   moves |= kingBitboard >> 8n; // Down
   moves |= (kingBitboard << 1n) & FILE_A_MASK; // Right
@@ -237,6 +239,29 @@ export const getKingMovesForSquare = (bitboards, player, from) => {
   moves |= (kingBitboard << 7n) & FILE_H_MASK & RANK_8_MASK; // Up-left
   moves |= (kingBitboard >> 9n) & FILE_H_MASK & RANK_1_MASK; // Down-left
   moves |= (kingBitboard >> 7n) & FILE_A_MASK & RANK_1_MASK; // Down-right
+
+  /* CASTLING */
+  if (player === "w") {
+    if (castlingRights.whiteKingside && isKingsideCastleLegal(bitboards, "w")) {
+      moves |= 1n << 6n;
+    }
+    if (
+      castlingRights.whiteQueenside &&
+      isQueensideCastleLegal(bitboards, "w")
+    ) {
+      moves |= 1n << 2n;
+    }
+  } else {
+    if (castlingRights.blackKingside && isKingsideCastleLegal(bitboards, "b")) {
+      moves |= 1n << 62n;
+    }
+    if (
+      castlingRights.blackQueenside &&
+      isQueensideCastleLegal(bitboards, "b")
+    ) {
+      moves |= 1n << 58n;
+    }
+  }
 
   // Remove squares occupied by own pieces
   return moves & ~friendlyPieces;

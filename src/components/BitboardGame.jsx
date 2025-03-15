@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PromotionModal from "./PromotionModal";
 import Sidebar from "./Sidebar";
-import { isValidMove, makeMove } from "./bitboardUtils/bbChessLogic";
+import { isValidMove, makeMove, updateCastlingRights } from "./bitboardUtils/bbChessLogic";
 import {
   initialBitboards,
   isPlayersPieceAtSquare,
@@ -13,9 +13,15 @@ import BitboardBoard from "./BitboardBoard";
 const BitboardGame = () => {
   // STATES
   const [bitboards, setBitboards] = useState(initialBitboards);
-  const [selectedPiece, setSelectedPiece] = useState(null);
+  const [selectedSquare, setselectedSquare] = useState(null);
   const [currPlayer, setCurrPlayer] = useState("w");
   const [userSide, setUserSide] = useState("w");
+  const [castlingRights, setCastlingRights] = useState({
+    whiteKingside: true,
+    whiteQueenside: true,
+    blackKingside: true,
+    blackQueenside: true,
+  });
 
   // FUNCTIONS
 
@@ -27,23 +33,34 @@ const BitboardGame = () => {
     const square = row * 8 + col;
 
     if (isPlayersPieceAtSquare(currPlayer, square, bitboards)) {
-      setSelectedPiece(square);
+      setselectedSquare(square);
       return;
     }
 
-    if (selectedPiece !== null) {
-      if (isValidMove(bitboards, selectedPiece, square, currPlayer)) {
-        const newBitboards = makeMove(bitboards, selectedPiece, square);
-        setSelectedPiece(null);
+    if (selectedSquare !== null) {
+      if (isValidMove(bitboards, selectedSquare, square, currPlayer, castlingRights)) {
+        const newBitboards = makeMove(bitboards, selectedSquare, square);
+
+        setCastlingRights(updateCastlingRights(selectedSquare, castlingRights))
+        setselectedSquare(null);
         setBitboards(newBitboards);
         setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
       }
     }
   };
+
   // Resets the game
   const resetGame = () => {
     setUserSide((prev) => (prev === "w" ? "b" : "w"));
     setBitboards(initialBitboards);
+    setselectedSquare(null);
+    setCurrPlayer("w");
+    setCastlingRights({
+      whiteKingside: true,
+      whiteQueenside: true,
+      blackKingside: true,
+      blackQueenside: true,
+    })
   };
 
   // Runs the engine move after the user makes a move
@@ -60,7 +77,7 @@ const BitboardGame = () => {
       <BitboardBoard
         bitboards={bitboards}
         onSquareClick={handleSquareClick}
-        selectedPiece={selectedPiece}
+        selectedSquare={selectedSquare}
         userSide={userSide}
       />
       {/* {promotion && (

@@ -15,6 +15,7 @@ const Cell = ({ piece, row, col, onSquareClick, isSelected }) => {
       className={`cell ${(row + col) % 2 === 0 ? "light" : "dark"}`}
       onClick={() => onSquareClick(row, col)}
     >
+      {row * 8 + col}
       {piece !== "-" && <Piece type={piece} />}
     </div>
   );

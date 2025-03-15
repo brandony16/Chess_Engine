@@ -3,7 +3,7 @@ import "./Board.css";
 import { getPieceAtSquare, pieceSymbols } from "./bitboardUtils/bbHelpers";
 
 // Creates the board out of Cells
-const BitboardBoard = ({ bitboards, onSquareClick, selectedPiece, userSide }) => {  
+const BitboardBoard = ({ bitboards, onSquareClick, selectedSquare, userSide }) => {  
   return (
     <div className="board">
       {Array.from({ length: 8 }, (_, row) => {
@@ -13,7 +13,7 @@ const BitboardBoard = ({ bitboards, onSquareClick, selectedPiece, userSide }) =>
           const actualCol = userSide === "w" ? col : 7 - col
           const i = actualRow * 8 + actualCol; // Flip columns per row
           const piece = getPieceAtSquare(i, bitboards);
-          const isSelected = selectedPiece === i;
+          const isSelected = selectedSquare === i;
 
           return (
             <Cell
