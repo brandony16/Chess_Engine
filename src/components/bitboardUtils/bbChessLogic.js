@@ -49,6 +49,6 @@ export const isValidMove = (bitboards, from, to, player) => {
   const legalMoves = getLegalMoves(bitboards, formattedPiece, from, player)
   
 
-  return (legalMoves >> BigInt(to)) & BigInt(1);
+  return Boolean((legalMoves >> BigInt(to)) & BigInt(1));
 }
 

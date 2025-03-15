@@ -113,7 +113,7 @@ export const slide = (pieceBitboard, shift, mask, allPieces) => {
   while (true) {
     pos = (pos & mask) << shift;
 
-    if (!pos) break; // Stop if no valid position remains
+    if (!pos || pos === 0n) break; // Stop if no valid position remains
 
     if (pos & allPieces) { // Stop at the first occupied square
       attack |= pos; 
