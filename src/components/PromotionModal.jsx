@@ -1,5 +1,5 @@
-const PromotionModal = ({ onPromote, currPlayer }) => {
-  const pieces = currPlayer === "w" ? ["Q", "R", "B", "N"] : ["q", "r", "b", "n"];
+const PromotionModal = ({ onPromote }) => {
+  const pieces = ["Queens", "Rooks", "Knights", "Bishops"];
 
   return (
     <div className="modal-overlay">

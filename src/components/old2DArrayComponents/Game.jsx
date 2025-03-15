@@ -1,10 +1,10 @@
 import Board from "./Board";
-import { initializeBoard, updateGameState } from "../utils/chessLogic";
+import { initializeBoard, updateGameState } from "./utils/chessLogic";
 import { useEffect, useState } from "react";
-import { isValidMoveWithCheck } from "../utils/chessLogic";
-import { getBestMove } from "./Engines/Bondmonkey_V2";
-import PromotionModal from "./PromotionModal";
-import Sidebar from "./Sidebar";
+import { isValidMoveWithCheck } from "./utils/chessLogic";
+import { getBestMove } from "../Engines/Bondmonkey_V2";
+import PromotionModal from "../PromotionModal";
+import Sidebar from "../Sidebar";
 import "./UI.css";
 
 // Runs the game

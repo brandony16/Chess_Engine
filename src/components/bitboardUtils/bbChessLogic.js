@@ -7,7 +7,7 @@ import {
 import { getAllPlayerMoves, getPieceMoves } from "./bbMoveGeneration";
 
 // Makes a move given a from and to square (ints 0-63). Move validation is handled by other functions
-export const makeMove = (bitboards, from, to, enPassantSquare) => {
+export const makeMove = (bitboards, from, to, enPassantSquare, promotionPiece = null) => {
   let updatedBitboards = { ...bitboards };
 
   // Handle castle case
@@ -30,12 +30,22 @@ export const makeMove = (bitboards, from, to, enPassantSquare) => {
 
   if (!movingPiece) return {bitboards: updatedBitboards}; // No piece found at 'from', return unchanged
 
-  // Check if a piece exists at 'to' (capture scenario)
+  // Check if a piece exists at 'to' (capture)
   for (const [piece, bitboard] of Object.entries(updatedBitboards)) {
     if ((bitboard >> BigInt(to)) & BigInt(1)) {
       updatedBitboards[piece] &= ~(BigInt(1) << BigInt(to)); // Remove captured piece
       break;
     }
+  }
+
+
+  // Handles promotions
+  if (promotionPiece) {
+    const promotedPieceKey =
+      movingPiece === "whitePawns" ? `white${promotionPiece}` : `black${promotionPiece}`;
+    
+    updatedBitboards[promotedPieceKey] |= 1n << BigInt(to); // Add promoted piece
+    return { bitboards: updatedBitboards, enPassantSquare: null };
   }
 
   // Move piece to 'to' square
@@ -98,8 +108,6 @@ export const isSquareAttacked = (bitboards, square, opponent) => {
 export const filterIllegalMoves = (bitboards, moves, from, player) => {
   let filteredMoves = 0n;
 
-  const kingBB = bitboards[player === "w" ? "whiteKings" : "blackKings"];
-  const kingSquare = bitScanForward(kingBB);
 
   // Iterate only over moves that are set (i.e. bits that are 1)
   let remainingMoves = moves;
@@ -109,6 +117,8 @@ export const filterIllegalMoves = (bitboards, moves, from, player) => {
 
     // Simulate the move and check if the king is attacked
     const tempBitboards = makeMove(bitboards, from, to).bitboards;
+    const kingBB = tempBitboards[player === "w" ? "whiteKings" : "blackKings"];
+    const kingSquare = bitScanForward(kingBB);
     if (
       !isSquareAttacked(tempBitboards, kingSquare, player === "w" ? "b" : "w")
     ) {

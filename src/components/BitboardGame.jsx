@@ -19,6 +19,8 @@ const BitboardGame = () => {
   const [currPlayer, setCurrPlayer] = useState("w");
   const [userSide, setUserSide] = useState("w");
   const [enPassantSquare, setEnPassantSquare] = useState(null);
+  const [promotion, setPromotion] = useState(false);
+  const [promotionMove, setPromotionMove] = useState(null)
   const [castlingRights, setCastlingRights] = useState({
     whiteKingside: true,
     whiteQueenside: true,
@@ -42,6 +44,12 @@ const BitboardGame = () => {
 
     if (selectedSquare !== null) {
       if (isValidMove(bitboards, selectedSquare, square, currPlayer, enPassantSquare, castlingRights)) {
+        if ((row === 7 || row === 0 ) && pieceSymbols[getPieceAtSquare(selectedSquare, bitboards)].toLowerCase() === 'p') {
+          setPromotion(true);
+          setPromotionMove({ from: selectedSquare, to: square });
+          return;
+        }
+
         const moveObj = makeMove(bitboards, selectedSquare, square, enPassantSquare);
         const newBitboards = moveObj.bitboards;
         
@@ -53,6 +61,22 @@ const BitboardGame = () => {
       }
     }
   };
+
+  const handlePromotion = (piece) => {
+    const from = promotionMove.from;
+    const to = promotionMove.to;
+
+    const moveObj = makeMove(bitboards, from, to, enPassantSquare, piece);
+    const newBitboards = moveObj.bitboards;
+    
+    setPromotion(false);
+    setPromotionMove(null);
+    setEnPassantSquare(moveObj.enPassantSquare);
+    setCastlingRights(updateCastlingRights(selectedSquare, castlingRights))
+    setselectedSquare(null);
+    setBitboards(newBitboards);
+    setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
+  }
 
   // Resets the game
   const resetGame = () => {
@@ -85,9 +109,9 @@ const BitboardGame = () => {
         selectedSquare={selectedSquare}
         userSide={userSide}
       />
-      {/* {promotion && (
-        <PromotionModal onPromote={handlePromotion} currPlayer={currPlayer} />
-      )} */}
+      {promotion && (
+        <PromotionModal onPromote={handlePromotion} />
+      )}
       <Sidebar
         currPlayer={currPlayer}
         resetGame={resetGame}

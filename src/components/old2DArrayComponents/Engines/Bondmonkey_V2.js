@@ -1,5 +1,5 @@
-import { simulateMove, sortMoves, updateGameState } from "../../utils/chessLogic";
-import { getLegalMoves } from "../../utils/pieceMoves";
+import { simulateMove, sortMoves, updateGameState } from "../old2DArrayComponents/utils/chessLogic";
+import { getLegalMoves } from "../old2DArrayComponents/utils/pieceMoves";
 
 
 // V2: Plays moves purely based on material

@@ -1,5 +1,6 @@
 import { isKingsideCastleLegal, isQueensideCastleLegal } from "./bbChessLogic";
 import {
+  bigIntFullRep,
   bitScanForward,
   FILE_A_MASK,
   FILE_H_MASK,
@@ -117,8 +118,8 @@ export const getPawnMovesForSquare = (
         emptySquares &
         (emptySquares << 8n);
     }
-    leftCapture = (specificPawn << 7n) & enemyPieces & 0xfefefefefefefefen;
-    rightCapture = (specificPawn << 9n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
+    leftCapture = (specificPawn << 7n) & enemyPieces & FILE_H_MASK;
+    rightCapture = (specificPawn << 9n) & enemyPieces & FILE_A_MASK;
 
     // En Passant for white
     if (enPassantSquare !== null) {
@@ -137,8 +138,8 @@ export const getPawnMovesForSquare = (
         emptySquares &
         (emptySquares >> 8n);
     }
-    leftCapture = (specificPawn >> 9n) & enemyPieces & 0xfefefefefefefefen;
-    rightCapture = (specificPawn >> 7n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
+    leftCapture = (specificPawn >> 9n) & enemyPieces & FILE_H_MASK;
+    rightCapture = (specificPawn >> 7n) & enemyPieces & FILE_A_MASK;
 
     // En Passant for black
     if (enPassantSquare !== null) {
