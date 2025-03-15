@@ -140,3 +140,13 @@ export const bigIntFullRep = (bitboard) => {
 
   return boardStr;
 }
+
+export const bitScanForward = (bitboard) => {
+  if (bitboard === 0n) return -1;
+  let index = 0;
+  while ((bitboard & 1n) === 0n) {
+    bitboard >>= 1n;
+    index++;
+  }
+  return index;
+};

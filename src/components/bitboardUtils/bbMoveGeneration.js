@@ -1,34 +1,69 @@
+import { filterIllegalMoves } from "./bbChessLogic";
 import {
+  bitScanForward,
   FILE_A_MASK,
   FILE_H_MASK,
   getAllPieces,
   getBlackPieces,
   getEmptySquares,
+  getPieceAtSquare,
   getWhitePieces,
+  pieceSymbols,
   RANK_1_MASK,
   RANK_8_MASK,
   slide,
 } from "./bbHelpers";
 
 // Gets the legal moves of a piece
-export const getLegalMoves = (bitboards, piece, from, player) => {
+export const getPieceMoves = (bitboards, piece, from, player) => {
+  let moves = null;
   switch (piece) {
     case "P":
-      return getPawnMovesForSquare(bitboards, player, from);
+      moves = getPawnMovesForSquare(bitboards, player, from);
+      break;
     case "N":
-      return getKnightMovesForSquare(bitboards, player, from);
+      moves = getKnightMovesForSquare(bitboards, player, from);
+      break;
     case "B":
-      return getBishopMovesForSquare(bitboards, player, from);
+      moves = getBishopMovesForSquare(bitboards, player, from);
+      break;
     case "R":
-      return getRookMovesForSquare(bitboards, player, from);
+      moves = getRookMovesForSquare(bitboards, player, from);
+      break;
     case "Q":
-      return getQueenMovesForSquare(bitboards, player, from);
+      moves = getQueenMovesForSquare(bitboards, player, from);
+      break;
     case "K":
-      return getKingMovesForSquare(bitboards, player, from);
+      moves = getKingMovesForSquare(bitboards, player, from);
+      break;
     default:
-      return BigInt(0); // No legal moves
+      moves = BigInt(0); // No legal moves
   }
+
+  return moves;
 };
+
+export const getAllLegalMoves = (bitboards, player) => {
+  let allMoves = 0n;
+  // Get player's overall pieces bitboard.
+  const playerPieces = player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+  
+  let pieces = playerPieces;
+  while (pieces !== 0n) {
+    // Store first bit and remove it from the bitboard
+    const square = bitScanForward(pieces);
+    pieces &= pieces - 1n;
+    
+    const piece = getPieceAtSquare(square, bitboards);
+    const formattedPiece = pieceSymbols[piece].toUpperCase();
+    
+    const pieceMoves = getPieceMoves(bitboards, formattedPiece, square, player);
+    
+    allMoves |= pieceMoves;
+  }
+  
+  return allMoves
+}
 
 // Generates all pawn moves
 const generatePawnMoves = (player, bitboards) => {

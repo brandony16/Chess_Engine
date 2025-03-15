@@ -1,5 +1,5 @@
-import { getPieceAtSquare, isPlayersPieceAtSquare, pieceSymbols } from "./bbHelpers";
-import { getLegalMoves } from "./bbMoveGeneration";
+import { bitScanForward, getPieceAtSquare, isPlayersPieceAtSquare, pieceSymbols } from "./bbHelpers";
+import { getAllLegalMoves, getPieceMoves } from "./bbMoveGeneration";
 
 // Makes a move given a from and to square (ints 0-63)
 export const makeMove = (bitboards, from, to) => {
@@ -46,9 +46,41 @@ export const isValidMove = (bitboards, from, to, player) => {
   const piece = getPieceAtSquare(from, bitboards);
   const formattedPiece = pieceSymbols[piece].toUpperCase();
 
-  const legalMoves = getLegalMoves(bitboards, formattedPiece, from, player)
-  
+  const pieceMoves = getPieceMoves(bitboards, formattedPiece, from, player);
+  const legalMoves = filterIllegalMoves(bitboards, pieceMoves, from, player);
 
   return Boolean((legalMoves >> BigInt(to)) & BigInt(1));
+}
+
+// Determines whether a specific square is attacked by the opponent
+export const isSquareAttacked = (bitboards, square, opponent) => {
+  const opponentMoves = getAllLegalMoves(bitboards, opponent);
+
+  return Boolean((opponentMoves >> BigInt(square)) & 1n);
+}
+
+export const filterIllegalMoves = (bitboards, moves, from, player) => {
+  let filteredMoves = 0n;
+  
+  const kingBB = bitboards[player === "w" ? "whiteKings" : "blackKings"];
+  const kingSquare = bitScanForward(kingBB);
+  
+  // Iterate only over moves that are set (i.e. bits that are 1)
+  let remainingMoves = moves;
+  while (remainingMoves !== 0n) {
+    const to = bitScanForward(remainingMoves);
+    remainingMoves &= remainingMoves - 1n;
+    
+    // Simulate the move and check if the king is attacked
+    const tempBitboards = makeMove(bitboards, from, to);
+    if (!isSquareAttacked(tempBitboards, kingSquare
+      , player === "w" ? "b" : "w")) {
+      filteredMoves |= (1n << BigInt(to));
+    }
+  }
+  // NEED TO FIX PAWNS. THEY CANNOT CAPTURE MOVING FORWARD BUT CAN MOVE FORWARD. THESE MOVES SHOULD NOT BE FILTERED
+
+  
+  return filteredMoves;
 }
 
