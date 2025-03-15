@@ -20,13 +20,14 @@ export const getPieceMoves = (
   piece,
   from,
   player,
+  enPassantSquare,
   castlingRights,
   onlyCaptures = false
 ) => {
   let moves = null;
   switch (piece) {
     case "P":
-      moves = getPawnMovesForSquare(bitboards, player, from, onlyCaptures);
+      moves = getPawnMovesForSquare(bitboards, player, from, enPassantSquare, onlyCaptures);
       break;
     case "N":
       moves = getKnightMovesForSquare(bitboards, player, from);
@@ -55,6 +56,7 @@ export const getAllPlayerMoves = (
   bitboards,
   player,
   castlingRights,
+  enPassantSquare,
   onlyCaptures = false
 ) => {
   let allMoves = 0n;
@@ -75,6 +77,7 @@ export const getAllPlayerMoves = (
       formattedPiece,
       square,
       player,
+      enPassantSquare,
       castlingRights,
       onlyCaptures
     );
@@ -91,6 +94,7 @@ export const getPawnMovesForSquare = (
   bitboards,
   player,
   from,
+  enPassantSquare,
   attacksOnly = false
 ) => {
   const specificPawn = 1n << BigInt(from);
@@ -99,10 +103,13 @@ export const getPawnMovesForSquare = (
   const enemyPieces =
     player === "w" ? getBlackPieces(bitboards) : getWhitePieces(bitboards);
 
-  // Generates moves for the pawn
+  let singlePush = 0n;
+  let doublePush = 0n;
+  let leftCapture = 0n;
+  let rightCapture = 0n;
+  let enPassantCapture = 0n; // New
+
   if (player === "w") {
-    let singlePush = 0n;
-    let doublePush = 0n;
     if (!attacksOnly) {
       singlePush = (specificPawn << 8n) & emptySquares;
       doublePush =
@@ -110,14 +117,19 @@ export const getPawnMovesForSquare = (
         emptySquares &
         (emptySquares << 8n);
     }
-    const leftCapture =
-      (specificPawn << 7n) & enemyPieces & 0xfefefefefefefefen;
-    const rightCapture =
-      (specificPawn << 9n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
-    return singlePush | doublePush | leftCapture | rightCapture;
+    leftCapture = (specificPawn << 7n) & enemyPieces & 0xfefefefefefefefen;
+    rightCapture = (specificPawn << 9n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
+
+    // En Passant for white
+    if (enPassantSquare !== null) {
+      if ((specificPawn << 7n) & (1n << BigInt(enPassantSquare))) {
+        enPassantCapture |= 1n << BigInt(enPassantSquare);
+      }
+      if ((specificPawn << 9n) & (1n << BigInt(enPassantSquare))) {
+        enPassantCapture |= 1n << BigInt(enPassantSquare);
+      }
+    }
   } else {
-    let singlePush = 0n;
-    let doublePush = 0n;
     if (!attacksOnly) {
       singlePush = (specificPawn >> 8n) & emptySquares;
       doublePush =
@@ -125,13 +137,21 @@ export const getPawnMovesForSquare = (
         emptySquares &
         (emptySquares >> 8n);
     }
+    leftCapture = (specificPawn >> 9n) & enemyPieces & 0xfefefefefefefefen;
+    rightCapture = (specificPawn >> 7n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
 
-    const leftCapture =
-      (specificPawn >> 9n) & enemyPieces & 0xfefefefefefefefen;
-    const rightCapture =
-      (specificPawn >> 7n) & enemyPieces & 0x7f7f7f7f7f7f7f7fn;
-    return singlePush | doublePush | leftCapture | rightCapture;
+    // En Passant for black
+    if (enPassantSquare !== null) {
+      if ((specificPawn >> 9n) & (1n << BigInt(enPassantSquare))) {
+        enPassantCapture |= 1n << BigInt(enPassantSquare);
+      }
+      if ((specificPawn >> 7n) & (1n << BigInt(enPassantSquare))) {
+        enPassantCapture |= 1n << BigInt(enPassantSquare);
+      }
+    }
   }
+
+  return singlePush | doublePush | leftCapture | rightCapture | enPassantCapture;
 };
 
 export const getKnightMovesForSquare = (bitboards, player, from) => {
@@ -241,25 +261,27 @@ export const getKingMovesForSquare = (
   moves |= (kingBitboard >> 7n) & FILE_A_MASK & RANK_1_MASK; // Down-right
 
   /* CASTLING */
-  if (player === "w") {
-    if (castlingRights.whiteKingside && isKingsideCastleLegal(bitboards, "w")) {
-      moves |= 1n << 6n;
-    }
-    if (
-      castlingRights.whiteQueenside &&
-      isQueensideCastleLegal(bitboards, "w")
-    ) {
-      moves |= 1n << 2n;
-    }
-  } else {
-    if (castlingRights.blackKingside && isKingsideCastleLegal(bitboards, "b")) {
-      moves |= 1n << 62n;
-    }
-    if (
-      castlingRights.blackQueenside &&
-      isQueensideCastleLegal(bitboards, "b")
-    ) {
-      moves |= 1n << 58n;
+  if (castlingRights) {
+    if (player === "w") {
+      if (castlingRights.whiteKingside && isKingsideCastleLegal(bitboards, "w")) {
+        moves |= 1n << 6n;
+      }
+      if (
+        castlingRights.whiteQueenside &&
+        isQueensideCastleLegal(bitboards, "w")
+      ) {
+        moves |= 1n << 2n;
+      }
+    } else {
+      if (castlingRights.blackKingside && isKingsideCastleLegal(bitboards, "b")) {
+        moves |= 1n << 62n;
+      }
+      if (
+        castlingRights.blackQueenside &&
+        isQueensideCastleLegal(bitboards, "b")
+      ) {
+        moves |= 1n << 58n;
+      }
     }
   }
 

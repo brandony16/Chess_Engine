@@ -7,7 +7,7 @@ import {
 import { getAllPlayerMoves, getPieceMoves } from "./bbMoveGeneration";
 
 // Makes a move given a from and to square (ints 0-63). Move validation is handled by other functions
-export const makeMove = (bitboards, from, to) => {
+export const makeMove = (bitboards, from, to, enPassantSquare) => {
   let updatedBitboards = { ...bitboards };
 
   // Handle castle case
@@ -28,7 +28,7 @@ export const makeMove = (bitboards, from, to) => {
     }
   }
 
-  if (!movingPiece) return updatedBitboards; // No piece found at 'from', return unchanged
+  if (!movingPiece) return {bitboards: updatedBitboards}; // No piece found at 'from', return unchanged
 
   // Check if a piece exists at 'to' (capture scenario)
   for (const [piece, bitboard] of Object.entries(updatedBitboards)) {
@@ -41,11 +41,25 @@ export const makeMove = (bitboards, from, to) => {
   // Move piece to 'to' square
   updatedBitboards[movingPiece] |= BigInt(1) << BigInt(to);
 
-  return updatedBitboards;
+  // Handle En Passant
+  let newEnPassantSquare = null;
+  const player = movingPiece === 'whitePawns' ? 'w' : 'b';
+  if (movingPiece === 'whitePawns' || movingPiece === 'blackPawns') {
+    if (Math.abs(to - from) === 16) {
+      newEnPassantSquare = player === 'w' ? to - 8 : to + 8;
+    }
+
+    if (to === enPassantSquare) {
+      const capturedPawnSquare = player === "w" ? to - 8 : to + 8;
+      updatedBitboards[player === "w" ? "blackPawns" : "whitePawns"] &= ~(BigInt(1) << BigInt(capturedPawnSquare));
+    }
+  }
+
+  return {bitboards: updatedBitboards, enPassantSquare: newEnPassantSquare};
 };
 
 // Determines whether a give move is valid.
-export const isValidMove = (bitboards, from, to, player, castlingRights) => {
+export const isValidMove = (bitboards, from, to, player, enPassantSquare, castlingRights) => {
   // If start square is not one of the player's pieces, then it is not a valid move
   if (!isPlayersPieceAtSquare(player, from, bitboards)) {
     return false;
@@ -65,6 +79,7 @@ export const isValidMove = (bitboards, from, to, player, castlingRights) => {
     formattedPiece,
     from,
     player,
+    enPassantSquare,
     castlingRights
   );
   const legalMoves = filterIllegalMoves(bitboards, pieceMoves, from, player);
@@ -74,7 +89,7 @@ export const isValidMove = (bitboards, from, to, player, castlingRights) => {
 
 // Determines whether a specific square is attacked by the opponent
 export const isSquareAttacked = (bitboards, square, opponent) => {
-  const opponentMoves = getAllPlayerMoves(bitboards, opponent, true);
+  const opponentMoves = getAllPlayerMoves(bitboards, opponent, null, null, true);
 
   return Boolean((opponentMoves >> BigInt(square)) & 1n);
 };
@@ -93,7 +108,7 @@ export const filterIllegalMoves = (bitboards, moves, from, player) => {
     remainingMoves &= remainingMoves - 1n;
 
     // Simulate the move and check if the king is attacked
-    const tempBitboards = makeMove(bitboards, from, to);
+    const tempBitboards = makeMove(bitboards, from, to).bitboards;
     if (
       !isSquareAttacked(tempBitboards, kingSquare, player === "w" ? "b" : "w")
     ) {

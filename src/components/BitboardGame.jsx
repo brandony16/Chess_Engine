@@ -3,8 +3,10 @@ import PromotionModal from "./PromotionModal";
 import Sidebar from "./Sidebar";
 import { isValidMove, makeMove, updateCastlingRights } from "./bitboardUtils/bbChessLogic";
 import {
+  getPieceAtSquare,
   initialBitboards,
   isPlayersPieceAtSquare,
+  pieceSymbols,
 } from "./bitboardUtils/bbHelpers";
 import "./UI.css";
 import BitboardBoard from "./BitboardBoard";
@@ -16,6 +18,7 @@ const BitboardGame = () => {
   const [selectedSquare, setselectedSquare] = useState(null);
   const [currPlayer, setCurrPlayer] = useState("w");
   const [userSide, setUserSide] = useState("w");
+  const [enPassantSquare, setEnPassantSquare] = useState(null);
   const [castlingRights, setCastlingRights] = useState({
     whiteKingside: true,
     whiteQueenside: true,
@@ -38,9 +41,11 @@ const BitboardGame = () => {
     }
 
     if (selectedSquare !== null) {
-      if (isValidMove(bitboards, selectedSquare, square, currPlayer, castlingRights)) {
-        const newBitboards = makeMove(bitboards, selectedSquare, square);
-
+      if (isValidMove(bitboards, selectedSquare, square, currPlayer, enPassantSquare, castlingRights)) {
+        const moveObj = makeMove(bitboards, selectedSquare, square, enPassantSquare);
+        const newBitboards = moveObj.bitboards;
+        
+        setEnPassantSquare(moveObj.enPassantSquare);
         setCastlingRights(updateCastlingRights(selectedSquare, castlingRights))
         setselectedSquare(null);
         setBitboards(newBitboards);
