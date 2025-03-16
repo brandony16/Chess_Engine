@@ -1,10 +1,11 @@
+import { isGameOver } from "../old2DArrayComponents/utils/chessLogic";
 import {
   bitScanForward,
   getPieceAtSquare,
   isPlayersPieceAtSquare,
   pieceSymbols,
 } from "./bbHelpers";
-import { getAllPlayerMoves, getPieceMoves } from "./bbMoveGeneration";
+import { getAllLegalMoves, getAllPlayerMoves, getPieceMoves } from "./bbMoveGeneration";
 
 // Makes a move given a from and to square (ints 0-63). Move validation is handled by other functions
 export const makeMove = (bitboards, from, to, enPassantSquare, promotionPiece = null) => {
@@ -234,3 +235,31 @@ export const makeCastleMove = (bitboards, from, to) => {
 
   return newBitboards;
 };
+
+export const checkGameOver = (bitboards, player, pastPositions, castlingRights, enPassantSquare) => {
+  const allLegalMoves = getAllLegalMoves(bitboards, player, castlingRights, enPassantSquare);
+  const opponent = player === 'w' ? 'b' : 'w';
+  
+  const kingBB = bitboards[player === 'w' ? 'whiteKings' : 'blackKings'];
+  const kingSquare = bitScanForward(kingBB);
+
+  const result = { isGameOver: false, result: null };
+
+  // If player has no moves it is stalemate or checkmate
+  if (allLegalMoves === 0n) {
+    result.isGameOver = true;
+
+    if (isSquareAttacked(bitboards, kingSquare, opponent)) {
+      // Inversed because we are checking if 'player' has moves. If they dont and are in check, the other player wins
+      const fullPlayer = player === 'w' ? "Black" : "White";
+
+      result.result = `${fullPlayer} Wins by Checkmate`;
+      return result;
+    } else {
+      result.result = "Draw by Stalemate";
+      return result;
+    }
+  }
+
+  return result;
+}

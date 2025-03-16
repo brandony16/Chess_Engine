@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import PromotionModal from "./PromotionModal";
 import Sidebar from "./Sidebar";
-import { isValidMove, makeMove, updateCastlingRights } from "./bitboardUtils/bbChessLogic";
+import {
+  isValidMove,
+  makeMove,
+  updateCastlingRights,
+} from "./bitboardUtils/bbChessLogic";
 import {
   getPieceAtSquare,
   initialBitboards,
@@ -20,7 +24,9 @@ const BitboardGame = () => {
   const [userSide, setUserSide] = useState("w");
   const [enPassantSquare, setEnPassantSquare] = useState(null);
   const [promotion, setPromotion] = useState(false);
-  const [promotionMove, setPromotionMove] = useState(null)
+  const [promotionMove, setPromotionMove] = useState(null);
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [result, setResult] = useState(null);
   const [castlingRights, setCastlingRights] = useState({
     whiteKingside: true,
     whiteQueenside: true,
@@ -35,6 +41,8 @@ const BitboardGame = () => {
 
   // Handles when a square is clicked
   const handleSquareClick = (row, col) => {
+    if (isGameOver) return;
+    
     const square = row * 8 + col;
 
     if (isPlayersPieceAtSquare(currPlayer, square, bitboards)) {
@@ -43,18 +51,37 @@ const BitboardGame = () => {
     }
 
     if (selectedSquare !== null) {
-      if (isValidMove(bitboards, selectedSquare, square, currPlayer, enPassantSquare, castlingRights)) {
-        if ((row === 7 || row === 0 ) && pieceSymbols[getPieceAtSquare(selectedSquare, bitboards)].toLowerCase() === 'p') {
+      if (
+        isValidMove(
+          bitboards,
+          selectedSquare,
+          square,
+          currPlayer,
+          enPassantSquare,
+          castlingRights
+        )
+      ) {
+        if (
+          (row === 7 || row === 0) &&
+          pieceSymbols[
+            getPieceAtSquare(selectedSquare, bitboards)
+          ].toLowerCase() === "p"
+        ) {
           setPromotion(true);
           setPromotionMove({ from: selectedSquare, to: square });
           return;
         }
 
-        const moveObj = makeMove(bitboards, selectedSquare, square, enPassantSquare);
+        const moveObj = makeMove(
+          bitboards,
+          selectedSquare,
+          square,
+          enPassantSquare
+        );
         const newBitboards = moveObj.bitboards;
-        
+
         setEnPassantSquare(moveObj.enPassantSquare);
-        setCastlingRights(updateCastlingRights(selectedSquare, castlingRights))
+        setCastlingRights(updateCastlingRights(selectedSquare, castlingRights));
         setselectedSquare(null);
         setBitboards(newBitboards);
         setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
@@ -68,15 +95,15 @@ const BitboardGame = () => {
 
     const moveObj = makeMove(bitboards, from, to, enPassantSquare, piece);
     const newBitboards = moveObj.bitboards;
-    
+
     setPromotion(false);
     setPromotionMove(null);
     setEnPassantSquare(moveObj.enPassantSquare);
-    setCastlingRights(updateCastlingRights(selectedSquare, castlingRights))
+    setCastlingRights(updateCastlingRights(selectedSquare, castlingRights));
     setselectedSquare(null);
     setBitboards(newBitboards);
     setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
-  }
+  };
 
   // Resets the game
   const resetGame = () => {
@@ -89,7 +116,7 @@ const BitboardGame = () => {
       whiteQueenside: true,
       blackKingside: true,
       blackQueenside: true,
-    })
+    });
   };
 
   // Runs the engine move after the user makes a move
@@ -109,9 +136,7 @@ const BitboardGame = () => {
         selectedSquare={selectedSquare}
         userSide={userSide}
       />
-      {promotion && (
-        <PromotionModal onPromote={handlePromotion} />
-      )}
+      {promotion && <PromotionModal onPromote={handlePromotion} />}
       <Sidebar
         currPlayer={currPlayer}
         resetGame={resetGame}

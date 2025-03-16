@@ -1,6 +1,5 @@
-import { isKingsideCastleLegal, isQueensideCastleLegal } from "./bbChessLogic";
+import { filterIllegalMoves, isKingsideCastleLegal, isQueensideCastleLegal } from "./bbChessLogic";
 import {
-  bigIntFullRep,
   bitScanForward,
   FILE_A_MASK,
   FILE_H_MASK,
@@ -52,7 +51,7 @@ export const getPieceMoves = (
   return moves;
 };
 
-// Gets all moves for a player
+// Gets all moves for a player. Does NOT check for legality (if the move puts the king in check)
 export const getAllPlayerMoves = (
   bitboards,
   player,
@@ -89,6 +88,43 @@ export const getAllPlayerMoves = (
   return allMoves;
 };
 
+export const getAllLegalMoves = (
+  bitboards,
+  player,
+  castlingRights,
+  enPassantSquare,
+  onlyCaptures = false
+) => {
+  let allMoves = 0n;
+  // Get player's overall pieces bitboard.
+  const playerPieces =
+    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+
+  let pieces = playerPieces;
+  while (pieces !== 0n) {
+    const square = bitScanForward(pieces);
+    pieces &= pieces - 1n;
+
+    const piece = getPieceAtSquare(square, bitboards);
+    const formattedPiece = pieceSymbols[piece].toUpperCase();
+
+    const pieceMoves = getPieceMoves(
+      bitboards,
+      formattedPiece,
+      square,
+      player,
+      enPassantSquare,
+      castlingRights,
+      onlyCaptures
+    );
+
+    const legalPieceMoves = filterIllegalMoves(bitboards, pieceMoves, square, player);
+
+    allMoves |= legalPieceMoves;
+  }
+
+  return allMoves;
+};
 
 /* SPECIFIC PIECE MOVE FUNCTIONS */
 export const getPawnMovesForSquare = (
