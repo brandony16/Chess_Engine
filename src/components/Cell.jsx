@@ -4,10 +4,13 @@ import Piece from "./Piece";
 /*
   Squares on the board
 */
-const Cell = ({ piece, row, col, onSquareClick, isSelected }) => {
+const Cell = ({ piece, row, col, onSquareClick, isSelected, isMove, userSide }) => {
   const style = {
-    border: isSelected ? "35px solid rgba(255, 174, 174, 0.57)" : 'none',
-  }
+    backgroundColor: 
+      isSelected ? "rgba(255, 191, 89, 0.4)"
+      : isMove ? "rgba(255, 100, 100, 0.3)"
+      : "transparent",
+  };
 
   return (
     <div

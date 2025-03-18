@@ -10,11 +10,9 @@ import {
 import { getAllLegalMoves, getAllPlayerMoves, getPieceMoves } from "./bbMoveGeneration";
 
 // Makes a move given a from and to square (ints 0-63). Move validation is handled by other functions
-export const makeMove = (bitboards, from, to, enPassantSquare, promotionPiece = null) => {
+export const makeMove = (bitboards, from, to, enPassantSquare = null, promotionPiece = null) => {
   let updatedBitboards = { ...bitboards };
-
-  if (getPieceAtSquare(from, bitboards) === null) return { bitboards: updatedBitboards };
-
+  
   // Handle castle case
   if (
     pieceSymbols[getPieceAtSquare(from, bitboards)].toLowerCase() === "k" &&
@@ -22,7 +20,7 @@ export const makeMove = (bitboards, from, to, enPassantSquare, promotionPiece = 
   ) {
     return makeCastleMove(bitboards, from, to);
   }
-
+  
   // Find which piece is at 'from' square
   let movingPiece = null;
   for (const [piece, bitboard] of Object.entries(bitboards)) {
@@ -32,6 +30,8 @@ export const makeMove = (bitboards, from, to, enPassantSquare, promotionPiece = 
       break;
     }
   }
+  
+  if (!movingPiece) return { bitboards: updatedBitboards };
 
   // Check if a piece exists at 'to' (capture)
   for (const [piece, bitboard] of Object.entries(updatedBitboards)) {
@@ -119,7 +119,7 @@ export const filterIllegalMoves = (bitboards, moves, from, player) => {
     remainingMoves &= remainingMoves - 1n;
 
     // Simulate the move and check if the king is attacked
-    const tempBitboards = makeMove(bitboards, from, to).bitboards;
+    const tempBitboards = makeMove(bitboards, from, to, null).bitboards;
     const kingBB = tempBitboards[player === "w" ? "whiteKings" : "blackKings"];
     const kingSquare = bitScanForward(kingBB);
     if (
@@ -234,8 +234,7 @@ export const makeCastleMove = (bitboards, from, to) => {
     newBitboards["blackRooks"] &= ~(1n << 56n);
     newBitboards["blackRooks"] |= 1n << 59n;
   }
-
-  return newBitboards;
+  return {bitboards: newBitboards};
 };
 
 export const checkGameOver = (bitboards, player, pastPositions, castlingRights, enPassantSquare) => {

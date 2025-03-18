@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import PromotionModal from "./PromotionModal";
 import Sidebar from "./Sidebar";
 import {
+  filterIllegalMoves,
   isValidMove,
   makeMove,
   updateCastlingRights,
 } from "./bitboardUtils/bbChessLogic";
 import {
+  bigIntFullRep,
   computeHash,
   getPieceAtSquare,
   initialBitboards,
@@ -15,12 +17,14 @@ import {
 } from "./bitboardUtils/bbHelpers";
 import "./UI.css";
 import BitboardBoard from "./BitboardBoard";
+import { getPieceMoves } from "./bitboardUtils/bbMoveGeneration";
 
 // Runs the game
 const BitboardGame = () => {
   // STATES
   const [bitboards, setBitboards] = useState(initialBitboards);
-  const [selectedSquare, setselectedSquare] = useState(null);
+  const [selectedSquare, setSelectedSquare] = useState(null);
+  const [moveBitboard, setMoveBitboard] = useState(null);
   const [currPlayer, setCurrPlayer] = useState("w");
   const [userSide, setUserSide] = useState("w");
   const [enPassantSquare, setEnPassantSquare] = useState(null);
@@ -29,7 +33,12 @@ const BitboardGame = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [result, setResult] = useState(null);
   const [pastPositions, setPastPositions] = useState(new Map());
-  const [castlingRights, setCastlingRights] = useState();
+  const [castlingRights, setCastlingRights] = useState({
+    whiteKingside: true,
+    whiteQueenside: true,
+    blackKingside: true,
+    blackQueenside: true,
+  });
 
   // FUNCTIONS
 
@@ -39,11 +48,27 @@ const BitboardGame = () => {
   // Handles when a square is clicked
   const handleSquareClick = (row, col) => {
     if (isGameOver) return;
-    
-    const square = row * 8 + col;
 
+    const square = row * 8 + col;
     if (isPlayersPieceAtSquare(currPlayer, square, bitboards)) {
-      setselectedSquare(square);
+      setSelectedSquare(square);
+      const piece = getPieceAtSquare(square, bitboards);
+      const moveBitboard = getPieceMoves(
+        bitboards,
+        pieceSymbols[piece],
+        square,
+        currPlayer,
+        enPassantSquare,
+        castlingRights
+      );
+      const filteredMoveBitboard = filterIllegalMoves(
+        bitboards,
+        moveBitboard,
+        square,
+        currPlayer,
+        
+      );
+      setMoveBitboard(filteredMoveBitboard);
       return;
     }
 
@@ -77,12 +102,17 @@ const BitboardGame = () => {
         );
         const newBitboards = moveObj.bitboards;
 
-        const hash = computeHash(newBitboards, currPlayer, moveObj.enPassantSquare);
+        const hash = computeHash(
+          newBitboards,
+          currPlayer,
+          moveObj.enPassantSquare
+        );
         setEnPassantSquare(moveObj.enPassantSquare);
         setCastlingRights(updateCastlingRights(selectedSquare, castlingRights));
-        setselectedSquare(null);
+        setSelectedSquare(null);
         setBitboards(newBitboards);
         setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
+        setMoveBitboard(null);
         setPastPositions((prevPositions) => {
           const newPositions = new Map(prevPositions);
           newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
@@ -103,7 +133,7 @@ const BitboardGame = () => {
     setPromotionMove(null);
     setEnPassantSquare(moveObj.enPassantSquare);
     setCastlingRights(updateCastlingRights(selectedSquare, castlingRights));
-    setselectedSquare(null);
+    setSelectedSquare(null);
     setBitboards(newBitboards);
     setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
   };
@@ -112,8 +142,14 @@ const BitboardGame = () => {
   const resetGame = () => {
     setUserSide((prev) => (prev === "w" ? "b" : "w"));
     setBitboards(initialBitboards);
-    setselectedSquare(null);
+    setSelectedSquare(null);
     setCurrPlayer("w");
+    setEnPassantSquare(null);
+    setIsGameOver(false);
+    setMoveBitboard(null);
+    setPastPositions(new Map());
+    setPromotion(false);
+    setPromotionMove(null);
     setCastlingRights({
       whiteKingside: true,
       whiteQueenside: true,
@@ -138,6 +174,7 @@ const BitboardGame = () => {
         onSquareClick={handleSquareClick}
         selectedSquare={selectedSquare}
         userSide={userSide}
+        moveBitboard={moveBitboard}
       />
       {promotion && <PromotionModal onPromote={handlePromotion} />}
       <Sidebar

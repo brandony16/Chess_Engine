@@ -25,7 +25,7 @@ export const getPieceMoves = (
   onlyCaptures = false
 ) => {
   let moves = null;
-  switch (piece) {
+  switch (piece.toUpperCase()) {
     case "P":
       moves = getPawnMovesForSquare(bitboards, player, from, enPassantSquare, onlyCaptures);
       break;
