@@ -1,15 +1,23 @@
-import { isGameOver } from "../old2DArrayComponents/utils/chessLogic";
 import {
   bitScanForward,
+  computeHash,
+  getAllPieces,
+  getBlackPieces,
+  getNumPieces,
   getPieceAtSquare,
+  getPlayerBoard,
+  getWhitePieces,
   isPlayersPieceAtSquare,
   pieceSymbols,
+  pieceToZobristIndex,
+  zobristTable,
 } from "./bbHelpers";
 import { getAllLegalMoves, getAllPlayerMoves, getPieceMoves } from "./bbMoveGeneration";
 
 // Makes a move given a from and to square (ints 0-63). Move validation is handled by other functions
 export const makeMove = (bitboards, from, to, enPassantSquare, promotionPiece = null) => {
   let updatedBitboards = { ...bitboards };
+  let hash = computeHash(bitboards, )
 
   // Handle castle case
   if (
@@ -25,6 +33,8 @@ export const makeMove = (bitboards, from, to, enPassantSquare, promotionPiece = 
     if ((bitboard >> BigInt(from)) & BigInt(1)) {
       movingPiece = piece;
       updatedBitboards[piece] &= ~(BigInt(1) << BigInt(from));
+      const index = pieceToZobristIndex[piece];
+      hash ^= zobristTable[index][from];
       break;
     }
   }
@@ -261,5 +271,53 @@ export const checkGameOver = (bitboards, player, pastPositions, castlingRights, 
     }
   }
 
+  if (drawByInsufficientMaterial(bitboards)) {
+    result.isGameOver = true;
+    result.result =  "Draw by Insufficient Material";
+  }
+
+  if (drawByFiftyMoveRule(bitboards, pastPositions)) {
+    result.isGameOver = true;
+    result.result = "Draw By 50 Move Rule";
+  }
+
+  if (drawByRepetition(bitboards, pastPositions)) {
+    result.isGameOver = true;
+    result.result = "Draw by Repetition";
+  }
+
   return result;
+}
+
+// Determines whether there is sufficient checkmating material
+export const drawByInsufficientMaterial = (bitboards) => {
+  const whitePieces = getWhitePieces(bitboards);
+  const blackPieces = getBlackPieces(bitboards);
+
+  const queens = bitboards.whiteQueens | bitboards.blackQueens;
+  const rooks = bitboards.whiteRooks | bitboards.blackRooks;
+  const pawns = bitboards.whitePawns | bitboards.blackPawns;
+  const queensRooksPawns = queens | rooks | pawns;
+
+  if (queensRooksPawns !== 0n) {
+    return false;
+  } else if (getNumPieces(whitePieces) <= 2 && getNumPieces(blackPieces) <= 2) {
+    return true;
+  }
+
+  return false;
+}
+
+export const drawByRepetition = (pastPositions) => {
+  for (let count of pastPositions.values()) {
+    if (count >= 3) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export const drawByFiftyMoveRule = (pastPositions) => {
+  
+  return false;
 }

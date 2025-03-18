@@ -7,6 +7,7 @@ import {
   updateCastlingRights,
 } from "./bitboardUtils/bbChessLogic";
 import {
+  computeHash,
   getPieceAtSquare,
   initialBitboards,
   isPlayersPieceAtSquare,
@@ -27,6 +28,7 @@ const BitboardGame = () => {
   const [promotionMove, setPromotionMove] = useState(null);
   const [isGameOver, setIsGameOver] = useState(false);
   const [result, setResult] = useState(null);
+  const [pastPositions, setPastPositions] = useState(new Map());
   const [castlingRights, setCastlingRights] = useState({
     whiteKingside: true,
     whiteQueenside: true,
@@ -80,11 +82,17 @@ const BitboardGame = () => {
         );
         const newBitboards = moveObj.bitboards;
 
+        const hash = computeHash(newBitboards, currPlayer, moveObj.enPassantSquare);
         setEnPassantSquare(moveObj.enPassantSquare);
         setCastlingRights(updateCastlingRights(selectedSquare, castlingRights));
         setselectedSquare(null);
         setBitboards(newBitboards);
         setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
+        setPastPositions((prevPositions) => {
+          const newPositions = new Map(prevPositions);
+          newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
+          return newPositions;
+        });
       }
     }
   };

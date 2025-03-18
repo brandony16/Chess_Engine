@@ -30,8 +30,8 @@ export const getWhiteBitboards = (bitboards) => {
     whiteRooks: bitboards.whiteRooks,
     whiteQueens: bitboards.whiteQueens,
     whiteKings: bitboards.whiteKings,
-  }
-}
+  };
+};
 
 export const getWhitePieces = (bitboards) => {
   return (
@@ -42,7 +42,7 @@ export const getWhitePieces = (bitboards) => {
     bitboards.whiteQueens |
     bitboards.whiteKings
   );
-}
+};
 
 // Gets the black bitboards
 export const getBlackBitboards = (bitboards) => {
@@ -53,8 +53,8 @@ export const getBlackBitboards = (bitboards) => {
     blackRooks: bitboards.blackRooks,
     blackQueens: bitboards.blackQueens,
     blackKings: bitboards.blackKings,
-  }
-}
+  };
+};
 
 export const getBlackPieces = (bitboards) => {
   return (
@@ -65,26 +65,34 @@ export const getBlackPieces = (bitboards) => {
     bitboards.blackQueens |
     bitboards.blackKings
   );
-}
+};
 
 export const getAllPieces = (bitboards) => {
   return BigInt(getWhitePieces(bitboards) | getBlackPieces(bitboards));
-}
+};
 
 export const getPlayerBoard = (player, bitboards) => {
-  return player === 'w' ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
-}
+  return player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+};
 
 export const getEmptySquares = (bitboards) => {
   return ~(getWhitePieces(bitboards) | getBlackPieces(bitboards));
-}
+};
 
 // Converts the pieces to the correct string for the cell class rendering
 export const pieceSymbols = {
-  whitePawns: "P", whiteKnights: "N", whiteBishops: "B",
-  whiteRooks: "R", whiteQueens: "Q", whiteKings: "K",
-  blackPawns: "p", blackKnights: "n", blackBishops: "b",
-  blackRooks: "r", blackQueens: "q", blackKings: "k",
+  whitePawns: "P",
+  whiteKnights: "N",
+  whiteBishops: "B",
+  whiteRooks: "R",
+  whiteQueens: "Q",
+  whiteKings: "K",
+  blackPawns: "p",
+  blackKnights: "n",
+  blackBishops: "b",
+  blackRooks: "r",
+  blackQueens: "q",
+  blackKings: "k",
 };
 
 // Function to get the piece at a given square
@@ -103,7 +111,7 @@ export const isPlayersPieceAtSquare = (player, square, bitboards) => {
 
   // Move square to first bit and check if it is one
   return Boolean((playerBoard >> BigInt(square)) & BigInt(1));
-}
+};
 
 // Slides along a given shift
 export const slide = (pieceBitboard, shift, mask, allPieces) => {
@@ -115,8 +123,9 @@ export const slide = (pieceBitboard, shift, mask, allPieces) => {
 
     if (!pos || pos === 0n) break; // Stop if no valid position remains
 
-    if (pos & allPieces) { // Stop at the first occupied square
-      attack |= pos; 
+    if (pos & allPieces) {
+      // Stop at the first occupied square
+      attack |= pos;
       break;
     }
 
@@ -128,18 +137,20 @@ export const slide = (pieceBitboard, shift, mask, allPieces) => {
 
 export const bigIntFullRep = (bitboard) => {
   let boardStr = "";
-  
-  for (let rank = 7; rank >= 0; rank--) { // Ranks go from 8 (top) to 1 (bottom)
+
+  for (let rank = 7; rank >= 0; rank--) {
+    // Ranks go from 8 (top) to 1 (bottom)
     let row = "";
-    for (let file = 0; file < 8; file++) { // Files go from A (left) to H (right)
+    for (let file = 0; file < 8; file++) {
+      // Files go from A (left) to H (right)
       let square = BigInt(1) << BigInt(rank * 8 + file);
-      row += (bitboard & square) ? "1 " : "0 ";
+      row += bitboard & square ? "1 " : "0 ";
     }
     boardStr += row.trim() + "\n"; // Add each row to the board string
   }
 
   return boardStr;
-}
+};
 
 export const bitScanForward = (bitboard) => {
   if (bitboard === 0n) return -1;
@@ -150,3 +161,70 @@ export const bitScanForward = (bitboard) => {
   }
   return index;
 };
+
+export const getNumPieces = (bitboard) => {
+  let count = 0;
+
+  while (bitboard) {
+    bitboard &= bitboard - 1n;
+    count++;
+  }
+
+  return count;
+};
+
+// Zobrist Hashing for threefold repetition. Stores each postion as a unique key
+// Creates a unique bitstring for every piece at every square
+// 64 Squares and 12 bitboards, KQRBNP for each side
+export const zobristTable = new Array(12)
+  .fill(null)
+  .map(() =>
+    new Array(64)
+      .fill(null)
+      .map(() => BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)))
+  );
+
+// Computes the hash given the bitboards and the player to move.
+// Positions are NOT the same if the pieces are the same but whose move it is is different.
+// Positions are NOT the same if en passant was legal but is no longer legal.
+export const computeHash = (bitboards, player, enPassant) => {
+  let hash = 0n;
+
+  for (const [piece, bitboard] of Object.entries(bitboards)) {
+    const pieceToZobrist = pieceToZobristIndex[piece];
+    for (let square = 0; square < 64; square++) {
+      if ((bitboard >> BigInt(square)) & 1n) {
+        hash ^= zobristTable[pieceToZobrist][square]; // XOR with zobrist value
+      }
+    }
+  }
+
+  // XOR a value for the side to move
+  const whiteToMove = 0x9d39247e33776d41n;
+  if (player === "w") {
+    hash ^= whiteToMove;
+  }
+
+  // Value for if enPassant is legal
+  const enPassantValue = 0xf3a9b72c85d614e7n;
+  if (enPassant) {
+    hash ^= enPassantValue;
+  }
+
+  return hash;
+};
+
+export const pieceToZobristIndex = {
+  whitePawns: 0,
+  whiteKnights: 1,
+  whiteBishops: 2,
+  whiteRooks: 3,
+  whiteQueens: 4,
+  whiteKings: 5,
+  blackPawns: 6,
+  blackKnights: 7,
+  blackBishops: 8,
+  blackRooks: 9,
+  blackQueens: 10,
+  blackKings: 11
+}
