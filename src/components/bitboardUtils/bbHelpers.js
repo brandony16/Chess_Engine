@@ -95,6 +95,17 @@ export const pieceSymbols = {
   blackKings: "k",
 };
 
+export const colSymbols = {
+  0: 'a',
+  1: 'b',
+  2: 'c',
+  3: 'd',
+  4: 'e',
+  5: 'f',
+  6: 'g',
+  7: 'h',
+}
+
 // Function to get the piece at a given square
 export const getPieceAtSquare = (square, bitboards) => {
   for (const [piece, bitboard] of Object.entries(bitboards)) {

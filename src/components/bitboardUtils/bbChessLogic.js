@@ -1,23 +1,19 @@
 import {
   bitScanForward,
-  computeHash,
-  getAllPieces,
   getBlackPieces,
   getNumPieces,
   getPieceAtSquare,
-  getPlayerBoard,
   getWhitePieces,
   isPlayersPieceAtSquare,
   pieceSymbols,
-  pieceToZobristIndex,
-  zobristTable,
 } from "./bbHelpers";
 import { getAllLegalMoves, getAllPlayerMoves, getPieceMoves } from "./bbMoveGeneration";
 
 // Makes a move given a from and to square (ints 0-63). Move validation is handled by other functions
 export const makeMove = (bitboards, from, to, enPassantSquare, promotionPiece = null) => {
   let updatedBitboards = { ...bitboards };
-  let hash = computeHash(bitboards, )
+
+  if (getPieceAtSquare(from, bitboards) === null) return { bitboards: updatedBitboards };
 
   // Handle castle case
   if (
@@ -33,13 +29,9 @@ export const makeMove = (bitboards, from, to, enPassantSquare, promotionPiece = 
     if ((bitboard >> BigInt(from)) & BigInt(1)) {
       movingPiece = piece;
       updatedBitboards[piece] &= ~(BigInt(1) << BigInt(from));
-      const index = pieceToZobristIndex[piece];
-      hash ^= zobristTable[index][from];
       break;
     }
   }
-
-  if (!movingPiece) return {bitboards: updatedBitboards}; // No piece found at 'from', return unchanged
 
   // Check if a piece exists at 'to' (capture)
   for (const [piece, bitboard] of Object.entries(updatedBitboards)) {
@@ -80,7 +72,7 @@ export const makeMove = (bitboards, from, to, enPassantSquare, promotionPiece = 
 };
 
 // Determines whether a give move is valid.
-export const isValidMove = (bitboards, from, to, player, enPassantSquare, castlingRights) => {
+export const isValidMove = (bitboards, from, to, player, enPassantSquare = null, castlingRights) => {
   // If start square is not one of the player's pieces, then it is not a valid move
   if (!isPlayersPieceAtSquare(player, from, bitboards)) {
     return false;

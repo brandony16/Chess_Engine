@@ -29,12 +29,7 @@ const BitboardGame = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [result, setResult] = useState(null);
   const [pastPositions, setPastPositions] = useState(new Map());
-  const [castlingRights, setCastlingRights] = useState({
-    whiteKingside: true,
-    whiteQueenside: true,
-    blackKingside: true,
-    blackQueenside: true,
-  });
+  const [castlingRights, setCastlingRights] = useState();
 
   // FUNCTIONS
 
