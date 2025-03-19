@@ -245,7 +245,8 @@ export const pieceToZobristIndex = {
 
 // Helpers to get and turn a move into readable notation
 // These are for AFTER the move is made.
-export const moveToReadable = (bitboards, from, to, isCapture = false) => {
+// Currently does NOT double disambiguate.
+export const moveToReadable = (bitboards, from, to, isCapture = false, promotionPiece = null) => {
   let notation = "";
 
   const col = to % 8;
@@ -254,18 +255,16 @@ export const moveToReadable = (bitboards, from, to, isCapture = false) => {
   const piece = getPieceAtSquare(to, bitboards);
   const formattedPiece = pieceSymbols[piece].toUpperCase();
 
-  let player = piece.charAt(0); // Every bitboard starts with either white or black
+  const player = piece.charAt(0); // Every bitboard starts with either white or black
+  const opponent = player === "w" ? "b" : "w";
 
-  if (formattedPiece === "P") {
+  if (formattedPiece === "P" || promotionPiece) { // Pawns notation omits the p identifier. a3 instead of Pa3, dxe5 instead of pxe5
     if (isCapture) {
       const fromCol = from % 8;
       notation += colSymbols[fromCol] + "x";
     }
     notation += letterCol + (row + 1);
-    return notation;
-  }
-
-  if (formattedPiece === "K" && Math.abs(from - to) === 2) { // Caslting case
+  } else if (formattedPiece === "K" && Math.abs(from - to) === 2) { // Caslting case
     if (from - to === 2) {
       notation = "O-O-O";
     } else {
@@ -279,7 +278,11 @@ export const moveToReadable = (bitboards, from, to, isCapture = false) => {
     notation += letterCol + (row + 1);
   }
 
-  if (isInCheck(bitboards, player)) {
+  if (promotionPiece) {
+    notation += "=" + formattedPiece;
+  }
+
+  if (isInCheck(bitboards, opponent)) {
     if (getAllLegalMoves(bitboards, player, null, null) === 0n) {
       // Checkmate
       notation += "#";

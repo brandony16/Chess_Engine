@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import PromotionModal from "./PromotionModal";
 import Sidebar from "./Sidebar";
 import {
+  checkGameOver,
   filterIllegalMoves,
   isValidMove,
   makeMove,
   updateCastlingRights,
 } from "./bitboardUtils/bbChessLogic";
 import {
-  bigIntFullRep,
   computeHash,
   getPieceAtSquare,
   initialBitboards,
@@ -67,8 +67,7 @@ const BitboardGame = () => {
         bitboards,
         moveBitboard,
         square,
-        currPlayer,
-        
+        currPlayer
       );
       setMoveBitboard(filteredMoveBitboard);
       return;
@@ -95,7 +94,7 @@ const BitboardGame = () => {
           setPromotionMove({ from: selectedSquare, to: square });
           return;
         }
-        
+
         const moveObj = makeMove(
           bitboards,
           selectedSquare,
@@ -103,27 +102,29 @@ const BitboardGame = () => {
           enPassantSquare
         );
         const newBitboards = moveObj.bitboards;
-        
+
         const hash = computeHash(
           newBitboards,
           currPlayer,
           moveObj.enPassantSquare
         );
 
-        const readableMove = moveToReadable(newBitboards, selectedSquare, square, moveObj.isCapture);
-        setPastMoves((pastMoves) => [...pastMoves, readableMove]);
+        const gameOverObj = checkGameOver(
+          newBitboards,
+          currPlayer,
+          pastPositions,
+          castlingRights,
+          moveObj.enPassantSquare
+        );
 
-        setEnPassantSquare(moveObj.enPassantSquare);
-        setCastlingRights(updateCastlingRights(selectedSquare, castlingRights));
-        setSelectedSquare(null);
-        setBitboards(newBitboards);
-        setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
-        setMoveBitboard(null);
-        setPastPositions((prevPositions) => {
-          const newPositions = new Map(prevPositions);
-          newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
-          return newPositions;
-        });
+        const readableMove = moveToReadable(
+          newBitboards,
+          selectedSquare,
+          square,
+          moveObj.isCapture
+        );
+
+        updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj);
       }
     }
   };
@@ -135,13 +136,48 @@ const BitboardGame = () => {
     const moveObj = makeMove(bitboards, from, to, enPassantSquare, piece);
     const newBitboards = moveObj.bitboards;
 
-    setPromotion(false);
-    setPromotionMove(null);
+    const hash = computeHash(newBitboards, currPlayer, moveObj.enPassantSquare);
+
+    const gameOverObj = checkGameOver(
+      newBitboards,
+      currPlayer,
+      pastPositions,
+      castlingRights,
+      moveObj.enPassantSquare
+    );
+
+    const moveNotation = moveToReadable(
+      newBitboards,
+      from,
+      to,
+      moveObj.isCapture,
+      piece
+    );
+
+    updateStates(moveNotation, moveObj, newBitboards, hash, gameOverObj);
+  };
+
+  const updateStates = (
+    moveNotation,
+    moveObj,
+    newBitboards,
+    hash,
+    gameOverObj
+  ) => {
+    setIsGameOver(gameOverObj.isGameOver);
+    setResult(gameOverObj.result);
+    setPastMoves((pastMoves) => [...pastMoves, moveNotation]);
     setEnPassantSquare(moveObj.enPassantSquare);
     setCastlingRights(updateCastlingRights(selectedSquare, castlingRights));
     setSelectedSquare(null);
     setBitboards(newBitboards);
     setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
+    setMoveBitboard(null);
+    setPastPositions((prevPositions) => {
+      const newPositions = new Map(prevPositions);
+      newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
+      return newPositions;
+    });
   };
 
   // Resets the game
