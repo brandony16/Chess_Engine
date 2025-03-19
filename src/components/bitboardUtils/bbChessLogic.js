@@ -34,9 +34,11 @@ export const makeMove = (bitboards, from, to, enPassantSquare = null, promotionP
   if (!movingPiece) return { bitboards: updatedBitboards };
 
   // Check if a piece exists at 'to' (capture)
+  let isCapture = false;
   for (const [piece, bitboard] of Object.entries(updatedBitboards)) {
     if ((bitboard >> BigInt(to)) & BigInt(1)) {
       updatedBitboards[piece] &= ~(BigInt(1) << BigInt(to)); // Remove captured piece
+      isCapture = true;
       break;
     }
   }
@@ -48,7 +50,7 @@ export const makeMove = (bitboards, from, to, enPassantSquare = null, promotionP
       movingPiece === "whitePawns" ? `white${promotionPiece}` : `black${promotionPiece}`;
     
     updatedBitboards[promotedPieceKey] |= 1n << BigInt(to); // Add promoted piece
-    return { bitboards: updatedBitboards, enPassantSquare: null };
+    return { bitboards: updatedBitboards, enPassantSquare: null, isCapture: isCapture };
   }
 
   // Move piece to 'to' square
@@ -68,7 +70,7 @@ export const makeMove = (bitboards, from, to, enPassantSquare = null, promotionP
     }
   }
 
-  return {bitboards: updatedBitboards, enPassantSquare: newEnPassantSquare};
+  return {bitboards: updatedBitboards, enPassantSquare: newEnPassantSquare, isCapture: isCapture};
 };
 
 // Determines whether a give move is valid.
@@ -106,6 +108,17 @@ export const isSquareAttacked = (bitboards, square, opponent) => {
 
   return Boolean((opponentMoves >> BigInt(square)) & 1n);
 };
+
+export const isInCheck = (bitboards, player) => {
+  let kingBB = bitboards.whiteKings;
+  if (player === 'b') {
+    kingBB = bitboards.blackKings;
+  }
+
+  const kingSquare = bitScanForward(kingBB);
+
+  return isSquareAttacked(bitboards, kingSquare, player === 'w' ? 'b' : 'w');
+}
 
 // Filters out moves that put the king in check
 export const filterIllegalMoves = (bitboards, moves, from, player) => {

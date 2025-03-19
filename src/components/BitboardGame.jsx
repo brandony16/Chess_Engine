@@ -13,6 +13,7 @@ import {
   getPieceAtSquare,
   initialBitboards,
   isPlayersPieceAtSquare,
+  moveToReadable,
   pieceSymbols,
 } from "./bitboardUtils/bbHelpers";
 import "./UI.css";
@@ -33,6 +34,7 @@ const BitboardGame = () => {
   const [isGameOver, setIsGameOver] = useState(false);
   const [result, setResult] = useState(null);
   const [pastPositions, setPastPositions] = useState(new Map());
+  const [pastMoves, setPastMoves] = useState([]);
   const [castlingRights, setCastlingRights] = useState({
     whiteKingside: true,
     whiteQueenside: true,
@@ -93,7 +95,7 @@ const BitboardGame = () => {
           setPromotionMove({ from: selectedSquare, to: square });
           return;
         }
-
+        
         const moveObj = makeMove(
           bitboards,
           selectedSquare,
@@ -101,12 +103,16 @@ const BitboardGame = () => {
           enPassantSquare
         );
         const newBitboards = moveObj.bitboards;
-
+        
         const hash = computeHash(
           newBitboards,
           currPlayer,
           moveObj.enPassantSquare
         );
+
+        const readableMove = moveToReadable(newBitboards, selectedSquare, square, moveObj.isCapture);
+        setPastMoves((pastMoves) => [...pastMoves, readableMove]);
+
         setEnPassantSquare(moveObj.enPassantSquare);
         setCastlingRights(updateCastlingRights(selectedSquare, castlingRights));
         setSelectedSquare(null);
@@ -182,6 +188,7 @@ const BitboardGame = () => {
         resetGame={resetGame}
         gameStatus={"none"}
         gameOver={false}
+        pastMoves={pastMoves}
       />
     </div>
   );

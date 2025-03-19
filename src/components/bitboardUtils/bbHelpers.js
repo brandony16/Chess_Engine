@@ -1,3 +1,6 @@
+import { checkGameOver, isInCheck, isSquareAttacked } from "./bbChessLogic";
+import { getAllLegalMoves } from "./bbMoveGeneration";
+
 // Inital bitboards
 export const initialBitboards = {
   whitePawns: BigInt("0x000000000000FF00"),
@@ -96,15 +99,15 @@ export const pieceSymbols = {
 };
 
 export const colSymbols = {
-  0: 'a',
-  1: 'b',
-  2: 'c',
-  3: 'd',
-  4: 'e',
-  5: 'f',
-  6: 'g',
-  7: 'h',
-}
+  0: "a",
+  1: "b",
+  2: "c",
+  3: "d",
+  4: "e",
+  5: "f",
+  6: "g",
+  7: "h",
+};
 
 // Function to get the piece at a given square
 export const getPieceAtSquare = (square, bitboards) => {
@@ -237,5 +240,53 @@ export const pieceToZobristIndex = {
   blackBishops: 8,
   blackRooks: 9,
   blackQueens: 10,
-  blackKings: 11
-}
+  blackKings: 11,
+};
+
+// Helpers to get and turn a move into readable notation
+// These are for AFTER the move is made.
+export const moveToReadable = (bitboards, from, to, isCapture = false) => {
+  let notation = "";
+
+  const col = to % 8;
+  const letterCol = colSymbols[col];
+  const row = (to - col) / 8;
+  const piece = getPieceAtSquare(to, bitboards);
+  const formattedPiece = pieceSymbols[piece].toUpperCase();
+
+  let player = piece.charAt(0); // Every bitboard starts with either white or black
+
+  if (formattedPiece === "P") {
+    if (isCapture) {
+      const fromCol = from % 8;
+      notation += colSymbols[fromCol] + "x";
+    }
+    notation += letterCol + (row + 1);
+    return notation;
+  }
+
+  if (formattedPiece === "K" && Math.abs(from - to) === 2) { // Caslting case
+    if (from - to === 2) {
+      notation = "O-O-O";
+    } else {
+      notation = "O-O";
+    }
+  } else {
+    notation += formattedPiece;
+
+    if (isCapture) notation += "x";
+
+    notation += letterCol + (row + 1);
+  }
+
+  if (isInCheck(bitboards, player)) {
+    if (getAllLegalMoves(bitboards, player, null, null) === 0n) {
+      // Checkmate
+      notation += "#";
+      return notation;
+    }
+    notation += "+";
+  }
+
+  return notation;
+};
