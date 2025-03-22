@@ -221,6 +221,7 @@ const BitboardGame = () => {
 
   return (
     <div className="body">
+      
       <BitboardBoard
         bitboards={bitboards}
         onSquareClick={handleSquareClick}
