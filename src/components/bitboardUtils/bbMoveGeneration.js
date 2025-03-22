@@ -1,5 +1,6 @@
 import { filterIllegalMoves, isKingsideCastleLegal, isQueensideCastleLegal } from "./bbChessLogic";
 import {
+  bigIntFullRep,
   bitScanForward,
   FILE_A_MASK,
   FILE_H_MASK,
@@ -204,7 +205,7 @@ export const getKnightMovesForSquare = (bitboards, player, from) => {
   let moves =
     ((knightBitboard << 6n) & notHGFile) | // Left 2, Up 1
     ((knightBitboard << 10n) & notABFile) | // Right 2, Up 1
-    ((knightBitboard >> 6n) & notABFile) | // RIght 2, Down 1
+    ((knightBitboard >> 6n) & notABFile) | // Right 2, Down 1
     ((knightBitboard >> 10n) & notHGFile) | // Left 2, Down 1
     ((knightBitboard << 15n) & notHFile) | // Up 2, Left 1
     ((knightBitboard << 17n) & notAFile) | // Up 2, Right 1
@@ -214,7 +215,7 @@ export const getKnightMovesForSquare = (bitboards, player, from) => {
   // Get player's pieces to mask out self-captures
   const friendlyPieces =
     player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
-
+  
   // Remove moves that land on friendly pieces
   return moves & ~friendlyPieces;
 };
@@ -288,8 +289,8 @@ export const getKingMovesForSquare = (
     player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
 
   /* BASE MOVES */
-  moves |= kingBitboard << 8n; // Up
-  moves |= kingBitboard >> 8n; // Down
+  moves |= kingBitboard << 8n & RANK_8_MASK; // Up
+  moves |= kingBitboard >> 8n & RANK_1_MASK; // Down
   moves |= (kingBitboard << 1n) & FILE_A_MASK; // Right
   moves |= (kingBitboard >> 1n) & FILE_H_MASK; // Left
   moves |= (kingBitboard << 9n) & FILE_A_MASK & RANK_8_MASK; // Up-right

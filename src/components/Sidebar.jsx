@@ -1,8 +1,8 @@
 const Sidebar = ({
   currPlayer,
   resetGame,
-  gameStatus,
-  gameOver,
+  isGameOver,
+  result,
   pastMoves,
 }) => {
   return (
@@ -13,7 +13,7 @@ const Sidebar = ({
       <button className="newGame" onClick={() => resetGame()}>
         New Game
       </button>
-      <div className="turnText">{gameOver ? gameStatus : ""}</div>
+      <div className="turnText">{isGameOver ? result : ""}</div>
 
       {pastMoves.map((move, index) => (
         <div key={index} className="pastMove">

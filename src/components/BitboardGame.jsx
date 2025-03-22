@@ -222,8 +222,8 @@ const BitboardGame = () => {
       <Sidebar
         currPlayer={currPlayer}
         resetGame={resetGame}
-        gameStatus={"none"}
-        gameOver={false}
+        isGameOver={isGameOver}
+        result={result}
         pastMoves={pastMoves}
       />
     </div>

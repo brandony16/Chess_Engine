@@ -283,7 +283,7 @@ export const moveToReadable = (bitboards, from, to, isCapture = false, promotion
   }
 
   if (isInCheck(bitboards, opponent)) {
-    if (getAllLegalMoves(bitboards, player, null, null) === 0n) {
+    if (getAllLegalMoves(bitboards, player === 'w' ? 'b' : 'w', null, null) === 0n) {
       // Checkmate
       notation += "#";
       return notation;

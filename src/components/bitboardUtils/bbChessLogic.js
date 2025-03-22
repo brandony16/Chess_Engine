@@ -300,7 +300,7 @@ export const checkGameOver = (
     enPassantSquare
   );
 
-  const kingBB = bitboards[player === "w" ? "whiteKings" : "blackKings"];
+  const kingBB = bitboards[player === "w" ? "blackKings" : "whiteKings"];
   const kingSquare = bitScanForward(kingBB);
 
   const result = { isGameOver: false, result: null };
@@ -322,12 +322,13 @@ export const checkGameOver = (
   }
 
   // If player has no moves it is stalemate or checkmate
+  // This never triggers for some reason //IMPORTANT IMPORTANT IMPORTANT IMPORTANT IMPORTANT IMPORTANT 
   if (allLegalMoves === 0n) {
     result.isGameOver = true;
 
-    if (isSquareAttacked(bitboards, kingSquare, opponent)) {
+    if (isSquareAttacked(bitboards, kingSquare, player)) {
       // Inversed because we are checking if 'player' has moves. If they dont and are in check, the other player wins
-      const fullPlayer = player === "w" ? "Black" : "White";
+      const fullPlayer = player === "w" ? "White" : "Black";
 
       result.result = `${fullPlayer} Wins by Checkmate`;
       return result;
