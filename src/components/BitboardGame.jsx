@@ -70,6 +70,8 @@ const BitboardGame = () => {
         currPlayer
       );
       setMoveBitboard(filteredMoveBitboard);
+      setPromotion(false);
+      setPromotionMove(null);
       return;
     }
 
@@ -125,6 +127,11 @@ const BitboardGame = () => {
         );
 
         updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj);
+      } else {
+        setSelectedSquare(null);
+        setMoveBitboard(null);
+        setPromotion(false);
+        setPromotionMove(null);
       }
     }
   };
@@ -155,6 +162,8 @@ const BitboardGame = () => {
     );
 
     updateStates(moveNotation, moveObj, newBitboards, hash, gameOverObj);
+    setPromotion(false);
+    setPromotionMove(null);
   };
 
   const updateStates = (
@@ -190,6 +199,7 @@ const BitboardGame = () => {
     setIsGameOver(false);
     setMoveBitboard(null);
     setPastPositions(new Map());
+    setPastMoves([]);
     setPromotion(false);
     setPromotionMove(null);
     setCastlingRights({
@@ -218,7 +228,14 @@ const BitboardGame = () => {
         userSide={userSide}
         moveBitboard={moveBitboard}
       />
-      {promotion && <PromotionModal onPromote={handlePromotion} />}
+      {promotion && (
+        <PromotionModal
+          onPromote={handlePromotion}
+          currPlayer={currPlayer}
+          square={promotionMove.to}
+          userPlayer={userSide}
+        />
+      )}
       <Sidebar
         currPlayer={currPlayer}
         resetGame={resetGame}

@@ -7,10 +7,11 @@
   display: grid;
   grid-template-rows: repeat(8, 1fr);
   grid-template-columns: repeat(8, 1fr);
+  box-sizing: border-box;
   aspect-ratio: 1/1;
-  height: 60vh;
+  height: 100%;
   background-color: rgb(103, 58, 5);
-  padding: 30px;
+  padding: 2rem;
   border-radius: 20px;
 }
 
@@ -21,13 +22,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(60vh / 8);
+  height: 100%;
   box-sizing: border-box;
 }
 
 .cell.light {
   background-color: var(--lightSquare);
-  background-color: lightco;
 }
 
 .cell.dark {

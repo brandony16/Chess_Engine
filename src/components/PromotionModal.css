@@ -1,0 +1,28 @@
+:root {
+  --darkSquare: #9c7452;
+  --lightSquare: #f0d198;
+}
+
+.promotionOptions {
+  display: flex;
+  flex-direction: column;
+  width: calc((70vh - 4rem) / 8);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.promotionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;;
+  aspect-ratio: 1/1;
+  background-color: whitesmoke;
+  border-radius: 0px;
+  outline: 2px solid darkgray;
+}
+
+.promotionButton:hover {
+  transition: 0.2s ease-in-out;
+  background-color: rgb(221, 221, 221);
+}

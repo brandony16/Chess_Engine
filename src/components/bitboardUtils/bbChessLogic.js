@@ -281,7 +281,7 @@ export const makeCastleMove = (bitboards, from, to) => {
     newBitboards["blackRooks"] &= ~(1n << 56n);
     newBitboards["blackRooks"] |= 1n << 59n;
   }
-  return { bitboards: newBitboards };
+  return { bitboards: newBitboards, enPassantSquare: null, isCapture: false };
 };
 
 export const checkGameOver = (
@@ -322,7 +322,6 @@ export const checkGameOver = (
   }
 
   // If player has no moves it is stalemate or checkmate
-  // This never triggers for some reason //IMPORTANT IMPORTANT IMPORTANT IMPORTANT IMPORTANT IMPORTANT 
   if (allLegalMoves === 0n) {
     result.isGameOver = true;
 
