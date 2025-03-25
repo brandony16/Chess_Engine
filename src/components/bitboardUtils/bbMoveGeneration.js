@@ -1,6 +1,5 @@
 import { filterIllegalMoves, isKingsideCastleLegal, isQueensideCastleLegal } from "./bbChessLogic";
 import {
-  bigIntFullRep,
   bitScanForward,
   FILE_A_MASK,
   FILE_H_MASK,
@@ -122,6 +121,43 @@ export const getAllLegalMoves = (
     const legalPieceMoves = filterIllegalMoves(bitboards, pieceMoves, square, player);
 
     allMoves |= legalPieceMoves;
+  }
+
+  return allMoves;
+};
+
+export const getAllIndividualLegalMoves = (
+  bitboards,
+  player,
+  castlingRights,
+  enPassantSquare,
+) => {
+  let allMoves = {};
+  // Get player's overall pieces bitboard.
+  const playerPieces =
+    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+
+  let pieces = playerPieces;
+  while (pieces !== 0n) {
+    const square = bitScanForward(pieces);
+    pieces &= pieces - 1n;
+
+    const piece = getPieceAtSquare(square, bitboards);
+    const formattedPiece = pieceSymbols[piece].toUpperCase();
+
+    const pieceMoves = getPieceMoves(
+      bitboards,
+      formattedPiece,
+      square,
+      player,
+      enPassantSquare,
+      castlingRights,
+    );
+
+    const legalPieceMoves = filterIllegalMoves(bitboards, pieceMoves, square, player);
+    if (legalPieceMoves !== 0n) {
+      allMoves[square] = legalPieceMoves;
+    }
   }
 
   return allMoves;

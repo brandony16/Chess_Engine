@@ -19,6 +19,7 @@ import {
 import "./UI.css";
 import BitboardBoard from "./BitboardBoard";
 import { getPieceMoves } from "./bitboardUtils/bbMoveGeneration";
+import { getBestMove } from "./bbEngines/BondMonkeyV1";
 
 // Runs the game
 const BitboardGame = () => {
@@ -45,7 +46,45 @@ const BitboardGame = () => {
   // FUNCTIONS
 
   // Gets the engine move then plays it
-  const makeEngineMove = () => {};
+  const makeEngineMove = () => {
+    const bestMoveObj = getBestMove(bitboards, currPlayer, castlingRights, enPassantSquare);
+    const from = bestMoveObj.from;
+    const to = bestMoveObj.to;
+    const promotion = bestMoveObj.promotion;
+
+    const moveObj = makeMove(
+      bitboards,
+      from,
+      to,
+      enPassantSquare,
+      promotion
+    );
+    const newBitboards = moveObj.bitboards;
+
+    const hash = computeHash(
+      newBitboards,
+      currPlayer,
+      moveObj.enPassantSquare
+    );
+
+    const gameOverObj = checkGameOver(
+      newBitboards,
+      currPlayer,
+      pastPositions,
+      castlingRights,
+      moveObj.enPassantSquare
+    );
+
+    const readableMove = moveToReadable(
+      newBitboards,
+      from,
+      to,
+      moveObj.isCapture,
+      promotion
+    );
+
+    updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj);
+  };
 
   // Handles when a square is clicked
   const handleSquareClick = (row, col) => {
@@ -212,11 +251,11 @@ const BitboardGame = () => {
 
   // Runs the engine move after the user makes a move
   useEffect(() => {
-    // if (currPlayer !== userSide && !gameState.gameOver) {
-    //   setTimeout(() => {
-    //     makeEngineMove();
-    //   }, 0);
-    // }
+    if (currPlayer !== userSide && !isGameOver) {
+      setTimeout(() => {
+        makeEngineMove();
+      }, 0);
+    }
   }, [currPlayer, userSide]);
 
   return (

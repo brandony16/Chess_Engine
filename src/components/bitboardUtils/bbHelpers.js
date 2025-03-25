@@ -1,5 +1,8 @@
 import { checkGameOver, isInCheck, isSquareAttacked } from "./bbChessLogic";
-import { getAllLegalMoves } from "./bbMoveGeneration";
+import {
+  getAllIndividualLegalMoves,
+  getAllLegalMoves,
+} from "./bbMoveGeneration";
 
 // Inital bitboards
 export const initialBitboards = {
@@ -245,8 +248,14 @@ export const pieceToZobristIndex = {
 
 // Helpers to get and turn a move into readable notation
 // These are for AFTER the move is made.
-// Currently does NOT double disambiguate.
-export const moveToReadable = (bitboards, from, to, isCapture = false, promotionPiece = null) => {
+// Currently does NOT disambiguate. (If two of same piece can move to square)
+export const moveToReadable = (
+  bitboards,
+  from,
+  to,
+  isCapture = false,
+  promotionPiece = null
+) => {
   let notation = "";
 
   const col = to % 8;
@@ -255,16 +264,18 @@ export const moveToReadable = (bitboards, from, to, isCapture = false, promotion
   const piece = getPieceAtSquare(to, bitboards);
   const formattedPiece = pieceSymbols[piece].toUpperCase();
 
-  const player = piece.charAt(0); // Every bitboard starts with either white or black
+  const player = piece.charAt(0); // Every bitboard starts with either w (white) or b (black)
   const opponent = player === "w" ? "b" : "w";
 
-  if (formattedPiece === "P" || promotionPiece) { // Pawns notation omits the p identifier. a3 instead of Pa3, dxe5 instead of pxe5
+  if (formattedPiece === "P" || promotionPiece) {
+    // Pawns notation omits the p identifier. a3 instead of Pa3, dxe5 instead of pxe5
     if (isCapture) {
       const fromCol = from % 8;
       notation += colSymbols[fromCol] + "x";
     }
     notation += letterCol + (row + 1);
-  } else if (formattedPiece === "K" && Math.abs(from - to) === 2) { // Caslting case
+  } else if (formattedPiece === "K" && Math.abs(from - to) === 2) {
+    // Caslting case
     if (from - to === 2) {
       notation = "O-O-O";
     } else {
@@ -283,7 +294,9 @@ export const moveToReadable = (bitboards, from, to, isCapture = false, promotion
   }
 
   if (isInCheck(bitboards, opponent)) {
-    if (getAllLegalMoves(bitboards, player === 'w' ? 'b' : 'w', null, null) === 0n) {
+    if (
+      getAllLegalMoves(bitboards, player === "w" ? "b" : "w", null, null) === 0n
+    ) {
       // Checkmate
       notation += "#";
       return notation;
@@ -292,4 +305,54 @@ export const moveToReadable = (bitboards, from, to, isCapture = false, promotion
   }
 
   return notation;
+};
+
+export const allLegalMovesArr = (
+  bitboards,
+  player,
+  castlingRights,
+  enPassantSquare
+) => {
+  const moves = getAllIndividualLegalMoves(
+    bitboards,
+    player,
+    castlingRights,
+    enPassantSquare
+  );
+  const promotionFromRank = player === "w" ? 6 : 1;
+  const promotionPieces = ["Queens", "Rooks", "Knights", "Bishops"];
+
+  let possibleMoves = [];
+  for (const from in moves) {
+    let moveBitboard = moves[from];
+
+    const formattedPiece =
+      pieceSymbols[getPieceAtSquare(from, bitboards)].toUpperCase();
+    const col = Math.floor(parseInt(from) / 8);
+    const isPromotion =
+      col === promotionFromRank && formattedPiece === "P";
+
+    while (moveBitboard !== 0n) {
+      const moveTo = bitScanForward(moveBitboard);
+
+      if (isPromotion) {
+        promotionPieces.forEach((piece) => {
+          possibleMoves.push({
+            from: parseInt(from),
+            to: moveTo,
+            promotion: piece,
+          });
+        });
+      } else {
+        possibleMoves.push({
+          from: parseInt(from),
+          to: moveTo,
+          promotion: null,
+        });
+      }
+      moveBitboard &= moveBitboard - 1n;
+    }
+  }
+
+  return possibleMoves;
 };
