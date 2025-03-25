@@ -19,7 +19,8 @@ import {
 import "./UI.css";
 import BitboardBoard from "./BitboardBoard";
 import { getPieceMoves } from "./bitboardUtils/bbMoveGeneration";
-import { getBestMove } from "./bbEngines/BondMonkeyV1";
+import { getBestMoveBMV1 } from "./bbEngines/BondMonkeyV1";
+import { getBestMoveBMV2 } from "./bbEngines/BondMonkeyV2";
 
 // Runs the game
 const BitboardGame = () => {
@@ -52,13 +53,15 @@ const BitboardGame = () => {
 
   // Gets the engine move then plays it
   const makeEngineMove = () => {
-    if (isGameOver || !isCurrPositionShown) return;
+    if (!isCurrPositionShown) return;
 
-    const bestMoveObj = getBestMove(
+    const bestMoveObj = getBestMoveBMV2(
       bitboards,
       currPlayer,
       castlingRights,
-      enPassantSquare
+      enPassantSquare,
+      pastPositions,
+      1
     );
     const from = bestMoveObj.from;
     const to = bestMoveObj.to;
@@ -256,6 +259,7 @@ const BitboardGame = () => {
     });
   };
 
+  // Allows user to look at past moves
   const changeBoardView = (direction) => {
     const index = currIndexOfDisplayed + direction;
 
@@ -275,7 +279,7 @@ const BitboardGame = () => {
 
   // Runs the engine move after the user makes a move
   useEffect(() => {
-    if (currPlayer !== userSide && !isGameOver) {
+    if (currPlayer !== userSide /* && !isGameOver */) {
       setTimeout(() => {
         makeEngineMove();
       }, 0);

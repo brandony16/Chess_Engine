@@ -1,5 +1,10 @@
-import { filterIllegalMoves, isKingsideCastleLegal, isQueensideCastleLegal } from "./bbChessLogic";
 import {
+  filterIllegalMoves,
+  isKingsideCastleLegal,
+  isQueensideCastleLegal,
+} from "./bbChessLogic";
+import {
+  bigIntFullRep,
   bitScanForward,
   FILE_A_MASK,
   FILE_H_MASK,
@@ -27,7 +32,13 @@ export const getPieceMoves = (
   let moves = null;
   switch (piece.toUpperCase()) {
     case "P":
-      moves = getPawnMovesForSquare(bitboards, player, from, enPassantSquare, onlyCaptures);
+      moves = getPawnMovesForSquare(
+        bitboards,
+        player,
+        from,
+        enPassantSquare,
+        onlyCaptures
+      );
       break;
     case "N":
       moves = getKnightMovesForSquare(bitboards, player, from);
@@ -118,7 +129,12 @@ export const getAllLegalMoves = (
       onlyCaptures
     );
 
-    const legalPieceMoves = filterIllegalMoves(bitboards, pieceMoves, square, player);
+    const legalPieceMoves = filterIllegalMoves(
+      bitboards,
+      pieceMoves,
+      square,
+      player
+    );
 
     allMoves |= legalPieceMoves;
   }
@@ -130,7 +146,7 @@ export const getAllIndividualLegalMoves = (
   bitboards,
   player,
   castlingRights,
-  enPassantSquare,
+  enPassantSquare
 ) => {
   let allMoves = {};
   // Get player's overall pieces bitboard.
@@ -151,10 +167,15 @@ export const getAllIndividualLegalMoves = (
       square,
       player,
       enPassantSquare,
-      castlingRights,
+      castlingRights
     );
 
-    const legalPieceMoves = filterIllegalMoves(bitboards, pieceMoves, square, player);
+    const legalPieceMoves = filterIllegalMoves(
+      bitboards,
+      pieceMoves,
+      square,
+      player
+    );
     if (legalPieceMoves !== 0n) {
       allMoves[square] = legalPieceMoves;
     }
@@ -225,7 +246,9 @@ export const getPawnMovesForSquare = (
     }
   }
 
-  return singlePush | doublePush | leftCapture | rightCapture | enPassantCapture;
+  return (
+    singlePush | doublePush | leftCapture | rightCapture | enPassantCapture
+  );
 };
 
 export const getKnightMovesForSquare = (bitboards, player, from) => {
@@ -251,7 +274,7 @@ export const getKnightMovesForSquare = (bitboards, player, from) => {
   // Get player's pieces to mask out self-captures
   const friendlyPieces =
     player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
-  
+
   // Remove moves that land on friendly pieces
   return moves & ~friendlyPieces;
 };
@@ -325,19 +348,22 @@ export const getKingMovesForSquare = (
     player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
 
   /* BASE MOVES */
-  moves |= kingBitboard << 8n & RANK_8_MASK; // Up
-  moves |= kingBitboard >> 8n & RANK_1_MASK; // Down
-  moves |= (kingBitboard << 1n) & FILE_A_MASK; // Right
-  moves |= (kingBitboard >> 1n) & FILE_H_MASK; // Left
-  moves |= (kingBitboard << 9n) & FILE_A_MASK & RANK_8_MASK; // Up-right
-  moves |= (kingBitboard << 7n) & FILE_H_MASK & RANK_8_MASK; // Up-left
-  moves |= (kingBitboard >> 9n) & FILE_H_MASK & RANK_1_MASK; // Down-left
-  moves |= (kingBitboard >> 7n) & FILE_A_MASK & RANK_1_MASK; // Down-right
+  if (from < 56) moves |= kingBitboard << 8n; // Up
+  if (from > 7) moves |= kingBitboard >> 8n; // Down
+  if (from % 8 !== 0) moves |= kingBitboard >> 1n; // Left
+  if (from % 8 !== 7) moves |= kingBitboard << 1n; // Right
+  if (from < 56 && from % 8 !== 7) moves |= kingBitboard << 9n; // Up-Right
+  if (from < 56 && from % 8 !== 0) moves |= kingBitboard << 7n; // Up-Left
+  if (from > 7 && from % 8 !== 7) moves |= kingBitboard >> 7n; // Down-Right
+  if (from > 7 && from % 8 !== 0) moves |= kingBitboard >> 9n; // Down-Left
 
   /* CASTLING */
   if (castlingRights) {
     if (player === "w") {
-      if (castlingRights.whiteKingside && isKingsideCastleLegal(bitboards, "w")) {
+      if (
+        castlingRights.whiteKingside &&
+        isKingsideCastleLegal(bitboards, "w")
+      ) {
         moves |= 1n << 6n;
       }
       if (
@@ -347,7 +373,10 @@ export const getKingMovesForSquare = (
         moves |= 1n << 2n;
       }
     } else {
-      if (castlingRights.blackKingside && isKingsideCastleLegal(bitboards, "b")) {
+      if (
+        castlingRights.blackKingside &&
+        isKingsideCastleLegal(bitboards, "b")
+      ) {
         moves |= 1n << 62n;
       }
       if (

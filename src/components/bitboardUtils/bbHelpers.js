@@ -319,6 +319,7 @@ export const allLegalMovesArr = (
     castlingRights,
     enPassantSquare
   );
+
   const promotionFromRank = player === "w" ? 6 : 1;
   const promotionPieces = ["Queens", "Rooks", "Knights", "Bishops"];
 
