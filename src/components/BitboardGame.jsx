@@ -36,6 +36,11 @@ const BitboardGame = () => {
   const [result, setResult] = useState(null);
   const [pastPositions, setPastPositions] = useState(new Map());
   const [pastMoves, setPastMoves] = useState([]);
+  const [pastBitboards, setPastBitboards] = useState([]);
+  const [displayedBitboards, setDisplayedBitboards] =
+    useState(initialBitboards);
+  const [isCurrPositionShown, setIsCurrPositionShown] = useState(true);
+  const [currIndexOfDisplayed, setCurrIndexOfDisplayed] = useState(-1);
   const [castlingRights, setCastlingRights] = useState({
     whiteKingside: true,
     whiteQueenside: true,
@@ -47,25 +52,22 @@ const BitboardGame = () => {
 
   // Gets the engine move then plays it
   const makeEngineMove = () => {
-    const bestMoveObj = getBestMove(bitboards, currPlayer, castlingRights, enPassantSquare);
+    if (isGameOver || !isCurrPositionShown) return;
+
+    const bestMoveObj = getBestMove(
+      bitboards,
+      currPlayer,
+      castlingRights,
+      enPassantSquare
+    );
     const from = bestMoveObj.from;
     const to = bestMoveObj.to;
     const promotion = bestMoveObj.promotion;
 
-    const moveObj = makeMove(
-      bitboards,
-      from,
-      to,
-      enPassantSquare,
-      promotion
-    );
+    const moveObj = makeMove(bitboards, from, to, enPassantSquare, promotion);
     const newBitboards = moveObj.bitboards;
 
-    const hash = computeHash(
-      newBitboards,
-      currPlayer,
-      moveObj.enPassantSquare
-    );
+    const hash = computeHash(newBitboards, currPlayer, moveObj.enPassantSquare);
 
     const gameOverObj = checkGameOver(
       newBitboards,
@@ -88,7 +90,7 @@ const BitboardGame = () => {
 
   // Handles when a square is clicked
   const handleSquareClick = (row, col) => {
-    if (isGameOver) return;
+    if (isGameOver || !isCurrPositionShown) return;
 
     const square = row * 8 + col;
     if (isPlayersPieceAtSquare(currPlayer, square, bitboards)) {
@@ -226,6 +228,11 @@ const BitboardGame = () => {
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
       return newPositions;
     });
+
+    // Board display
+    setPastBitboards((prevBoards) => [...prevBoards, newBitboards]);
+    setDisplayedBitboards(newBitboards);
+    setCurrIndexOfDisplayed((prev) => prev + 1);
   };
 
   // Resets the game
@@ -249,6 +256,23 @@ const BitboardGame = () => {
     });
   };
 
+  const changeBoardView = (direction) => {
+    const index = currIndexOfDisplayed + direction;
+
+    if (index < 0 || index >= pastBitboards.length) return;
+
+    setDisplayedBitboards(pastBitboards[index]);
+    setCurrIndexOfDisplayed((prev) => prev + direction);
+
+    if (index === pastBitboards.length - 1) {
+      setIsCurrPositionShown(true);
+    } else {
+      setIsCurrPositionShown(false);
+      setSelectedSquare(null);
+      setMoveBitboard(null);
+    }
+  };
+
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver) {
@@ -260,9 +284,8 @@ const BitboardGame = () => {
 
   return (
     <div className="body">
-      
       <BitboardBoard
-        bitboards={bitboards}
+        bitboards={displayedBitboards}
         onSquareClick={handleSquareClick}
         selectedSquare={selectedSquare}
         userSide={userSide}
@@ -282,6 +305,8 @@ const BitboardGame = () => {
         isGameOver={isGameOver}
         result={result}
         pastMoves={pastMoves}
+        changeBoardView={changeBoardView}
+        indexOfViewedMove={currIndexOfDisplayed}
       />
     </div>
   );

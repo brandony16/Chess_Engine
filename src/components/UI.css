@@ -47,3 +47,7 @@
   display: grid;
   grid-template-columns: 1fr 2fr 2fr;
 }
+
+.highlighted {
+  background-color: rgba(100, 100, 100, 0.3);
+}
