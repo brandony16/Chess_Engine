@@ -371,3 +371,7 @@ export const drawByRepetition = (pastPositions) => {
 export const drawByFiftyMoveRule = (pastPositions) => {
   return false;
 };
+
+export const sortMoves = (moves) => {
+  return moves.sort((a, b) => b.isCapture - a.isCapture);
+}

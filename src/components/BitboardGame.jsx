@@ -53,7 +53,7 @@ const BitboardGame = () => {
 
   // Gets the engine move then plays it
   const makeEngineMove = () => {
-    if (!isCurrPositionShown) return;
+    if (!isCurrPositionShown || isGameOver) return;
 
     const bestMoveObj = getBestMoveBMV2(
       bitboards,
@@ -61,7 +61,7 @@ const BitboardGame = () => {
       castlingRights,
       enPassantSquare,
       pastPositions,
-      1
+      4
     );
     const from = bestMoveObj.from;
     const to = bestMoveObj.to;
@@ -224,18 +224,18 @@ const BitboardGame = () => {
     setCastlingRights(updateCastlingRights(selectedSquare, castlingRights));
     setSelectedSquare(null);
     setBitboards(newBitboards);
-    setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
     setMoveBitboard(null);
     setPastPositions((prevPositions) => {
       const newPositions = new Map(prevPositions);
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
       return newPositions;
     });
-
+    
     // Board display
     setPastBitboards((prevBoards) => [...prevBoards, newBitboards]);
     setDisplayedBitboards(newBitboards);
     setCurrIndexOfDisplayed((prev) => prev + 1);
+    setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
   };
 
   // Resets the game
@@ -279,10 +279,10 @@ const BitboardGame = () => {
 
   // Runs the engine move after the user makes a move
   useEffect(() => {
-    if (currPlayer !== userSide /* && !isGameOver */) {
+    if (currPlayer !== userSide && !isGameOver ) {
       setTimeout(() => {
         makeEngineMove();
-      }, 0);
+      }, 10);
     }
   }, [currPlayer, userSide]);
 
