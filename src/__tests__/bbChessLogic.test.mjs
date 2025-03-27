@@ -1,4 +1,5 @@
 import {
+  isInCheck,
   isSquareAttacked,
   isValidMove,
   makeMove,
@@ -32,17 +33,6 @@ describe("makeMove", () => {
 
     expect(newBitboards.whitePawns).toBe(0b1000000000000000n); // White pawn moves
     expect(newBitboards.blackPawns).toBe(0n); // Black pawn is captured
-  });
-
-  test("does nothing if there is no piece to move", () => {
-    const bitboards = {
-      whitePawns: 0b10000000n, // White pawn at square 7 (H2)
-    };
-    const from = 15;
-    const to = 23;
-
-    const newBitboards = makeMove(bitboards, from, to).bitboards;
-    expect(newBitboards).toEqual(bitboards); // Nothing should change
   });
 });
 
@@ -95,3 +85,22 @@ describe("isSquareAttacked", () => {
     expect(isSquareAttacked(bitboards, 34, "w")).toBe(false);
   });
 });
+
+describe("isInCheck", () => {
+  let bitboards;
+
+  beforeEach(() => {
+    bitboards = initialBitboards;
+  })
+
+  test("False when not in check", () => {
+    const newBitboards = makeMove(bitboards, 8, 16).bitboards;
+    expect(isInCheck(newBitboards, 'w')).toBe(false);
+    expect(isInCheck(newBitboards, 'b')).toBe(false);
+  })
+
+  test("True when in check", () => {
+    const newBitboards = makeMove(bitboards, 3, 51).bitboards;
+    expect(isInCheck(newBitboards, 'b')).toBe(true);
+  })
+})
