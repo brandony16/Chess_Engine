@@ -1,6 +1,7 @@
 import {
   bigIntFullRep,
   bitScanForward,
+  generalSymbols,
   getBlackPieces,
   getNumPieces,
   getPieceAtSquare,
@@ -23,10 +24,16 @@ export const makeMove = (
   promotionPiece = null
 ) => {
   let updatedBitboards = { ...bitboards };
+  const bigIntFrom = BigInt(from);
+  const bigIntTo = BigInt(to);
+  const one = 1n;
+  const maskFrom = one << bigIntFrom;
+  const maskTo = one << bigIntTo;
 
   // Handle castle case
+  const pieceAtFrom = getPieceAtSquare(from, bitboards);
   if (
-    pieceSymbols[getPieceAtSquare(from, bitboards)].toLowerCase() === "k" &&
+    generalSymbols[pieceAtFrom] === "K" &&
     Math.abs(to - from) === 2
   ) {
     return makeCastleMove(bitboards, from, to);
@@ -34,10 +41,12 @@ export const makeMove = (
 
   // Find which piece is at 'from' square
   let movingPiece = null;
-  for (const [piece, bitboard] of Object.entries(bitboards)) {
-    if ((bitboard >> BigInt(from)) & BigInt(1)) {
+  const pieceKeys = Object.keys(bitboards);
+  for (const piece of pieceKeys) {
+    const bitboard = bitboards[piece];
+    if ((bitboard & maskFrom) !== 0n) {
       movingPiece = piece;
-      updatedBitboards[piece] &= ~(BigInt(1) << BigInt(from));
+      updatedBitboards[piece] &= ~(one << bigIntFrom);
       break;
     }
   }
@@ -46,9 +55,10 @@ export const makeMove = (
 
   // Check if a piece exists at 'to' (capture)
   let isCapture = false;
-  for (const [piece, bitboard] of Object.entries(updatedBitboards)) {
-    if ((bitboard >> BigInt(to)) & BigInt(1)) {
-      updatedBitboards[piece] &= ~(BigInt(1) << BigInt(to)); // Remove captured piece
+  for (const piece of pieceKeys) {
+    const bitboard = updatedBitboards[piece];
+    if ((bitboard & maskTo) !== 0n) {
+      updatedBitboards[piece] &= ~maskTo; // Remove captured piece
       isCapture = true;
       break;
     }
@@ -57,11 +67,11 @@ export const makeMove = (
   // Handles promotions
   if (promotionPiece) {
     const promotedPieceKey =
-      movingPiece === "whitePawns"
+      movingPiece.charAt(0) === "w"
         ? `white${promotionPiece}`
         : `black${promotionPiece}`;
 
-    updatedBitboards[promotedPieceKey] |= 1n << BigInt(to); // Add promoted piece
+    updatedBitboards[promotedPieceKey] |= one << bigIntTo; // Add promoted piece
     return {
       bitboards: updatedBitboards,
       enPassantSquare: null,
@@ -70,21 +80,21 @@ export const makeMove = (
   }
 
   // Move piece to 'to' square
-  updatedBitboards[movingPiece] |= BigInt(1) << BigInt(to);
+  updatedBitboards[movingPiece] |= maskTo;
 
   // Handle En Passant
+  const piecePrefix = movingPiece.charAt(0);
+  const pieceTypeIndicator = movingPiece.charAt(5);
   let newEnPassantSquare = null;
-  const player = movingPiece === "whitePawns" ? "w" : "b";
-  if (movingPiece === "whitePawns" || movingPiece === "blackPawns") {
+  if (pieceTypeIndicator === 'P') {
+    const isPlayerWhite = piecePrefix === "w";
+    const dir = isPlayerWhite ? -8 : 8;
     if (Math.abs(to - from) === 16) {
-      newEnPassantSquare = player === "w" ? to - 8 : to + 8;
+      newEnPassantSquare = to + dir;
     }
-
     if (to === enPassantSquare) {
-      const capturedPawnSquare = player === "w" ? to - 8 : to + 8;
-      updatedBitboards[player === "w" ? "blackPawns" : "whitePawns"] &= ~(
-        BigInt(1) << BigInt(capturedPawnSquare)
-      );
+      // Remove the captured pawn from the opposing pawn bitboard
+      updatedBitboards[isPlayerWhite ? "blackPawns" : "whitePawns"] &= ~(one << BigInt(to + dir));
     }
   }
 
@@ -104,10 +114,6 @@ export const isValidMove = (
   enPassantSquare = null,
   castlingRights
 ) => {
-  // If start square is not one of the player's pieces, then it is not a valid move
-  if (!isPlayersPieceAtSquare(player, from, bitboards)) {
-    return false;
-  }
   // If the final square is one of the player's pieces, then it is not valid
   // Cannot capture your own piece
   if (isPlayersPieceAtSquare(player, to, bitboards)) {
@@ -116,7 +122,9 @@ export const isValidMove = (
 
   // Get the piece type then convert it to 'P', 'N', 'B', 'R', 'Q', or 'K'
   const piece = getPieceAtSquare(from, bitboards);
-  const formattedPiece = pieceSymbols[piece].toUpperCase();
+  if (piece === null) return false;
+  
+  const formattedPiece = generalSymbols[piece];
 
   const pieceMoves = getPieceMoves(
     bitboards,
@@ -138,7 +146,7 @@ export const isSquareAttacked = (bitboards, square, opponent) => {
     opponent,
     null,
     null,
-    true
+    true // Only captures
   );
 
   return Boolean((opponentMoves >> BigInt(square)) & 1n);
@@ -146,31 +154,35 @@ export const isSquareAttacked = (bitboards, square, opponent) => {
 
 export const isInCheck = (bitboards, player) => {
   let kingBB = bitboards.whiteKings;
+  let opponent = "b";
   if (player === "b") {
     kingBB = bitboards.blackKings;
+    opponent = "w";
   }
 
   const kingSquare = bitScanForward(kingBB);
 
-  return isSquareAttacked(bitboards, kingSquare, player === "w" ? "b" : "w");
+  return isSquareAttacked(bitboards, kingSquare, opponent);
 };
 
 // Filters out moves that put the king in check
 export const filterIllegalMoves = (bitboards, moves, from, player) => {
   let filteredMoves = 0n;
+  const isPlayerWhite = player === "w";
+  const one = 1n;
 
   // Iterate only over moves that are set (i.e. bits that are 1)
   let remainingMoves = moves;
   while (remainingMoves !== 0n) {
     const to = bitScanForward(remainingMoves);
-    remainingMoves &= remainingMoves - 1n;
+    remainingMoves &= remainingMoves - one;
 
     // Simulate the move and check if the king is attacked
     const tempBitboards = makeMove(bitboards, from, to, null).bitboards;
-    const kingBB = tempBitboards[player === "w" ? "whiteKings" : "blackKings"];
+    const kingBB = tempBitboards[isPlayerWhite ? "whiteKings" : "blackKings"];
     const kingSquare = bitScanForward(kingBB);
     if (
-      !isSquareAttacked(tempBitboards, kingSquare, player === "w" ? "b" : "w")
+      !isSquareAttacked(tempBitboards, kingSquare, isPlayerWhite ? "b" : "w")
     ) {
       filteredMoves |= 1n << BigInt(to);
     }
@@ -193,10 +205,10 @@ export const updateCastlingRights = (from, prevRights) => {
   }
 
   // If rooks move, disable their respective castling
-  if (from === 0) newRights.whiteQueenside = false;
-  if (from === 7) newRights.whiteKingside = false;
-  if (from === 56) newRights.blackQueenside = false;
-  if (from === 63) newRights.blackKingside = false;
+  else if (from === 0) newRights.whiteQueenside = false;
+  else if (from === 7) newRights.whiteKingside = false;
+  else if (from === 56) newRights.blackQueenside = false;
+  else if (from === 63) newRights.blackKingside = false;
 
   return newRights;
 };
@@ -205,18 +217,21 @@ export const updateCastlingRights = (from, prevRights) => {
 export const isKingsideCastleLegal = (bitboards, player) => {
   let squares;
   let opponent;
+  let playerKing;
   if (player === "w") {
     squares = [4, 5, 6];
     opponent = "b";
+    playerKing = "K";
   } else {
     squares = [60, 61, 62];
     opponent = "w";
+    playerKing = "k";
   }
 
   // Check if squares are empty or under attack
   for (let square of squares) {
     const piece = getPieceAtSquare(square, bitboards);
-    if (piece !== null && pieceSymbols[piece].toLowerCase() !== "k") {
+    if (piece !== null && pieceSymbols[piece] !== playerKing) {
       return false;
     }
     if (isSquareAttacked(bitboards, square, opponent)) {
@@ -230,18 +245,21 @@ export const isKingsideCastleLegal = (bitboards, player) => {
 export const isQueensideCastleLegal = (bitboards, player) => {
   let squares;
   let opponent;
+  let playerKing;
   if (player === "w") {
     squares = [1, 2, 3, 4];
     opponent = "b";
+    playerKing = "K";
   } else {
     squares = [57, 58, 59, 60];
     opponent = "w";
+    playerKing = "k";
   }
 
   // Check if squares are empty or under attack
   for (let square of squares) {
     const piece = getPieceAtSquare(square, bitboards);
-    if (piece !== null && pieceSymbols[piece].toLowerCase() !== "k") {
+    if (piece !== null && pieceSymbols[piece] !== playerKing) {
       return false;
     }
     if (isSquareAttacked(bitboards, square, opponent)) {
@@ -258,28 +276,28 @@ export const makeCastleMove = (bitboards, from, to) => {
 
   if (from === 4 && to === 6) {
     // White kingside castling
-    newBitboards["whiteKings"] &= ~(1n << 4n);
-    newBitboards["whiteKings"] |= 1n << 6n;
-    newBitboards["whiteRooks"] &= ~(1n << 7n);
-    newBitboards["whiteRooks"] |= 1n << 5n;
+    newBitboards.whiteKings &= ~(1n << 4n);
+    newBitboards.whiteKings |= 1n << 6n;
+    newBitboards.whiteRooks &= ~(1n << 7n);
+    newBitboards.whiteRooks |= 1n << 5n;
   } else if (from === 4 && to === 2) {
     // White queenside castling
-    newBitboards["whiteKings"] &= ~(1n << 4n);
-    newBitboards["whiteKings"] |= 1n << 2n;
-    newBitboards["whiteRooks"] &= ~(1n << 0n);
-    newBitboards["whiteRooks"] |= 1n << 3n;
+    newBitboards.whiteKings &= ~(1n << 4n);
+    newBitboards.whiteKings |= 1n << 2n;
+    newBitboards.whiteRooks &= ~(1n << 0n);
+    newBitboards.whiteRooks |= 1n << 3n;
   } else if (from === 60 && to === 62) {
     // Black kingside castling
-    newBitboards["blackKings"] &= ~(1n << 60n);
-    newBitboards["blackKings"] |= 1n << 62n;
-    newBitboards["blackRooks"] &= ~(1n << 63n);
-    newBitboards["blackRooks"] |= 1n << 61n;
+    newBitboards.blackKings &= ~(1n << 60n);
+    newBitboards.blackKings |= 1n << 62n;
+    newBitboards.blackRooks &= ~(1n << 63n);
+    newBitboards.blackRooks |= 1n << 61n;
   } else if (from === 60 && to === 58) {
     // Black queenside castling
-    newBitboards["blackKings"] &= ~(1n << 60n);
-    newBitboards["blackKings"] |= 1n << 58n;
-    newBitboards["blackRooks"] &= ~(1n << 56n);
-    newBitboards["blackRooks"] |= 1n << 59n;
+    newBitboards.blackKings &= ~(1n << 60n);
+    newBitboards.blackKings |= 1n << 58n;
+    newBitboards.blackRooks &= ~(1n << 56n);
+    newBitboards.blackRooks |= 1n << 59n;
   }
   return { bitboards: newBitboards, enPassantSquare: null, isCapture: false };
 };
@@ -291,7 +309,8 @@ export const checkGameOver = (
   castlingRights,
   enPassantSquare
 ) => {
-  const opponent = player === "w" ? "b" : "w";
+  const isPlayerWhite = player === "w";
+  const opponent = isPlayerWhite ? "b" : "w";
 
   const allLegalMoves = getAllLegalMoves(
     bitboards,
@@ -300,7 +319,7 @@ export const checkGameOver = (
     enPassantSquare
   );
 
-  const kingBB = bitboards[player === "w" ? "blackKings" : "whiteKings"];
+  const kingBB = bitboards[isPlayerWhite ? "blackKings" : "whiteKings"];
   const kingSquare = bitScanForward(kingBB);
 
   const result = { isGameOver: false, result: null };
@@ -326,15 +345,14 @@ export const checkGameOver = (
     result.isGameOver = true;
 
     if (isSquareAttacked(bitboards, kingSquare, player)) {
-      // Inversed because we are checking if 'player' has moves. If they dont and are in check, the other player wins
-      const fullPlayer = player === "w" ? "White" : "Black";
+      const fullPlayer = isPlayerWhite ? "White" : "Black";
 
       result.result = `${fullPlayer} Wins by Checkmate`;
       return result;
-    } else {
-      result.result = "Draw by Stalemate";
-      return result;
     }
+
+    result.result = "Draw by Stalemate";
+    return result;
   }
 
   return result;
@@ -374,4 +392,4 @@ export const drawByFiftyMoveRule = (pastPositions) => {
 
 export const sortMoves = (moves) => {
   return moves.sort((a, b) => b.isCapture - a.isCapture);
-}
+};

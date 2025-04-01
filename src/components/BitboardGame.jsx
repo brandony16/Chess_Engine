@@ -61,7 +61,7 @@ const BitboardGame = () => {
       castlingRights,
       enPassantSquare,
       pastPositions,
-      4
+      3
     );
     const from = bestMoveObj.from;
     const to = bestMoveObj.to;

@@ -19,6 +19,7 @@ export const getBestMoveBMV2 = (
   prevPositions,
   depth
 ) => {
+  console.time("Whole engine move");
   const moves = allLegalMovesArr(
     bitboards,
     player,
@@ -67,6 +68,7 @@ export const getBestMoveBMV2 = (
       beta
     );
 
+
     if (
       (player === "w" && moveEval > bestEval) ||
       (player === "b" && moveEval < bestEval)
@@ -86,6 +88,7 @@ export const getBestMoveBMV2 = (
     }
   }
 
+  console.timeEnd("Whole engine move");
   return bestMove;
 };
 
@@ -134,6 +137,7 @@ const minimax = (
         newCastling,
         newEnPassant
       );
+
       const result = gameOverObj.result;
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
@@ -236,6 +240,5 @@ const evaluate = (bitboards, player, result) => {
   for (const bitboard in bitboards) {
     evaluation += getNumPieces(bitboards[bitboard]) * weights[bitboard];
   }
-
   return evaluation;
 };

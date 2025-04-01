@@ -194,17 +194,18 @@ export const getPawnMovesForSquare = (
 ) => {
   const specificPawn = 1n << BigInt(from);
 
+  const isPlayerWhite = player === "w";
   const emptySquares = getEmptySquares(bitboards);
   const enemyPieces =
-    player === "w" ? getBlackPieces(bitboards) : getWhitePieces(bitboards);
+    isPlayerWhite ? getBlackPieces(bitboards) : getWhitePieces(bitboards);
 
   let singlePush = 0n;
   let doublePush = 0n;
   let leftCapture = 0n;
   let rightCapture = 0n;
-  let enPassantCapture = 0n; // New
+  let enPassantCapture = 0n;
 
-  if (player === "w") {
+  if (isPlayerWhite) {
     if (!attacksOnly) {
       singlePush = (specificPawn << 8n) & emptySquares;
       doublePush =
@@ -343,9 +344,10 @@ export const getKingMovesForSquare = (
 ) => {
   let kingBitboard = 1n << BigInt(from);
   let moves = 0n;
+  const isPlayerWhite = player === "w";
 
   const friendlyPieces =
-    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+    isPlayerWhite ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
 
   /* BASE MOVES */
   if (from < 56) moves |= kingBitboard << 8n; // Up
@@ -359,7 +361,7 @@ export const getKingMovesForSquare = (
 
   /* CASTLING */
   if (castlingRights) {
-    if (player === "w") {
+    if (isPlayerWhite) {
       if (
         castlingRights.whiteKingside &&
         isKingsideCastleLegal(bitboards, "w")

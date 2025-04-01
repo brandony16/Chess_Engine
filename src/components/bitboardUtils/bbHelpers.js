@@ -1,4 +1,4 @@
-import { checkGameOver, isInCheck, isSquareAttacked } from "./bbChessLogic";
+import { isInCheck } from "./bbChessLogic";
 import {
   getAllIndividualLegalMoves,
   getAllLegalMoves,
@@ -100,6 +100,21 @@ export const pieceSymbols = {
   blackQueens: "q",
   blackKings: "k",
 };
+
+export const generalSymbols = {
+  whitePawns: "P",
+  whiteKnights: "N",
+  whiteBishops: "B",
+  whiteRooks: "R",
+  whiteQueens: "Q",
+  whiteKings: "K",
+  blackPawns: "P",
+  blackKnights: "N",
+  blackBishops: "B",
+  blackRooks: "R",
+  blackQueens: "Q",
+  blackKings: "K",
+}
 
 export const colSymbols = {
   0: "a",
@@ -329,9 +344,9 @@ export const allLegalMovesArr = (
 
     const formattedPiece =
       pieceSymbols[getPieceAtSquare(from, bitboards)].toUpperCase();
-    const col = Math.floor(parseInt(from) / 8);
+    const row = Math.floor(parseInt(from) / 8);
     const isPromotion =
-      col === promotionFromRank && formattedPiece === "P";
+      row === promotionFromRank && formattedPiece === "P";
 
     while (moveBitboard !== 0n) {
       const moveTo = bitScanForward(moveBitboard);
