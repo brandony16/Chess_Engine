@@ -8,6 +8,7 @@ import {
   bitScanForward,
   FILE_A_MASK,
   FILE_H_MASK,
+  generalSymbols,
   getAllPieces,
   getBlackPieces,
   getEmptySquares,
@@ -159,7 +160,7 @@ export const getAllIndividualLegalMoves = (
     pieces &= pieces - 1n;
 
     const piece = getPieceAtSquare(square, bitboards);
-    const formattedPiece = pieceSymbols[piece].toUpperCase();
+    const formattedPiece = generalSymbols[piece];
 
     const pieceMoves = getPieceMoves(
       bitboards,

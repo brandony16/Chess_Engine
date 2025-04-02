@@ -33,6 +33,9 @@ export const getBestMoveBMV2 = (
   let alpha = -Infinity;
   let beta = Infinity;
 
+  const isPlayerWhite = player === 'w';
+  const isPlayerBlack = player === 'b';
+
   for (const move of sortedMoves) {
     const from = move.from;
     const to = move.to;
@@ -45,7 +48,7 @@ export const getBestMoveBMV2 = (
     const newCastling = updateCastlingRights(from, castlingRights);
     const hash = computeHash(newBitboards, player, moveObj.enPassantSquare);
     const newPositions = new Map(prevPositions);
-    const newPlayer = player === "w" ? "b" : "w";
+    const newPlayer = isPlayerWhite ? "b" : "w";
     const gameOverObj = checkGameOver(
       newBitboards,
       player,
@@ -70,14 +73,14 @@ export const getBestMoveBMV2 = (
 
 
     if (
-      (player === "w" && moveEval > bestEval) ||
-      (player === "b" && moveEval < bestEval)
+      (isPlayerWhite && moveEval > bestEval) ||
+      (isPlayerBlack && moveEval < bestEval)
     ) {
       bestEval = moveEval;
       bestMove = move;
     }
 
-    if (player === "w") {
+    if (isPlayerWhite) {
       alpha = Math.max(alpha, moveEval);
     } else {
       beta = Math.min(beta, moveEval);
@@ -153,8 +156,12 @@ const minimax = (
         beta
       );
 
-      maxEval = Math.max(maxEval, moveEval);
-      alpha = Math.max(alpha, moveEval);
+      if (moveEval > maxEval) {
+        maxEval = moveEval;
+      }
+      if (moveEval > alpha) {
+        alpha = moveEval;
+      }
 
       if (beta <= alpha) {
         break;
@@ -198,8 +205,12 @@ const minimax = (
         beta
       );
 
-      minEval = Math.min(minEval, moveEval);
-      beta = Math.min(beta, moveEval);
+      if (moveEval < minEval) {
+        minEval = moveEval;
+      }
+      if (moveEval < beta) {
+        beta = moveEval;
+      }
 
       if (beta <= alpha) {
         break;

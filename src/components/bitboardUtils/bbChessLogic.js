@@ -152,6 +152,13 @@ export const isSquareAttacked = (bitboards, square, opponent) => {
   return Boolean((opponentMoves >> BigInt(square)) & 1n);
 };
 
+export const efficientIsSquareAttacked = (bitboards, square, opponent) => {
+  // A square can only be attacked by pieces on the same rank, file, or diagonal; or a knight move.
+  // Calculating moves for other squares is pointless and redundant.
+
+  
+}
+
 export const isInCheck = (bitboards, player) => {
   let kingBB = bitboards.whiteKings;
   let opponent = "b";
