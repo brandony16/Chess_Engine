@@ -1,4 +1,4 @@
-import { bitScanForward, computeHash } from "../bbHelpers";
+import { bitScanForward, computeHash, getPieceAtSquare, pieceToZobristIndex, PLAYER_ZOBRIST, zobristTable } from "../bbHelpers";
 import {
   getBishopMovesForSquare,
   getKingMovesForSquare,
@@ -116,7 +116,7 @@ const computeAttackMask = (bitboards, player) => {
 
 const attackMaskCache = new Map();
 
-export const getCachedAttackMask = (bitboards, player) => {
+export const getCachedAttackMask = (bitboards, player, hash) => {
   const boardHash = computeHash(bitboards, player);
   if (attackMaskCache.has(boardHash)) {
     console.log(attackMaskCache.size);
@@ -126,4 +126,39 @@ export const getCachedAttackMask = (bitboards, player) => {
   const mask = computeAttackMask(bitboards, player);
   attackMaskCache.set(boardHash, mask);
   return mask;
+};
+
+export const updateAttackMask = (
+  prevBitboards,
+  bitboards,
+  from,
+  to,
+  prevHash,
+) => {
+  let newHash = prevHash;
+  let pieceFrom = getPieceAtSquare(from, prevBitboards);
+  
+  // XOR the piece at the previous position
+  const zobristFromIndex = pieceToZobristIndex[pieceFrom];
+  const zobristFrom = zobristTable[zobristFromIndex][from];
+  newHash ^= zobristFrom;
+
+  // XOR the pieces new location
+  const pieceTo = getPieceAtSquare(to, bitboards);
+  const zobristToIndex = pieceToZobristIndex[pieceTo];
+  const zobristTo = zobristTable[zobristToIndex][to];
+  newHash ^= zobristTo;
+
+  // if a capture, XOR to remove captured piece
+  const prevPieceTo = getPieceAtSquare(to, prevBitboards);
+  if (prevPieceTo) {
+    const zobristCapturedIndex = pieceToZobristIndex[prevPieceTo];
+    const zobristCaptured = zobristTable[zobristCapturedIndex][to];
+    newHash ^= zobristCaptured;
+  }
+
+  // XOR player
+  newHash ^= PLAYER_ZOBRIST;
+
+  return newHash;
 };

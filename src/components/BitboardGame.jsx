@@ -89,7 +89,6 @@ const BitboardGame = () => {
       promotion
     );
 
-    getCachedAttackMask(newBitboards, currPlayer);
     updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj);
   };
 

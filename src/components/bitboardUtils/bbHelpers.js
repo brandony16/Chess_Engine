@@ -114,7 +114,7 @@ export const generalSymbols = {
   blackRooks: "R",
   blackQueens: "Q",
   blackKings: "K",
-}
+};
 
 export const colSymbols = {
   0: "a",
@@ -232,19 +232,60 @@ export const computeHash = (bitboards, player, enPassant) => {
   }
 
   // XOR a value for the side to move
-  const whiteToMove = 0x9d39247e33776d41n;
   if (player === "w") {
-    hash ^= whiteToMove;
+    hash ^= PLAYER_ZOBRIST;
   }
 
   // Value for if enPassant is legal
-  const enPassantValue = 0xf3a9b72c85d614e7n;
   if (enPassant) {
-    hash ^= enPassantValue;
+    hash ^= EN_PASSANT_ZOBRIST;
   }
 
   return hash;
 };
+
+export const updateHash = (
+  prevBitboards,
+  bitboards,
+  to,
+  from,
+  enPassantChanged,
+  prevHash
+) => {
+  let newHash = prevHash;
+  let pieceFrom = getPieceAtSquare(from, prevBitboards);
+
+  // XOR the piece at the previous position
+  const zobristFromIndex = pieceToZobristIndex[pieceFrom];
+  const zobristFrom = zobristTable[zobristFromIndex][from];
+  newHash ^= zobristFrom;
+
+  // XOR the pieces new location
+  const pieceTo = getPieceAtSquare(to, bitboards);
+  const zobristToIndex = pieceToZobristIndex[pieceTo];
+  const zobristTo = zobristTable[zobristToIndex][to];
+  newHash ^= zobristTo;
+
+  // if a capture, XOR to remove captured piece
+  const prevPieceTo = getPieceAtSquare(to, prevBitboards);
+  if (prevPieceTo) {
+    const zobristCapturedIndex = pieceToZobristIndex[prevPieceTo];
+    const zobristCaptured = zobristTable[zobristCapturedIndex][to];
+    newHash ^= zobristCaptured;
+  }
+
+  // XOR player
+  newHash ^= PLAYER_ZOBRIST;
+
+  if (enPassantChanged) {
+    newHash ^= EN_PASSANT_ZOBRIST;
+  }
+
+  return newHash;
+};
+
+export const PLAYER_ZOBRIST = 0x9d39247e33776d41n;
+export const EN_PASSANT_ZOBRIST = 0xf3a9b72c85d614e7n;
 
 export const pieceToZobristIndex = {
   whitePawns: 0,
@@ -345,8 +386,7 @@ export const allLegalMovesArr = (
     const formattedPiece =
       pieceSymbols[getPieceAtSquare(from, bitboards)].toUpperCase();
     const row = Math.floor(parseInt(from) / 8);
-    const isPromotion =
-      row === promotionFromRank && formattedPiece === "P";
+    const isPromotion = row === promotionFromRank && formattedPiece === "P";
 
     while (moveBitboard !== 0n) {
       const moveTo = bitScanForward(moveBitboard);

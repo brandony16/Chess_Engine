@@ -8,8 +8,12 @@ import {
   allLegalMovesArr,
   computeHash,
   getNumPieces,
+  updateHash,
 } from "../bitboardUtils/bbHelpers";
-import { getCachedAttackMask } from "../bitboardUtils/PieceMasks/attackMask";
+import {
+  getCachedAttackMask,
+  updateAttackMask,
+} from "../bitboardUtils/PieceMasks/attackMask";
 
 // V1: Plays a random legal move
 export const getBestMoveBMV2 = (
@@ -28,14 +32,16 @@ export const getBestMoveBMV2 = (
     enPassantSquare
   );
   const sortedMoves = sortMoves(moves);
+  const prevHash = computeHash(bitboards, player, enPassantSquare);
+  const prevAttackHash = computeHash(bitboards, player);
 
   let bestMove = sortedMoves[0] || null;
   let bestEval = player === "w" ? -Infinity : Infinity;
   let alpha = -Infinity;
   let beta = Infinity;
 
-  const isPlayerWhite = player === 'w';
-  const isPlayerBlack = player === 'b';
+  const isPlayerWhite = player === "w";
+  const isPlayerBlack = player === "b";
 
   for (const move of sortedMoves) {
     const from = move.from;
@@ -47,7 +53,6 @@ export const getBestMoveBMV2 = (
     const newBitboards = moveObj.bitboards;
     const newEnPassant = moveObj.enPassantSquare;
     const newCastling = updateCastlingRights(from, castlingRights);
-    const hash = computeHash(newBitboards, player, moveObj.enPassantSquare);
     const newPositions = new Map(prevPositions);
     const newPlayer = isPlayerWhite ? "b" : "w";
     const gameOverObj = checkGameOver(
@@ -58,6 +63,30 @@ export const getBestMoveBMV2 = (
       newEnPassant
     );
     const result = gameOverObj.result;
+
+    // Update Hashes
+    let enPassantChanged = false;
+    if (
+      (enPassantSquare && !moveObj.enPassantSquare) ||
+      (!enPassantSquare && moveObj.enPassantSquare)
+    ) {
+      enPassantChanged = true;
+    }
+    const hash = updateHash(
+      bitboards,
+      newBitboards,
+      to,
+      from,
+      enPassantChanged,
+      prevHash
+    );
+    const newAttackHash = updateAttackMask(
+      bitboards,
+      newBitboards,
+      from,
+      to,
+      prevAttackHash
+    );
     newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
     const moveEval = minimax(
@@ -71,7 +100,6 @@ export const getBestMoveBMV2 = (
       alpha,
       beta
     );
-
 
     if (
       (isPlayerWhite && moveEval > bestEval) ||
@@ -236,7 +264,7 @@ const weights = {
   whiteKings: 1000000,
 };
 
-const CHECKMATE_VALUE = 10_000_000
+const CHECKMATE_VALUE = 10_000_000;
 const evaluate = (bitboards, player, result) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
@@ -245,7 +273,6 @@ const evaluate = (bitboards, player, result) => {
     }
     return 0; // Draw
   }
-
 
   let evaluation = 0;
 
