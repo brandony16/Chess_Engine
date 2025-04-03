@@ -1,4 +1,4 @@
-import { isOnBoard } from "../bbHelpers";
+import { isOnBoard } from "../bbUtils";
 
 const KNIGHT_OFFSETS = [17, 15, 10, 6, -17, -15, -10, -6];
 
@@ -29,7 +29,7 @@ const isValidKnightMove = (source, dest) => {
   return true;
 };
 
-export const initializeKnightMasks = () => {
+const initializeKnightMasks = () => {
   const knightMasks = new Array(64);
 
   for (let sq = 0; sq < 64; sq++) {
@@ -38,3 +38,5 @@ export const initializeKnightMasks = () => {
 
   return knightMasks;
 };
+
+export const knightMasks = initializeKnightMasks();

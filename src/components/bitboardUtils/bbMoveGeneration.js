@@ -19,6 +19,9 @@ import {
   RANK_8_MASK,
   slide,
 } from "./bbHelpers";
+import { kingMasks } from "./PieceMasks/kingMask";
+import { knightMasks } from "./PieceMasks/knightMask";
+import { blackPawnMasks, whitePawnMasks } from "./PieceMasks/pawnMask";
 
 // Gets the legal moves of a piece
 export const getPieceMoves = (
@@ -197,13 +200,13 @@ export const getPawnMovesForSquare = (
 
   const isPlayerWhite = player === "w";
   const emptySquares = getEmptySquares(bitboards);
-  const enemyPieces =
-    isPlayerWhite ? getBlackPieces(bitboards) : getWhitePieces(bitboards);
+  const enemyPieces = isPlayerWhite
+    ? getBlackPieces(bitboards)
+    : getWhitePieces(bitboards);
 
   let singlePush = 0n;
   let doublePush = 0n;
-  let leftCapture = 0n;
-  let rightCapture = 0n;
+  let capture = 0n;
   let enPassantCapture = 0n;
 
   if (isPlayerWhite) {
@@ -214,15 +217,15 @@ export const getPawnMovesForSquare = (
         emptySquares &
         (emptySquares << 8n);
     }
-    leftCapture = (specificPawn << 7n) & enemyPieces & FILE_H_MASK;
-    rightCapture = (specificPawn << 9n) & enemyPieces & FILE_A_MASK;
+    capture = whitePawnMasks[from] & enemyPieces;
 
     // En Passant for white
     if (enPassantSquare !== null) {
-      if ((specificPawn << 7n) & (1n << BigInt(enPassantSquare))) {
+      const epMask = 1n << BigInt(enPassantSquare);
+      if ((specificPawn << 7n) & epMask) {
         enPassantCapture |= 1n << BigInt(enPassantSquare);
       }
-      if ((specificPawn << 9n) & (1n << BigInt(enPassantSquare))) {
+      if ((specificPawn << 9n) & epMask) {
         enPassantCapture |= 1n << BigInt(enPassantSquare);
       }
     }
@@ -234,44 +237,26 @@ export const getPawnMovesForSquare = (
         emptySquares &
         (emptySquares >> 8n);
     }
-    leftCapture = (specificPawn >> 9n) & enemyPieces & FILE_H_MASK;
-    rightCapture = (specificPawn >> 7n) & enemyPieces & FILE_A_MASK;
+    capture = blackPawnMasks[from] & enemyPieces;
 
     // En Passant for black
     if (enPassantSquare !== null) {
-      if ((specificPawn >> 9n) & (1n << BigInt(enPassantSquare))) {
+      const epMask = 1n << BigInt(enPassantSquare);
+      if ((specificPawn >> 9n) & epMask) {
         enPassantCapture |= 1n << BigInt(enPassantSquare);
       }
-      if ((specificPawn >> 7n) & (1n << BigInt(enPassantSquare))) {
+      if ((specificPawn >> 7n) & epMask) {
         enPassantCapture |= 1n << BigInt(enPassantSquare);
       }
     }
   }
 
-  return (
-    singlePush | doublePush | leftCapture | rightCapture | enPassantCapture
-  );
+  return singlePush | doublePush | capture | enPassantCapture;
 };
 
 export const getKnightMovesForSquare = (bitboards, player, from) => {
-  let knightBitboard = 1n << BigInt(from);
-
-  // Define masks to prevent wrap-around issues
-  const notAFile = 0xfefefefefefefefen; // Blocks moves that wrap from H->A
-  const notABFile = 0xfcfcfcfcfcfcfcfcn; // Blocks A and B files
-  const notHFile = 0x7f7f7f7f7f7f7f7fn; // Blocks moves that wrap from A->H
-  const notHGFile = 0x3f3f3f3f3f3f3f3fn; // Blocks H and G files
-
-  // Generate raw knight moves
-  let moves =
-    ((knightBitboard << 6n) & notHGFile) | // Left 2, Up 1
-    ((knightBitboard << 10n) & notABFile) | // Right 2, Up 1
-    ((knightBitboard >> 6n) & notABFile) | // Right 2, Down 1
-    ((knightBitboard >> 10n) & notHGFile) | // Left 2, Down 1
-    ((knightBitboard << 15n) & notHFile) | // Up 2, Left 1
-    ((knightBitboard << 17n) & notAFile) | // Up 2, Right 1
-    ((knightBitboard >> 17n) & notHFile) | // Down 2, Left 1
-    ((knightBitboard >> 15n) & notAFile); // Down 2, Right 1
+  // Get raw knight moves
+  let moves = knightMasks[from];
 
   // Get player's pieces to mask out self-captures
   const friendlyPieces =
@@ -341,24 +326,14 @@ export const getKingMovesForSquare = (
   bitboards,
   player,
   from,
-  castlingRights
+  castlingRights = null
 ) => {
-  let kingBitboard = 1n << BigInt(from);
-  let moves = 0n;
+  let moves = kingMasks[from];
   const isPlayerWhite = player === "w";
 
-  const friendlyPieces =
-    isPlayerWhite ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
-
-  /* BASE MOVES */
-  if (from < 56) moves |= kingBitboard << 8n; // Up
-  if (from > 7) moves |= kingBitboard >> 8n; // Down
-  if (from % 8 !== 0) moves |= kingBitboard >> 1n; // Left
-  if (from % 8 !== 7) moves |= kingBitboard << 1n; // Right
-  if (from < 56 && from % 8 !== 7) moves |= kingBitboard << 9n; // Up-Right
-  if (from < 56 && from % 8 !== 0) moves |= kingBitboard << 7n; // Up-Left
-  if (from > 7 && from % 8 !== 7) moves |= kingBitboard >> 7n; // Down-Right
-  if (from > 7 && from % 8 !== 0) moves |= kingBitboard >> 9n; // Down-Left
+  const friendlyPieces = isPlayerWhite
+    ? getWhitePieces(bitboards)
+    : getBlackPieces(bitboards);
 
   /* CASTLING */
   if (castlingRights) {

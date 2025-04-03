@@ -205,7 +205,7 @@ export const getNumPieces = (bitboard) => {
   return count;
 };
 
-// Zobrist Hashing for threefold repetition. Stores each postion as a unique key
+// Zobrist Hashing. Stores each postion as a unique key
 // Creates a unique bitstring for every piece at every square
 // 64 Squares and 12 bitboards, KQRBNP for each side
 export const zobristTable = new Array(12)
@@ -372,15 +372,3 @@ export const allLegalMovesArr = (
 
   return possibleMoves;
 };
-
-export const isOnBoard = (sq) => {
-  return sq >= 0 && sq < 64;
-}
-
-export function getRank(square) {
-  return Math.floor(square / 8);
-}
-
-export function getFile(square) {
-  return square % 8;
-}

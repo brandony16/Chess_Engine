@@ -9,6 +9,7 @@ import {
   computeHash,
   getNumPieces,
 } from "../bitboardUtils/bbHelpers";
+import { getCachedAttackMask } from "../bitboardUtils/PieceMasks/attackMask";
 
 // V1: Plays a random legal move
 export const getBestMoveBMV2 = (

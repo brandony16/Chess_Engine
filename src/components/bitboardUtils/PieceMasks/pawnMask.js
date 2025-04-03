@@ -29,7 +29,7 @@ function computeBlackPawnMask(square) {
   return attacks;
 }
 
-export const initializeWPawnAttackMasks = () => {
+const initializeWPawnAttackMasks = () => {
   const whitePawnMasks = new Array(64);
   for (let sq = 0; sq < 64; sq++) {
     whitePawnMasks[sq] = computeWhitePawnMask(sq);
@@ -38,7 +38,9 @@ export const initializeWPawnAttackMasks = () => {
   return whitePawnMasks;
 };
 
-export const initializeBPawnAttackMasks = () => {
+export const whitePawnMasks = initializeWPawnAttackMasks();
+
+const initializeBPawnAttackMasks = () => {
   const blackPawnMasks = new Array(64);
   for (let sq = 0; sq < 64; sq++) {
     blackPawnMasks[sq] = computeBlackPawnMask(sq);
@@ -46,3 +48,5 @@ export const initializeBPawnAttackMasks = () => {
 
   return blackPawnMasks;
 };
+
+export const blackPawnMasks = initializeBPawnAttackMasks();

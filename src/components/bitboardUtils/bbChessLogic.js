@@ -14,6 +14,7 @@ import {
   getAllPlayerMoves,
   getPieceMoves,
 } from "./bbMoveGeneration";
+import { getCachedAttackMask } from "./PieceMasks/attackMask";
 
 // Makes a move given a from and to square (ints 0-63). Move validation is handled by other functions
 export const makeMove = (
@@ -141,24 +142,11 @@ export const isValidMove = (
 
 // Determines whether a specific square is attacked by the opponent
 export const isSquareAttacked = (bitboards, square, opponent) => {
-  const opponentMoves = getAllPlayerMoves(
-    bitboards,
-    opponent,
-    null,
-    null,
-    true // Only captures
-  );
-
-  return Boolean((opponentMoves >> BigInt(square)) & 1n);
+  const opponentAttackMask = getCachedAttackMask(bitboards, opponent);
+  return (opponentAttackMask & (1n << BigInt(square))) !== 0n;
 };
 
-export const efficientIsSquareAttacked = (bitboards, square, opponent) => {
-  // A square can only be attacked by pieces on the same rank, file, or diagonal; or a knight move.
-  // Calculating moves for other squares is pointless and redundant.
-
-  
-}
-
+// Determines if a square is in check
 export const isInCheck = (bitboards, player) => {
   let kingBB = bitboards.whiteKings;
   let opponent = "b";

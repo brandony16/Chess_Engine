@@ -24,7 +24,7 @@ const  computeBishopMask = (square) => {
   return mask;
 }
 
-export const initializeBishopMasks = () => {
+const initializeBishopMasks = () => {
   const bishopMasks = new Array(64);
 
   for (let sq = 0; sq < 64; sq++) {
@@ -33,3 +33,5 @@ export const initializeBishopMasks = () => {
 
   return bishopMasks;
 };
+
+export const bishopMasks = initializeBishopMasks();

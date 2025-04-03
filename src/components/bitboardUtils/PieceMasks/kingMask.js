@@ -1,4 +1,4 @@
-import { isOnBoard } from "../bbHelpers";
+import { isOnBoard } from "../bbUtils";
 
 const KING_OFFSETS = [1, 7, 8, 9, -1, -7, -8, -9];
 
@@ -23,16 +23,20 @@ const isValidKingMove = (source, dest) => {
 
   // King can move one or two files.
   // Row wrapping is handled by isOnBoard
-  if (fileDiff !== 1) {
+  if (fileDiff !== 1 && fileDiff !== 0) {
     return false;
   }
   return true;
 };
 
-export const initializeKingMasks = () => {
+const initializeKingMasks = () => {
   const kingMasks = new Array(64);
 
   for (let sq = 0; sq < 64; sq++) {
     kingMasks[sq] = computeKingMask(sq);
   }
+  
+  return kingMasks;
 };
+
+export const kingMasks = initializeKingMasks();

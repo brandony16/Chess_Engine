@@ -21,7 +21,7 @@ const computeRookMask = (square) => {
   return mask;
 }
 
-export const initializeRookMasks = () => {
+const initializeRookMasks = () => {
   const rookMasks = new Array(64);
 
   for (let sq = 0; sq < 64; sq++) {
@@ -30,3 +30,5 @@ export const initializeRookMasks = () => {
 
   return rookMasks;
 }
+
+export const rookMasks = initializeRookMasks();

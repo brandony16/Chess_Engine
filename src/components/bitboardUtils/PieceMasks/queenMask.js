@@ -36,7 +36,7 @@ const computeQueenMask = (square) => {
   return mask;
 };
 
-export const initializeQueenMasks = () => {
+const initializeQueenMasks = () => {
   const queenMasks = new Array(64);
 
   for (let sq = 0; sq < 64; sq++) {
@@ -45,3 +45,5 @@ export const initializeQueenMasks = () => {
 
   return queenMasks;
 };
+
+export const queenMasks = initializeQueenMasks();

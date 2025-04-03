@@ -21,6 +21,7 @@ import BitboardBoard from "./BitboardBoard";
 import { getPieceMoves } from "./bitboardUtils/bbMoveGeneration";
 import { getBestMoveBMV1 } from "./bbEngines/BondMonkeyV1";
 import { getBestMoveBMV2 } from "./bbEngines/BondMonkeyV2";
+import { getCachedAttackMask } from "./bitboardUtils/PieceMasks/attackMask";
 
 // Runs the game
 const BitboardGame = () => {
@@ -88,12 +89,13 @@ const BitboardGame = () => {
       promotion
     );
 
+    getCachedAttackMask(newBitboards, currPlayer);
     updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj);
   };
 
   // Handles when a square is clicked
   const handleSquareClick = (row, col) => {
-    if (isGameOver || !isCurrPositionShown) return;
+    if (isGameOver || !isCurrPositionShown || userSide !== currPlayer) return;
 
     const square = row * 8 + col;
     if (isPlayersPieceAtSquare(currPlayer, square, bitboards)) {
@@ -169,6 +171,7 @@ const BitboardGame = () => {
           square,
           moveObj.isCapture
         );
+        getCachedAttackMask(newBitboards, currPlayer);
 
         updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj);
       } else {
@@ -204,7 +207,7 @@ const BitboardGame = () => {
       moveObj.isCapture,
       piece
     );
-
+    getCachedAttackMask(newBitboards, currPlayer);
     updateStates(moveNotation, moveObj, newBitboards, hash, gameOverObj);
     setPromotion(false);
     setPromotionMove(null);
