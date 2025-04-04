@@ -16,7 +16,22 @@ import {
 } from "./bbMoveGeneration";
 import { getCachedAttackMask } from "./PieceMasks/attackMask";
 
-// Makes a move given a from and to square (ints 0-63). Move validation is handled by other functions
+/**
+ * Makes a move. Does not validate that moves are legal, as that is handled by other functions.
+ * 
+ * @param {bigint} bitboards 
+ *                bitboards of the current position
+ * @param {number} from
+ *                square to move from 
+ * @param {number} to 
+ *                square to move to
+ * @param {number} enPassantSquare 
+ *                square where en passant is legal, if any
+ * @param {string} promotionPiece 
+ *                piece the move promotes to, if any
+ * @returns {object} an object with a bitboards field of the updated bitboards, 
+ *                  a enPassant field of the new enPassant square, and an isCapture boolean.
+ */
 export const makeMove = (
   bitboards,
   from,
@@ -106,7 +121,23 @@ export const makeMove = (
   };
 };
 
-// Determines whether a give move is valid.
+/**
+ * Determines whether a given move is legal.
+ * 
+ * @param {bigint} bitboards 
+ *                bitboards of the current position
+ * @param {number} from 
+ *                the square to move from
+ * @param {number} to 
+ *                the square to move to
+ * @param {string} player 
+ *                the player whose move it is ("w" or "b")
+ * @param {number} enPassantSquare 
+ *                the square where enPassant can happen, if any
+ * @param {object} castlingRights 
+ *                an object with boolean fields whiteKingside, whiteQueenside, blackKingside, and blackQueenside
+ * @returns {boolean} if the move is legal
+ */
 export const isValidMove = (
   bitboards,
   from,
@@ -140,13 +171,31 @@ export const isValidMove = (
   return Boolean((legalMoves >> BigInt(to)) & BigInt(1));
 };
 
-// Determines whether a specific square is attacked by the opponent
+/**
+ * Determines whether a given square is attacked by the opponent
+ * 
+ * @param {bigint} bitboards
+ *                bitboards of the current position
+ * @param {number} square
+ *                square to check if it is attacked
+ * @param {string} opponent
+ *                the other player ("w" or "b")
+ * @returns {boolean} if the square is attacked
+ */
 export const isSquareAttacked = (bitboards, square, opponent) => {
   const opponentAttackMask = getCachedAttackMask(bitboards, opponent);
   return (opponentAttackMask & (1n << BigInt(square))) !== 0n;
 };
 
-// Determines if a square is in check
+/**
+ * Determines whether a given player is in check.
+ * 
+ * @param {bigint} bitboards 
+ *                bitboards of the current position
+ * @param {string} player 
+ *                player whose turn it is ("w" or "b")
+ * @returns {boolean} whether the player is in check
+ */
 export const isInCheck = (bitboards, player) => {
   let kingBB = bitboards.whiteKings;
   let opponent = "b";
@@ -160,7 +209,16 @@ export const isInCheck = (bitboards, player) => {
   return isSquareAttacked(bitboards, kingSquare, opponent);
 };
 
-// Filters out moves that put the king in check
+/**
+ * Filters out illegal moves from a bitboard of moves for a piece. 
+ * Mainly filters out moves that put your own king in check.
+ * 
+ * @param {bigint} bitboards bitboards of the current position
+ * @param {bigint} moves bitboard of moves for a piece
+ * @param {number} from square the piece is moving from
+ * @param {string} player player whose turn it is ("w" or "b")
+ * @returns {bigint} the filtered moves
+ */
 export const filterIllegalMoves = (bitboards, moves, from, player) => {
   let filteredMoves = 0n;
   const isPlayerWhite = player === "w";
@@ -186,7 +244,14 @@ export const filterIllegalMoves = (bitboards, moves, from, player) => {
   return filteredMoves;
 };
 
-// Updates the castling rights when a rook or king moves
+/**
+ * Updates castling rights given the square moved from. If any rook or king moves, castling is updated. 
+ * Because they always start at squares 0, 4, 7, 56, 60, and 63; any move from these squares means the rights need to be updated.
+ * 
+ * @param {number} from the square the piece is moving from
+ * @param {object} prevRights the rights to update. Has fields whiteKingside, whiteQueenside, blackKingside, blackQueenside
+ * @returns {object} the new castling rights
+ */
 export const updateCastlingRights = (from, prevRights) => {
   const newRights = { ...prevRights };
 
