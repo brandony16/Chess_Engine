@@ -4,6 +4,30 @@ import {
   getAllLegalMoves,
 } from "./bbMoveGeneration";
 
+/**
+ * @typedef {object} Bitboards
+ * @property {bigint} whitePawns - bitboard of the white pawns
+ * @property {bigint} whiteKnights - bitboard of the white knights
+ * @property {bigint} whiteBishops - bitboard of the white bishops
+ * @property {bigint} whiteRooks - bitboard of the white rooks
+ * @property {bigint} whiteQueens - bitboard of the white queens
+ * @property {bigint} whiteKings - bitboard of the white king
+ * @property {bigint} blackPawns - bitboard of the black pawns
+ * @property {bigint} blackKnights - bitboard of the black knights
+ * @property {bigint} blackBishops - bitboard of the black bishops
+ * @property {bigint} blackRooks - bitboard of the black rooks
+ * @property {bigint} blackQueens - bitboard of the black queens
+ * @property {bigint} blackKings - bitboard of the black king
+ */
+
+/**
+ * @typedef {object} CastlingRights
+ * @property {boolean} whiteKingside - Whether castling kingside is legal for white
+ * @property {boolean} whiteQueenside - Whether castling queenside is legal for white
+ * @property {boolean} blackKingside - Whether castling kingside is legal for black
+ * @property {boolean} blackQueenside - Whether castling queenside is legal for black
+ */
+
 // Inital bitboards
 export const initialBitboards = {
   whitePawns: BigInt("0x000000000000FF00"),
@@ -29,8 +53,7 @@ export const RANK_1_MASK = 0xffffffffffffff00n;
 /**
  * Gets the white piece bitboards
  *
- * @param {bigint} bitboards
- *                the bitboards of the current position
+ * @param {Bitboards} bitboards - the bitboards of the current position
  * @returns {object} white bitboards
  */
 export const getWhiteBitboards = (bitboards) => {
@@ -47,8 +70,7 @@ export const getWhiteBitboards = (bitboards) => {
 /**
  * Gets the white pieces in one bitboard
  *
- * @param {bigint} bitboards
- *                the bitboards of the current position
+ * @param {Bitboards} bitboards - the bitboards of the current position
  * @returns {bigint} all white pieces
  */
 export const getWhitePieces = (bitboards) => {
@@ -65,8 +87,7 @@ export const getWhitePieces = (bitboards) => {
 /**
  * Gets the black piece bitboards
  *
- * @param {bigint} bitboards
- *                the bitboards of the current position
+ * @param {Bitboards} bitboards - the bitboards of the current position
  * @returns {object} black bitboards
  */
 export const getBlackBitboards = (bitboards) => {
@@ -82,8 +103,7 @@ export const getBlackBitboards = (bitboards) => {
 
 /**
  *
- * @param {bigint} bitboards
- *                the bitboards of the current positiion
+ * @param {Bitboards} bitboards - the bitboards of the current positiion
  * @returns {bigint} all black pieces
  */
 export const getBlackPieces = (bitboards) => {
@@ -100,9 +120,8 @@ export const getBlackPieces = (bitboards) => {
 /**
  * Gets all the pieces on one bitboard
  *
- * @param {bigint} bitboards
- *                the bitboards of the current position
- * @returns {bigint} all pieces
+ * @param {Bitboards} bitboards - the bitboards of the current position
+ * @returns {bigint} bitboards of all pieces
  */
 export const getAllPieces = (bitboards) => {
   return BigInt(getWhitePieces(bitboards) | getBlackPieces(bitboards));
@@ -111,10 +130,8 @@ export const getAllPieces = (bitboards) => {
 /**
  * Gets the bitboard of a specific player's pieces
  *
- * @param {string} player
- *                the player whose move it is ("w" or "b")
- * @param {bigint} bitboards
- *                the bitboards of the current position
+ * @param {string} player - the player whose move it is ("w" or "b")
+ * @param {Bitboards} bitboards - the bitboards of the current position
  * @returns bitboard of players pieces
  */
 export const getPlayerBoard = (player, bitboards) => {
@@ -124,8 +141,7 @@ export const getPlayerBoard = (player, bitboards) => {
 /**
  * Gets all the empty squares
  *
- * @param {bigint} bitboards
- *                bitboards of the current position
+ * @param {Bitboards} bitboards - bitboards of the current position
  * @returns {bigint} bitboard of empty squares
  */
 export const getEmptySquares = (bitboards) => {
@@ -185,10 +201,8 @@ export const colSymbols = {
 /**
  * Gets a piece at a specific square
  *
- * @param {number} square
- *                the square to find the piece at
- * @param {bigint} bitboards
- *                the bitboards of the current position
+ * @param {number} square - the square to find the piece at
+ * @param {Bitboards} bitboards - the bitboards of the current position
  * @returns {string} piece at the square
  */
 export const getPieceAtSquare = (square, bitboards) => {
@@ -204,12 +218,9 @@ export const getPieceAtSquare = (square, bitboards) => {
 /**
  * Determines if a given player has a piece at the given square.
  *
- * @param {string} player
- *                the player whose move it is ("w" or "b")
- * @param {number} square
- *                the square to find the piece at
- * @param {bigint} bitboards
- *                the bitboards of the current position
+ * @param {string} player - the player whose move it is ("w" or "b")
+ * @param {number} square - the square to find the piece at
+ * @param {Bitboards} bitboards - the bitboards of the current position
  * @returns {boolean} true if players piece is at the square
  */
 export const isPlayersPieceAtSquare = (player, square, bitboards) => {
@@ -222,14 +233,10 @@ export const isPlayersPieceAtSquare = (player, square, bitboards) => {
 /**
  * Slides a specified direction until it hits a piece.
  *
- * @param {bigint} pieceBitboard
- *                the bitboard with a 1 where the piece is. Only 1 bit should be set
- * @param {bigint} shift
- *                the number of bits to shift. Left: -1, Right: 1, Up: 8, Down: -8
- * @param {bigint} mask
- *                the mask to apply to ensure the moves stay on the board and don't loop around to the other side
- * @param {bigint} allPieces
- *                a bitboard of all the pieces.
+ * @param {bigint} pieceBitboard - the bitboard with a 1 where the piece is. Only 1 bit should be set
+ * @param {bigint} shift - the number of bits to shift. Left: -1, Right: 1, Up: 8, Down: -8
+ * @param {bigint} mask - the mask to apply to ensure the moves stay on the board and don't loop around to the other side
+ * @param {bigint} allPieces - a bitboard of all the pieces.
  * @returns {bigint} moves along the given ray
  */
 export const slide = (pieceBitboard, shift, mask, allPieces) => {
@@ -257,8 +264,7 @@ export const slide = (pieceBitboard, shift, mask, allPieces) => {
  * Converts a big int to an 8x8 grid of 1s and 0s.
  * Used for debugging to be able to see what bits are and aren't flipped.
  *
- * @param {bigint} bitboard
- *                the bitboard to count the pieces of
+ * @param {bigint} bitboard - the bitboard to count the pieces of
  * @returns {string} bitboard as a string in a 8x8 grid
  */
 export const bigIntFullRep = (bitboard) => {
@@ -281,8 +287,7 @@ export const bigIntFullRep = (bitboard) => {
 /**
  * Iterates over a bitboard and finds the first square that is a 1. Returns that index.
  *
- * @param {bigint} bitboard
- *                the bitboard to count the pieces of
+ * @param {bigint} bitboard - the bitboard to count the pieces of
  * @returns {number} index of least signifigant bit
  */
 export const bitScanForward = (bitboard) => {
@@ -298,8 +303,7 @@ export const bitScanForward = (bitboard) => {
 /**
  * Gets the number of pieces a bitboard has. Counts each signifigant bit.
  *
- * @param {bigint} bitboard
- *                the bitboard to count the pieces of
+ * @param {bigint} bitboard - the bitboard to count the pieces of
  * @returns {number} number of pieces
  */
 export const getNumPieces = (bitboard) => {
@@ -330,12 +334,9 @@ export const zobristTable = new Array(12)
  * Positions are NOT the same if the pieces are the same but it is a different players turn.
  * Positions are also NOT the same if en passant was legal before, but is no longer legal.
  *
- * @param {bigint} bitboards
- *                the bitboards of the current position
- * @param {string} player
- *                the player whose move it is ("w" or "b")
- * @param {number} enPassant
- *                the en passant square. None assumes it is not legal.
+ * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {string} player - the player whose move it is ("w" or "b")
+ * @param {number} enPassant - the en passant square. None assumes it is not legal.
  * @returns {bigint} hash for the position
  */
 export const computeHash = (bitboards, player, enPassant = null) => {
@@ -368,18 +369,12 @@ export const computeHash = (bitboards, player, enPassant = null) => {
  * Compute hash redoes every calculation every time, which is inefficient, especially when only a few things have
  * changed since the last position.
  *
- * @param {bigint} prevBitboards
- *                bitboards before the move
- * @param {bigint} bitboards
- *                bitboards after the move
- * @param {number} to
- *                where the piece moved to
- * @param {number} from
- *                where the piece moved from
- * @param {boolean} enPassantChanged
- *                whether en passant has changed from legal to not legal or vice versa compared to the previous position.
- * @param {bigint} prevHash
- *                the hash from the previous position
+ * @param {Bitboards} prevBitboards - bitboards before the move
+ * @param {Bitboards} bitboards - bitboards after the move
+ * @param {number} to - where the piece moved to
+ * @param {number} from - where the piece moved from
+ * @param {boolean} enPassantChanged - whether en passant has changed from legal to not legal or vice versa compared to the previous position.
+ * @param {bigint} prevHash - the hash from the previous position
  * @returns {bigint} the new hash
  */
 export const updateHash = (
@@ -448,16 +443,11 @@ export const pieceToZobristIndex = {
  * Turns a move into normal, readable chess notation. Currently does NOT disambiguate,
  * which is when two or more of the same piece can move to the same square.
  *
- * @param {bigint} bitboards
- *                bitboards of the position AFTER the move is made
- * @param {number} from
- *                the square the piece moved from
- * @param {number} to
- *                the square to piece moved to
- * @param {boolean} isCapture
- *                whether or not the move captured a piece
- * @param {string} promotionPiece
- *                the piece the pawn was promoted to, if there is one.
+ * @param {Bitboards} bitboards - bitboards of the position AFTER the move is made
+ * @param {number} from - the square the piece moved from
+ * @param {number} to - the square to piece moved to
+ * @param {boolean} isCapture - whether or not the move captured a piece
+ * @param {string} promotionPiece - the piece the pawn was promoted to, if there is one.
  * @returns the move in normal chess notation
  */
 export const moveToReadable = (
@@ -522,15 +512,11 @@ export const moveToReadable = (
  * Gets all the legal moves and returns them in an array. Moves are formatted as objects,
  * with from, to, and promotion fields. Helpful for sorting
  *
- * @param {bigint} bitboards
- *                the bitboards of the current position
- * @param {string} player
- *                the player whose move it is ("w" or "b")
- * @param {object} castlingRights
- *                the castling rights for the game. Should have boolean fields whiteKingside, whiteQueenside,
+ * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {string} player - the player whose move it is ("w" or "b")
+ * @param {CastlingRights} castlingRights - the castling rights for the game. Should have boolean fields whiteKingside, whiteQueenside,
  *                blackKingside, blackQueenside
- * @param {number} enPassantSquare
- *                the square, if any, that a pawn could do en passant
+ * @param {number} enPassantSquare - the square, if any, that a pawn could do en passant
  * @returns all legal moves in an array format
  */
 export const allLegalMovesArr = (
