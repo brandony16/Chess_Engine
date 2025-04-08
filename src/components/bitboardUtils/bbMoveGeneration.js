@@ -23,7 +23,42 @@ import { kingMasks } from "./PieceMasks/kingMask";
 import { knightMasks } from "./PieceMasks/knightMask";
 import { blackPawnMasks, whitePawnMasks } from "./PieceMasks/pawnMask";
 
-// Gets the legal moves of a piece
+/**
+ * @typedef {object} Bitboards
+ * @property {bigint} whitePawns - bitboard of the white pawns
+ * @property {bigint} whiteKnights - bitboard of the white knights
+ * @property {bigint} whiteBishops - bitboard of the white bishops
+ * @property {bigint} whiteRooks - bitboard of the white rooks
+ * @property {bigint} whiteQueens - bitboard of the white queens
+ * @property {bigint} whiteKings - bitboard of the white king
+ * @property {bigint} blackPawns - bitboard of the black pawns
+ * @property {bigint} blackKnights - bitboard of the black knights
+ * @property {bigint} blackBishops - bitboard of the black bishops
+ * @property {bigint} blackRooks - bitboard of the black rooks
+ * @property {bigint} blackQueens - bitboard of the black queens
+ * @property {bigint} blackKings - bitboard of the black king
+ */
+
+/**
+ * @typedef {object} CastlingRights
+ * @property {boolean} whiteKingside - Whether castling kingside is legal for white
+ * @property {boolean} whiteQueenside - Whether castling queenside is legal for white
+ * @property {boolean} blackKingside - Whether castling kingside is legal for black
+ * @property {boolean} blackQueenside - Whether castling queenside is legal for black
+ */
+
+/**
+ * Gets the moves for a specific piece. Returns a bitboard of the moves for that piece.
+ *
+ * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {string} piece - the piece that is moving. "P", "N", "B", "R", "Q", or "K"
+ * @param {number} from - the square to move from
+ * @param {string} player - whose move it is ("w" or "b")
+ * @param {number} enPassantSquare - the square where en passant is legal
+ * @param {CastlingRights} castlingRights - the castling rights
+ * @param {boolean} onlyCaptures - whether the moves should only be captures
+ * @returns {bigint} a bitboard of the moves of the piece
+ */
 export const getPieceMoves = (
   bitboards,
   piece,
@@ -66,7 +101,16 @@ export const getPieceMoves = (
   return moves;
 };
 
-// Gets all moves for a player. Does NOT check for legality (if the move puts the king in check)
+/**
+ * Creates a bitboard for all of the moves a player has
+ *
+ * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {string} player - whose move it is ("w" or "b")
+ * @param {CastlingRights} castlingRights  - the castling rights
+ * @param {number} enPassantSquare - the square where en passant is legal
+ * @param {boolean} onlyCaptures - whether the moves should only be captures
+ * @returns {bigint} a bitboard of all the moves a player has
+ */
 export const getAllPlayerMoves = (
   bitboards,
   player,

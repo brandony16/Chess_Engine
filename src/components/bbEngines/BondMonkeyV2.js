@@ -10,12 +10,43 @@ import {
   getNumPieces,
   updateHash,
 } from "../bitboardUtils/bbHelpers";
-import {
-  getCachedAttackMask,
-  updateAttackMask,
-} from "../bitboardUtils/PieceMasks/attackMask";
+import { updateAttackMask } from "../bitboardUtils/PieceMasks/attackMask";
 
-// V1: Plays a random legal move
+/**
+ * @typedef {object} Bitboards
+ * @property {bigint} whitePawns - bitboard of the white pawns
+ * @property {bigint} whiteKnights - bitboard of the white knights
+ * @property {bigint} whiteBishops - bitboard of the white bishops
+ * @property {bigint} whiteRooks - bitboard of the white rooks
+ * @property {bigint} whiteQueens - bitboard of the white queens
+ * @property {bigint} whiteKings - bitboard of the white king
+ * @property {bigint} blackPawns - bitboard of the black pawns
+ * @property {bigint} blackKnights - bitboard of the black knights
+ * @property {bigint} blackBishops - bitboard of the black bishops
+ * @property {bigint} blackRooks - bitboard of the black rooks
+ * @property {bigint} blackQueens - bitboard of the black queens
+ * @property {bigint} blackKings - bitboard of the black king
+ */
+
+/**
+ * @typedef {object} CastlingRights
+ * @property {boolean} whiteKingside - Whether castling kingside is legal for white
+ * @property {boolean} whiteQueenside - Whether castling queenside is legal for white
+ * @property {boolean} blackKingside - Whether castling kingside is legal for black
+ * @property {boolean} blackQueenside - Whether castling queenside is legal for black
+ */
+
+/**
+ * Gets the best move in a position based purely off of material.
+ *
+ * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {string} player - the player whose move it is ("w" or "b")
+ * @param {CastlingRights} castlingRights - the castling rights
+ * @param {number} enPassantSquare - the square where en passant is legal
+ * @param {Map} prevPositions - a map of the previous positions
+ * @param {number} depth - the depth to search
+ * @returns {{ from: number, to: number, promotion: string}} the best move found
+ */
 export const getBestMoveBMV2 = (
   bitboards,
   player,
@@ -124,6 +155,19 @@ export const getBestMoveBMV2 = (
   return bestMove;
 };
 
+/**
+ * A minimax function that recursively finds the evaluation of the function.
+ * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {string} player - whose move it is ("w" or "b")
+ * @param {CastlingRights} castlingRights - the castling rights
+ * @param {number} enPassantSquare - the square where en passant is legal
+ * @param {Map} prevPositions - a map of the previous positions
+ * @param {string} result - a string of the result of the game. Null if game not over
+ * @param {depth} depth - the depth left to search
+ * @param {number} alpha - the alpha value for alpha-beta pruning
+ * @param {number} beta - the beta value for alpha-beta pruning
+ * @returns {number} evaluation of the move
+ */
 const minimax = (
   bitboards,
   player,
@@ -249,6 +293,7 @@ const minimax = (
   }
 };
 
+// An object of all the weights of the pieces
 const weights = {
   blackPawns: -1,
   blackKnights: -3,
@@ -264,7 +309,18 @@ const weights = {
   whiteKings: 1000000,
 };
 
+/**
+ * Checkmate constant
+ */
 const CHECKMATE_VALUE = 10_000_000;
+
+/**
+ * Gets the evaluation of the given position based purely off of the material in the position.
+ * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {string} player - whose move it is ("w" or "b")
+ * @param {string} result - the game over result of the position. Null if game is not over
+ * @returns {number} The evaluation
+ */
 const evaluate = (bitboards, player, result) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
