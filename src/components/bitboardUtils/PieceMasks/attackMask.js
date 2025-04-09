@@ -1,4 +1,11 @@
-import { bitScanForward, computeHash, getPieceAtSquare, pieceToZobristIndex, PLAYER_ZOBRIST, zobristTable } from "../bbHelpers";
+import {
+  bitScanForward,
+  computeHash,
+  getPieceAtSquare,
+  pieceToZobristIndex,
+  PLAYER_ZOBRIST,
+  zobristTable,
+} from "../bbHelpers";
 import {
   getBishopMovesForSquare,
   getKingMovesForSquare,
@@ -8,6 +15,29 @@ import {
 import { knightMasks } from "./knightMask";
 import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
 
+/**
+ * @typedef {object} Bitboards
+ * @property {bigint} whitePawns - bitboard of the white pawns
+ * @property {bigint} whiteKnights - bitboard of the white knights
+ * @property {bigint} whiteBishops - bitboard of the white bishops
+ * @property {bigint} whiteRooks - bitboard of the white rooks
+ * @property {bigint} whiteQueens - bitboard of the white queens
+ * @property {bigint} whiteKings - bitboard of the white king
+ * @property {bigint} blackPawns - bitboard of the black pawns
+ * @property {bigint} blackKnights - bitboard of the black knights
+ * @property {bigint} blackBishops - bitboard of the black bishops
+ * @property {bigint} blackRooks - bitboard of the black rooks
+ * @property {bigint} blackQueens - bitboard of the black queens
+ * @property {bigint} blackKings - bitboard of the black king
+ */
+
+/**
+ * Computes an attack mask for a player
+ *
+ * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {string} player - whose attack mask it is ("w" or "b")
+ * @returns {bigint} the attack mask for the player
+ */
 const computeAttackMask = (bitboards, player) => {
   const one = 1n;
   let attackMask = 0n;
@@ -114,8 +144,16 @@ const computeAttackMask = (bitboards, player) => {
   return attackMask;
 };
 
+// Map of cached attack masks
 const attackMaskCache = new Map();
 
+/**
+ * Gets a cached attack mask
+ * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {string} player - whose attack mask it is ("w" or "b")
+ * @param {bigint} hash - the hash of the mask to get
+ * @returns {bigint} the attack mask
+ */
 export const getCachedAttackMask = (bitboards, player, hash) => {
   const boardHash = computeHash(bitboards, player);
   if (attackMaskCache.has(boardHash)) {
@@ -128,16 +166,26 @@ export const getCachedAttackMask = (bitboards, player, hash) => {
   return mask;
 };
 
+/**
+ * Updates the previous attack mask. Is much more efficient than recomputing it every time.
+ *
+ * @param {Bitboards} prevBitboards - the previous positions bitboards
+ * @param {Bitboards} bitboards - the current positions bitboards
+ * @param {number} from - the square moving from
+ * @param {number} to - the square moving to
+ * @param {bigint} prevHash - the previous hash
+ * @returns {bigint} a hash of the new attack map
+ */
 export const updateAttackMask = (
   prevBitboards,
   bitboards,
   from,
   to,
-  prevHash,
+  prevHash
 ) => {
   let newHash = prevHash;
   let pieceFrom = getPieceAtSquare(from, prevBitboards);
-  
+
   // XOR the piece at the previous position
   const zobristFromIndex = pieceToZobristIndex[pieceFrom];
   const zobristFrom = zobristTable[zobristFromIndex][from];

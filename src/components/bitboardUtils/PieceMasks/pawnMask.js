@@ -1,4 +1,10 @@
-function computeWhitePawnMask(square) {
+/**
+ * Computes a white pawn attack mask for a square.
+ *
+ * @param {number} square - the square of the white pawn
+ * @returns {bigint} the white pawn attack mask
+ */
+const computeWhitePawnMask = (square) => {
   const pawn = 1n << BigInt(square);
   let attacks = 0n;
 
@@ -11,10 +17,15 @@ function computeWhitePawnMask(square) {
     attacks |= pawn << 9n;
   }
   return attacks;
-}
+};
 
-// Compute black pawn attack mask for a given square.
-function computeBlackPawnMask(square) {
+/**
+ * Computes a black pawn attack mask for a square.
+ *
+ * @param {number} square - the square of the black pawn
+ * @returns {bigint} the black pawn attack mask
+ */
+const computeBlackPawnMask = (square) => {
   const pawn = 1n << BigInt(square);
   let attacks = 0n;
 
@@ -27,8 +38,12 @@ function computeBlackPawnMask(square) {
     attacks |= pawn >> 7n;
   }
   return attacks;
-}
+};
 
+/**
+ * Calculates the white pawn attack maps for every square on the board.
+ * @returns {Array} an array of every white pawn attack mask
+ */
 const initializeWPawnAttackMasks = () => {
   const whitePawnMasks = new Array(64);
   for (let sq = 0; sq < 64; sq++) {
@@ -38,8 +53,13 @@ const initializeWPawnAttackMasks = () => {
   return whitePawnMasks;
 };
 
+// The white pawn attack masks
 export const whitePawnMasks = initializeWPawnAttackMasks();
 
+/**
+ * Calculates the black pawn attack maps for every square on the board.
+ * @returns {Array} an array of every black pawn attack mask
+ */
 const initializeBPawnAttackMasks = () => {
   const blackPawnMasks = new Array(64);
   for (let sq = 0; sq < 64; sq++) {
@@ -49,4 +69,5 @@ const initializeBPawnAttackMasks = () => {
   return blackPawnMasks;
 };
 
+// The white pawn attack masks
 export const blackPawnMasks = initializeBPawnAttackMasks();

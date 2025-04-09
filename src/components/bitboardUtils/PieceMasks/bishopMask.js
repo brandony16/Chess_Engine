@@ -1,6 +1,12 @@
 import { getFile, getRank } from "../bbHelpers";
 
-const  computeBishopMask = (square) => {
+/**
+ * Computes a bishop attack mask from a square
+ * 
+ * @param {number} square - the square of the bishop
+ * @returns {bigint} the bishop attack mask
+ */
+const computeBishopMask = (square) => {
   let mask = 0n;
   const rank = getRank(square);
   const file = getFile(square);
@@ -24,6 +30,11 @@ const  computeBishopMask = (square) => {
   return mask;
 }
 
+/**
+ * Calculates the bishop attack masks for every square as if 
+ * there was a bishop there.
+ * @returns {Array} the bishop masks
+ */
 const initializeBishopMasks = () => {
   const bishopMasks = new Array(64);
 
@@ -34,4 +45,5 @@ const initializeBishopMasks = () => {
   return bishopMasks;
 };
 
+// The bishop masks
 export const bishopMasks = initializeBishopMasks();

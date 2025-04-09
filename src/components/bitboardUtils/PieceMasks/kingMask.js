@@ -1,7 +1,14 @@
 import { isOnBoard } from "../bbUtils";
 
+// The king square offsets
 const KING_OFFSETS = [1, 7, 8, 9, -1, -7, -8, -9];
 
+/**
+ * Computes a king move mask for a square. Does not do castling.
+ * 
+ * @param {number} square - the square of the king
+ * @returns {bigint} the king move mask
+ */
 const computeKingMask = (square) => {
   let mask = 0n;
 
@@ -14,6 +21,12 @@ const computeKingMask = (square) => {
   return mask;
 };
 
+/**
+ * Determines whether a king move wraps around the board. Returns false if it does.
+ * @param {number} source - the square the king moves from
+ * @param {number} dest - the square the king moves to
+ * @returns {boolean} if it is valid
+ */
 const isValidKingMove = (source, dest) => {
   // Compute rank and file for source and destination:
   const sourceFile = source % 8;
@@ -29,6 +42,10 @@ const isValidKingMove = (source, dest) => {
   return true;
 };
 
+/**
+ * Initializes an array of king masks for every square.
+ * @returns {Array} the king masks
+ */
 const initializeKingMasks = () => {
   const kingMasks = new Array(64);
 
@@ -39,4 +56,5 @@ const initializeKingMasks = () => {
   return kingMasks;
 };
 
+// The king masks
 export const kingMasks = initializeKingMasks();

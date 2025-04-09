@@ -1,5 +1,11 @@
 import { getFile, getRank } from "../bbHelpers";
 
+/**
+ * Computes a move mask for a queen at a square
+ * 
+ * @param {number} square - the square the queen is at
+ * @returns {bigint} the queen mask for the square
+ */
 const computeQueenMask = (square) => {
   let mask = 0n;
 
@@ -36,6 +42,10 @@ const computeQueenMask = (square) => {
   return mask;
 };
 
+/**
+ * Calculates the queen attack maps for every square on the board.
+ * @returns {Array} an array of every queen move mask
+ */
 const initializeQueenMasks = () => {
   const queenMasks = new Array(64);
 
@@ -46,4 +56,5 @@ const initializeQueenMasks = () => {
   return queenMasks;
 };
 
+// The queen masks
 export const queenMasks = initializeQueenMasks();

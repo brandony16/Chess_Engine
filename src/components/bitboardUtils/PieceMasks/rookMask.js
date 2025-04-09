@@ -1,5 +1,10 @@
-import { getFile, getRank } from "../bbHelpers"
+import { getFile, getRank } from "../bbHelpers";
 
+/**
+ * Computes a rook move mask for a square
+ * @param {number} square - the square for the rook mask
+ * @returns {bigint} the rook mask for the square
+ */
 const computeRookMask = (square) => {
   let mask = 0n;
 
@@ -19,8 +24,12 @@ const computeRookMask = (square) => {
     mask |= 1n << BigInt(rank * 8 + f);
   }
   return mask;
-}
+};
 
+/**
+ * Calculates the rook attack maps for every square on the board.
+ * @returns {Array} an array of every rook move mask
+ */
 const initializeRookMasks = () => {
   const rookMasks = new Array(64);
 
@@ -29,6 +38,7 @@ const initializeRookMasks = () => {
   }
 
   return rookMasks;
-}
+};
 
+// The rook masks
 export const rookMasks = initializeRookMasks();

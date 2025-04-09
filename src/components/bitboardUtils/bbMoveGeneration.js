@@ -102,11 +102,11 @@ export const getPieceMoves = (
 };
 
 /**
- * Creates a bitboard for all of the moves a player has
+ * Creates a bitboard for all of the moves a player has. Does not check for legality
  *
  * @param {Bitboards} bitboards - the bitboards of the current position
  * @param {string} player - whose move it is ("w" or "b")
- * @param {CastlingRights} castlingRights  - the castling rights
+ * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {boolean} onlyCaptures - whether the moves should only be captures
  * @returns {bigint} a bitboard of all the moves a player has
@@ -147,6 +147,16 @@ export const getAllPlayerMoves = (
   return allMoves;
 };
 
+/**
+ * Gets all of the legal moves a player has as a bitboard.
+ *
+ * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {string} player - whose move it is ("w" or "b")
+ * @param {CastlingRights} castlingRights - the castling rights
+ * @param {number} enPassantSquare - the square where en passant is legal
+ * @param {boolean} onlyCaptures - whether the moves should only be captures
+ * @returns {bigint} a bitboard of all the legal moves a player has
+ */
 export const getAllLegalMoves = (
   bitboards,
   player,
@@ -190,6 +200,18 @@ export const getAllLegalMoves = (
   return allMoves;
 };
 
+/**
+ * Gets all of the legal moves for each square and returns it as an object.
+ * The keys are the square of the piece and the fields is the bitboard for the square.
+ * Ex: { 10: bigint, 34: bigint, etc.}
+ *
+ * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {string} player - whose move it is ("w" or "b")
+ * @param {CastlingRights} castlingRights - the castling rights
+ * @param {number} enPassantSquare - the square where en passant is legal
+ * @param {boolean} onlyCaptures - whether the moves should only be captures
+ * @returns {object} an object with corresponding bitboards for each square.
+ */
 export const getAllIndividualLegalMoves = (
   bitboards,
   player,
@@ -233,6 +255,15 @@ export const getAllIndividualLegalMoves = (
 };
 
 /* SPECIFIC PIECE MOVE FUNCTIONS */
+/**
+ * Gets the move bitboard for a pawn.
+ * @param {Bitboards} bitboards - the bitboards in the current position
+ * @param {string} player - whose piece it is ("w" or "b")
+ * @param {number} from - the square its moving from
+ * @param {number} enPassantSquare - the square where en passant is legal
+ * @param {boolean} attacksOnly - whether to only count attacking moves.
+ * @returns {bigint} the move bitboard for the pawn
+ */
 export const getPawnMovesForSquare = (
   bitboards,
   player,
@@ -298,6 +329,13 @@ export const getPawnMovesForSquare = (
   return singlePush | doublePush | capture | enPassantCapture;
 };
 
+/**
+ * Gets the move bitboard for a knight.
+ * @param {Bitboards} bitboards - the bitboards in the current position
+ * @param {string} player - whose piece it is ("w" or "b")
+ * @param {number} from - the square its moving from
+ * @returns {bigint} the move bitboard for the knight
+ */
 export const getKnightMovesForSquare = (bitboards, player, from) => {
   // Get raw knight moves
   let moves = knightMasks[from];
@@ -310,6 +348,13 @@ export const getKnightMovesForSquare = (bitboards, player, from) => {
   return moves & ~friendlyPieces;
 };
 
+/**
+ * Gets the move bitboard for a bishop.
+ * @param {Bitboards} bitboards - the bitboards in the current position
+ * @param {string} player - whose piece it is ("w" or "b")
+ * @param {number} from - the square its moving from
+ * @returns {bigint} the move bitboard for the bishop
+ */
 export const getBishopMovesForSquare = (bitboards, player, from) => {
   let bishopBitboard = 1n << BigInt(from);
   let moves = 0n;
@@ -327,6 +372,13 @@ export const getBishopMovesForSquare = (bitboards, player, from) => {
   return moves & ~friendlyPieces;
 };
 
+/**
+ * Gets the move bitboard for a rook.
+ * @param {Bitboards} bitboards - the bitboards in the current position
+ * @param {string} player - whose piece it is ("w" or "b")
+ * @param {number} from - the square its moving from
+ * @returns {bigint} the move bitboard for the rook
+ */
 export const getRookMovesForSquare = (bitboards, player, from) => {
   let rookBitboard = 1n << BigInt(from);
   let moves = 0n;
@@ -343,6 +395,13 @@ export const getRookMovesForSquare = (bitboards, player, from) => {
   return moves & ~friendlyPieces;
 };
 
+/**
+ * Gets the move bitboard for a queen.
+ * @param {Bitboards} bitboards - the bitboards in the current position
+ * @param {string} player - whose piece it is ("w" or "b")
+ * @param {number} from - the square its moving from
+ * @returns {bigint} the move bitboard for the queen
+ */
 export const getQueenMovesForSquare = (bitboards, player, from) => {
   let queenBitboard = 1n << BigInt(from);
   let moves = 0n;
@@ -366,6 +425,14 @@ export const getQueenMovesForSquare = (bitboards, player, from) => {
   return moves & ~friendlyPieces;
 };
 
+/**
+ * Gets the move bitboard for a king.
+ * @param {Bitboards} bitboards - the bitboards in the current position
+ * @param {string} player - whose piece it is ("w" or "b")
+ * @param {number} from - the square its moving from
+ * @param {CastlingRights} castlingRights - the castling rights for the king
+ * @returns {bigint} the move bitboard for the king
+ */
 export const getKingMovesForSquare = (
   bitboards,
   player,
