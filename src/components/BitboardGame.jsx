@@ -1,12 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import PromotionModal from "./PromotionModal";
 import Sidebar from "./Sidebar";
 import "./UI.css";
 import BitboardBoard from "./BitboardBoard";
-import { getBestMoveBMV1 } from "./bbEngines/BondMonkeyV1";
-import { getBestMoveBMV2 } from "./bbEngines/BondMonkeyV2";
 import { getCachedAttackMask } from "./bitboardUtils/PieceMasks/attackMask";
-import { INITIAL_BITBOARDS, PIECE_SYMBOLS } from "./bitboardUtils/constants";
+import { PIECE_SYMBOLS } from "./bitboardUtils/constants";
 import {
   isValidMove,
   makeMove,
@@ -20,48 +18,49 @@ import {
 } from "./bitboardUtils/pieceGetters";
 import { getPieceMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration";
 import { filterIllegalMoves } from "./bitboardUtils/bbChessLogic";
-import { updateCastlingRights } from "./bitboardUtils/moveMaking/castleMoveLogic";
+import { BMV2 } from "./bbEngines/BondMonkeyV2";
+import { useGameStore } from "./gameStore";
 
 // Runs the game
 const BitboardGame = () => {
-  // STATES
-  const [bitboards, setBitboards] = useState(INITIAL_BITBOARDS);
-  const [selectedSquare, setSelectedSquare] = useState(null);
-  const [moveBitboard, setMoveBitboard] = useState(null);
-  const [currPlayer, setCurrPlayer] = useState("w");
-  const [userSide, setUserSide] = useState("w");
-  const [enPassantSquare, setEnPassantSquare] = useState(null);
-  const [promotion, setPromotion] = useState(false);
-  const [promotionMove, setPromotionMove] = useState(null);
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [result, setResult] = useState(null);
-  const [pastPositions, setPastPositions] = useState(new Map());
-  const [pastMoves, setPastMoves] = useState([]);
-  const [pastBitboards, setPastBitboards] = useState([]);
-  const [displayedBitboards, setDisplayedBitboards] =
-    useState(INITIAL_BITBOARDS);
-  const [isCurrPositionShown, setIsCurrPositionShown] = useState(true);
-  const [currIndexOfDisplayed, setCurrIndexOfDisplayed] = useState(-1);
-  const [castlingRights, setCastlingRights] = useState({
-    whiteKingside: true,
-    whiteQueenside: true,
-    blackKingside: true,
-    blackQueenside: true,
-  });
+  const {
+    selectedSquare,
+    moveBitboard,
+    currPlayer,
+    userSide,
+    promotion,
+    promotionMove,
+    isGameOver,
+    result,
+    pastMoves,
+    displayedBitboards,
+    currIndexOfDisplayed,
+    resetGame,
+  } = useGameStore();
 
   // FUNCTIONS
-
   // Gets the engine move then plays it
-  const makeEngineMove = () => {
-    if (!isCurrPositionShown || isGameOver) return;
-
-    const bestMoveObj = getBestMoveBMV2(
+  const makeEngineMove = (engine, depth = 3) => {
+    const {
+      isCurrPositionShown,
+      isGameOver,
       bitboards,
       currPlayer,
       castlingRights,
       enPassantSquare,
       pastPositions,
-      4
+      updateStates,
+    } = useGameStore.getState();
+
+    if (!isCurrPositionShown || isGameOver) return;
+
+    const bestMoveObj = engine(
+      bitboards,
+      currPlayer,
+      castlingRights,
+      enPassantSquare,
+      pastPositions,
+      depth
     );
     const from = bestMoveObj.from;
     const to = bestMoveObj.to;
@@ -88,16 +87,29 @@ const BitboardGame = () => {
       promotion
     );
 
-    updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj);
+    updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj, from);
   };
 
   // Handles when a square is clicked
   const handleSquareClick = (row, col) => {
+    const {
+      isCurrPositionShown,
+      isGameOver,
+      bitboards,
+      currPlayer,
+      castlingRights,
+      enPassantSquare,
+      pastPositions,
+      updateStates,
+      userSide,
+      selectedSquare,
+    } = useGameStore.getState();
+
     if (isGameOver || !isCurrPositionShown || userSide !== currPlayer) return;
 
     const square = row * 8 + col;
     if (isPlayersPieceAtSquare(currPlayer, square, bitboards)) {
-      setSelectedSquare(square);
+      useGameStore.setState({ selectedSquare: square });
       const piece = getPieceAtSquare(square, bitboards);
       const moveBitboard = getPieceMoves(
         bitboards,
@@ -113,9 +125,11 @@ const BitboardGame = () => {
         square,
         currPlayer
       );
-      setMoveBitboard(filteredMoveBitboard);
-      setPromotion(false);
-      setPromotionMove(null);
+      useGameStore.setState({
+        moveBitboard: filteredMoveBitboard,
+        promotion: false,
+        promotionMove: null,
+      });
       return;
     }
 
@@ -136,8 +150,10 @@ const BitboardGame = () => {
             getPieceAtSquare(selectedSquare, bitboards)
           ].toLowerCase() === "p"
         ) {
-          setPromotion(true);
-          setPromotionMove({ from: selectedSquare, to: square });
+          useGameStore.setState({
+            promotion: true,
+            promotionMove: { from: selectedSquare, to: square },
+          });
           return;
         }
 
@@ -173,15 +189,27 @@ const BitboardGame = () => {
 
         updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj);
       } else {
-        setSelectedSquare(null);
-        setMoveBitboard(null);
-        setPromotion(false);
-        setPromotionMove(null);
+        useGameStore.setState({
+          selectedSquare: null,
+          moveBitboard: null,
+          promotion: false,
+          promotionMove: null,
+        });
       }
     }
   };
 
   const handlePromotion = (piece) => {
+    const {
+      bitboards,
+      currPlayer,
+      castlingRights,
+      enPassantSquare,
+      pastPositions,
+      updateStates,
+      promotionMove,
+    } = useGameStore.getState();
+
     const from = promotionMove.from;
     const to = promotionMove.to;
 
@@ -206,83 +234,92 @@ const BitboardGame = () => {
       piece
     );
     getCachedAttackMask(newBitboards, currPlayer);
-    updateStates(moveNotation, moveObj, newBitboards, hash, gameOverObj);
-    setPromotion(false);
-    setPromotionMove(null);
-  };
-
-  const updateStates = (
-    moveNotation,
-    moveObj,
-    newBitboards,
-    hash,
-    gameOverObj
-  ) => {
-    setIsGameOver(gameOverObj.isGameOver);
-    setResult(gameOverObj.result);
-    setPastMoves((pastMoves) => [...pastMoves, moveNotation]);
-    setEnPassantSquare(moveObj.enPassantSquare);
-    setCastlingRights(updateCastlingRights(selectedSquare, castlingRights));
-    setSelectedSquare(null);
-    setBitboards(newBitboards);
-    setMoveBitboard(null);
-    setPastPositions((prevPositions) => {
-      const newPositions = new Map(prevPositions);
-      newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
-      return newPositions;
-    });
-
-    // Board display
-    setPastBitboards((prevBoards) => [...prevBoards, newBitboards]);
-    setDisplayedBitboards(newBitboards);
-    setCurrIndexOfDisplayed((prev) => prev + 1);
-    setCurrPlayer((prev) => (prev === "w" ? "b" : "w"));
-  };
-
-  // Resets the game
-  const resetGame = () => {
-    setUserSide((prev) => (prev === "w" ? "b" : "w"));
-    setBitboards(INITIAL_BITBOARDS);
-    setSelectedSquare(null);
-    setCurrPlayer("w");
-    setEnPassantSquare(null);
-    setIsGameOver(false);
-    setMoveBitboard(null);
-    setPastPositions(new Map());
-    setPastMoves([]);
-    setPromotion(false);
-    setPromotionMove(null);
-    setCastlingRights({
-      whiteKingside: true,
-      whiteQueenside: true,
-      blackKingside: true,
-      blackQueenside: true,
+    updateStates(moveNotation, moveObj, newBitboards, hash, gameOverObj, from);
+    useGameStore.setState({
+      promotion: false,
+      promotionMove: null,
     });
   };
 
-  // Allows user to look at past moves
   const changeBoardView = (direction) => {
+    const { currIndexOfDisplayed, pastBitboards } = useGameStore.getState();
+
     const index = currIndexOfDisplayed + direction;
 
     if (index < 0 || index >= pastBitboards.length) return;
 
-    setDisplayedBitboards(pastBitboards[index]);
-    setCurrIndexOfDisplayed((prev) => prev + direction);
+    useGameStore.setState({
+      displayedBitboards: pastBitboards[index],
+      currIndexOfDisplayed: useGameStore.getState().currIndexOfDisplayed + 1,
+    });
 
     if (index === pastBitboards.length - 1) {
-      setIsCurrPositionShown(true);
+      useGameStore.setState({ isCurrPositionShown: true });
     } else {
-      setIsCurrPositionShown(false);
-      setSelectedSquare(null);
-      setMoveBitboard(null);
+      useGameStore.setState({
+        isCurrPositionShown: false,
+        selectedSquare: null,
+        moveBitboard: null,
+      });
     }
+  };
+
+  const battleTwoEngines = (engine1, engine2, games = 10) => {
+    resetGame();
+    useGameStore.setState({ userSide: null });
+
+    let wins = 0;
+    let draws = 0;
+    let losses = 0;
+
+    let gameNum = 1;
+    while (gameNum <= games) {
+      console.log("Game " + gameNum + " started");
+
+      let whiteSide = engine1;
+      let blackSide = engine2;
+      while (!useGameStore.getState().isGameOver) {
+        makeEngineMove(whiteSide, 3);
+        if (useGameStore.getState().isGameOver) break;
+
+        makeEngineMove(blackSide, 3);
+        if (useGameStore.getState().isGameOver) break;
+      }
+      const result = useGameStore.getState().result;
+      console.log("Game " + gameNum + " Over");
+      console.log(result);
+      const engineNum = gameNum % 2 === 1 ? 1 : 2;
+      console.log("With white being engine" + engineNum);
+
+      const resultChar = result.charAt(0);
+      const engineSide = engineNum === 1 ? "W" : "B";
+      if (resultChar === engineSide) {
+        wins++;
+      } else if (resultChar === "D") {
+        draws++;
+      } else {
+        losses++;
+      }
+
+      resetGame();
+      whiteSide = engine2;
+      blackSide = engine1;
+      gameNum++;
+    }
+
+    console.log("Engine1 Stats:");
+    console.log("\n Wins: " + wins);
+    console.log("\n Draws: " + draws);
+    console.log("\n Losses: " + losses);
+    const winRate = (wins / games) * 100;
+    console.log("Win Rate: " + winRate + "%");
   };
 
   // Runs the engine move after the user makes a move
   useEffect(() => {
-    if (currPlayer !== userSide && !isGameOver) {
+    if (currPlayer !== userSide && !isGameOver && userSide !== null) {
       setTimeout(() => {
-        makeEngineMove();
+        makeEngineMove(BMV2);
       }, 10);
     }
   }, [currPlayer, userSide]);
@@ -311,6 +348,7 @@ const BitboardGame = () => {
         pastMoves={pastMoves}
         changeBoardView={changeBoardView}
         indexOfViewedMove={currIndexOfDisplayed}
+        battleTwoEngines={battleTwoEngines}
       />
     </div>
   );

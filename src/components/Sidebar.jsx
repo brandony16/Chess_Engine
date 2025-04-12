@@ -1,6 +1,8 @@
 import PropTypes from "prop-types";
 import MoveArrows from "./MoveArrows";
 import MoveList from "./MoveList";
+import { BMV1 } from "./bbEngines/BondMonkeyV1";
+import { BMV2 } from "./bbEngines/BondMonkeyV2";
 
 const Sidebar = ({
   currPlayer,
@@ -10,6 +12,7 @@ const Sidebar = ({
   pastMoves,
   changeBoardView,
   indexOfViewedMove,
+  battleTwoEngines,
 }) => {
   const turnText = currPlayer === "w" ? "White's Turn" : "Black's Turn";
 
@@ -21,6 +24,12 @@ const Sidebar = ({
         New Game
       </button>
       <MoveArrows changeBoardView={changeBoardView} />
+      <button
+        className="engineBattle"
+        onClick={() => battleTwoEngines(BMV2, BMV1, 10)}
+      >
+        Battle Engines
+      </button>
     </div>
   );
 };
@@ -33,6 +42,7 @@ Sidebar.propTypes = {
   pastMoves: PropTypes.arrayOf(PropTypes.string).isRequired,
   changeBoardView: PropTypes.func.isRequired,
   indexOfViewedMove: PropTypes.number.isRequired,
+  battleTwoEngines: PropTypes.func.isRequired,
 };
 
 export default Sidebar;

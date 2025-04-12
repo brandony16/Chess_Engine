@@ -1,4 +1,5 @@
-import { allLegalMovesArr } from "../bitboardUtils/generalHelpers";
+import { allLegalMovesArr, bigIntFullRep } from "../bitboardUtils/generalHelpers";
+import { getAllPieces } from "../bitboardUtils/pieceGetters";
 /**
  * @typedef {object} Bitboards
  * @property {bigint} whitePawns - bitboard of the white pawns
@@ -32,11 +33,12 @@ import { allLegalMovesArr } from "../bitboardUtils/generalHelpers";
  * @param {number} enPassantSquare - the square where en passant is legal
  * @returns {{from: number, to: number, promotion: string}} The move found
  */
-export const getBestMoveBMV1 = (
+export const BMV1 = (
   bitboards,
   player,
   castlingRights,
-  enPassantSquare
+  enPassantSquare,
+  depth = 0
 ) => {
   const moves = allLegalMovesArr(
     bitboards,

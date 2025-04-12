@@ -41,7 +41,7 @@ import { checkGameOver, sortMoves } from "../bitboardUtils/gameOverLogic";
  * @param {number} depth - the depth to search
  * @returns {{ from: number, to: number, promotion: string}} the best move found
  */
-export const getBestMoveBMV2 = (
+export const BMV2 = (
   bitboards,
   player,
   castlingRights,
@@ -49,7 +49,6 @@ export const getBestMoveBMV2 = (
   prevPositions,
   depth
 ) => {
-  console.time("Whole engine move");
   const moves = allLegalMovesArr(
     bitboards,
     player,
@@ -139,7 +138,6 @@ export const getBestMoveBMV2 = (
     }
   }
 
-  console.timeEnd("Whole engine move");
   return bestMove;
 };
 
