@@ -1,3 +1,5 @@
+import PropTypes from "prop-types";
+
 /* 
   Returns an image of the piece specified
 */
@@ -20,6 +22,23 @@ const Piece = ({ type }) => {
   return (
     <img src={`/images/${pieceImages[type]}`} alt={type} className="piece" />
   );
+};
+
+Piece.propTypes = {
+  type: PropTypes.oneOf(
+    "P",
+    "p",
+    "N",
+    "n",
+    "B",
+    "b",
+    "R",
+    "r",
+    "Q",
+    "q",
+    "K",
+    "k"
+  ).isRequired,
 };
 
 export default Piece;

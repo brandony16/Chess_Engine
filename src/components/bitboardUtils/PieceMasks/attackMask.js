@@ -1,20 +1,3 @@
-import {
-  bitScanForward,
-  computeHash,
-  getPieceAtSquare,
-  pieceToZobristIndex,
-  PLAYER_ZOBRIST,
-  zobristTable,
-} from "../bbHelpers";
-import {
-  getBishopMovesForSquare,
-  getKingMovesForSquare,
-  getQueenMovesForSquare,
-  getRookMovesForSquare,
-} from "../bbMoveGeneration";
-import { knightMasks } from "./knightMask";
-import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
-
 /**
  * @typedef {object} Bitboards
  * @property {bigint} whitePawns - bitboard of the white pawns
@@ -30,6 +13,23 @@ import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
  * @property {bigint} blackQueens - bitboard of the black queens
  * @property {bigint} blackKings - bitboard of the black king
  */
+
+import { bitScanForward } from "../bbUtils";
+import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
+import { knightMasks } from "./knightMask";
+import { getBishopMovesForSquare } from "../moveGeneration/minorPieceMoveGeneration";
+import {
+  getKingMovesForSquare,
+  getQueenMovesForSquare,
+  getRookMovesForSquare,
+} from "../moveGeneration/majorPieceMoveGeneration";
+import {
+  computeHash,
+  pieceToZobristIndex,
+  PLAYER_ZOBRIST,
+  zobristTable,
+} from "../zobristHashing";
+import { getPieceAtSquare } from "../pieceGetters";
 
 /**
  * Computes an attack mask for a player

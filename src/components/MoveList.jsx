@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import { useEffect, useRef } from "react";
 
 const MoveList = ({ pastMoves, indexOfViewed }) => {
@@ -38,6 +39,11 @@ const MoveList = ({ pastMoves, indexOfViewed }) => {
         })}
     </div>
   );
+};
+
+MoveList.propTypes = {
+  pastMoves: PropTypes.arrayOf(PropTypes.string).isRequired,
+  indexOfViewed: PropTypes.number.isRequired,
 };
 
 export default MoveList;

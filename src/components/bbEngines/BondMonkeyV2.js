@@ -1,17 +1,3 @@
-import {
-  checkGameOver,
-  makeMove,
-  sortMoves,
-  updateCastlingRights,
-} from "../bitboardUtils/bbChessLogic";
-import {
-  allLegalMovesArr,
-  computeHash,
-  getNumPieces,
-  updateHash,
-} from "../bitboardUtils/bbHelpers";
-import { updateAttackMask } from "../bitboardUtils/PieceMasks/attackMask";
-
 /**
  * @typedef {object} Bitboards
  * @property {bigint} whitePawns - bitboard of the white pawns
@@ -27,6 +13,14 @@ import { updateAttackMask } from "../bitboardUtils/PieceMasks/attackMask";
  * @property {bigint} blackQueens - bitboard of the black queens
  * @property {bigint} blackKings - bitboard of the black king
  */
+
+import { getNumPieces } from "../bitboardUtils/bbUtils";
+import { allLegalMovesArr } from "../bitboardUtils/generalHelpers";
+import { updateCastlingRights } from "../bitboardUtils/moveMaking/castleMoveLogic";
+import { makeMove } from "../bitboardUtils/moveMaking/makeMoveLogic";
+import { updateAttackMask } from "../bitboardUtils/PieceMasks/attackMask";
+import { computeHash, updateHash } from "../bitboardUtils/zobristHashing";
+import { checkGameOver, sortMoves } from "../bitboardUtils/gameOverLogic";
 
 /**
  * @typedef {object} CastlingRights

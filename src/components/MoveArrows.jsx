@@ -1,3 +1,5 @@
+import PropTypes from "prop-types";
+
 const MoveArrows = ({ changeBoardView }) => {
   return (
     <div className="moveArrows">
@@ -9,6 +11,10 @@ const MoveArrows = ({ changeBoardView }) => {
       </button>
     </div>
   );
+};
+
+MoveArrows.propTypes = {
+  changeBoardView: PropTypes.func.isRequired,
 };
 
 export default MoveArrows;

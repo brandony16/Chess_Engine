@@ -1,5 +1,4 @@
-import { allLegalMovesArr } from "../bitboardUtils/bbHelpers";
-
+import { allLegalMovesArr } from "../bitboardUtils/generalHelpers";
 /**
  * @typedef {object} Bitboards
  * @property {bigint} whitePawns - bitboard of the white pawns

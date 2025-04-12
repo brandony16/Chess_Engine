@@ -1,32 +1,31 @@
 import { useEffect, useState } from "react";
 import PromotionModal from "./PromotionModal";
 import Sidebar from "./Sidebar";
-import {
-  checkGameOver,
-  filterIllegalMoves,
-  isValidMove,
-  makeMove,
-  updateCastlingRights,
-} from "./bitboardUtils/bbChessLogic";
-import {
-  computeHash,
-  getPieceAtSquare,
-  initialBitboards,
-  isPlayersPieceAtSquare,
-  moveToReadable,
-  pieceSymbols,
-} from "./bitboardUtils/bbHelpers";
 import "./UI.css";
 import BitboardBoard from "./BitboardBoard";
-import { getPieceMoves } from "./bitboardUtils/bbMoveGeneration";
 import { getBestMoveBMV1 } from "./bbEngines/BondMonkeyV1";
 import { getBestMoveBMV2 } from "./bbEngines/BondMonkeyV2";
 import { getCachedAttackMask } from "./bitboardUtils/PieceMasks/attackMask";
+import { INITIAL_BITBOARDS, PIECE_SYMBOLS } from "./bitboardUtils/constants";
+import {
+  isValidMove,
+  makeMove,
+} from "./bitboardUtils/moveMaking/makeMoveLogic";
+import { computeHash } from "./bitboardUtils/zobristHashing";
+import { checkGameOver } from "./bitboardUtils/gameOverLogic";
+import { moveToReadable } from "./bitboardUtils/generalHelpers";
+import {
+  getPieceAtSquare,
+  isPlayersPieceAtSquare,
+} from "./bitboardUtils/pieceGetters";
+import { getPieceMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration";
+import { filterIllegalMoves } from "./bitboardUtils/bbChessLogic";
+import { updateCastlingRights } from "./bitboardUtils/moveMaking/castleMoveLogic";
 
 // Runs the game
 const BitboardGame = () => {
   // STATES
-  const [bitboards, setBitboards] = useState(initialBitboards);
+  const [bitboards, setBitboards] = useState(INITIAL_BITBOARDS);
   const [selectedSquare, setSelectedSquare] = useState(null);
   const [moveBitboard, setMoveBitboard] = useState(null);
   const [currPlayer, setCurrPlayer] = useState("w");
@@ -40,7 +39,7 @@ const BitboardGame = () => {
   const [pastMoves, setPastMoves] = useState([]);
   const [pastBitboards, setPastBitboards] = useState([]);
   const [displayedBitboards, setDisplayedBitboards] =
-    useState(initialBitboards);
+    useState(INITIAL_BITBOARDS);
   const [isCurrPositionShown, setIsCurrPositionShown] = useState(true);
   const [currIndexOfDisplayed, setCurrIndexOfDisplayed] = useState(-1);
   const [castlingRights, setCastlingRights] = useState({
@@ -102,7 +101,7 @@ const BitboardGame = () => {
       const piece = getPieceAtSquare(square, bitboards);
       const moveBitboard = getPieceMoves(
         bitboards,
-        pieceSymbols[piece],
+        PIECE_SYMBOLS[piece],
         square,
         currPlayer,
         enPassantSquare,
@@ -133,7 +132,7 @@ const BitboardGame = () => {
       ) {
         if (
           (row === 7 || row === 0) &&
-          pieceSymbols[
+          PIECE_SYMBOLS[
             getPieceAtSquare(selectedSquare, bitboards)
           ].toLowerCase() === "p"
         ) {
@@ -232,7 +231,7 @@ const BitboardGame = () => {
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
       return newPositions;
     });
-    
+
     // Board display
     setPastBitboards((prevBoards) => [...prevBoards, newBitboards]);
     setDisplayedBitboards(newBitboards);
@@ -243,7 +242,7 @@ const BitboardGame = () => {
   // Resets the game
   const resetGame = () => {
     setUserSide((prev) => (prev === "w" ? "b" : "w"));
-    setBitboards(initialBitboards);
+    setBitboards(INITIAL_BITBOARDS);
     setSelectedSquare(null);
     setCurrPlayer("w");
     setEnPassantSquare(null);
@@ -281,7 +280,7 @@ const BitboardGame = () => {
 
   // Runs the engine move after the user makes a move
   useEffect(() => {
-    if (currPlayer !== userSide && !isGameOver ) {
+    if (currPlayer !== userSide && !isGameOver) {
       setTimeout(() => {
         makeEngineMove();
       }, 10);

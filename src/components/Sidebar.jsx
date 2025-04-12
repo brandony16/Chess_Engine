@@ -1,3 +1,4 @@
+import PropTypes from "prop-types";
 import MoveArrows from "./MoveArrows";
 import MoveList from "./MoveList";
 
@@ -22,6 +23,16 @@ const Sidebar = ({
       <MoveArrows changeBoardView={changeBoardView} />
     </div>
   );
+};
+
+Sidebar.propTypes = {
+  currPlayer: PropTypes.oneOf("w", "b").isRequired,
+  resetGame: PropTypes.func.isRequired,
+  isGameOver: PropTypes.bool.isRequired,
+  result: PropTypes.string.isRequired,
+  pastMoves: PropTypes.arrayOf(PropTypes.string).isRequired,
+  changeBoardView: PropTypes.func.isRequired,
+  indexOfViewedMove: PropTypes.number.isRequired,
 };
 
 export default Sidebar;
