@@ -41,8 +41,9 @@ import { makeCastleMove } from "./castleMoveLogic";
  * @param {Bitboards} bitboards - bitboards of the current position
  * @param {number} from - square to move from
  * @param {number} to - square to move to
- * @param {number} enPassantSquare - square where en passant is legal, if any
- * @param {string} promotionPiece - piece the move promotes to, if any
+ * @param {number} enPassantSquare - square where en passant is legal
+ * @param {string} promotionPiece - piece the move promotes to
+ * @param {bigint} attackHash - the attack hash for the player
  * @returns {MoveResult}
  */
 export const makeMove = (
@@ -50,7 +51,8 @@ export const makeMove = (
   from,
   to,
   enPassantSquare = null,
-  promotionPiece = null
+  promotionPiece = null,
+  attackHash = null,
 ) => {
   let updatedBitboards = { ...bitboards };
   const bigIntFrom = BigInt(from);
@@ -62,7 +64,7 @@ export const makeMove = (
   // Handle castle case
   const pieceAtFrom = getPieceAtSquare(from, bitboards);
   if (GENERAL_SYMBOLS[pieceAtFrom] === "K" && Math.abs(to - from) === 2) {
-    return makeCastleMove(bitboards, from, to);
+    return makeCastleMove(bitboards, from, to, attackHash);
   }
 
   // Find which piece is at 'from' square

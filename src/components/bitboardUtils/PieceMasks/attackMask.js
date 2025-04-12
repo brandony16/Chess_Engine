@@ -151,16 +151,14 @@ const attackMaskCache = new Map();
  * Gets a cached attack mask
  * @param {Bitboards} bitboards - the bitboards of the current position
  * @param {string} player - whose attack mask it is ("w" or "b")
- * @param {bigint} hash - the hash of the mask to get
+ * @param {bigint} hash - the hash of the mask to get. Computes it if no mask is found
  * @returns {bigint} the attack mask
  */
-export const getCachedAttackMask = (bitboards, player, hash) => {
-  const boardHash = computeHash(bitboards, player);
-  if (attackMaskCache.has(boardHash)) {
-    console.log(attackMaskCache.size);
-    return attackMaskCache.get(boardHash);
+export const getCachedAttackMask = (bitboards, player, hash = null) => {
+  if (attackMaskCache.has(hash)) {
+    return attackMaskCache.get(hash);
   }
-  console.log(attackMaskCache.size);
+  const boardHash = computeHash(bitboards, player);
   const mask = computeAttackMask(bitboards, player);
   attackMaskCache.set(boardHash, mask);
   return mask;
@@ -176,12 +174,13 @@ export const getCachedAttackMask = (bitboards, player, hash) => {
  * @param {bigint} prevHash - the previous hash
  * @returns {bigint} a hash of the new attack map
  */
-export const updateAttackMask = (
+export const updateAttackMaskHash = (
   prevBitboards,
   bitboards,
   from,
   to,
-  prevHash
+  prevHash,
+  player
 ) => {
   let newHash = prevHash;
   let pieceFrom = getPieceAtSquare(from, prevBitboards);
@@ -208,5 +207,10 @@ export const updateAttackMask = (
   // XOR player
   newHash ^= PLAYER_ZOBRIST;
 
+  if (!attackMaskCache.get(newHash)) {
+    const newMask = computeAttackMask(bitboards, player);
+    attackMaskCache.set(newHash, newMask);
+  }
+  
   return newHash;
 };

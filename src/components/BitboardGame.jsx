@@ -61,7 +61,7 @@ const BitboardGame = () => {
       castlingRights,
       enPassantSquare,
       pastPositions,
-      3
+      4
     );
     const from = bestMoveObj.from;
     const to = bestMoveObj.to;
@@ -299,7 +299,6 @@ const BitboardGame = () => {
       {promotion && (
         <PromotionModal
           onPromote={handlePromotion}
-          currPlayer={currPlayer}
           square={promotionMove.to}
           userPlayer={userSide}
         />

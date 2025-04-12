@@ -48,7 +48,7 @@ const Cell = ({
 };
 
 Cell.propTypes = {
-  piece: PropTypes.oneOf(
+  piece: PropTypes.oneOf([
     "P",
     "p",
     "N",
@@ -60,14 +60,15 @@ Cell.propTypes = {
     "Q",
     "q",
     "K",
-    "k"
-  ).isRequired,
+    "k",
+    "-",
+  ]).isRequired,
   row: PropTypes.number.isRequired,
   col: PropTypes.number.isRequired,
   onSquareClick: PropTypes.func.isRequired,
   isSelected: PropTypes.bool.isRequired,
   isMove: PropTypes.bool.isRequired,
-  userSide: PropTypes.oneOf("w", "b").isRequired,
+  userSide: PropTypes.oneOf(["w", "b"]).isRequired,
 };
 
 export default Cell;

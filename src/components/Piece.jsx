@@ -25,7 +25,7 @@ const Piece = ({ type }) => {
 };
 
 Piece.propTypes = {
-  type: PropTypes.oneOf(
+  type: PropTypes.oneOf([
     "P",
     "p",
     "N",
@@ -37,8 +37,9 @@ Piece.propTypes = {
     "Q",
     "q",
     "K",
-    "k"
-  ).isRequired,
+    "k",
+    "-",
+  ]).isRequired,
 };
 
 export default Piece;

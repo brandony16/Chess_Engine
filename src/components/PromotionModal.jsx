@@ -1,31 +1,38 @@
 import PropTypes from "prop-types";
 import "./PromotionModal.css";
 
-const PromotionModal = ({ onPromote, player, square, userPlayer }) => {
+const PromotionModal = ({ onPromote, square, userPlayer }) => {
   // Pieces for promotion. Are plural because the bitboards are plural
   const pieces = ["Queens", "Rooks", "Knights", "Bishops"];
 
-  const col = userPlayer === "w" ? square % 8 : 7 - (square % 8);
+  const isUserWhite = userPlayer === "w";
+  const col = isUserWhite ? square % 8 : 7 - (square % 8);
+  const background = isUserWhite ? "#1a1a1a" : "#f3f3f3";
 
-  const modalStyle = {
+  const modalWrapperStyle = {
     position: "absolute",
     top: `2rem`,
     left: `calc((70vh - 4rem)/8 * ${col} + 2rem)`,
     zIndex: 1000,
   };
 
+  const modalStyle = {
+    backgroundColor: background,
+  }
+
   return (
-    <div className="modalOverlay" style={modalStyle}>
+    <div className="modalOverlay" style={modalWrapperStyle}>
       <div className="modal">
         <div className="promotionOptions">
           {pieces.map((piece) => {
-            const fullPlayer = player === "w" ? "White" : "Black";
+            const fullPlayer = isUserWhite ? "White" : "Black";
             const imageName = fullPlayer + piece.slice(0, -1) + ".png"; // Adds the player and removes the s at the end
             return (
               <button
                 key={piece}
                 onClick={() => onPromote(piece)}
                 className="promotionButton"
+                style={modalStyle}
               >
                 <img
                   src={`/images/${imageName}`}
@@ -43,9 +50,8 @@ const PromotionModal = ({ onPromote, player, square, userPlayer }) => {
 
 PromotionModal.propTypes = {
   onPromote: PropTypes.func.isRequired,
-  player: PropTypes.oneOf("w", "b").isRequired,
   square: PropTypes.number.isRequired,
-  userPlayer: PropTypes.oneOf("w", "b").isRequired,
+  userPlayer: PropTypes.oneOf(["w", "b"]).isRequired,
 };
 
 export default PromotionModal;

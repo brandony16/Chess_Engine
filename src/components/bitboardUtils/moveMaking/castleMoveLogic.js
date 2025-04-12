@@ -1,6 +1,3 @@
-import { isSquareAttacked } from "../bbChessLogic";
-import { getPieceAtSquare, pieceSymbols } from "../generalHelpers";
-
 /**
  * @typedef {object} Bitboards
  * @property {bigint} whitePawns - bitboard of the white pawns
@@ -16,6 +13,10 @@ import { getPieceAtSquare, pieceSymbols } from "../generalHelpers";
  * @property {bigint} blackQueens - bitboard of the black queens
  * @property {bigint} blackKings - bitboard of the black king
  */
+
+import { isSquareAttacked } from "../bbChessLogic";
+import { PIECE_SYMBOLS } from "../constants";
+import { getPieceAtSquare } from "../pieceGetters";
 
 /**
  * @typedef {object} CastlingRights
@@ -67,9 +68,10 @@ export const updateCastlingRights = (from, prevRights) => {
  *
  * @param {Bitboards} bitboards - the current positions bitboards
  * @param {string} player - the player who is castling ("w" or "b")
+ * @param {bigint} attackHash - the attack hash for the player
  * @returns {boolean} whether the player can castle kingside
  */
-export const isKingsideCastleLegal = (bitboards, player) => {
+export const isKingsideCastleLegal = (bitboards, player, attackHash) => {
   let squares;
   let opponent;
   let playerKing;
@@ -86,10 +88,10 @@ export const isKingsideCastleLegal = (bitboards, player) => {
   // Check if squares are empty or under attack
   for (let square of squares) {
     const piece = getPieceAtSquare(square, bitboards);
-    if (piece !== null && pieceSymbols[piece] !== playerKing) {
+    if (piece !== null && PIECE_SYMBOLS[piece] !== playerKing) {
       return false;
     }
-    if (isSquareAttacked(bitboards, square, opponent)) {
+    if (isSquareAttacked(bitboards, square, opponent, attackHash)) {
       return false;
     }
   }
@@ -102,9 +104,10 @@ export const isKingsideCastleLegal = (bitboards, player) => {
  *
  * @param {Bitboards} bitboards - the current positions bitboards
  * @param {string} player - the player who is castling ("w" or "b")
+ * @param {bigint} attackHash - the attack hash for the player
  * @returns {boolean} whether the player can castle queenside
  */
-export const isQueensideCastleLegal = (bitboards, player) => {
+export const isQueensideCastleLegal = (bitboards, player, attackHash) => {
   let squares;
   let opponent;
   let playerKing;
@@ -121,10 +124,10 @@ export const isQueensideCastleLegal = (bitboards, player) => {
   // Check if squares are empty or under attack
   for (let square of squares) {
     const piece = getPieceAtSquare(square, bitboards);
-    if (piece !== null && pieceSymbols[piece] !== playerKing) {
+    if (piece !== null && PIECE_SYMBOLS[piece] !== playerKing) {
       return false;
     }
-    if (isSquareAttacked(bitboards, square, opponent)) {
+    if (isSquareAttacked(bitboards, square, opponent, attackHash)) {
       return false;
     }
   }

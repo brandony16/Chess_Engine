@@ -26,10 +26,10 @@ const Sidebar = ({
 };
 
 Sidebar.propTypes = {
-  currPlayer: PropTypes.oneOf("w", "b").isRequired,
+  currPlayer: PropTypes.oneOf(["w", "b"]).isRequired,
   resetGame: PropTypes.func.isRequired,
   isGameOver: PropTypes.bool.isRequired,
-  result: PropTypes.string.isRequired,
+  result: PropTypes.string,
   pastMoves: PropTypes.arrayOf(PropTypes.string).isRequired,
   changeBoardView: PropTypes.func.isRequired,
   indexOfViewedMove: PropTypes.number.isRequired,

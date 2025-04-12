@@ -1,6 +1,7 @@
 import { bitScanForward } from "./bbUtils";
 import { getCachedAttackMask } from "./PieceMasks/attackMask";
 import { makeMove } from "./moveMaking/makeMoveLogic";
+import { bigIntFullRep } from "./generalHelpers";
 
 /**
  * @typedef {object} Bitboards
@@ -24,10 +25,11 @@ import { makeMove } from "./moveMaking/makeMoveLogic";
  * @param {Bitboards} bitboards - bitboards of the current position
  * @param {number} square - square to check if it is attacked
  * @param {string} opponent - the other player ("w" or "b")
+ * @param {bigint} attackHash - the hash of the attack map for the opponent
  * @returns {boolean} if the square is attacked
  */
-export const isSquareAttacked = (bitboards, square, opponent) => {
-  const opponentAttackMask = getCachedAttackMask(bitboards, opponent);
+export const isSquareAttacked = (bitboards, square, opponent, attackHash) => {
+  const opponentAttackMask = getCachedAttackMask(bitboards, opponent, attackHash);
   return (opponentAttackMask & (1n << BigInt(square))) !== 0n;
 };
 

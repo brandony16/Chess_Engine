@@ -1,23 +1,3 @@
-import { filterIllegalMoves } from "./bbChessLogic";
-import {
-  bitScanForward,
-  generalSymbols,
-  getBlackPieces,
-  getPieceAtSquare,
-  getWhitePieces,
-  pieceSymbols,
-} from "./bbHelpers";
-import {
-  getKingMovesForSquare,
-  getQueenMovesForSquare,
-  getRookMovesForSquare,
-} from "./majorPieceMoveGeneration";
-import {
-  getBishopMovesForSquare,
-  getKnightMovesForSquare,
-  getPawnMovesForSquare,
-} from "./minorPieceMoveGeneration";
-
 /**
  * @typedef {object} Bitboards
  * @property {bigint} whitePawns - bitboard of the white pawns
@@ -33,6 +13,25 @@ import {
  * @property {bigint} blackQueens - bitboard of the black queens
  * @property {bigint} blackKings - bitboard of the black king
  */
+
+import { filterIllegalMoves } from "../bbChessLogic";
+import { bitScanForward } from "../bbUtils";
+import { GENERAL_SYMBOLS, PIECE_SYMBOLS } from "../constants";
+import {
+  getBlackPieces,
+  getPieceAtSquare,
+  getWhitePieces,
+} from "../pieceGetters";
+import {
+  getKingMovesForSquare,
+  getQueenMovesForSquare,
+  getRookMovesForSquare,
+} from "./majorPieceMoveGeneration";
+import {
+  getBishopMovesForSquare,
+  getKnightMovesForSquare,
+  getPawnMovesForSquare,
+} from "./minorPieceMoveGeneration";
 
 /**
  * @typedef {object} CastlingRights
@@ -124,7 +123,7 @@ export const getAllPlayerMoves = (
     pieces &= pieces - 1n;
 
     const piece = getPieceAtSquare(square, bitboards);
-    const formattedPiece = pieceSymbols[piece].toUpperCase();
+    const formattedPiece = PIECE_SYMBOLS[piece].toUpperCase();
 
     const pieceMoves = getPieceMoves(
       bitboards,
@@ -170,7 +169,7 @@ export const getAllLegalMoves = (
     pieces &= pieces - 1n;
 
     const piece = getPieceAtSquare(square, bitboards);
-    const formattedPiece = pieceSymbols[piece].toUpperCase();
+    const formattedPiece = PIECE_SYMBOLS[piece].toUpperCase();
 
     const pieceMoves = getPieceMoves(
       bitboards,
@@ -224,7 +223,7 @@ export const getAllIndividualLegalMoves = (
     pieces &= pieces - 1n;
 
     const piece = getPieceAtSquare(square, bitboards);
-    const formattedPiece = generalSymbols[piece];
+    const formattedPiece = GENERAL_SYMBOLS[piece];
 
     const pieceMoves = getPieceMoves(
       bitboards,

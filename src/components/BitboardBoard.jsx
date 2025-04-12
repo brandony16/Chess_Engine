@@ -25,7 +25,7 @@ const BitboardBoard = ({
           const isSelected = selectedSquare === i;
           let isMove = false;
           if (moveBitboard) {
-            isMove = (moveBitboard >> BigInt(i)) & BigInt(1);
+            isMove = Boolean((moveBitboard >> BigInt(i)) & BigInt(1));
           }
 
           return (
@@ -51,7 +51,7 @@ BitboardBoard.propTypes = {
   onSquareClick: PropTypes.func.isRequired,
   selectedSquare: PropTypes.number,
   userSide: PropTypes.oneOf(["w", "b"]).isRequired,
-  moveBitboard: PropTypes.object,
+  moveBitboard: PropTypes.object, // Throws a prop validation warning. Is a bigint but PropTypes does not support that.
 };
 
 export default BitboardBoard;

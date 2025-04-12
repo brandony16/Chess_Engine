@@ -34,6 +34,7 @@ import { getBlackPieces, getWhitePieces } from "./pieceGetters";
  * @param {Map} pastPositions - the map of past positions stored as hashes.
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where enPassant can occur
+ * @param {bigint} attackHash - the attack hash for the player
  * @returns {{ isGameOver: boolean, result: string}} An object with fields for isGameOver and result
  */
 export const checkGameOver = (
@@ -41,7 +42,8 @@ export const checkGameOver = (
   player,
   pastPositions,
   castlingRights,
-  enPassantSquare
+  enPassantSquare,
+  attackHash = null
 ) => {
   const isPlayerWhite = player === "w";
   const opponent = isPlayerWhite ? "b" : "w";
@@ -78,7 +80,7 @@ export const checkGameOver = (
   if (allLegalMoves === 0n) {
     result.isGameOver = true;
 
-    if (isSquareAttacked(bitboards, kingSquare, player)) {
+    if (isSquareAttacked(bitboards, kingSquare, player, attackHash)) {
       const fullPlayer = isPlayerWhite ? "White" : "Black";
 
       result.result = `${fullPlayer} Wins by Checkmate`;
