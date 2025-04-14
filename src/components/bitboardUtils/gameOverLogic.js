@@ -43,6 +43,7 @@ export const checkGameOver = (
   pastPositions,
   castlingRights,
   enPassantSquare,
+  fiftyMoveCounter,
   attackHash = null
 ) => {
   const isPlayerWhite = player === "w";
@@ -65,7 +66,7 @@ export const checkGameOver = (
     result.result = "Draw by Insufficient Material";
     return result;
   }
-  if (drawByFiftyMoveRule(bitboards, pastPositions)) {
+  if (drawByFiftyMoveRule(fiftyMoveCounter)) {
     result.isGameOver = true;
     result.result = "Draw By 50 Move Rule";
     return result;
@@ -133,15 +134,13 @@ export const drawByRepetition = (pastPositions) => {
 };
 
 /**
- * STILL IN PROGRESS. NEED TO ACTUALLY IMPLEMENT.
- *
  * Determines if the game should end by the 50 move rule. The fifty rule move is if there is no capture or pawn move for 50 moves then the
  * game is a draw. A move is each player moving once, so 100 ply.
  * @param {Array} pastPositions - an array of the past positions
  * @returns {boolean} if is a draw by the 50 move rule
  */
-export const drawByFiftyMoveRule = (pastPositions) => {
-  return false;
+export const drawByFiftyMoveRule = (fiftyMoveCounter) => {
+  return fiftyMoveCounter >= 100;
 };
 
 /**

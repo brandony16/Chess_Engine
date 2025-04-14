@@ -214,3 +214,7 @@ export const updateAttackMaskHash = (
   
   return newHash;
 };
+
+export const clearAttackMaskCache = () => {
+  attackMaskCache.clear();
+}

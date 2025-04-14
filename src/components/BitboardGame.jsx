@@ -20,6 +20,7 @@ import { getPieceMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration"
 import { filterIllegalMoves } from "./bitboardUtils/bbChessLogic";
 import { BMV2 } from "./bbEngines/BondMonkeyV2";
 import { useGameStore } from "./gameStore";
+import GameHistoryModal from "./PrevGameModal";
 
 // Runs the game
 const BitboardGame = () => {
@@ -36,6 +37,7 @@ const BitboardGame = () => {
     displayedBitboards,
     currIndexOfDisplayed,
     resetGame,
+    isGameHistoryMenuOpen,
   } = useGameStore();
 
   // FUNCTIONS
@@ -50,6 +52,7 @@ const BitboardGame = () => {
       enPassantSquare,
       pastPositions,
       updateStates,
+      fiftyMoveRuleCounter,
     } = useGameStore.getState();
 
     if (!isCurrPositionShown || isGameOver) return;
@@ -76,7 +79,8 @@ const BitboardGame = () => {
       currPlayer,
       pastPositions,
       castlingRights,
-      moveObj.enPassantSquare
+      moveObj.enPassantSquare,
+      fiftyMoveRuleCounter
     );
 
     const readableMove = moveToReadable(
@@ -103,6 +107,7 @@ const BitboardGame = () => {
       updateStates,
       userSide,
       selectedSquare,
+      fiftyMoveRuleCounter,
     } = useGameStore.getState();
 
     if (isGameOver || !isCurrPositionShown || userSide !== currPlayer) return;
@@ -176,7 +181,8 @@ const BitboardGame = () => {
           currPlayer,
           pastPositions,
           castlingRights,
-          moveObj.enPassantSquare
+          moveObj.enPassantSquare,
+          fiftyMoveRuleCounter
         );
 
         const readableMove = moveToReadable(
@@ -208,6 +214,7 @@ const BitboardGame = () => {
       pastPositions,
       updateStates,
       promotionMove,
+      fiftyMoveRuleCounter,
     } = useGameStore.getState();
 
     const from = promotionMove.from;
@@ -223,7 +230,8 @@ const BitboardGame = () => {
       currPlayer,
       pastPositions,
       castlingRights,
-      moveObj.enPassantSquare
+      moveObj.enPassantSquare,
+      fiftyMoveRuleCounter
     );
 
     const moveNotation = moveToReadable(
@@ -279,10 +287,10 @@ const BitboardGame = () => {
       let whiteSide = engine1;
       let blackSide = engine2;
       while (!useGameStore.getState().isGameOver) {
-        makeEngineMove(whiteSide, 3);
+        makeEngineMove(whiteSide, 2);
         if (useGameStore.getState().isGameOver) break;
 
-        makeEngineMove(blackSide, 3);
+        makeEngineMove(blackSide, 2);
         if (useGameStore.getState().isGameOver) break;
       }
       const result = useGameStore.getState().result;
@@ -315,11 +323,16 @@ const BitboardGame = () => {
     console.log("Win Rate: " + winRate + "%");
   };
 
+  const togglePrevGameMenu = () => {
+    const prev = useGameStore.getState().isGameHistoryMenuOpen;
+    useGameStore.setState({ isGameHistoryMenuOpen: !prev });
+  };
+
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
       setTimeout(() => {
-        makeEngineMove(BMV2);
+        makeEngineMove(BMV2, 3);
       }, 10);
     }
   }, [currPlayer, userSide]);
@@ -349,7 +362,9 @@ const BitboardGame = () => {
         changeBoardView={changeBoardView}
         indexOfViewedMove={currIndexOfDisplayed}
         battleTwoEngines={battleTwoEngines}
+        togglePrevGameMenu={togglePrevGameMenu}
       />
+      {isGameHistoryMenuOpen && <GameHistoryModal />}
     </div>
   );
 };

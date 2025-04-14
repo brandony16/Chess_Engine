@@ -79,16 +79,19 @@ export const BMV2 = (
     const newCastling = updateCastlingRights(from, castlingRights);
     const newPositions = new Map(prevPositions);
     const newPlayer = isPlayerWhite ? "b" : "w";
+    const attackHash = updateAttackMaskHash(bitboards, newBitboards, from, to, prevAttackHash);
     const gameOverObj = checkGameOver(
       newBitboards,
       player,
       newPositions,
       newCastling,
-      newEnPassant
+      newEnPassant,
+      0,
+      attackHash,
     );
     const result = gameOverObj.result;
 
-    // Update Hashes
+    // Update Hashe
     let enPassantChanged = false;
     if (
       (enPassantSquare && !moveObj.enPassantSquare) ||
@@ -104,7 +107,6 @@ export const BMV2 = (
       enPassantChanged,
       prevHash
     );
-    updateAttackMaskHash(bitboards, newBitboards, from, to, prevAttackHash);
     newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
     const moveEval = minimax(
@@ -200,18 +202,19 @@ const minimax = (
       const newEnPassant = moveObj.enPassantSquare;
       const newCastling = updateCastlingRights(from, castlingRights);
       const newPositions = new Map(prevPositions);
+      const attackHash = updateAttackMaskHash(bitboards, newBitboards, from, to, prevAttackHash);
       const gameOverObj = checkGameOver(
         newBitboards,
         player,
         newPositions,
         newCastling,
         newEnPassant,
-        prevAttackHash
+        0,
+        attackHash,
       );
-
       const result = gameOverObj.result;
 
-      // Update Hashes
+      // Update Hash
       let enPassantChanged = false;
       if (
         (enPassantSquare && !moveObj.enPassantSquare) ||
@@ -227,7 +230,6 @@ const minimax = (
         enPassantChanged,
         prevHash
       );
-      updateAttackMaskHash(bitboards, newBitboards, from, to, prevAttackHash);
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
       const moveEval = minimax(
@@ -268,12 +270,15 @@ const minimax = (
       const newEnPassant = moveObj.enPassantSquare;
       const newCastling = updateCastlingRights(from, castlingRights);
       const newPositions = new Map(prevPositions);
+      const attackHash = updateAttackMaskHash(bitboards, newBitboards, from, to, prevAttackHash);
       const gameOverObj = checkGameOver(
         newBitboards,
         player,
         newPositions,
         newCastling,
-        newEnPassant
+        newEnPassant,
+        0,
+        attackHash,
       );
       const result = gameOverObj.result;
 
@@ -293,7 +298,6 @@ const minimax = (
         enPassantChanged,
         prevHash
       );
-      updateAttackMaskHash(bitboards, newBitboards, from, to, prevAttackHash);
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
       const moveEval = minimax(
@@ -355,7 +359,7 @@ const evaluate = (bitboards, player, result) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
     if (result.includes("Checkmate")) {
-      return player === "w" ? -CHECKMATE_VALUE : CHECKMATE_VALUE;
+      return player === "w" ? CHECKMATE_VALUE : -CHECKMATE_VALUE;
     }
     return 0; // Draw
   }

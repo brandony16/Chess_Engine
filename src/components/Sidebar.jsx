@@ -13,6 +13,7 @@ const Sidebar = ({
   changeBoardView,
   indexOfViewedMove,
   battleTwoEngines,
+  togglePrevGameMenu,
 }) => {
   const turnText = currPlayer === "w" ? "White's Turn" : "Black's Turn";
 
@@ -30,6 +31,9 @@ const Sidebar = ({
       >
         Battle Engines
       </button>
+      <button className="prevGames" onClick={() => togglePrevGameMenu()}>
+        View previous games
+      </button>
     </div>
   );
 };
@@ -43,6 +47,7 @@ Sidebar.propTypes = {
   changeBoardView: PropTypes.func.isRequired,
   indexOfViewedMove: PropTypes.number.isRequired,
   battleTwoEngines: PropTypes.func.isRequired,
+  togglePrevGameMenu: PropTypes.func.isRequired,
 };
 
 export default Sidebar;
