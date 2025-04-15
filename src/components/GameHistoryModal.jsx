@@ -1,18 +1,19 @@
 import { useGameStore } from "./gameStore";
+import "./GameHistory.css";
 
-const GameHistoryModal = ({}) => {
+const GameHistoryModal = () => {
   const gameHistory = useGameStore((state) => state.gameHistory);
   const updateShownGame = useGameStore((state) => state.updateShownGame);
 
   const handleGameSelect = (game) => {
     updateShownGame(game);
-    useGameStore.setState({ isGameHistoryMenuOpen: false });
+    useGameStore.setState({ isGameHistoryMenuOpen: false, isModalOpen: false });
   };
 
   return (
-    <div className="gameHistoryModal modal">
+    <div className="gameHistory">
       {gameHistory.map((game, index) => (
-        <div key={index} onClick={() => handleGameSelect(game)}>
+        <div className="pastGame" key={index} onClick={() => handleGameSelect(game)}>
           <p>
             Game: {index}, Result: {game.result}, Moves: {game.moves.length}
           </p>

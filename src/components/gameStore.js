@@ -32,6 +32,7 @@ export const useGameStore = create((set, get) => ({
 
   gameHistory: [],
   isGameHistoryMenuOpen: false,
+  isModalOpen: false,
 
   // ACTIONS / UPDATER FUNCTIONS
 
@@ -114,15 +115,21 @@ export const useGameStore = create((set, get) => ({
         },
         fiftyMoveRuleCounter: 0,
         isGameHistoryMenuOpen: false,
+        isModalOpen: false,
       };
     });
   },
 
   updateShownGame: (game) => {
+    const lastBitboards = game.bitboards[game.bitboards.length - 1];
     set((state) => ({
       pastMoves: game.moves,
-      bitboards: game.bitboards,
+      pastBitboards: game.bitboards,
+      bitboards: lastBitboards,
       result: game.result,
+      displayedBitboards: lastBitboards,
+      isCurrPositionShown: false,
+      currIndexOfDisplayed: game.bitboards.length - 1,
     }));
   },
 }));

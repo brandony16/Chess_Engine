@@ -20,7 +20,8 @@ import { getPieceMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration"
 import { filterIllegalMoves } from "./bitboardUtils/bbChessLogic";
 import { BMV2 } from "./bbEngines/BondMonkeyV2";
 import { useGameStore } from "./gameStore";
-import GameHistoryModal from "./PrevGameModal";
+import GameHistoryModal from "./GameHistoryModal";
+import Modal from "./Modal";
 
 // Runs the game
 const BitboardGame = () => {
@@ -38,6 +39,7 @@ const BitboardGame = () => {
     currIndexOfDisplayed,
     resetGame,
     isGameHistoryMenuOpen,
+    isModalOpen,
   } = useGameStore();
 
   // FUNCTIONS
@@ -193,7 +195,7 @@ const BitboardGame = () => {
         );
         getCachedAttackMask(newBitboards, currPlayer);
 
-        updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj);
+        updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj, selectedSquare);
       } else {
         useGameStore.setState({
           selectedSquare: null,
@@ -258,7 +260,7 @@ const BitboardGame = () => {
 
     useGameStore.setState({
       displayedBitboards: pastBitboards[index],
-      currIndexOfDisplayed: useGameStore.getState().currIndexOfDisplayed + 1,
+      currIndexOfDisplayed: useGameStore.getState().currIndexOfDisplayed + direction,
     });
 
     if (index === pastBitboards.length - 1) {
@@ -325,7 +327,7 @@ const BitboardGame = () => {
 
   const togglePrevGameMenu = () => {
     const prev = useGameStore.getState().isGameHistoryMenuOpen;
-    useGameStore.setState({ isGameHistoryMenuOpen: !prev });
+    useGameStore.setState({ isGameHistoryMenuOpen: !prev, isModalOpen: !prev });
   };
 
   // Runs the engine move after the user makes a move
@@ -339,32 +341,34 @@ const BitboardGame = () => {
 
   return (
     <div className="body">
-      <BitboardBoard
-        bitboards={displayedBitboards}
-        onSquareClick={handleSquareClick}
-        selectedSquare={selectedSquare}
-        userSide={userSide}
-        moveBitboard={moveBitboard}
-      />
-      {promotion && (
-        <PromotionModal
-          onPromote={handlePromotion}
-          square={promotionMove.to}
-          userPlayer={userSide}
+      <div className="gameWrap">
+        <BitboardBoard
+          bitboards={displayedBitboards}
+          onSquareClick={handleSquareClick}
+          selectedSquare={selectedSquare}
+          userSide={userSide}
+          moveBitboard={moveBitboard}
         />
-      )}
-      <Sidebar
-        currPlayer={currPlayer}
-        resetGame={resetGame}
-        isGameOver={isGameOver}
-        result={result}
-        pastMoves={pastMoves}
-        changeBoardView={changeBoardView}
-        indexOfViewedMove={currIndexOfDisplayed}
-        battleTwoEngines={battleTwoEngines}
-        togglePrevGameMenu={togglePrevGameMenu}
-      />
-      {isGameHistoryMenuOpen && <GameHistoryModal />}
+        {promotion && (
+          <PromotionModal
+            onPromote={handlePromotion}
+            square={promotionMove.to}
+            userPlayer={userSide}
+          />
+        )}
+        <Sidebar
+          currPlayer={currPlayer}
+          resetGame={resetGame}
+          isGameOver={isGameOver}
+          result={result}
+          pastMoves={pastMoves}
+          changeBoardView={changeBoardView}
+          indexOfViewedMove={currIndexOfDisplayed}
+          battleTwoEngines={battleTwoEngines}
+          togglePrevGameMenu={togglePrevGameMenu}
+        />
+      </div>
+      {isModalOpen && <Modal isGameHistory={isGameHistoryMenuOpen} />}
     </div>
   );
 };

@@ -1,0 +1,20 @@
+.gameHistory {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  height: 80%;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.pastGame {
+  background-color: slategray;
+  box-sizing: border-box;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+.pastGame:hover {
+  cursor: pointer;
+}

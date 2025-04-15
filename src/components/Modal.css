@@ -1,0 +1,46 @@
+.modalWrap {
+  position: absolute;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 25;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modalBody {
+  position: relative;
+  min-width: 400px;
+  min-height: 400px;
+  background-color: darkslategrey;
+  height: 50vh;
+  width: 60vw;
+  border-radius: 20px;
+  border: 10px solid black;
+  padding: 10px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.close {
+  position: absolute;
+  background-color: transparent;
+  padding: 5px;
+  right: 10px;
+  top: 5px;
+  font-size: 1.5rem;  
+  box-sizing: border-box;
+  outline: none;
+  border: none;
+}
+
+.close:hover {
+  color: red;
+  transition: 0.2s ease-in-out;
+}
+
+.modalHeader {
+  font-size: 2rem;
+  box-sizing: border-box;
+}
