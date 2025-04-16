@@ -1,7 +1,9 @@
 import PropTypes from "prop-types";
 import { useEffect, useRef } from "react";
+import { useGameStore } from "./gameStore";
 
 const MoveList = ({ pastMoves, indexOfViewed }) => {
+  const goToMove = useGameStore((state) => state.goToMove);
   const selectedMoveNum = Math.floor(indexOfViewed / 2);
   const moveListRef = useRef(null);
 
@@ -26,12 +28,18 @@ const MoveList = ({ pastMoves, indexOfViewed }) => {
             moveID = indexOfViewed % 2;
           }
           return (
-            <div key={moveNumber} className="pastMove">
+            <div key={moveNumber} className="pastMove" id={moveNumber}>
               <div className="moveNum">{moveNumber + 1}.</div>
-              <div className={`move ${moveID === 0 ? "highlighted" : ""}`}>
+              <div
+                className={`move ${moveID === 0 ? "highlighted" : ""}`}
+                onClick={() => goToMove(moveNumber, 0)}
+              >
                 {pair[0]}
               </div>
-              <div className={`move ${moveID === 1 ? "highlighted" : ""}`}>
+              <div
+                className={`move ${moveID === 1 ? "highlighted" : ""}`}
+                onClick={() => pair[1] ? goToMove(moveNumber, 1) : null}
+              >
                 {pair[1] || ""}
               </div>
             </div>

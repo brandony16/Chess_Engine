@@ -15,7 +15,7 @@ const GameHistoryModal = () => {
       {gameHistory.map((game, index) => (
         <div className="pastGame" key={index} onClick={() => handleGameSelect(game)}>
           <p>
-            Game: {index}, Result: {game.result}, Moves: {game.moves.length}
+            Game: {index + 1}, Result: {game.result}, Moves: {Math.ceil(game.moves.length / 2)}
           </p>
         </div>
       ))}

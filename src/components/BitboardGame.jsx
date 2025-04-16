@@ -283,16 +283,16 @@ const BitboardGame = () => {
     let losses = 0;
 
     let gameNum = 1;
+    let whiteSide = engine1;
+    let blackSide = engine2;
     while (gameNum <= games) {
       console.log("Game " + gameNum + " started");
 
-      let whiteSide = engine1;
-      let blackSide = engine2;
       while (!useGameStore.getState().isGameOver) {
-        makeEngineMove(whiteSide, 2);
+        makeEngineMove(whiteSide, 3);
         if (useGameStore.getState().isGameOver) break;
 
-        makeEngineMove(blackSide, 2);
+        makeEngineMove(blackSide, 3);
         if (useGameStore.getState().isGameOver) break;
       }
       const result = useGameStore.getState().result;
@@ -312,8 +312,9 @@ const BitboardGame = () => {
       }
 
       resetGame();
-      whiteSide = engine2;
-      blackSide = engine1;
+      const temp = whiteSide;
+      whiteSide = blackSide;
+      blackSide = temp;
       gameNum++;
     }
 

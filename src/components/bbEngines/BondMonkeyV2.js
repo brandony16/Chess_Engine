@@ -351,7 +351,7 @@ const CHECKMATE_VALUE = 10_000_000;
 /**
  * Gets the evaluation of the given position based purely off of the material in the position.
  * @param {Bitboards} bitboards - the bitboards of the current position
- * @param {string} player - whose move it is ("w" or "b")
+ * @param {string} player - the opposite player. If black plays checkmate, this is white.
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation
  */
@@ -359,7 +359,7 @@ const evaluate = (bitboards, player, result) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
     if (result.includes("Checkmate")) {
-      return player === "w" ? CHECKMATE_VALUE : -CHECKMATE_VALUE;
+      return player === "w" ? -CHECKMATE_VALUE : CHECKMATE_VALUE;
     }
     return 0; // Draw
   }

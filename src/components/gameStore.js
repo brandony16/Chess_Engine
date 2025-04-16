@@ -132,4 +132,15 @@ export const useGameStore = create((set, get) => ({
       currIndexOfDisplayed: game.bitboards.length - 1,
     }));
   },
+
+  goToMove: (moveNumber, moveID) => {
+    set((state) => {
+      let index = moveNumber * 2 + moveID;
+      return {
+        displayedBitboards: state.pastBitboards[index],
+        isCurrPositionShown: false,
+        currIndexOfDisplayed: index,
+      };
+    });
+  },
 }));
