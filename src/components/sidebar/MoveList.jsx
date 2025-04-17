@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import { useEffect, useRef } from "react";
-import { useGameStore } from "./gameStore";
+import { useGameStore } from "../gameStore";
 
 const MoveList = ({ pastMoves, indexOfViewed }) => {
   const goToMove = useGameStore((state) => state.goToMove);
@@ -38,7 +38,7 @@ const MoveList = ({ pastMoves, indexOfViewed }) => {
               </div>
               <div
                 className={`move ${moveID === 1 ? "highlighted" : ""}`}
-                onClick={() => pair[1] ? goToMove(moveNumber, 1) : null}
+                onClick={() => (pair[1] ? goToMove(moveNumber, 1) : null)}
               >
                 {pair[1] || ""}
               </div>

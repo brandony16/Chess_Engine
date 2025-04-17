@@ -21,6 +21,7 @@ import { makeMove } from "../bitboardUtils/moveMaking/makeMoveLogic";
 import { updateAttackMaskHash } from "../bitboardUtils/PieceMasks/attackMask";
 import { computeHash, updateHash } from "../bitboardUtils/zobristHashing";
 import { checkGameOver, sortMoves } from "../bitboardUtils/gameOverLogic";
+import { isInCheck } from "../bitboardUtils/bbChessLogic";
 
 /**
  * @typedef {object} CastlingRights
@@ -47,7 +48,7 @@ export const BMV2 = (
   castlingRights,
   enPassantSquare,
   prevPositions,
-  depth
+  maxDepth,
 ) => {
   const moves = allLegalMovesArr(
     bitboards,
@@ -116,7 +117,8 @@ export const BMV2 = (
       newEnPassant,
       newPositions,
       result,
-      depth - 1,
+      1,
+      maxDepth,
       alpha,
       beta
     );
@@ -163,12 +165,17 @@ const minimax = (
   enPassantSquare,
   prevPositions,
   result,
-  depth,
+  currentDepth,
+  maxDepth,
   alpha,
   beta
 ) => {
-  if (depth === 0 || result) {
-    return evaluate(bitboards, player, result);
+  if (currentDepth >= maxDepth || result) {
+    if (isInCheck(bitboards, player) && currentDepth === maxDepth) {
+      maxDepth += 1;
+    } else {
+      return evaluate(bitboards, player, result);
+    }
   }
 
   const moves = allLegalMovesArr(
@@ -239,7 +246,8 @@ const minimax = (
         newEnPassant,
         newPositions,
         result,
-        depth - 1,
+        currentDepth + 1,
+        maxDepth,
         alpha,
         beta
       );
@@ -307,7 +315,8 @@ const minimax = (
         newEnPassant,
         newPositions,
         result,
-        depth - 1,
+        currentDepth + 1,
+        maxDepth,
         alpha,
         beta
       );

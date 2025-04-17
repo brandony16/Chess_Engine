@@ -18,7 +18,7 @@ const PromotionModal = ({ onPromote, square, userPlayer }) => {
 
   const modalStyle = {
     backgroundColor: background,
-  }
+  };
 
   return (
     <div className="modalOverlay" style={modalWrapperStyle}>

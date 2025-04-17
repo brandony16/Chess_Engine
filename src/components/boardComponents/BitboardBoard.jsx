@@ -2,8 +2,8 @@ import Cell from "./Cell";
 import "./Board.css";
 
 import PropTypes from "prop-types";
-import { getPieceAtSquare } from "./bitboardUtils/pieceGetters";
-import { PIECE_SYMBOLS } from "./bitboardUtils/constants";
+import { getPieceAtSquare } from "../bitboardUtils/pieceGetters";
+import { PIECE_SYMBOLS } from "../bitboardUtils/constants";
 
 // Creates the board out of Cells
 const BitboardBoard = ({
@@ -19,7 +19,7 @@ const BitboardBoard = ({
         const actualRow = userSide === "b" ? row : 7 - row; // Flip row order for Black
 
         return Array.from({ length: 8 }, (_, col) => {
-          const actualCol = userSide === "w" ? col : 7 - col;
+          const actualCol = userSide === "w" ? col : 7 - col; // Flips columns if viewing from Black
           const i = actualRow * 8 + actualCol; // Flip columns per row
           const piece = getPieceAtSquare(i, bitboards);
           const isSelected = selectedSquare === i;

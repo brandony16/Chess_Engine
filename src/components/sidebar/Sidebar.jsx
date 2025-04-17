@@ -1,8 +1,8 @@
 import PropTypes from "prop-types";
 import MoveArrows from "./MoveArrows";
 import MoveList from "./MoveList";
-import { BMV1 } from "./bbEngines/BondMonkeyV1";
-import { BMV2 } from "./bbEngines/BondMonkeyV2";
+import { BMV1 } from "../bbEngines/BondMonkeyV1";
+import { BMV2 } from "../bbEngines/BondMonkeyV2";
 
 const Sidebar = ({
   currPlayer,
@@ -27,7 +27,7 @@ const Sidebar = ({
       <MoveArrows changeBoardView={changeBoardView} />
       <button
         className="engineBattle"
-        onClick={() => battleTwoEngines(BMV2, BMV1, 5)}
+        onClick={() => battleTwoEngines(BMV2, BMV1, 100)}
       >
         Battle Engines
       </button>

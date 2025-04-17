@@ -1,10 +1,8 @@
 import PropTypes from "prop-types";
-import { COLUMN_SYMBOLS } from "./bitboardUtils/constants";
+import { COLUMN_SYMBOLS } from "../bitboardUtils/constants";
 import Piece from "./Piece";
 
-/*
-  Squares on the board
-*/
+// A board cell
 const Cell = ({
   piece,
   row,

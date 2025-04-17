@@ -74,7 +74,7 @@ export const useGameStore = create((set, get) => ({
     });
   },
 
-  resetGame: () => {
+  resetGame: (isEngineGame = null) => {
     clearAttackMaskCache();
 
     set((state) => {
@@ -85,6 +85,7 @@ export const useGameStore = create((set, get) => ({
               moves: state.pastMoves,
               bitboards: state.pastBitboards,
               result: state.result,
+              isEngineGame: isEngineGame,
             },
           ]
         : state.gameHistory;

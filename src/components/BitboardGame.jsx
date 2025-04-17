@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import PromotionModal from "./PromotionModal";
-import Sidebar from "./Sidebar";
+import PromotionModal from "./modals/PromotionModal";
+import Sidebar from "./sidebar/Sidebar";
 import "./UI.css";
-import BitboardBoard from "./BitboardBoard";
+import BitboardBoard from "./boardComponents/BitboardBoard";
 import { getCachedAttackMask } from "./bitboardUtils/PieceMasks/attackMask";
 import { PIECE_SYMBOLS } from "./bitboardUtils/constants";
 import {
@@ -20,8 +20,7 @@ import { getPieceMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration"
 import { filterIllegalMoves } from "./bitboardUtils/bbChessLogic";
 import { BMV2 } from "./bbEngines/BondMonkeyV2";
 import { useGameStore } from "./gameStore";
-import GameHistoryModal from "./GameHistoryModal";
-import Modal from "./Modal";
+import Modal from "./modals/Modal";
 
 // Runs the game
 const BitboardGame = () => {
@@ -195,7 +194,14 @@ const BitboardGame = () => {
         );
         getCachedAttackMask(newBitboards, currPlayer);
 
-        updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj, selectedSquare);
+        updateStates(
+          readableMove,
+          moveObj,
+          newBitboards,
+          hash,
+          gameOverObj,
+          selectedSquare
+        );
       } else {
         useGameStore.setState({
           selectedSquare: null,
@@ -260,7 +266,8 @@ const BitboardGame = () => {
 
     useGameStore.setState({
       displayedBitboards: pastBitboards[index],
-      currIndexOfDisplayed: useGameStore.getState().currIndexOfDisplayed + direction,
+      currIndexOfDisplayed:
+        useGameStore.getState().currIndexOfDisplayed + direction,
     });
 
     if (index === pastBitboards.length - 1) {
@@ -289,10 +296,10 @@ const BitboardGame = () => {
       console.log("Game " + gameNum + " started");
 
       while (!useGameStore.getState().isGameOver) {
-        makeEngineMove(whiteSide, 3);
+        makeEngineMove(whiteSide, 4);
         if (useGameStore.getState().isGameOver) break;
 
-        makeEngineMove(blackSide, 3);
+        makeEngineMove(blackSide, 4);
         if (useGameStore.getState().isGameOver) break;
       }
       const result = useGameStore.getState().result;
@@ -311,7 +318,7 @@ const BitboardGame = () => {
         losses++;
       }
 
-      resetGame();
+      resetGame(true);
       const temp = whiteSide;
       whiteSide = blackSide;
       blackSide = temp;
@@ -335,7 +342,7 @@ const BitboardGame = () => {
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
       setTimeout(() => {
-        makeEngineMove(BMV2, 3);
+        makeEngineMove(BMV2, 4);
       }, 10);
     }
   }, [currPlayer, userSide]);
