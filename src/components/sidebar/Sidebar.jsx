@@ -1,8 +1,7 @@
 import PropTypes from "prop-types";
 import MoveArrows from "./MoveArrows";
 import MoveList from "./MoveList";
-import { BMV1 } from "../bbEngines/BondMonkeyV1";
-import { BMV2 } from "../bbEngines/BondMonkeyV2";
+import { useGameStore } from "../gameStore";
 
 const Sidebar = ({
   currPlayer,
@@ -12,10 +11,10 @@ const Sidebar = ({
   pastMoves,
   changeBoardView,
   indexOfViewedMove,
-  battleTwoEngines,
-  togglePrevGameMenu,
 }) => {
   const turnText = currPlayer === "w" ? "White's Turn" : "Black's Turn";
+  const openGameHistory = useGameStore((state) => state.openGameHistory);
+  const openBattleMenu = useGameStore((state) => state.openBattleMenu);
 
   return (
     <div className="sidebar">
@@ -25,13 +24,10 @@ const Sidebar = ({
         New Game
       </button>
       <MoveArrows changeBoardView={changeBoardView} />
-      <button
-        className="engineBattle"
-        onClick={() => battleTwoEngines(BMV2, BMV1, 1)}
-      >
+      <button className="engineBattle" onClick={() => openBattleMenu()}>
         Battle Engines
       </button>
-      <button className="prevGames" onClick={() => togglePrevGameMenu()}>
+      <button className="prevGames" onClick={() => openGameHistory()}>
         View previous games
       </button>
     </div>
@@ -46,8 +42,6 @@ Sidebar.propTypes = {
   pastMoves: PropTypes.arrayOf(PropTypes.string).isRequired,
   changeBoardView: PropTypes.func.isRequired,
   indexOfViewedMove: PropTypes.number.isRequired,
-  battleTwoEngines: PropTypes.func.isRequired,
-  togglePrevGameMenu: PropTypes.func.isRequired,
 };
 
 export default Sidebar;

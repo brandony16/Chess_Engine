@@ -37,8 +37,9 @@ const BitboardGame = () => {
     displayedBitboards,
     currIndexOfDisplayed,
     resetGame,
-    isGameHistoryMenuOpen,
     isModalOpen,
+    isGameHistoryMenuOpen,
+    isBattleEnginesOpen,
   } = useGameStore();
 
   // FUNCTIONS
@@ -281,7 +282,7 @@ const BitboardGame = () => {
     }
   };
 
-  const battleTwoEngines = (engine1, engine2, games = 10) => {
+  const battleTwoEngines = (engine1, engine2, games = 10, depth = 3) => {
     resetGame();
     useGameStore.setState({ userSide: null });
 
@@ -296,10 +297,10 @@ const BitboardGame = () => {
       console.log("Game " + gameNum + " started");
 
       while (!useGameStore.getState().isGameOver) {
-        makeEngineMove(whiteSide, 3);
+        makeEngineMove(whiteSide, depth);
         if (useGameStore.getState().isGameOver) break;
 
-        makeEngineMove(blackSide, 3);
+        makeEngineMove(blackSide, depth);
         if (useGameStore.getState().isGameOver) break;
       }
       const result = useGameStore.getState().result;
@@ -331,11 +332,6 @@ const BitboardGame = () => {
     console.log("\n Losses: " + losses);
     const winRate = (wins / games) * 100;
     console.log("Win Rate: " + winRate + "%");
-  };
-
-  const togglePrevGameMenu = () => {
-    const prev = useGameStore.getState().isGameHistoryMenuOpen;
-    useGameStore.setState({ isGameHistoryMenuOpen: !prev, isModalOpen: !prev });
   };
 
   // Runs the engine move after the user makes a move
@@ -372,11 +368,15 @@ const BitboardGame = () => {
           pastMoves={pastMoves}
           changeBoardView={changeBoardView}
           indexOfViewedMove={currIndexOfDisplayed}
-          battleTwoEngines={battleTwoEngines}
-          togglePrevGameMenu={togglePrevGameMenu}
         />
       </div>
-      {isModalOpen && <Modal isGameHistory={isGameHistoryMenuOpen} />}
+      {isModalOpen && (
+        <Modal
+          isGameHistory={isGameHistoryMenuOpen}
+          isBattle={isBattleEnginesOpen}
+          battleEngines={battleTwoEngines}
+        />
+      )}
     </div>
   );
 };

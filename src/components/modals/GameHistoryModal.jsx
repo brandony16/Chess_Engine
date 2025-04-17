@@ -5,10 +5,11 @@ import "./GameHistory.css";
 const GameHistoryModal = () => {
   const gameHistory = useGameStore((state) => state.gameHistory);
   const updateShownGame = useGameStore((state) => state.updateShownGame);
+  const closeModal = useGameStore((state) => state.closeModal);
 
   const handleGameSelect = (game) => {
     updateShownGame(game);
-    useGameStore.setState({ isGameHistoryMenuOpen: false, isModalOpen: false });
+    closeModal();
   };
 
   return (

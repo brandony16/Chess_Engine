@@ -31,8 +31,9 @@ export const useGameStore = create((set, get) => ({
   fiftyMoveRuleCounter: 0,
 
   gameHistory: [],
-  isGameHistoryMenuOpen: false,
   isModalOpen: false,
+  isGameHistoryMenuOpen: false,
+  isBattleEnginesOpen: false,
 
   // ACTIONS / UPDATER FUNCTIONS
 
@@ -115,15 +116,16 @@ export const useGameStore = create((set, get) => ({
           blackQueenside: true,
         },
         fiftyMoveRuleCounter: 0,
-        isGameHistoryMenuOpen: false,
         isModalOpen: false,
+        isGameHistoryMenuOpen: false,
+        isBattleEnginesOpen: false,
       };
     });
   },
 
   updateShownGame: (game) => {
     const lastBitboards = game.bitboards[game.bitboards.length - 1];
-    set((state) => ({
+    set(() => ({
       pastMoves: game.moves,
       pastBitboards: game.bitboards,
       bitboards: lastBitboards,
@@ -143,5 +145,29 @@ export const useGameStore = create((set, get) => ({
         currIndexOfDisplayed: index,
       };
     });
+  },
+
+  openGameHistory: () => {
+    set(() => ({
+      isModalOpen: true,
+      isGameHistoryMenuOpen: true,
+      isBattleEnginesOpen: false,
+    }));
+  },
+
+  openBattleMenu: () => {
+    set(() => ({
+      isModalOpen: true,
+      isGameHistoryMenuOpen: false,
+      isBattleEnginesOpen: true,
+    }));
+  },
+
+  closeModal: () => {
+    set(() => ({
+      isModalOpen: false,
+      isGameHistoryMenuOpen: false,
+      isBattleEnginesOpen: false,
+    }));
   },
 }));

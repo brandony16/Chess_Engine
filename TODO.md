@@ -1,8 +1,6 @@
 ## UI
 
 - Make Game History Modal look better
-- Make a battle engines modal that allows you to select which engines, at which
-  depth, and how many games
 - Make pieces draggable
 - Organize sidebar by making buttons on the same row and using icons (maybe?)
 - Add ability to flip the board view
