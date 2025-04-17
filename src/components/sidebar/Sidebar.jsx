@@ -27,7 +27,7 @@ const Sidebar = ({
       <MoveArrows changeBoardView={changeBoardView} />
       <button
         className="engineBattle"
-        onClick={() => battleTwoEngines(BMV2, BMV1, 100)}
+        onClick={() => battleTwoEngines(BMV2, BMV1, 1)}
       >
         Battle Engines
       </button>

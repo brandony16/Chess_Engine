@@ -14,9 +14,8 @@
  * @property {bigint} blackKings - bitboard of the black king
  */
 
-import { isSquareAttacked } from "./bbChessLogic";
+import { hasLegalMove, isSquareAttacked } from "./bbChessLogic";
 import { bitScanForward, getNumPieces } from "./bbUtils";
-import { getAllLegalMoves } from "./moveGeneration/allMoveGeneration";
 import { getBlackPieces, getWhitePieces } from "./pieceGetters";
 
 /**
@@ -49,13 +48,6 @@ export const checkGameOver = (
   const isPlayerWhite = player === "w";
   const opponent = isPlayerWhite ? "b" : "w";
 
-  const allLegalMoves = getAllLegalMoves(
-    bitboards,
-    opponent,
-    castlingRights,
-    enPassantSquare
-  );
-
   const kingBB = bitboards[isPlayerWhite ? "blackKings" : "whiteKings"];
   const kingSquare = bitScanForward(kingBB);
 
@@ -78,7 +70,7 @@ export const checkGameOver = (
   }
 
   // If player has no moves it is stalemate or checkmate
-  if (allLegalMoves === 0n) {
+  if (!hasLegalMove(bitboards, opponent, enPassantSquare)) {
     result.isGameOver = true;
 
     if (isSquareAttacked(bitboards, kingSquare, player, attackHash)) {

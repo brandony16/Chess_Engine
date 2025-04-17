@@ -1,7 +1,13 @@
 import { bitScanForward } from "./bbUtils";
 import { getCachedAttackMask } from "./PieceMasks/attackMask";
 import { makeMove } from "./moveMaking/makeMoveLogic";
-import { bigIntFullRep } from "./generalHelpers";
+import {
+  getBlackPieces,
+  getPieceAtSquare,
+  getWhitePieces,
+} from "./pieceGetters";
+import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
+import { GENERAL_SYMBOLS } from "./constants";
 
 /**
  * @typedef {object} Bitboards
@@ -29,7 +35,11 @@ import { bigIntFullRep } from "./generalHelpers";
  * @returns {boolean} if the square is attacked
  */
 export const isSquareAttacked = (bitboards, square, opponent, attackHash) => {
-  const opponentAttackMask = getCachedAttackMask(bitboards, opponent, attackHash);
+  const opponentAttackMask = getCachedAttackMask(
+    bitboards,
+    opponent,
+    attackHash
+  );
   return (opponentAttackMask & (1n << BigInt(square))) !== 0n;
 };
 
@@ -86,4 +96,37 @@ export const filterIllegalMoves = (bitboards, moves, from, player) => {
   }
 
   return filteredMoves;
+};
+
+/**
+ * Determines if a given player has a legal move.
+ *
+ * @param {Bitboards} bitboards - the bitboards of the position
+ * @param {string} player - who to check if they have a move ("w" or "b")
+ * @param {number} enPassantSquare - the square where en passant is legal. Null if none
+ * @returns {boolean} if the player has a legal move.
+ */
+export const hasLegalMove = (bitboards, player, enPassantSquare) => {
+  const playerPieces =
+    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+
+  let pieces = playerPieces;
+  while (pieces !== 0n) {
+    const sq = bitScanForward(pieces);
+    pieces &= pieces - 1n;
+
+    const piece = GENERAL_SYMBOLS[getPieceAtSquare(sq, bitboards)];
+    const moves = getPieceMoves(
+      bitboards,
+      piece,
+      sq,
+      player,
+      enPassantSquare,
+      null // Never a case where castling is the only king move
+    );
+
+    const filtered = filterIllegalMoves(bitboards, moves, sq, player);
+    if (filtered !== 0n) return true;
+  }
+  return false;
 };

@@ -296,10 +296,10 @@ const BitboardGame = () => {
       console.log("Game " + gameNum + " started");
 
       while (!useGameStore.getState().isGameOver) {
-        makeEngineMove(whiteSide, 4);
+        makeEngineMove(whiteSide, 3);
         if (useGameStore.getState().isGameOver) break;
 
-        makeEngineMove(blackSide, 4);
+        makeEngineMove(blackSide, 3);
         if (useGameStore.getState().isGameOver) break;
       }
       const result = useGameStore.getState().result;
@@ -342,7 +342,7 @@ const BitboardGame = () => {
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
       setTimeout(() => {
-        makeEngineMove(BMV2, 4);
+        makeEngineMove(BMV2, 5);
       }, 10);
     }
   }, [currPlayer, userSide]);
