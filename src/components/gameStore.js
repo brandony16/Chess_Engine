@@ -87,6 +87,7 @@ export const useGameStore = create((set, get) => ({
               bitboards: state.pastBitboards,
               result: state.result,
               isEngineGame: isEngineGame,
+              userSide: state.userSide,
             },
           ]
         : state.gameHistory;

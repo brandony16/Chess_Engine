@@ -338,7 +338,7 @@ const BitboardGame = () => {
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
       setTimeout(() => {
-        makeEngineMove(BMV2, 5);
+        makeEngineMove(BMV2, 2);
       }, 10);
     }
   }, [currPlayer, userSide]);

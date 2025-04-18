@@ -7,23 +7,46 @@ const GameHistoryModal = () => {
   const updateShownGame = useGameStore((state) => state.updateShownGame);
   const closeModal = useGameStore((state) => state.closeModal);
 
+  const getResultClass = (game) => {
+    if (game.isEngineGame) return "engine-game";
+    const text = game.result.toLowerCase();
+    if (text.charAt(0) === "d") return "Draw";
+    if (text.charAt(0) === game.userSide) return "Win";
+    return "Loss";
+  };
+
   const handleGameSelect = (game) => {
     updateShownGame(game);
     closeModal();
   };
 
   return (
-    <div className="gameHistory">
+    <div className="game-history-modal">
       {gameHistory.map((game, index) => (
         <div
-          className="pastGame"
+          className="game-card"
           key={index}
           onClick={() => handleGameSelect(game)}
         >
-          <p className="modalText">Game: {index + 1},</p>
-          <p className="modalText">Result: {game.result},</p>
-          <p className="modalText">Moves: {Math.ceil(game.moves.length / 2)}</p>
-          <p className="modalText">{game.isEngineGame ? "Engine Game" : ""}</p>
+          <div className="game-info">
+            <p className="game-title">Game {index + 1}</p>
+            <p className={`game-result ${getResultClass(game)}`}>
+              {game.result}
+            </p>
+          </div>
+
+          <div className="game-meta">
+            <p className="game-moves">
+              Moves: {Math.ceil(game.moves.length / 2)}
+            </p>
+            {game.isEngineGame ? (
+              <span className="engine-flag">Engine Game</span>
+            ) : (
+              <span className="user-side">
+                {getResultClass(game)}
+              </span>
+            )}
+          </div>
         </div>
       ))}
     </div>
