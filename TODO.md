@@ -10,8 +10,9 @@
 
 - Improve evaluation function using tables that show where pieces "should" go
 - Implement magic bitboards
-- Implement move storing / transposition table
-- Fix hash function to include castling rights - IN PROGRESS
+- Improve move storing - IN PROGRESS
+- Add quiscince search
+- Add move history / killer moves
 - Make it so engines play a predetermined opening so they don't play the same
   game every time against each other.
 

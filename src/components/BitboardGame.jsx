@@ -111,7 +111,6 @@ const BitboardGame = () => {
       selectedSquare,
       fiftyMoveRuleCounter,
     } = useGameStore.getState();
-
     if (isGameOver || !isCurrPositionShown || userSide !== currPlayer) return;
 
     const square = row * 8 + col;

@@ -22,6 +22,13 @@ import { updateAttackMaskHash } from "../bitboardUtils/PieceMasks/attackMask";
 import { computeHash, updateHash } from "../bitboardUtils/zobristHashing";
 import { checkGameOver, sortMoves } from "../bitboardUtils/gameOverLogic";
 import { isInCheck } from "../bitboardUtils/bbChessLogic";
+import {
+  clearTT,
+  generateTTKey,
+  getTT,
+  setTT,
+  TT_FLAG,
+} from "../bitboardUtils/TranspositionTable/transpositionTable";
 
 /**
  * @typedef {object} CastlingRights
@@ -50,6 +57,7 @@ export const BMV2 = (
   prevPositions,
   maxDepth
 ) => {
+  clearTT();
   const moves = allLegalMovesArr(
     bitboards,
     player,
@@ -193,6 +201,21 @@ const minimax = (
     }
   }
 
+  const key = generateTTKey(bitboards, player, enPassantSquare, castlingRights);
+  const origAlpha = alpha;
+  const ttEntry = getTT(key);
+  if (ttEntry && ttEntry.depth >= maxDepth - currentDepth) {
+    if (ttEntry.flag === TT_FLAG.EXACT)
+      return { score: ttEntry.value, move: ttEntry.bestMove };
+    if (ttEntry.flag === TT_FLAG.LOWER_BOUND) {
+      alpha = Math.max(alpha, ttEntry.value);
+    }
+    if (ttEntry.flag === TT_FLAG.UPPER_BOUND) {
+      beta = Math.min(beta, ttEntry.value);
+    }
+    if (alpha >= beta) return ttEntry.value;
+  }
+
   const moves = allLegalMovesArr(
     bitboards,
     player,
@@ -203,8 +226,10 @@ const minimax = (
   const prevHash = computeHash(bitboards, player, enPassantSquare);
   const prevAttackHash = computeHash(bitboards, player);
 
+  let bestEval, bestMove;
+
   if (player === "w") {
-    let maxEval = -Infinity;
+    bestEval = -Infinity;
 
     for (const move of sortedMoves) {
       const from = move.from;
@@ -284,8 +309,9 @@ const minimax = (
         beta
       );
 
-      if (moveEval > maxEval) {
-        maxEval = moveEval;
+      if (moveEval > bestEval) {
+        bestEval = moveEval;
+        bestMove = move;
       }
       if (moveEval > alpha) {
         alpha = moveEval;
@@ -295,9 +321,8 @@ const minimax = (
         break;
       }
     }
-    return maxEval;
   } else {
-    let minEval = Infinity;
+    bestEval = Infinity;
 
     for (const move of sortedMoves) {
       const from = move.from;
@@ -370,8 +395,9 @@ const minimax = (
         beta
       );
 
-      if (moveEval < minEval) {
-        minEval = moveEval;
+      if (moveEval < bestEval) {
+        bestEval = moveEval;
+        bestMove = move;
       }
       if (moveEval < beta) {
         beta = moveEval;
@@ -381,8 +407,22 @@ const minimax = (
         break;
       }
     }
-    return minEval;
   }
+
+  let flag = TT_FLAG.EXACT;
+  if (bestEval <= origAlpha) {
+    flag = TT_FLAG.UPPER_BOUND;
+  } else if (bestEval >= beta) {
+    flag = TT_FLAG.LOWER_BOUND;
+  }
+  setTT(key, {
+    depth: maxDepth - currentDepth,
+    value: bestEval,
+    flag,
+    bestMove,
+  });
+
+  return bestEval;
 };
 
 // An object of all the weights of the pieces
