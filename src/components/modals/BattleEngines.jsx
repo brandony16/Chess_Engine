@@ -1,5 +1,7 @@
+import PropTypes from "prop-types";
 import { BMV1 } from "../bbEngines/BondMonkeyV1";
 import { BMV2 } from "../bbEngines/BondMonkeyV2";
+import "./BattleEngines.css";
 
 const BattleEngines = ({ battleEngines }) => {
   const engines = ["BondMonkeyV1", "BondMonkeyV2"];
@@ -24,10 +26,12 @@ const BattleEngines = ({ battleEngines }) => {
   };
 
   return (
-    <div className="battleEngines">
-      <form action="get" id={"battleForm"}>
+    <form id="battleForm" className="battleEngines">
+      <div className="engineWrapper">
         <div className="engine">
-          <h2 className="modalSubheader">Engine 1</h2>
+          <label htmlFor="engine1" className="modalSubheader">
+            Engine 1:
+          </label>
           <select name="engine1" className="modalSelect">
             {engines.map((name, index) => {
               return (
@@ -39,34 +43,62 @@ const BattleEngines = ({ battleEngines }) => {
           </select>
         </div>
         <div className="engine">
-          <h2 className="modalSubheader">Engine 2</h2>
+          <label htmlFor="engine2" className="modalSubheader">
+            Engine 2:
+          </label>
           <select name="engine2" className="modalSelect">
             {engines.map((name, index) => {
               return (
-                <option key={index} value={name}>
+                <option key={index} value={name} className="option">
                   {name}
                 </option>
               );
             })}
           </select>
         </div>
-        <label htmlFor="depth">Depth:</label>
-        <input type="number" name="depth" step={1} defaultValue={3} />
+      </div>
 
-        <label htmlFor="games">Games:</label>
-        <input type="number" name="games" step={1} defaultValue={5} />
+      <div className="paramWrap">
+        <div className="labelWrap">
+          <label htmlFor="depth">Depth:</label>
+          <input
+            type="number"
+            name="depth"
+            step={1}
+            defaultValue={3}
+            className="numInput"
+            max="10"
+            min="1"
+          />
+        </div>
+        <div className="labelWrap">
+          <label htmlFor="games">Games:</label>
+          <input
+            type="number"
+            name="games"
+            step="1"
+            defaultValue="5"
+            className="numInput"
+            max="100"
+            min="1"
+          />
+        </div>
+      </div>
 
-        <button
-          className="battle"
-          type="submit"
-          id="battle"
-          onClick={(e) => startBattle(e)}
-        >
-          Start
-        </button>
-      </form>
-    </div>
+      <button
+        className="battle"
+        type="submit"
+        id="battle"
+        onClick={(e) => startBattle(e)}
+      >
+        Start
+      </button>
+    </form>
   );
+};
+
+BattleEngines.propTypes = {
+  battleEngines: PropTypes.func.isRequired,
 };
 
 export default BattleEngines;

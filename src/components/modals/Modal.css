@@ -29,7 +29,7 @@
   padding: 5px;
   right: 10px;
   top: 5px;
-  font-size: 1.5rem;  
+  font-size: 1.5rem;
   box-sizing: border-box;
   outline: none;
   border: none;
@@ -44,5 +44,8 @@
   font-size: 2rem;
   box-sizing: border-box;
   margin: 0;
+  margin-bottom: 8px;
   height: 10%;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }

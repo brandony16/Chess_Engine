@@ -1,0 +1,89 @@
+:root {
+  --offBlack: #1a1a1a;
+  --lightSlate: rgb(84, 129, 126);
+}
+
+.battleEngines {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-evenly;
+  width: 100%;
+  height: 90%;
+}
+
+.engineWrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 90%;
+  background-color: var(--lightSlate);
+  padding: 16px;
+  box-sizing: border-box;
+  border-radius: 10px;
+}
+
+.engine {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+}
+
+.modalSelect {
+  padding: 10px;
+  font-size: 1.3rem;
+  background-color: var(--offBlack);
+  outline: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.option {
+  background-color: var(--offBlack);
+}
+
+.paramWrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 90%;
+}
+
+.labelWrap {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background-color: var(--lightSlate);
+  border-radius: 10px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.numInput {
+  background-color: var(--offBlack);
+  border: none;
+  outline: none;
+  font-size: 1.5rem;
+  width: 4rem;
+  border-radius: 6px;
+  padding: 4px;
+}
+
+.battle {
+  font-size: 1.5rem;
+  width: 30%;
+  outline: none;
+  border: none;
+  box-sizing: border-box;
+}
+
+.battle:hover {
+  color: red;
+  outline: none;
+  border: none;
+  transition: 0.3s ease-in-out;
+}

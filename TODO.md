@@ -1,6 +1,6 @@
 ## UI
 
-- Make Game History Modal look better
+- Make Modals look better - IN PROGRESS
 - Make pieces draggable
 - Organize sidebar by making buttons on the same row and using icons (maybe?)
 - Add ability to flip the board view
