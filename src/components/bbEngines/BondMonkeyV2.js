@@ -48,7 +48,7 @@ export const BMV2 = (
   castlingRights,
   enPassantSquare,
   prevPositions,
-  maxDepth,
+  maxDepth
 ) => {
   const moves = allLegalMovesArr(
     bitboards,
@@ -80,7 +80,13 @@ export const BMV2 = (
     const newCastling = updateCastlingRights(from, castlingRights);
     const newPositions = new Map(prevPositions);
     const newPlayer = isPlayerWhite ? "b" : "w";
-    const attackHash = updateAttackMaskHash(bitboards, newBitboards, from, to, prevAttackHash);
+    const attackHash = updateAttackMaskHash(
+      bitboards,
+      newBitboards,
+      from,
+      to,
+      prevAttackHash
+    );
     const gameOverObj = checkGameOver(
       newBitboards,
       player,
@@ -88,11 +94,11 @@ export const BMV2 = (
       newCastling,
       newEnPassant,
       0,
-      attackHash,
+      attackHash
     );
     const result = gameOverObj.result;
 
-    // Update Hashe
+    // Update Hash
     let enPassantChanged = false;
     if (
       (enPassantSquare && !moveObj.enPassantSquare) ||
@@ -100,12 +106,21 @@ export const BMV2 = (
     ) {
       enPassantChanged = true;
     }
+    const castlingChanged = {
+      whiteKingside: castlingRights.whiteKingside !== newCastling.whiteKingside,
+      whiteQueenside:
+        castlingRights.whiteQueenside !== newCastling.whiteQueenside,
+      blackKingside: castlingRights.blackKingside !== newCastling.blackKingside,
+      blackQueenside:
+        castlingRights.blackQueenside !== newCastling.blackQueenside,
+    };
     const hash = updateHash(
       bitboards,
       newBitboards,
       to,
       from,
       enPassantChanged,
+      castlingChanged,
       prevHash
     );
     newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
@@ -209,7 +224,13 @@ const minimax = (
       const newEnPassant = moveObj.enPassantSquare;
       const newCastling = updateCastlingRights(from, castlingRights);
       const newPositions = new Map(prevPositions);
-      const attackHash = updateAttackMaskHash(bitboards, newBitboards, from, to, prevAttackHash);
+      const attackHash = updateAttackMaskHash(
+        bitboards,
+        newBitboards,
+        from,
+        to,
+        prevAttackHash
+      );
       const gameOverObj = checkGameOver(
         newBitboards,
         player,
@@ -217,7 +238,7 @@ const minimax = (
         newCastling,
         newEnPassant,
         0,
-        attackHash,
+        attackHash
       );
       const result = gameOverObj.result;
 
@@ -229,12 +250,23 @@ const minimax = (
       ) {
         enPassantChanged = true;
       }
+      const castlingChanged = {
+        whiteKingside:
+          castlingRights.whiteKingside !== newCastling.whiteKingside,
+        whiteQueenside:
+          castlingRights.whiteQueenside !== newCastling.whiteQueenside,
+        blackKingside:
+          castlingRights.blackKingside !== newCastling.blackKingside,
+        blackQueenside:
+          castlingRights.blackQueenside !== newCastling.blackQueenside,
+      };
       const hash = updateHash(
         bitboards,
         newBitboards,
         to,
         from,
         enPassantChanged,
+        castlingChanged,
         prevHash
       );
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
@@ -278,7 +310,13 @@ const minimax = (
       const newEnPassant = moveObj.enPassantSquare;
       const newCastling = updateCastlingRights(from, castlingRights);
       const newPositions = new Map(prevPositions);
-      const attackHash = updateAttackMaskHash(bitboards, newBitboards, from, to, prevAttackHash);
+      const attackHash = updateAttackMaskHash(
+        bitboards,
+        newBitboards,
+        from,
+        to,
+        prevAttackHash
+      );
       const gameOverObj = checkGameOver(
         newBitboards,
         player,
@@ -286,7 +324,7 @@ const minimax = (
         newCastling,
         newEnPassant,
         0,
-        attackHash,
+        attackHash
       );
       const result = gameOverObj.result;
 
@@ -298,12 +336,23 @@ const minimax = (
       ) {
         enPassantChanged = true;
       }
+      const castlingChanged = {
+        whiteKingside:
+          castlingRights.whiteKingside !== newCastling.whiteKingside,
+        whiteQueenside:
+          castlingRights.whiteQueenside !== newCastling.whiteQueenside,
+        blackKingside:
+          castlingRights.blackKingside !== newCastling.blackKingside,
+        blackQueenside:
+          castlingRights.blackQueenside !== newCastling.blackQueenside,
+      };
       const hash = updateHash(
         bitboards,
         newBitboards,
         to,
         from,
         enPassantChanged,
+        castlingChanged,
         prevHash
       );
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);

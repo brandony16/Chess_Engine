@@ -74,7 +74,7 @@ const BitboardGame = () => {
     const moveObj = makeMove(bitboards, from, to, enPassantSquare, promotion);
     const newBitboards = moveObj.bitboards;
 
-    const hash = computeHash(newBitboards, currPlayer, moveObj.enPassantSquare);
+    const hash = computeHash(newBitboards, currPlayer, moveObj.enPassantSquare, castlingRights);
 
     const gameOverObj = checkGameOver(
       newBitboards,
@@ -175,7 +175,8 @@ const BitboardGame = () => {
         const hash = computeHash(
           newBitboards,
           currPlayer,
-          moveObj.enPassantSquare
+          moveObj.enPassantSquare,
+          castlingRights
         );
 
         const gameOverObj = checkGameOver(
@@ -193,6 +194,7 @@ const BitboardGame = () => {
           square,
           moveObj.isCapture
         );
+        // Ensures the attack map cache has the new attack map
         getCachedAttackMask(newBitboards, currPlayer);
 
         updateStates(
@@ -338,7 +340,7 @@ const BitboardGame = () => {
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
       setTimeout(() => {
-        makeEngineMove(BMV2, 2);
+        makeEngineMove(BMV2, 4);
       }, 10);
     }
   }, [currPlayer, userSide]);

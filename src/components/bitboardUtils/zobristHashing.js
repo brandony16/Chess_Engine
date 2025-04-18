@@ -1,3 +1,8 @@
+import {
+  CASTLING_ZOBRIST,
+  EN_PASSANT_ZOBRIST,
+  PLAYER_ZOBRIST,
+} from "./constants";
 import { getPieceAtSquare } from "./pieceGetters";
 
 /**
@@ -22,7 +27,12 @@ export const zobristTable = new Array(12)
  * @param {number} enPassant - the en passant square. None assumes it is not legal.
  * @returns {bigint} hash for the position
  */
-export const computeHash = (bitboards, player, enPassant = null) => {
+export const computeHash = (
+  bitboards,
+  player,
+  enPassant = null,
+  castlingRights = null
+) => {
   let hash = 0n;
 
   for (const [piece, bitboard] of Object.entries(bitboards)) {
@@ -42,6 +52,13 @@ export const computeHash = (bitboards, player, enPassant = null) => {
   // Value for if enPassant is legal
   if (enPassant) {
     hash ^= EN_PASSANT_ZOBRIST;
+  }
+
+  if (castlingRights) {
+    if (castlingRights.whiteKingside) hash ^= CASTLING_ZOBRIST.K;
+    if (castlingRights.whiteQueenside) hash ^= CASTLING_ZOBRIST.Q;
+    if (castlingRights.blackKingside) hash ^= CASTLING_ZOBRIST.k;
+    if (castlingRights.blackQueenside) hash ^= CASTLING_ZOBRIST.q;
   }
 
   return hash;
@@ -66,6 +83,7 @@ export const updateHash = (
   to,
   from,
   enPassantChanged,
+  castlingChanged,
   prevHash
 ) => {
   let newHash = prevHash;
@@ -97,12 +115,13 @@ export const updateHash = (
     newHash ^= EN_PASSANT_ZOBRIST;
   }
 
+  if (castlingChanged.whiteKingside) newHash ^= CASTLING_ZOBRIST.K;
+  if (castlingChanged.whiteQueenside) newHash ^= CASTLING_ZOBRIST.Q;
+  if (castlingChanged.blackKingside) newHash ^= CASTLING_ZOBRIST.k;
+  if (castlingChanged.blackQueenside) newHash ^= CASTLING_ZOBRIST.q;
+
   return newHash;
 };
-
-// Random big ints to generate distinct hashes for when it is one players turn and when en passant is legal.
-export const PLAYER_ZOBRIST = 0x9d39247e33776d41n;
-export const EN_PASSANT_ZOBRIST = 0xf3a9b72c85d614e7n;
 
 /**
  * Converts a piece type to the corresponding index for that piece in the zobrist table

@@ -69,3 +69,15 @@ export const COLUMN_SYMBOLS = {
   6: "g",
   7: "h",
 };
+
+// ZOBRIST CONSTANTS
+export const CASTLING_ZOBRIST = {
+  K: 0xabc123n, // White kingside
+  Q: 0xdef456n, // White queenside
+  k: 0x789abcn, // Black kingside
+  q: 0x123defn, // Black queenside
+};
+
+// Random big ints to generate distinct hashes for when it is one players turn and when en passant is legal.
+export const PLAYER_ZOBRIST = 0x9d39247e33776d41n;
+export const EN_PASSANT_ZOBRIST = 0xf3a9b72c85d614e7n;

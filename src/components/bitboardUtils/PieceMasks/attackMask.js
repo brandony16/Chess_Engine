@@ -26,10 +26,11 @@ import {
 import {
   computeHash,
   pieceToZobristIndex,
-  PLAYER_ZOBRIST,
   zobristTable,
 } from "../zobristHashing";
 import { getPieceAtSquare } from "../pieceGetters";
+import { LRUMap } from "../LRUMap";
+import { PLAYER_ZOBRIST } from "../constants";
 
 /**
  * Computes an attack mask for a player
@@ -145,7 +146,7 @@ const computeAttackMask = (bitboards, player) => {
 };
 
 // Map of cached attack masks
-const attackMaskCache = new Map();
+const attackMaskCache = new LRUMap(500_000);
 
 /**
  * Gets a cached attack mask
@@ -211,10 +212,70 @@ export const updateAttackMaskHash = (
     const newMask = computeAttackMask(bitboards, player);
     attackMaskCache.set(newHash, newMask);
   }
-  
+
+  if (Math.abs(from - to) === 2 && pieceFrom.charAt(5) === "K") {
+    newHash = handleCastleHashUpdate(newHash, from, to);
+  }
+
   return newHash;
 };
 
+/**
+ * Clears the attak mask cache
+ */
 export const clearAttackMaskCache = () => {
   attackMaskCache.clear();
-}
+};
+
+/**
+ * Handles updating the hash when castling occurs. Only moves the rook, as the king is handled by the updateAttackMaskHash
+ * function when it XORs the piece at the from and to locations.
+ *
+ * @param {bigint} hash - the hash to update
+ * @param {number} from - the square the king moved from
+ * @param {number} to - the square the king moved t0
+ * @returns {bigint} the updated hash
+ */
+const handleCastleHashUpdate = (hash, from, to) => {
+  if (from !== 4 && from !== 60) return hash;
+
+  let newHash = hash;
+
+  // White castling
+  if (from === 4) {
+    const rookZobristIndex = pieceToZobristIndex["whiteRooks"];
+    if (to === 6) {
+      // Kingside
+      const rookZobristFrom = zobristTable[rookZobristIndex][7];
+      const rookZobristTo = zobristTable[rookZobristIndex][5];
+      newHash ^= rookZobristFrom;
+      newHash ^= rookZobristTo;
+      return newHash;
+    }
+    // Queenside
+    const rookZobristFrom = zobristTable[rookZobristIndex][0];
+    const rookZobristTo = zobristTable[rookZobristIndex][3];
+    newHash ^= rookZobristFrom;
+    newHash ^= rookZobristTo;
+    return newHash;
+  }
+
+  // Black caslting
+  const rookZobristIndex = pieceToZobristIndex["blackRooks"];
+
+  if (to === 62) {
+    // Kingside
+    const rookZobristFrom = zobristTable[rookZobristIndex][63];
+    const rookZobristTo = zobristTable[rookZobristIndex][61];
+    newHash ^= rookZobristFrom;
+    newHash ^= rookZobristTo;
+    return newHash;
+  }
+
+  // Queenside
+  const rookZobristFrom = zobristTable[rookZobristIndex][56];
+  const rookZobristTo = zobristTable[rookZobristIndex][59];
+  newHash ^= rookZobristFrom;
+  newHash ^= rookZobristTo;
+  return newHash;
+};
