@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import PromotionModal from "./modals/PromotionModal";
 import Sidebar from "./sidebar/Sidebar";
 import "./UI.css";
@@ -42,6 +42,11 @@ const BitboardGame = () => {
     isBattleEnginesOpen,
   } = useGameStore();
 
+  const worker = useMemo(() => {
+    return new Worker(new URL("./bbEngines/engineWorker.js", import.meta.url), {
+      type: "module",
+    });
+  }, []);
   // FUNCTIONS
   // Gets the engine move then plays it
   const makeEngineMove = (engine, depth = 3, timeLimit = Infinity) => {
@@ -53,8 +58,6 @@ const BitboardGame = () => {
       castlingRights,
       enPassantSquare,
       pastPositions,
-      updateStates,
-      fiftyMoveRuleCounter,
     } = useGameStore.getState();
 
     if (!isCurrPositionShown || isGameOver) return;
@@ -66,16 +69,35 @@ const BitboardGame = () => {
       enPassantSquare,
       pastPositions,
       depth,
-      timeLimit,
+      timeLimit
     );
     const from = bestMoveObj.from;
     const to = bestMoveObj.to;
     const promotion = bestMoveObj.promotion;
 
+    processMove(from, to, promotion);
+  };
+
+  const processMove = (from, to, promotion) => {
+    const {
+      bitboards,
+      currPlayer,
+      castlingRights,
+      enPassantSquare,
+      pastPositions,
+      updateStates,
+      fiftyMoveRuleCounter,
+    } = useGameStore.getState();
+
     const moveObj = makeMove(bitboards, from, to, enPassantSquare, promotion);
     const newBitboards = moveObj.bitboards;
 
-    const hash = computeHash(newBitboards, currPlayer, moveObj.enPassantSquare, castlingRights);
+    const hash = computeHash(
+      newBitboards,
+      currPlayer,
+      moveObj.enPassantSquare,
+      castlingRights
+    );
 
     const gameOverObj = checkGameOver(
       newBitboards,
@@ -299,10 +321,10 @@ const BitboardGame = () => {
       console.log("Game " + gameNum + " started");
 
       while (!useGameStore.getState().isGameOver) {
-        makeEngineMove(whiteSide, depth);
+        makeEngineMove(engine1, whiteSide, depth);
         if (useGameStore.getState().isGameOver) break;
 
-        makeEngineMove(blackSide, depth);
+        makeEngineMove(engine2, blackSide, depth);
         if (useGameStore.getState().isGameOver) break;
       }
       const result = useGameStore.getState().result;
@@ -336,10 +358,31 @@ const BitboardGame = () => {
     console.log("Win Rate: " + winRate + "%");
   };
 
+  const getEngineMove = (depth, timeLimit) => {
+    if (!worker) return;
+    const state = useGameStore.getState();
+    worker.postMessage({
+      bitboards: state.bitboards,
+      player: state.currPlayer,
+      castlingRights: state.castlingRights,
+      enPassantSquare: state.enPassantSquare,
+      prevPositions: state.pastPositions,
+      maxDepth: depth,
+      timeLimit,
+    });
+  };
+
+  useEffect(() => {
+    worker.onmessage = (e) => {
+      const { move } = e.data;
+      processMove(move.from, move.to, move.promotion);
+    };
+  }, []);
+
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
-      makeEngineMove(BMV2, 4, 5000);
+      getEngineMove(3, 5000);
     }
   }, [currPlayer, userSide]);
 
