@@ -10,7 +10,8 @@
 
 - Improve evaluation function using tables that show where pieces "should" go
 - Implement magic bitboards
-- Improve move storing - IN PROGRESS
+- Improve move storing
+- Implement iterative deepening - IN PROGRESS
 - Add quiscince search
 - Add move history / killer moves
 - Make it so engines play a predetermined opening so they don't play the same
@@ -18,5 +19,5 @@
 
 ## General
 
-- Find a way to test my fucntions robustly
+- Find a way to test my functions robustly
 - Optimize functions further

@@ -44,7 +44,7 @@ const BitboardGame = () => {
 
   // FUNCTIONS
   // Gets the engine move then plays it
-  const makeEngineMove = (engine, depth = 3) => {
+  const makeEngineMove = (engine, depth = 3, timeLimit = Infinity) => {
     const {
       isCurrPositionShown,
       isGameOver,
@@ -65,7 +65,8 @@ const BitboardGame = () => {
       castlingRights,
       enPassantSquare,
       pastPositions,
-      depth
+      depth,
+      timeLimit,
     );
     const from = bestMoveObj.from;
     const to = bestMoveObj.to;
@@ -338,9 +339,7 @@ const BitboardGame = () => {
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
-      setTimeout(() => {
-        makeEngineMove(BMV2, 4);
-      }, 10);
+      makeEngineMove(BMV2, 4, 5000);
     }
   }, [currPlayer, userSide]);
 

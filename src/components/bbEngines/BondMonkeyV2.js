@@ -47,126 +47,55 @@ import {
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {Map} prevPositions - a map of the previous positions
  * @param {number} depth - the depth to search
- * @returns {{ from: number, to: number, promotion: string}} the best move found
+ * @param {number} timeLimit - the max time the engine can search in milliseconds.
+ * @returns {{ from: number, to: number, promotion: string}, number} the best move found and the evaluation
  */
-export const BMV2 = (
+export function BMV2(
   bitboards,
   player,
   castlingRights,
   enPassantSquare,
   prevPositions,
-  maxDepth
-) => {
-  clearTT();
-  const moves = allLegalMovesArr(
-    bitboards,
-    player,
-    castlingRights,
-    enPassantSquare
-  );
-  const sortedMoves = sortMoves(moves);
-  const prevHash = computeHash(bitboards, player, enPassantSquare);
-  const prevAttackHash = computeHash(bitboards, player);
+  maxDepth,
+  timeLimit = Infinity
+) {
+  clearTT(); // Clears transposition table
 
-  let bestMove = sortedMoves[0] || null;
-  let bestEval = player === "w" ? -Infinity : Infinity;
-  let alpha = -Infinity;
-  let beta = Infinity;
+  const start = performance.now();
 
-  const isPlayerWhite = player === "w";
-  const isPlayerBlack = player === "b";
+  let bestMove = null;
+  let bestEval = null;
 
-  for (const move of sortedMoves) {
-    const from = move.from;
-    const to = move.to;
-    const promotion = move.promotion || null;
-    let moveObj = makeMove(bitboards, from, to, enPassantSquare, promotion);
-
-    // New game states
-    const newBitboards = moveObj.bitboards;
-    const newEnPassant = moveObj.enPassantSquare;
-    const newCastling = updateCastlingRights(from, castlingRights);
-    const newPositions = new Map(prevPositions);
-    const newPlayer = isPlayerWhite ? "b" : "w";
-    const attackHash = updateAttackMaskHash(
+  for (let depth = 1; depth <= maxDepth; depth++) {
+    const { score, move } = minimax(
       bitboards,
-      newBitboards,
-      from,
-      to,
-      prevAttackHash
-    );
-    const gameOverObj = checkGameOver(
-      newBitboards,
       player,
-      newPositions,
-      newCastling,
-      newEnPassant,
+      castlingRights,
+      enPassantSquare,
+      prevPositions,
+      null,
       0,
-      attackHash
-    );
-    const result = gameOverObj.result;
-
-    // Update Hash
-    let enPassantChanged = false;
-    if (
-      (enPassantSquare && !moveObj.enPassantSquare) ||
-      (!enPassantSquare && moveObj.enPassantSquare)
-    ) {
-      enPassantChanged = true;
-    }
-    const castlingChanged = {
-      whiteKingside: castlingRights.whiteKingside !== newCastling.whiteKingside,
-      whiteQueenside:
-        castlingRights.whiteQueenside !== newCastling.whiteQueenside,
-      blackKingside: castlingRights.blackKingside !== newCastling.blackKingside,
-      blackQueenside:
-        castlingRights.blackQueenside !== newCastling.blackQueenside,
-    };
-    const hash = updateHash(
-      bitboards,
-      newBitboards,
-      to,
-      from,
-      enPassantChanged,
-      castlingChanged,
-      prevHash
-    );
-    newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
-
-    const moveEval = minimax(
-      newBitboards,
-      newPlayer,
-      newCastling,
-      newEnPassant,
-      newPositions,
-      result,
-      1,
-      maxDepth,
-      alpha,
-      beta
+      depth,
+      -Infinity,
+      Infinity
     );
 
-    if (
-      (isPlayerWhite && moveEval > bestEval) ||
-      (isPlayerBlack && moveEval < bestEval)
-    ) {
-      bestEval = moveEval;
+    if (move != null) {
+      bestEval = score;
       bestMove = move;
     }
 
-    if (isPlayerWhite) {
-      alpha = Math.max(alpha, moveEval);
-    } else {
-      beta = Math.min(beta, moveEval);
+    if (Math.abs(score) > CHECKMATE_VALUE - depth) {
+      break;
     }
 
-    if (beta <= alpha) {
+    if (performance.now() - start > timeLimit) {
       break;
     }
   }
 
-  return bestMove;
-};
+  return { ...bestMove, bestEval };
+}
 
 /**
  * A minimax function that recursively finds the evaluation of the function.
@@ -179,7 +108,7 @@ export const BMV2 = (
  * @param {depth} depth - the depth left to search
  * @param {number} alpha - the alpha value for alpha-beta pruning
  * @param {number} beta - the beta value for alpha-beta pruning
- * @returns {number} evaluation of the move
+ * @returns {{score: number, move: object}} evaluation of the move and the move
  */
 const minimax = (
   bitboards,
@@ -197,7 +126,7 @@ const minimax = (
     if (isInCheck(bitboards, player) && currentDepth === maxDepth) {
       maxDepth += 1;
     } else {
-      return evaluate(bitboards, player, result);
+      return { score: evaluate(bitboards, player, result), move: null };
     }
   }
 
@@ -213,7 +142,7 @@ const minimax = (
     if (ttEntry.flag === TT_FLAG.UPPER_BOUND) {
       beta = Math.min(beta, ttEntry.value);
     }
-    if (alpha >= beta) return ttEntry.value;
+    if (alpha >= beta) return { score: ttEntry.value, move: ttEntry.bestMove };
   }
 
   const moves = allLegalMovesArr(
@@ -296,7 +225,7 @@ const minimax = (
       );
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
-      const moveEval = minimax(
+      const { score: moveEval } = minimax(
         newBitboards,
         "b",
         newCastling,
@@ -382,7 +311,7 @@ const minimax = (
       );
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
-      const moveEval = minimax(
+      const { score: moveEval } = minimax(
         newBitboards,
         "w",
         newCastling,
@@ -422,7 +351,7 @@ const minimax = (
     bestMove,
   });
 
-  return bestEval;
+  return { score: bestEval, move: bestMove };
 };
 
 // An object of all the weights of the pieces
