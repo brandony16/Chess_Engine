@@ -20,7 +20,7 @@ import { updateCastlingRights } from "../bitboardUtils/moveMaking/castleMoveLogi
 import { makeMove } from "../bitboardUtils/moveMaking/makeMoveLogic";
 import { updateAttackMaskHash } from "../bitboardUtils/PieceMasks/attackMask";
 import { computeHash, updateHash } from "../bitboardUtils/zobristHashing";
-import { checkGameOver, sortMoves } from "../bitboardUtils/gameOverLogic";
+import { checkGameOver } from "../bitboardUtils/gameOverLogic";
 import { isInCheck } from "../bitboardUtils/bbChessLogic";
 import {
   clearTT,
@@ -29,6 +29,7 @@ import {
   setTT,
   TT_FLAG,
 } from "../bitboardUtils/TranspositionTable/transpositionTable";
+import { getPieceAtSquare } from "../bitboardUtils/pieceGetters";
 
 /**
  * @typedef {object} CastlingRights
@@ -46,7 +47,7 @@ import {
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {Map} prevPositions - a map of the previous positions
- * @param {number} depth - the depth to search
+ * @param {number} depth - the depth to search in ply. 1 ply is one player moving. 2 ply is one move, where each side gets to play.
  * @param {number} timeLimit - the max time the engine can search in milliseconds.
  * @returns {{ from: number, to: number, promotion: string}, number} the best move found and the evaluation
  */
@@ -97,6 +98,15 @@ export function BMV2(
   return { ...bestMove, bestEval };
 }
 
+// Maximum search depth
+const MAX_PLY = 64;
+
+// killerMoves[ply] = [firstKillerMove, secondKillerMove]
+const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
+
+// historyScores[fromSquare][toSquare] = integer score
+const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
+
 /**
  * A minimax function that recursively finds the evaluation of the function.
  * @param {Bitboards} bitboards - the bitboards of the current position
@@ -130,6 +140,7 @@ const minimax = (
     }
   }
 
+  // Transpositition table logic
   const key = generateTTKey(bitboards, player, enPassantSquare, castlingRights);
   const origAlpha = alpha;
   const ttEntry = getTT(key);
@@ -145,13 +156,48 @@ const minimax = (
     if (alpha >= beta) return { score: ttEntry.value, move: ttEntry.bestMove };
   }
 
-  const moves = allLegalMovesArr(
+  const ttMove = ttEntry?.bestMove || null;
+
+  const scored = allLegalMovesArr(
     bitboards,
     player,
     castlingRights,
     enPassantSquare
-  );
-  const sortedMoves = sortMoves(moves);
+  ).map((move) => {
+    let score = 0;
+
+    // 1) Transposition-table move is highest priority
+    if (ttMove && move.from === ttMove.from && move.to === ttMove.to) {
+      score += 1_000_000;
+    }
+
+    // 2) Captures (simple MVV/LVA: victim value minus your piece value)
+    if (move.isCapture) {
+      score +=
+        100_000 +
+        (weights[getPieceAtSquare(move.to, bitboards)] || 0) -
+        (weights[getPieceAtSquare(move.from, bitboards)] || 0);
+    }
+
+    // 3) Killer moves at this ply
+    const [k0, k1] = killerMoves[currentDepth];
+    if (k0 && move.from === k0.from && move.to === k0.to) {
+      score += 90_000;
+    } else if (k1 && move.from === k1.from && move.to === k1.to) {
+      score += 80_000;
+    }
+
+    // 4) History heuristic
+    score += historyScores[move.from][move.to];
+
+    return { move, score };
+  });
+
+  // sort descending
+  scored.sort((a, b) => b.score - a.score);
+
+  const orderedMoves = scored.map((o) => o.move);
+
   const prevHash = computeHash(bitboards, player, enPassantSquare);
   const prevAttackHash = computeHash(bitboards, player);
 
@@ -160,7 +206,7 @@ const minimax = (
   if (player === "w") {
     bestEval = -Infinity;
 
-    for (const move of sortedMoves) {
+    for (const move of orderedMoves) {
       const from = move.from;
       const to = move.to;
       const promotion = move.promotion || null;
@@ -247,13 +293,29 @@ const minimax = (
       }
 
       if (beta <= alpha) {
+        // Update killer moves and history scores
+        if (!move.isCapture) {
+          const killer = killerMoves[currentDepth];
+
+          if (
+            !killer[0] ||
+            move.from !== killer[0].from ||
+            move.to !== killer[0].to
+          ) {
+            killer[1] = killer[0];
+            killer[0] = move;
+          }
+
+          // Weights this move higher in history
+          historyScores[move.from][move.to] += 2 ^ (maxDepth - currentDepth);
+        }
         break;
       }
     }
   } else {
     bestEval = Infinity;
 
-    for (const move of sortedMoves) {
+    for (const move of orderedMoves) {
       const from = move.from;
       const to = move.to;
       const promotion = move.promotion || null;
@@ -333,11 +395,28 @@ const minimax = (
       }
 
       if (beta <= alpha) {
+        // Update killer moves and history scores
+        if (!move.isCapture) {
+          const killer = killerMoves[currentDepth];
+
+          if (
+            !killer[0] ||
+            move.from !== killer[0].from ||
+            move.to !== killer[0].to
+          ) {
+            killer[1] = killer[0];
+            killer[0] = move;
+          }
+
+          // Weights this move higher in history
+          historyScores[move.from][move.to] += 2 ^ (maxDepth - currentDepth);
+        }
         break;
       }
     }
   }
 
+  // Update transposition table
   let flag = TT_FLAG.EXACT;
   if (bestEval <= origAlpha) {
     flag = TT_FLAG.UPPER_BOUND;

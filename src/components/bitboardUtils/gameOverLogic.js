@@ -134,12 +134,3 @@ export const drawByRepetition = (pastPositions) => {
 export const drawByFiftyMoveRule = (fiftyMoveCounter) => {
   return fiftyMoveCounter >= 100;
 };
-
-/**
- * Sorts a given array of moves so that captures are at the front of the array.
- * @param {Array} moves - an array of all the moves. Each move should be an object with an isCapture field.
- * @returns {Array} the sorted moves.
- */
-export const sortMoves = (moves) => {
-  return moves.sort((a, b) => b.isCapture - a.isCapture);
-};

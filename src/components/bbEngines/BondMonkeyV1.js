@@ -31,6 +31,8 @@ import { getAllPieces } from "../bitboardUtils/pieceGetters";
  * @param {string} player - whose move it is ("w" or "b")
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
+ * @param {number} depth - placeholder to have same inputs as other engines
+ * @param {number} timeLimit - placeholder to have same inputs as other engines
  * @returns {{from: number, to: number, promotion: string}} The move found
  */
 export const BMV1 = (
@@ -38,7 +40,8 @@ export const BMV1 = (
   player,
   castlingRights,
   enPassantSquare,
-  depth = 0
+  depth = 0,
+  timeLimit = Infinity,
 ) => {
   const moves = allLegalMovesArr(
     bitboards,

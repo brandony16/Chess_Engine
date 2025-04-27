@@ -321,10 +321,10 @@ const BitboardGame = () => {
       console.log("Game " + gameNum + " started");
 
       while (!useGameStore.getState().isGameOver) {
-        makeEngineMove(engine1, whiteSide, depth);
+        makeEngineMove(whiteSide, depth, 5000);
         if (useGameStore.getState().isGameOver) break;
 
-        makeEngineMove(engine2, blackSide, depth);
+        makeEngineMove(blackSide, depth, 5000);
         if (useGameStore.getState().isGameOver) break;
       }
       const result = useGameStore.getState().result;
@@ -382,7 +382,7 @@ const BitboardGame = () => {
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
-      getEngineMove(3, 5000);
+      getEngineMove(5, 50000);
     }
   }, [currPlayer, userSide]);
 
