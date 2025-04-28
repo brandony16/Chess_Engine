@@ -18,7 +18,10 @@ import { getNumPieces } from "../bitboardUtils/bbUtils";
 import { allLegalMovesArr } from "../bitboardUtils/generalHelpers";
 import { updateCastlingRights } from "../bitboardUtils/moveMaking/castleMoveLogic";
 import { makeMove } from "../bitboardUtils/moveMaking/makeMoveLogic";
-import { updateAttackMaskHash } from "../bitboardUtils/PieceMasks/attackMask";
+import {
+  getCachedAttackMask,
+  updateAttackMaskHash,
+} from "../bitboardUtils/PieceMasks/attackMask";
 import { computeHash, updateHash } from "../bitboardUtils/zobristHashing";
 import { checkGameOver } from "../bitboardUtils/gameOverLogic";
 import { isInCheck } from "../bitboardUtils/bbChessLogic";
@@ -74,6 +77,9 @@ export function BMV2(
   );
   const rootAttackHash = computeHash(bitboards, player);
 
+  // Ensures the attack mask cache has the attack mask at the rootAttackHash
+  getCachedAttackMask(bitboards, player, rootAttackHash);
+
   for (let depth = 1; depth <= maxDepth; depth++) {
     const { score, move } = minimax(
       bitboards,
@@ -96,10 +102,12 @@ export function BMV2(
     }
 
     if (Math.abs(score) > CHECKMATE_VALUE - depth) {
+      console.log("mate break");
       break;
     }
 
     if (performance.now() - start > timeLimit) {
+      console.log("time limit");
       break;
     }
   }
@@ -148,7 +156,10 @@ const minimax = (
 ) => {
   if (currentDepth >= maxDepth || result) {
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
-      return { score: evaluate(bitboards, player, result), move: null };
+      return {
+        score: evaluate(bitboards, player, result, currentDepth),
+        move: null,
+      };
     }
   }
 
@@ -157,15 +168,18 @@ const minimax = (
   const origAlpha = alpha;
   const ttEntry = getTT(key);
   if (ttEntry && ttEntry.depth >= maxDepth - currentDepth) {
-    if (ttEntry.flag === TT_FLAG.EXACT)
+    if (ttEntry.flag === TT_FLAG.EXACT) {
       return { score: ttEntry.value, move: ttEntry.bestMove };
+    }
     if (ttEntry.flag === TT_FLAG.LOWER_BOUND) {
       alpha = Math.max(alpha, ttEntry.value);
     }
     if (ttEntry.flag === TT_FLAG.UPPER_BOUND) {
       beta = Math.min(beta, ttEntry.value);
     }
-    if (alpha >= beta) return { score: ttEntry.value, move: ttEntry.bestMove };
+    if (alpha >= beta) {
+      return { score: ttEntry.value, move: ttEntry.bestMove };
+    }
   }
 
   const ttMove = ttEntry?.bestMove || null;
@@ -208,7 +222,6 @@ const minimax = (
 
   // sort descending
   scored.sort((a, b) => b.score - a.score);
-
   const orderedMoves = scored.map((o) => o.move);
 
   let bestEval, bestMove;
@@ -239,7 +252,8 @@ const minimax = (
         newBitboards,
         from,
         to,
-        prevAttackHash
+        prevAttackHash,
+        player
       );
       const gameOverObj = checkGameOver(
         newBitboards,
@@ -343,7 +357,8 @@ const minimax = (
         newBitboards,
         from,
         to,
-        prevAttackHash
+        prevAttackHash,
+        player
       );
       const gameOverObj = checkGameOver(
         newBitboards,
@@ -437,12 +452,14 @@ const minimax = (
   } else if (bestEval >= beta) {
     flag = TT_FLAG.LOWER_BOUND;
   }
-  setTT(key, {
-    depth: maxDepth - currentDepth,
-    value: bestEval,
-    flag,
-    bestMove,
-  });
+  if (Number.isFinite(bestEval)) {
+    setTT(key, {
+      depth: maxDepth - currentDepth,
+      value: bestEval,
+      flag,
+      bestMove,
+    });
+  }
 
   return { score: bestEval, move: bestMove };
 };
@@ -475,11 +492,13 @@ const CHECKMATE_VALUE = 10_000_000;
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation
  */
-const evaluate = (bitboards, player, result) => {
+const evaluate = (bitboards, player, result, depth) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
     if (result.includes("Checkmate")) {
-      return player === "w" ? -CHECKMATE_VALUE : CHECKMATE_VALUE;
+      return player === "w"
+        ? -CHECKMATE_VALUE + depth
+        : CHECKMATE_VALUE - depth;
     }
     return 0; // Draw
   }

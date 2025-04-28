@@ -8,6 +8,7 @@ import {
 } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
 import { GENERAL_SYMBOLS } from "./constants";
+import { bigIntFullRep } from "./generalHelpers";
 
 /**
  * @typedef {object} Bitboards

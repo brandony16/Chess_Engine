@@ -31,6 +31,7 @@ import {
 import { getPieceAtSquare } from "../pieceGetters";
 import { LRUMap } from "../LRUMap";
 import { PLAYER_ZOBRIST } from "../constants";
+import { bigIntFullRep } from "../generalHelpers";
 
 /**
  * Computes an attack mask for a player
@@ -146,7 +147,7 @@ const computeAttackMask = (bitboards, player) => {
 };
 
 // Map of cached attack masks
-const attackMaskCache = new LRUMap(500_000);
+export const attackMaskCache = new LRUMap(500_000);
 
 /**
  * Gets a cached attack mask

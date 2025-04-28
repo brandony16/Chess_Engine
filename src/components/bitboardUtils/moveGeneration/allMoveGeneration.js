@@ -235,7 +235,7 @@ export const getAllIndividualLegalMoves = (
       enPassantSquare,
       castlingRights
     );
-
+    
     const legalPieceMoves = filterIllegalMoves(
       bitboards,
       pieceMoves,
@@ -243,6 +243,7 @@ export const getAllIndividualLegalMoves = (
       player,
       hash,
     );
+
     if (legalPieceMoves !== 0n) {
       allMoves[square] = legalPieceMoves;
     }
