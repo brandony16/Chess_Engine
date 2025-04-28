@@ -1,5 +1,4 @@
 import { LRUMap } from "../LRUMap";
-import { computeHash } from "../zobristHashing";
 
 const TABLE_SIZE = 1 << 20;
 
@@ -21,13 +20,4 @@ export const getTT = (key) => {
 
 export const setTT = (key, entry) => {
   table.set(key, entry);
-};
-
-export const generateTTKey = (
-  bitboards,
-  player,
-  enPassantSquare,
-  castlingRights
-) => {
-  return computeHash(bitboards, player, enPassantSquare, castlingRights);
 };

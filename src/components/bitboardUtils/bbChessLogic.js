@@ -71,9 +71,10 @@ export const isInCheck = (bitboards, player) => {
  * @param {bigint} moves - bitboard of moves for a piece
  * @param {number} from - square the piece is moving from
  * @param {string} player - player whose turn it is ("w" or "b")
+ * @param {bigint} hash - an attack hash for the position
  * @returns {bigint} the filtered moves
  */
-export const filterIllegalMoves = (bitboards, moves, from, player) => {
+export const filterIllegalMoves = (bitboards, moves, from, player, hash = null) => {
   let filteredMoves = 0n;
   const isPlayerWhite = player === "w";
   const one = 1n;
@@ -89,7 +90,7 @@ export const filterIllegalMoves = (bitboards, moves, from, player) => {
     const kingBB = tempBitboards[isPlayerWhite ? "whiteKings" : "blackKings"];
     const kingSquare = bitScanForward(kingBB);
     if (
-      !isSquareAttacked(tempBitboards, kingSquare, isPlayerWhite ? "b" : "w")
+      !isSquareAttacked(tempBitboards, kingSquare, isPlayerWhite ? "b" : "w", hash)
     ) {
       filteredMoves |= 1n << BigInt(to);
     }

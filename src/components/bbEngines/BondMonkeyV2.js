@@ -24,7 +24,6 @@ import { checkGameOver } from "../bitboardUtils/gameOverLogic";
 import { isInCheck } from "../bitboardUtils/bbChessLogic";
 import {
   clearTT,
-  generateTTKey,
   getTT,
   setTT,
   TT_FLAG,
@@ -67,6 +66,14 @@ export function BMV2(
   let bestMove = null;
   let bestEval = null;
 
+  const rootHash = computeHash(
+    bitboards,
+    player,
+    enPassantSquare,
+    castlingRights
+  );
+  const rootAttackHash = computeHash(bitboards, player);
+
   for (let depth = 1; depth <= maxDepth; depth++) {
     const { score, move } = minimax(
       bitboards,
@@ -74,6 +81,8 @@ export function BMV2(
       castlingRights,
       enPassantSquare,
       prevPositions,
+      rootHash,
+      rootAttackHash,
       null,
       0,
       depth,
@@ -99,7 +108,7 @@ export function BMV2(
 }
 
 // Maximum search depth
-const MAX_PLY = 64;
+const MAX_PLY = 32;
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -114,8 +123,11 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {Map} prevPositions - a map of the previous positions
+ * @param {bigint} prevHash - the hash of the current position before moves are simulated.
+ * @param {bigint} prevAttackHash - the attack hash of the current position before moves are simulated.
  * @param {string} result - a string of the result of the game. Null if game not over
- * @param {depth} depth - the depth left to search
+ * @param {depth} currentDepth - the current depth of the search
+ * @param {depth} maxDepth - the maximum depth of the search
  * @param {number} alpha - the alpha value for alpha-beta pruning
  * @param {number} beta - the beta value for alpha-beta pruning
  * @returns {{score: number, move: object}} evaluation of the move and the move
@@ -126,6 +138,8 @@ const minimax = (
   castlingRights,
   enPassantSquare,
   prevPositions,
+  prevHash,
+  prevAttackHash,
   result,
   currentDepth,
   maxDepth,
@@ -133,15 +147,13 @@ const minimax = (
   beta
 ) => {
   if (currentDepth >= maxDepth || result) {
-    if (isInCheck(bitboards, player) && currentDepth === maxDepth) {
-      maxDepth += 1;
-    } else {
+    if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
       return { score: evaluate(bitboards, player, result), move: null };
     }
   }
 
   // Transpositition table logic
-  const key = generateTTKey(bitboards, player, enPassantSquare, castlingRights);
+  const key = prevHash;
   const origAlpha = alpha;
   const ttEntry = getTT(key);
   if (ttEntry && ttEntry.depth >= maxDepth - currentDepth) {
@@ -162,7 +174,8 @@ const minimax = (
     bitboards,
     player,
     castlingRights,
-    enPassantSquare
+    enPassantSquare,
+    prevAttackHash
   ).map((move) => {
     let score = 0;
 
@@ -197,9 +210,6 @@ const minimax = (
   scored.sort((a, b) => b.score - a.score);
 
   const orderedMoves = scored.map((o) => o.move);
-
-  const prevHash = computeHash(bitboards, player, enPassantSquare);
-  const prevAttackHash = computeHash(bitboards, player);
 
   let bestEval, bestMove;
 
@@ -277,6 +287,8 @@ const minimax = (
         newCastling,
         newEnPassant,
         newPositions,
+        hash,
+        attackHash,
         result,
         currentDepth + 1,
         maxDepth,
@@ -379,6 +391,8 @@ const minimax = (
         newCastling,
         newEnPassant,
         newPositions,
+        hash,
+        attackHash,
         result,
         currentDepth + 1,
         maxDepth,

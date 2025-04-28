@@ -7,7 +7,7 @@
   themes?
 
 ## Engine
-
+- URGENT: FIX HASHES BEING WRONG
 - Improve evaluation function using tables that show where pieces "should" go
 - Implement magic bitboards
 - Improve move storing

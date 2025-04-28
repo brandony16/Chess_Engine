@@ -18,7 +18,6 @@ import {
 } from "./bitboardUtils/pieceGetters";
 import { getPieceMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration";
 import { filterIllegalMoves } from "./bitboardUtils/bbChessLogic";
-import { BMV2 } from "./bbEngines/BondMonkeyV2";
 import { useGameStore } from "./gameStore";
 import Modal from "./modals/Modal";
 

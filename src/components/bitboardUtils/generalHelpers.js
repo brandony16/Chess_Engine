@@ -16,7 +16,7 @@
 
 import { isInCheck } from "./bbChessLogic";
 import { bitScanForward } from "./bbUtils";
-import { COLUMN_SYMBOLS, PIECE_SYMBOLS } from "./constants";
+import { COLUMN_SYMBOLS, GENERAL_SYMBOLS, PIECE_SYMBOLS } from "./constants";
 import {
   getAllIndividualLegalMoves,
   getAllLegalMoves,
@@ -169,13 +169,15 @@ export const allLegalMovesArr = (
   bitboards,
   player,
   castlingRights,
-  enPassantSquare = null
+  enPassantSquare = null,
+  hash = null,
 ) => {
   const moves = getAllIndividualLegalMoves(
     bitboards,
     player,
     castlingRights,
-    enPassantSquare
+    enPassantSquare,
+    hash,
   );
   const isWhite = player === "w";
   const promotionFromRank = isWhite ? 6 : 1;
@@ -186,7 +188,7 @@ export const allLegalMovesArr = (
     let moveBitboard = moves[from];
 
     const formattedPiece =
-      PIECE_SYMBOLS[getPieceAtSquare(from, bitboards)].toUpperCase();
+      GENERAL_SYMBOLS[getPieceAtSquare(from, bitboards)];
     const row = Math.floor(parseInt(from) / 8);
     const isPromotion = row === promotionFromRank && formattedPiece === "P";
 
