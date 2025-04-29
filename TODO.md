@@ -16,6 +16,7 @@
 - Make it so engines play a predetermined opening so they don't play the same
   game every time against each other.
 - Make move generators use a occupancy mask calculated earlier
+- Add 50 move rule to engine sim
 
 ## General
 

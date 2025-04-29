@@ -5,6 +5,7 @@ import "./UI.css";
 import BitboardBoard from "./boardComponents/BitboardBoard";
 import {
   attackMaskCache,
+  computeAttackMask,
   getCachedAttackMask,
 } from "./bitboardUtils/PieceMasks/attackMask";
 import { PIECE_SYMBOLS } from "./bitboardUtils/constants";
@@ -14,7 +15,7 @@ import {
 } from "./bitboardUtils/moveMaking/makeMoveLogic";
 import { computeHash } from "./bitboardUtils/zobristHashing";
 import { checkGameOver } from "./bitboardUtils/gameOverLogic";
-import { moveToReadable } from "./bitboardUtils/generalHelpers";
+import { bigIntFullRep, moveToReadable } from "./bitboardUtils/generalHelpers";
 import {
   getPieceAtSquare,
   isPlayersPieceAtSquare,
@@ -117,6 +118,7 @@ const BitboardGame = () => {
       moveObj.isCapture,
       promotion
     );
+    console.log(bigIntFullRep(computeAttackMask(newBitboards, currPlayer)))
 
     updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj, from);
   };
@@ -220,6 +222,7 @@ const BitboardGame = () => {
         );
         // Ensures the attack map cache has the new attack map
         getCachedAttackMask(newBitboards, currPlayer);
+        console.log(bigIntFullRep(computeAttackMask(newBitboards, currPlayer)))
 
         updateStates(
           readableMove,
@@ -384,7 +387,7 @@ const BitboardGame = () => {
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
-      getEngineMove(5, 50000);
+      getEngineMove(3, 50000);
     }
   }, [currPlayer, userSide]);
 

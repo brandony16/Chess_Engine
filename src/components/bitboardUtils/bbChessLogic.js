@@ -1,5 +1,9 @@
 import { bitScanForward } from "./bbUtils";
-import { getCachedAttackMask } from "./PieceMasks/attackMask";
+import {
+  computeAttackMask,
+  getCachedAttackMask,
+  updateAttackMaskHash,
+} from "./PieceMasks/attackMask";
 import { makeMove } from "./moveMaking/makeMoveLogic";
 import {
   getBlackPieces,
@@ -42,7 +46,8 @@ export const isSquareAttacked = (bitboards, square, opponent, attackHash) => {
     attackHash
   );
   // if ((opponentAttackMask & (1n << BigInt(square))) !== 0n) {
-  //   console.log(bigIntFullRep(opponentAttackMask), square)
+  //   console.log(bigIntFullRep(opponentAttackMask), square, opponent)
+  //   throw new Error("Square attacked I want to see the stack");
   // }
   return (opponentAttackMask & (1n << BigInt(square))) !== 0n;
 };
@@ -75,10 +80,20 @@ export const isInCheck = (bitboards, player) => {
  * @param {bigint} moves - bitboard of moves for a piece
  * @param {number} from - square the piece is moving from
  * @param {string} player - player whose turn it is ("w" or "b")
- * @param {bigint} hash - an attack hash for the position
+ * @param {bigint} opponentHash - an attack hash for the position
  * @returns {bigint} the filtered moves
  */
-export const filterIllegalMoves = (bitboards, moves, from, player, hash = null) => {
+export const filterIllegalMoves = (
+  bitboards,
+  moves,
+  from,
+  player,
+  opponentHash = null
+) => {
+  // console.log('Filter Illegal Moves');
+  // console.log('Player:', player);
+  // console.log('Attack Map:', bigIntFullRep(getCachedAttackMask(bitboards, player, opponentHash)));
+
   let filteredMoves = 0n;
   const isPlayerWhite = player === "w";
   const one = 1n;
@@ -90,11 +105,34 @@ export const filterIllegalMoves = (bitboards, moves, from, player, hash = null) 
     remainingMoves &= remainingMoves - one;
 
     // Simulate the move and check if the king is attacked
-    const tempBitboards = makeMove(bitboards, from, to, null).bitboards;
+    const moveObj = makeMove(bitboards, from, to, null);
+    const tempBitboards = moveObj.bitboards;
     const kingBB = tempBitboards[isPlayerWhite ? "whiteKings" : "blackKings"];
     const kingSquare = bitScanForward(kingBB);
+    let newHash = null;
+    if (opponentHash) {
+      newHash = updateAttackMaskHash(
+        bitboards,
+        tempBitboards,
+        from,
+        to,
+        opponentHash,
+        isPlayerWhite ? "b" : "w",
+        moveObj.enPassantSquare,
+        true,
+      );
+      // console.log('New Hash Filter Illegal');
+      // console.log('Player:', player);
+      // console.log('Attack Map:', bigIntFullRep(getCachedAttackMask(bitboards, player, newHash)));
+    
+    }
     if (
-      !isSquareAttacked(tempBitboards, kingSquare, isPlayerWhite ? "b" : "w", hash)
+      !isSquareAttacked(
+        tempBitboards,
+        kingSquare,
+        isPlayerWhite ? "b" : "w",
+        newHash
+      )
     ) {
       filteredMoves |= 1n << BigInt(to);
     }

@@ -69,6 +69,7 @@ export function BMV2(
   clearTT(); // Clears transposition table
 
   const start = performance.now();
+  const opponent = player === "w" ? "b" : "w";
 
   let bestMove = null;
   let bestEval = null;
@@ -79,10 +80,11 @@ export function BMV2(
     enPassantSquare,
     castlingRights
   );
-  const rootAttackHash = computeHash(bitboards, player);
+  const rootAttackHash = computeHash(bitboards, opponent);
 
   // Ensures the attack mask cache has the attack mask at the rootAttackHash
-  getCachedAttackMask(bitboards, player, rootAttackHash);
+  getCachedAttackMask(bitboards, opponent, rootAttackHash);
+
 
   for (let depth = 1; depth <= maxDepth; depth++) {
     const { score, move } = minimax(
@@ -105,7 +107,7 @@ export function BMV2(
       bestMove = move;
     }
 
-    if (Math.abs(score) > CHECKMATE_VALUE - depth) {
+    if (Math.abs(score) > CHECKMATE_VALUE - depth && move) {
       console.log("mate break");
       break;
     }
@@ -115,7 +117,6 @@ export function BMV2(
       break;
     }
   }
-
   return { ...bestMove, bestEval };
 }
 
@@ -187,6 +188,9 @@ const minimax = (
   }
 
   const ttMove = ttEntry?.bestMove || null;
+  console.log('Minimax');
+  console.log('Player:', player);
+  console.log('Attack Map:', bigIntFullRep(getCachedAttackMask(bitboards, player, prevAttackHash)));
 
   const scored = allLegalMovesArr(
     bitboards,
@@ -202,7 +206,7 @@ const minimax = (
       score += 1_000_000;
     }
 
-    // 2) Captures (simple MVV/LVA: victim value minus your piece value)
+    // 2) Captures (MVV/LVA: victim value minus your piece value)
     if (move.isCapture) {
       score +=
         100_000 +
@@ -223,6 +227,10 @@ const minimax = (
 
     return { move, score };
   });
+
+  // if (scored.length === 0) {
+  //   console.log(bitboards, player, prevAttackHash, getCachedAttackMask(prevAttackHash), computeAttackMask(bitboards, player))
+  // }
 
   // sort descending
   scored.sort((a, b) => b.score - a.score);
@@ -251,24 +259,24 @@ const minimax = (
       const newEnPassant = moveObj.enPassantSquare;
       const newCastling = updateCastlingRights(from, castlingRights);
       const newPositions = new Map(prevPositions);
-      const attackHash = updateAttackMaskHash(
+      const whiteAttackHash = updateAttackMaskHash(
         bitboards,
         newBitboards,
         from,
         to,
         prevAttackHash,
-        player,
+        "b",
         newEnPassant
       );
 
       const gameOverObj = checkGameOver(
         newBitboards,
-        player,
+        "w",
         newPositions,
         newCastling,
         newEnPassant,
         0,
-        attackHash
+        whiteAttackHash
       );
       const result = gameOverObj.result;
 
@@ -308,7 +316,7 @@ const minimax = (
         newEnPassant,
         newPositions,
         hash,
-        attackHash,
+        whiteAttackHash,
         result,
         currentDepth + 1,
         maxDepth,
@@ -351,31 +359,38 @@ const minimax = (
       const from = move.from;
       const to = move.to;
       const promotion = move.promotion || null;
-      let moveObj = makeMove(bitboards, from, to, enPassantSquare, promotion);
+      let moveObj = makeMove(
+        bitboards,
+        from,
+        to,
+        enPassantSquare,
+        promotion,
+        prevAttackHash
+      );
 
       // New game states
       const newBitboards = moveObj.bitboards;
       const newEnPassant = moveObj.enPassantSquare;
       const newCastling = updateCastlingRights(from, castlingRights);
       const newPositions = new Map(prevPositions);
-      const attackHash = updateAttackMaskHash(
+      const blackAttackHash = updateAttackMaskHash(
         bitboards,
         newBitboards,
         from,
         to,
         prevAttackHash,
-        player,
+        "b",
         newEnPassant
       );
 
       const gameOverObj = checkGameOver(
         newBitboards,
-        player,
+        "b",
         newPositions,
         newCastling,
         newEnPassant,
         0,
-        attackHash
+        blackAttackHash
       );
       const result = gameOverObj.result;
 
@@ -415,7 +430,7 @@ const minimax = (
         newEnPassant,
         newPositions,
         hash,
-        attackHash,
+        blackAttackHash,
         result,
         currentDepth + 1,
         maxDepth,
@@ -469,8 +484,12 @@ const minimax = (
 
   if (!Number.isFinite(bestEval)) {
     console.log("SCORE IS INFINITE");
-    console.log("Best Move:" + bestMove);
-    console.log(flag);
+    console.log("Best Move:", bestMove);
+    console.log("Depth:", currentDepth);
+    console.log("Max Depth:", maxDepth);
+    console.log(
+      bigIntFullRep(getCachedAttackMask(bitboards, player, prevAttackHash))
+    );
   }
 
   return { score: bestEval, move: bestMove };

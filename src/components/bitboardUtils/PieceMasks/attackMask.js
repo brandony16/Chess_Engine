@@ -18,22 +18,19 @@ import { bitScanForward } from "../bbUtils";
 import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
 import { knightMasks } from "./knightMask";
 import {
-  getBishopMovesForSquare,
-  getPawnMovesForSquare,
-} from "../moveGeneration/minorPieceMoveGeneration";
-import {
-  getKingMovesForSquare,
-  getQueenMovesForSquare,
-  getRookMovesForSquare,
-} from "../moveGeneration/majorPieceMoveGeneration";
-import {
   computeHash,
   pieceToZobristIndex,
   zobristTable,
 } from "../zobristHashing";
-import { getAllPieces, getPieceAtSquare } from "../pieceGetters";
+import { getPieceAtSquare } from "../pieceGetters";
 import { LRUMap } from "../LRUMap";
 import { PLAYER_ZOBRIST } from "../constants";
+import {
+  getBishopAttacksForSquare,
+  getQueenAttacksForSquare,
+  getRookAttacksForSquare,
+} from "../moveGeneration/slidingPieceAttacks";
+import { kingMasks } from "./kingMask";
 import { bigIntFullRep } from "../generalHelpers";
 
 /**
@@ -46,7 +43,6 @@ import { bigIntFullRep } from "../generalHelpers";
 export const computeAttackMask = (bitboards, player) => {
   const one = 1n;
   let attackMask = 0n;
-  const occupancy = getAllPieces(bitboards);
 
   if (player === "w") {
     let pawnBB = bitboards.whitePawns;
@@ -54,7 +50,6 @@ export const computeAttackMask = (bitboards, player) => {
       const lsBit = pawnBB & -pawnBB;
       const sq = bitScanForward(lsBit);
       attackMask |= whitePawnMasks[sq];
-      attackMask |= getPawnMovesForSquare(bitboards, player, sq, null);
       pawnBB &= pawnBB - one;
     }
 
@@ -62,7 +57,7 @@ export const computeAttackMask = (bitboards, player) => {
     while (knightBB) {
       const lsBit = knightBB & -knightBB;
       const sq = bitScanForward(lsBit);
-      attackMask |= knightMasks[sq] & -occupancy;
+      attackMask |= knightMasks[sq];
       knightBB &= knightBB - one;
     }
 
@@ -70,7 +65,7 @@ export const computeAttackMask = (bitboards, player) => {
     while (bishopBB) {
       const lsBit = bishopBB & -bishopBB;
       const sq = bitScanForward(lsBit);
-      attackMask |= getBishopMovesForSquare(bitboards, player, sq);
+      attackMask |= getBishopAttacksForSquare(bitboards, sq);
       bishopBB &= bishopBB - one;
     }
 
@@ -78,7 +73,7 @@ export const computeAttackMask = (bitboards, player) => {
     while (rookBB) {
       const lsBit = rookBB & -rookBB;
       const sq = bitScanForward(lsBit);
-      attackMask |= getRookMovesForSquare(bitboards, player, sq);
+      attackMask |= getRookAttacksForSquare(bitboards, sq);
       rookBB &= rookBB - one;
     }
 
@@ -86,7 +81,7 @@ export const computeAttackMask = (bitboards, player) => {
     while (queenBB) {
       const lsBit = queenBB & -queenBB;
       const sq = bitScanForward(lsBit);
-      attackMask |= getQueenMovesForSquare(bitboards, player, sq);
+      attackMask |= getQueenAttacksForSquare(bitboards, sq);
       queenBB &= queenBB - one;
     }
 
@@ -94,7 +89,7 @@ export const computeAttackMask = (bitboards, player) => {
     while (kingBB) {
       const lsBit = kingBB & -kingBB;
       const sq = bitScanForward(lsBit);
-      attackMask |= getKingMovesForSquare(bitboards, player, sq);
+      attackMask |= kingMasks[sq];
       kingBB &= kingBB - one;
     }
   } else {
@@ -104,7 +99,6 @@ export const computeAttackMask = (bitboards, player) => {
       const lsBit = pawnBB & -pawnBB;
       const sq = bitScanForward(lsBit);
       attackMask |= blackPawnMasks[sq];
-      attackMask |= getPawnMovesForSquare(bitboards, player, sq, null);
       pawnBB &= pawnBB - one;
     }
 
@@ -112,7 +106,7 @@ export const computeAttackMask = (bitboards, player) => {
     while (knightBB) {
       const lsBit = knightBB & -knightBB;
       const sq = bitScanForward(lsBit);
-      attackMask |= knightMasks[sq] & -occupancy;
+      attackMask |= knightMasks[sq];
       knightBB &= knightBB - one;
     }
 
@@ -120,7 +114,7 @@ export const computeAttackMask = (bitboards, player) => {
     while (bishopBB) {
       const lsBit = bishopBB & -bishopBB;
       const sq = bitScanForward(lsBit);
-      attackMask |= getBishopMovesForSquare(bitboards, player, sq);
+      attackMask |= getBishopAttacksForSquare(bitboards, sq);
       bishopBB &= bishopBB - one;
     }
 
@@ -128,7 +122,7 @@ export const computeAttackMask = (bitboards, player) => {
     while (rookBB) {
       const lsBit = rookBB & -rookBB;
       const sq = bitScanForward(lsBit);
-      attackMask |= getRookMovesForSquare(bitboards, player, sq);
+      attackMask |= getRookAttacksForSquare(bitboards, sq);
       rookBB &= rookBB - one;
     }
 
@@ -136,7 +130,7 @@ export const computeAttackMask = (bitboards, player) => {
     while (queenBB) {
       const lsBit = queenBB & -queenBB;
       const sq = bitScanForward(lsBit);
-      attackMask |= getQueenMovesForSquare(bitboards, player, sq);
+      attackMask |= getQueenAttacksForSquare(bitboards, sq);
       queenBB &= queenBB - one;
     }
 
@@ -144,7 +138,7 @@ export const computeAttackMask = (bitboards, player) => {
     while (kingBB) {
       const lsBit = kingBB & -kingBB;
       const sq = bitScanForward(lsBit);
-      attackMask |= getKingMovesForSquare(bitboards, player, sq);
+      attackMask |= kingMasks[sq];
       kingBB &= kingBB - one;
     }
   }
@@ -181,6 +175,7 @@ export const getCachedAttackMask = (bitboards, player, hash = null) => {
  * @param {number} from - the square moving from
  * @param {number} to - the square moving to
  * @param {bigint} prevHash - the previous hash
+ * @param {string} player - the player
  * @returns {bigint} a hash of the new attack map
  */
 export const updateAttackMaskHash = (
@@ -190,7 +185,8 @@ export const updateAttackMaskHash = (
   to,
   prevHash,
   player,
-  enPassantSquare
+  enPassantSquare,
+  isSamePlayer = false,
 ) => {
   let newHash = prevHash;
   let pieceFrom = getPieceAtSquare(from, prevBitboards);
@@ -235,14 +231,16 @@ export const updateAttackMaskHash = (
   }
 
   // XOR player
-  newHash ^= PLAYER_ZOBRIST;
+  if (!isSamePlayer) {
+    newHash ^= PLAYER_ZOBRIST;
+  }
 
   if (Math.abs(from - to) === 2 && pieceFrom.charAt(5) === "K") {
     newHash = handleCastleHashUpdate(newHash, from, to);
   }
 
   if (!attackMaskCache.has(newHash)) {
-    const newMask = computeAttackMask(bitboards, player === "w" ? "b" : "w");
+    const newMask = computeAttackMask(bitboards, player);
     attackMaskCache.set(newHash, newMask);
   }
 

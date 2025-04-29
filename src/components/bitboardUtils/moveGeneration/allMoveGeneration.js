@@ -205,7 +205,7 @@ export const getAllLegalMoves = (
  * @param {string} player - whose move it is ("w" or "b")
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
- * @param {bigint} hash - attack hash of the position
+ * @param {bigint} opponentHash - Hash that leads to the attack map of the opponent
  * @returns {object} an object with corresponding bitboards for each square.
  */
 export const getAllIndividualLegalMoves = (
@@ -213,7 +213,7 @@ export const getAllIndividualLegalMoves = (
   player,
   castlingRights,
   enPassantSquare,
-  hash
+  opponentHash
 ) => {
   let allMoves = {};
   // Get player's overall pieces bitboard.
@@ -242,7 +242,7 @@ export const getAllIndividualLegalMoves = (
       pieceMoves,
       square,
       player,
-      hash,
+      opponentHash,
     );
 
     if (legalPieceMoves !== 0n) {
