@@ -40,7 +40,7 @@ import { bigIntFullRep } from "../generalHelpers";
  * @param {string} player - whose attack mask it is ("w" or "b")
  * @returns {bigint} the attack mask for the player
  */
-const computeAttackMask = (bitboards, player) => {
+export const computeAttackMask = (bitboards, player) => {
   const one = 1n;
   let attackMask = 0n;
 
@@ -182,7 +182,8 @@ export const updateAttackMaskHash = (
   from,
   to,
   prevHash,
-  player
+  player,
+  enPassantSquare
 ) => {
   let newHash = prevHash;
   let pieceFrom = getPieceAtSquare(from, prevBitboards);
@@ -200,22 +201,42 @@ export const updateAttackMaskHash = (
 
   // if a capture, XOR to remove captured piece
   const prevPieceTo = getPieceAtSquare(to, prevBitboards);
-  if (prevPieceTo) {
-    const zobristCapturedIndex = pieceToZobristIndex[prevPieceTo];
-    const zobristCaptured = zobristTable[zobristCapturedIndex][to];
-    newHash ^= zobristCaptured;
+  let isEnPassantCapture = false;
+  if (
+    // white moving diagonally to empty square _and_ en-passant square matches
+    player === "w" &&
+    to === enPassantSquare &&
+    !getPieceAtSquare(to, prevBitboards)
+  ) {
+    isEnPassantCapture = true;
+  }
+  if (
+    player === "b" &&
+    to === enPassantSquare &&
+    !getPieceAtSquare(to, prevBitboards)
+  ) {
+    isEnPassantCapture = true;
+  }
+
+  if (isEnPassantCapture) {
+    // white EP: captured pawn is one rank down; black EP: one rank up
+    const capSq = player === "w" ? to - 8 : to + 8;
+    const capPiece = getPieceAtSquare(capSq, prevBitboards);
+    newHash ^= zobristTable[pieceToZobristIndex[capPiece]][capSq];
+  } else if (prevPieceTo) {
+    newHash ^= zobristTable[pieceToZobristIndex[prevPieceTo]][to];
   }
 
   // XOR player
   newHash ^= PLAYER_ZOBRIST;
 
-  if (!attackMaskCache.get(newHash)) {
-    const newMask = computeAttackMask(bitboards, player);
-    attackMaskCache.set(newHash, newMask);
-  }
-
   if (Math.abs(from - to) === 2 && pieceFrom.charAt(5) === "K") {
     newHash = handleCastleHashUpdate(newHash, from, to);
+  }
+
+  if (!attackMaskCache.has(newHash)) {
+    const newMask = computeAttackMask(bitboards, player === "w" ? "b" : "w");
+    attackMaskCache.set(newHash, newMask);
   }
 
   return newHash;

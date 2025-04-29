@@ -15,10 +15,11 @@
  */
 
 import { getNumPieces } from "../bitboardUtils/bbUtils";
-import { allLegalMovesArr } from "../bitboardUtils/generalHelpers";
+import { allLegalMovesArr, bigIntFullRep } from "../bitboardUtils/generalHelpers";
 import { updateCastlingRights } from "../bitboardUtils/moveMaking/castleMoveLogic";
 import { makeMove } from "../bitboardUtils/moveMaking/makeMoveLogic";
 import {
+  computeAttackMask,
   getCachedAttackMask,
   updateAttackMaskHash,
 } from "../bitboardUtils/PieceMasks/attackMask";
@@ -253,8 +254,10 @@ const minimax = (
         from,
         to,
         prevAttackHash,
-        player
+        player,
+        newEnPassant
       );
+
       const gameOverObj = checkGameOver(
         newBitboards,
         player,
@@ -358,8 +361,10 @@ const minimax = (
         from,
         to,
         prevAttackHash,
-        player
+        player,
+        newEnPassant
       );
+
       const gameOverObj = checkGameOver(
         newBitboards,
         player,
@@ -452,14 +457,12 @@ const minimax = (
   } else if (bestEval >= beta) {
     flag = TT_FLAG.LOWER_BOUND;
   }
-  if (Number.isFinite(bestEval)) {
-    setTT(key, {
-      depth: maxDepth - currentDepth,
-      value: bestEval,
-      flag,
-      bestMove,
-    });
-  }
+  setTT(key, {
+    depth: maxDepth - currentDepth,
+    value: bestEval,
+    flag,
+    bestMove,
+  });
 
   return { score: bestEval, move: bestMove };
 };
