@@ -22,6 +22,7 @@ import {
   getAllLegalMoves,
 } from "./moveGeneration/allMoveGeneration";
 import { getPieceAtSquare, isPlayersPieceAtSquare } from "./pieceGetters";
+import { getCachedAttackMask } from "./PieceMasks/attackMask";
 
 /**
  * @typedef {object} CastlingRights
@@ -179,6 +180,7 @@ export const allLegalMovesArr = (
     enPassantSquare,
     hash,
   );
+
   const isWhite = player === "w";
   const promotionFromRank = isWhite ? 6 : 1;
   const promotionPieces = ["Queens", "Rooks", "Knights", "Bishops"];

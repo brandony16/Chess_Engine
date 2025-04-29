@@ -15,7 +15,10 @@
  */
 
 import { getNumPieces } from "../bitboardUtils/bbUtils";
-import { allLegalMovesArr, bigIntFullRep } from "../bitboardUtils/generalHelpers";
+import {
+  allLegalMovesArr,
+  bigIntFullRep,
+} from "../bitboardUtils/generalHelpers";
 import { updateCastlingRights } from "../bitboardUtils/moveMaking/castleMoveLogic";
 import { makeMove } from "../bitboardUtils/moveMaking/makeMoveLogic";
 import {
@@ -463,6 +466,12 @@ const minimax = (
     flag,
     bestMove,
   });
+
+  if (!Number.isFinite(bestEval)) {
+    console.log("SCORE IS INFINITE");
+    console.log("Best Move:" + bestMove);
+    console.log(flag);
+  }
 
   return { score: bestEval, move: bestMove };
 };

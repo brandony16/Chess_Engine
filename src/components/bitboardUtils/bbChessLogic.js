@@ -41,6 +41,9 @@ export const isSquareAttacked = (bitboards, square, opponent, attackHash) => {
     opponent,
     attackHash
   );
+  // if ((opponentAttackMask & (1n << BigInt(square))) !== 0n) {
+  //   console.log(bigIntFullRep(opponentAttackMask), square)
+  // }
   return (opponentAttackMask & (1n << BigInt(square))) !== 0n;
 };
 

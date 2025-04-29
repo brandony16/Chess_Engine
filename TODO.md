@@ -5,6 +5,7 @@
 - Add ability to flip the board view
 - (maybe) add ability to change the color of the board. Maybe have different
   themes?
+- Make it so clicking on the most recent move allows you to make a move
 
 ## Engine
 - URGENT: FIX HASHES BEING WRONG
@@ -14,6 +15,7 @@
 - Add quiscince search
 - Make it so engines play a predetermined opening so they don't play the same
   game every time against each other.
+- Make move generators use a occupancy mask calculated earlier
 
 ## General
 

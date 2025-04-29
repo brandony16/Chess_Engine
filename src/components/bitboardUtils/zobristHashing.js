@@ -5,6 +5,16 @@ import {
 } from "./constants";
 import { getPieceAtSquare } from "./pieceGetters";
 
+function rand64() {
+  // Create two 32-bit random integers
+  const high = Math.floor(Math.random() * 0x100000000); // Upper 32 bits
+  const low = Math.floor(Math.random() * 0x100000000);  // Lower 32 bits
+
+  // Combine them into a 64-bit BigInt
+  return (BigInt(high) << 32n) | BigInt(low);
+}
+
+
 /**
  * Zobrist table for hashing. Creates a unique bitstring for every piece at every square.
  * 64 Squares and 12 bitboards each, KQRBNP for each side.
@@ -14,7 +24,7 @@ export const zobristTable = new Array(12)
   .map(() =>
     new Array(64)
       .fill(null)
-      .map(() => BigInt(Math.floor(Math.random() * Number.MAX_SAFE_INTEGER)))
+      .map(() => rand64())
   );
 
 /**

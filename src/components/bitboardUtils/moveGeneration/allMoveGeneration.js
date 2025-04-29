@@ -17,11 +17,13 @@
 import { filterIllegalMoves } from "../bbChessLogic";
 import { bitScanForward } from "../bbUtils";
 import { GENERAL_SYMBOLS, PIECE_SYMBOLS } from "../constants";
+import { bigIntFullRep } from "../generalHelpers";
 import {
   getBlackPieces,
   getPieceAtSquare,
   getWhitePieces,
 } from "../pieceGetters";
+import { getCachedAttackMask } from "../PieceMasks/attackMask";
 import {
   getKingMovesForSquare,
   getQueenMovesForSquare,
@@ -186,7 +188,6 @@ export const getAllLegalMoves = (
       pieceMoves,
       square,
       player,
-
     );
 
     allMoves |= legalPieceMoves;

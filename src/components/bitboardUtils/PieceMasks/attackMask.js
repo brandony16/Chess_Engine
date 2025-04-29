@@ -17,7 +17,10 @@
 import { bitScanForward } from "../bbUtils";
 import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
 import { knightMasks } from "./knightMask";
-import { getBishopMovesForSquare } from "../moveGeneration/minorPieceMoveGeneration";
+import {
+  getBishopMovesForSquare,
+  getPawnMovesForSquare,
+} from "../moveGeneration/minorPieceMoveGeneration";
 import {
   getKingMovesForSquare,
   getQueenMovesForSquare,
@@ -28,7 +31,7 @@ import {
   pieceToZobristIndex,
   zobristTable,
 } from "../zobristHashing";
-import { getPieceAtSquare } from "../pieceGetters";
+import { getAllPieces, getPieceAtSquare } from "../pieceGetters";
 import { LRUMap } from "../LRUMap";
 import { PLAYER_ZOBRIST } from "../constants";
 import { bigIntFullRep } from "../generalHelpers";
@@ -43,6 +46,7 @@ import { bigIntFullRep } from "../generalHelpers";
 export const computeAttackMask = (bitboards, player) => {
   const one = 1n;
   let attackMask = 0n;
+  const occupancy = getAllPieces(bitboards);
 
   if (player === "w") {
     let pawnBB = bitboards.whitePawns;
@@ -50,6 +54,7 @@ export const computeAttackMask = (bitboards, player) => {
       const lsBit = pawnBB & -pawnBB;
       const sq = bitScanForward(lsBit);
       attackMask |= whitePawnMasks[sq];
+      attackMask |= getPawnMovesForSquare(bitboards, player, sq, null);
       pawnBB &= pawnBB - one;
     }
 
@@ -57,7 +62,7 @@ export const computeAttackMask = (bitboards, player) => {
     while (knightBB) {
       const lsBit = knightBB & -knightBB;
       const sq = bitScanForward(lsBit);
-      attackMask |= knightMasks[sq];
+      attackMask |= knightMasks[sq] & -occupancy;
       knightBB &= knightBB - one;
     }
 
@@ -99,6 +104,7 @@ export const computeAttackMask = (bitboards, player) => {
       const lsBit = pawnBB & -pawnBB;
       const sq = bitScanForward(lsBit);
       attackMask |= blackPawnMasks[sq];
+      attackMask |= getPawnMovesForSquare(bitboards, player, sq, null);
       pawnBB &= pawnBB - one;
     }
 
@@ -106,7 +112,7 @@ export const computeAttackMask = (bitboards, player) => {
     while (knightBB) {
       const lsBit = knightBB & -knightBB;
       const sq = bitScanForward(lsBit);
-      attackMask |= knightMasks[sq];
+      attackMask |= knightMasks[sq] & -occupancy;
       knightBB &= knightBB - one;
     }
 
@@ -163,6 +169,7 @@ export const getCachedAttackMask = (bitboards, player, hash = null) => {
   const boardHash = computeHash(bitboards, player);
   const mask = computeAttackMask(bitboards, player);
   attackMaskCache.set(boardHash, mask);
+
   return mask;
 };
 

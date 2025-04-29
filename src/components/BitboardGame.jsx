@@ -3,7 +3,10 @@ import PromotionModal from "./modals/PromotionModal";
 import Sidebar from "./sidebar/Sidebar";
 import "./UI.css";
 import BitboardBoard from "./boardComponents/BitboardBoard";
-import { attackMaskCache, getCachedAttackMask } from "./bitboardUtils/PieceMasks/attackMask";
+import {
+  attackMaskCache,
+  getCachedAttackMask,
+} from "./bitboardUtils/PieceMasks/attackMask";
 import { PIECE_SYMBOLS } from "./bitboardUtils/constants";
 import {
   isValidMove,
