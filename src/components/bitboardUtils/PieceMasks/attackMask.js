@@ -31,7 +31,6 @@ import {
   getRookAttacksForSquare,
 } from "../moveGeneration/slidingPieceAttacks";
 import { kingMasks } from "./kingMask";
-import { bigIntFullRep } from "../generalHelpers";
 
 /**
  * Computes an attack mask for a player
@@ -186,7 +185,7 @@ export const updateAttackMaskHash = (
   prevHash,
   player,
   enPassantSquare,
-  isSamePlayer = false,
+  isSamePlayer = false
 ) => {
   let newHash = prevHash;
   let pieceFrom = getPieceAtSquare(from, prevBitboards);

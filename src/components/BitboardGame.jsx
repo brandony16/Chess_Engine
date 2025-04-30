@@ -3,11 +3,7 @@ import PromotionModal from "./modals/PromotionModal";
 import Sidebar from "./sidebar/Sidebar";
 import "./UI.css";
 import BitboardBoard from "./boardComponents/BitboardBoard";
-import {
-  attackMaskCache,
-  computeAttackMask,
-  getCachedAttackMask,
-} from "./bitboardUtils/PieceMasks/attackMask";
+import { getCachedAttackMask } from "./bitboardUtils/PieceMasks/attackMask";
 import { PIECE_SYMBOLS } from "./bitboardUtils/constants";
 import {
   isValidMove,
@@ -15,7 +11,7 @@ import {
 } from "./bitboardUtils/moveMaking/makeMoveLogic";
 import { computeHash } from "./bitboardUtils/zobristHashing";
 import { checkGameOver } from "./bitboardUtils/gameOverLogic";
-import { bigIntFullRep, moveToReadable } from "./bitboardUtils/generalHelpers";
+import { moveToReadable } from "./bitboardUtils/generalHelpers";
 import {
   getPieceAtSquare,
   isPlayersPieceAtSquare,
@@ -118,7 +114,6 @@ const BitboardGame = () => {
       moveObj.isCapture,
       promotion
     );
-    console.log(bigIntFullRep(computeAttackMask(newBitboards, currPlayer)))
 
     updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj, from);
   };
@@ -222,7 +217,6 @@ const BitboardGame = () => {
         );
         // Ensures the attack map cache has the new attack map
         getCachedAttackMask(newBitboards, currPlayer);
-        console.log(bigIntFullRep(computeAttackMask(newBitboards, currPlayer)))
 
         updateStates(
           readableMove,
@@ -387,7 +381,7 @@ const BitboardGame = () => {
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
-      getEngineMove(3, 50000);
+      getEngineMove(5, 5000);
     }
   }, [currPlayer, userSide]);
 

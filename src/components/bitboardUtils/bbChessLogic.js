@@ -45,10 +45,7 @@ export const isSquareAttacked = (bitboards, square, opponent, attackHash) => {
     opponent,
     attackHash
   );
-  // if ((opponentAttackMask & (1n << BigInt(square))) !== 0n) {
-  //   console.log(bigIntFullRep(opponentAttackMask), square, opponent)
-  //   throw new Error("Square attacked I want to see the stack");
-  // }
+
   return (opponentAttackMask & (1n << BigInt(square))) !== 0n;
 };
 
@@ -90,9 +87,6 @@ export const filterIllegalMoves = (
   player,
   opponentHash = null
 ) => {
-  // console.log('Filter Illegal Moves');
-  // console.log('Player:', player);
-  // console.log('Attack Map:', bigIntFullRep(getCachedAttackMask(bitboards, player, opponentHash)));
 
   let filteredMoves = 0n;
   const isPlayerWhite = player === "w";
@@ -121,10 +115,6 @@ export const filterIllegalMoves = (
         moveObj.enPassantSquare,
         true,
       );
-      // console.log('New Hash Filter Illegal');
-      // console.log('Player:', player);
-      // console.log('Attack Map:', bigIntFullRep(getCachedAttackMask(bitboards, player, newHash)));
-    
     }
     if (
       !isSquareAttacked(

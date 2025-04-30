@@ -22,7 +22,6 @@ import {
   getAllLegalMoves,
 } from "./moveGeneration/allMoveGeneration";
 import { getPieceAtSquare, isPlayersPieceAtSquare } from "./pieceGetters";
-import { getCachedAttackMask } from "./PieceMasks/attackMask";
 
 /**
  * @typedef {object} CastlingRights
@@ -171,14 +170,14 @@ export const allLegalMovesArr = (
   player,
   castlingRights,
   enPassantSquare = null,
-  hash = null,
+  hash = null
 ) => {
   const moves = getAllIndividualLegalMoves(
     bitboards,
     player,
     castlingRights,
     enPassantSquare,
-    hash,
+    hash
   );
 
   const isWhite = player === "w";
@@ -189,8 +188,7 @@ export const allLegalMovesArr = (
   for (const from in moves) {
     let moveBitboard = moves[from];
 
-    const formattedPiece =
-      GENERAL_SYMBOLS[getPieceAtSquare(from, bitboards)];
+    const formattedPiece = GENERAL_SYMBOLS[getPieceAtSquare(from, bitboards)];
     const row = Math.floor(parseInt(from) / 8);
     const isPromotion = row === promotionFromRank && formattedPiece === "P";
 

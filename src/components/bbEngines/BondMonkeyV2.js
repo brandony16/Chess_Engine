@@ -22,7 +22,6 @@ import {
 import { updateCastlingRights } from "../bitboardUtils/moveMaking/castleMoveLogic";
 import { makeMove } from "../bitboardUtils/moveMaking/makeMoveLogic";
 import {
-  computeAttackMask,
   getCachedAttackMask,
   updateAttackMaskHash,
 } from "../bitboardUtils/PieceMasks/attackMask";
@@ -84,7 +83,6 @@ export function BMV2(
 
   // Ensures the attack mask cache has the attack mask at the rootAttackHash
   getCachedAttackMask(bitboards, opponent, rootAttackHash);
-
 
   for (let depth = 1; depth <= maxDepth; depth++) {
     const { score, move } = minimax(
@@ -159,13 +157,20 @@ const minimax = (
   alpha,
   beta
 ) => {
-  if (currentDepth >= maxDepth || result) {
+  if (currentDepth >= maxDepth) {
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
       return {
         score: evaluate(bitboards, player, result, currentDepth),
         move: null,
       };
     }
+  }
+
+  if (result) {
+    return {
+      score: evaluate(bitboards, player, result, currentDepth),
+      move: null,
+    };
   }
 
   // Transpositition table logic
@@ -188,9 +193,6 @@ const minimax = (
   }
 
   const ttMove = ttEntry?.bestMove || null;
-  console.log('Minimax');
-  console.log('Player:', player);
-  console.log('Attack Map:', bigIntFullRep(getCachedAttackMask(bitboards, player, prevAttackHash)));
 
   const scored = allLegalMovesArr(
     bitboards,
@@ -228,9 +230,9 @@ const minimax = (
     return { move, score };
   });
 
-  // if (scored.length === 0) {
-  //   console.log(bitboards, player, prevAttackHash, getCachedAttackMask(prevAttackHash), computeAttackMask(bitboards, player))
-  // }
+  if (scored.length === 0) {
+    throw new Error("Issue with move generation. No moves generated");
+  }
 
   // sort descending
   scored.sort((a, b) => b.score - a.score);
@@ -265,7 +267,7 @@ const minimax = (
         from,
         to,
         prevAttackHash,
-        "b",
+        "w",
         newEnPassant
       );
 
@@ -490,6 +492,7 @@ const minimax = (
     console.log(
       bigIntFullRep(getCachedAttackMask(bitboards, player, prevAttackHash))
     );
+    throw new Error("Score is infinite");
   }
 
   return { score: bestEval, move: bestMove };

@@ -8,7 +8,6 @@
 - Make it so clicking on the most recent move allows you to make a move
 
 ## Engine
-- URGENT: FIX HASHES BEING WRONG
 - Improve evaluation function using tables that show where pieces "should" go
 - Implement magic bitboards
 - Improve move storing
