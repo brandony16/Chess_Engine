@@ -48,7 +48,7 @@ export const useGameStore = create((set, get) => ({
     set((state) => {
       let newFiftyRuleNum = state.fiftyMoveRuleCounter + 1;
       const pieceMoved = getPieceAtSquare(from, state.bitboards);
-      if (moveObj.isCapture || pieceMoved.charAt(5) === "P") {
+      if (moveObj.isCapture || pieceMoved === 0 || pieceMoved === 6) {
         newFiftyRuleNum = 0;
       }
 

@@ -1,19 +1,3 @@
-/**
- * @typedef {object} Bitboards
- * @property {bigint} whitePawns - bitboard of the white pawns
- * @property {bigint} whiteKnights - bitboard of the white knights
- * @property {bigint} whiteBishops - bitboard of the white bishops
- * @property {bigint} whiteRooks - bitboard of the white rooks
- * @property {bigint} whiteQueens - bitboard of the white queens
- * @property {bigint} whiteKings - bitboard of the white king
- * @property {bigint} blackPawns - bitboard of the black pawns
- * @property {bigint} blackKnights - bitboard of the black knights
- * @property {bigint} blackBishops - bitboard of the black bishops
- * @property {bigint} blackRooks - bitboard of the black rooks
- * @property {bigint} blackQueens - bitboard of the black queens
- * @property {bigint} blackKings - bitboard of the black king
- */
-
 import { getNumPieces } from "../bitboardUtils/bbUtils";
 import {
   allLegalMovesArr,
@@ -35,6 +19,7 @@ import {
   TT_FLAG,
 } from "../bitboardUtils/TranspositionTable/transpositionTable";
 import { getPieceAtSquare } from "../bitboardUtils/pieceGetters";
+import { NUM_PIECES } from "../bitboardUtils/constants";
 
 /**
  * @typedef {object} CastlingRights
@@ -47,7 +32,7 @@ import { getPieceAtSquare } from "../bitboardUtils/pieceGetters";
 /**
  * Gets the best move in a position based purely off of material.
  *
- * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {string} player - the player whose move it is ("w" or "b")
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
@@ -500,18 +485,18 @@ const minimax = (
 
 // An object of all the weights of the pieces
 const weights = {
-  blackPawns: -1,
-  blackKnights: -3,
-  blackBishops: -3,
-  blackRooks: -5,
-  blackQueens: -9,
-  blackKings: -1000000,
-  whitePawns: 1,
-  whiteKnights: 3,
-  whiteBishops: 3,
-  whiteRooks: 5,
-  whiteQueens: 9,
-  whiteKings: 1000000,
+  6: -1, // Black pawn
+  7: -3, // Black knight
+  8: -3, // Black bishop
+  9: -5, // Black rook
+  10: -9, // Black queen
+  11: -1000, // Black king
+  0: 1, // White pawn
+  1: 3, // White knight
+  2: 3, // White bishop
+  3: 5, // White rook
+  4: 9, // White queen
+  5: 1000, // White king
 };
 
 /**
@@ -539,8 +524,8 @@ const evaluate = (bitboards, player, result, depth) => {
 
   let evaluation = 0;
 
-  for (const bitboard in bitboards) {
-    evaluation += getNumPieces(bitboards[bitboard]) * weights[bitboard];
+  for (let piece = 0; piece < NUM_PIECES; piece++) {
+    evaluation += getNumPieces(bitboards[piece]) * weights[piece];
   }
   return evaluation;
 };

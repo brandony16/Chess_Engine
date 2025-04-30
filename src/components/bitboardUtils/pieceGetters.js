@@ -1,5 +1,5 @@
 /**
- * @typedef {object} Bitboards
+ * @typedef {BigUint64Array} Bitboards
  * @property {bigint} whitePawns - bitboard of the white pawns
  * @property {bigint} whiteKnights - bitboard of the white knights
  * @property {bigint} whiteBishops - bitboard of the white bishops
@@ -14,55 +14,60 @@
  * @property {bigint} blackKings - bitboard of the black king
  */
 
+import { NUM_PIECES } from "./constants";
+
 /**
  * Gets the white piece bitboards
  *
- * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {Bitboards} bitboards - the bitboards of the current position. Should have
+ * 11 entries, with the first 6 being white pieces, and the next six being black peices
  * @returns {object} white bitboards
  */
 export const getWhiteBitboards = (bitboards) => {
-  return {
-    whitePawns: bitboards.whitePawns,
-    whiteKnights: bitboards.whiteKnights,
-    whiteBishops: bitboards.whiteBishops,
-    whiteRooks: bitboards.whiteRooks,
-    whiteQueens: bitboards.whiteQueens,
-    whiteKings: bitboards.whiteKings,
-  };
+  return [
+    bitboards[0],
+    bitboards[1],
+    bitboards[2],
+    bitboards[3],
+    bitboards[4],
+    bitboards[5],
+  ];
 };
 
 /**
  * Gets the white pieces in one bitboard
  *
- * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {Bitboards} bitboards - the bitboards of the current position. Should have
+ * 11 entries, with the first 6 being white pieces, and the next six being black peices
  * @returns {bigint} all white pieces
  */
 export const getWhitePieces = (bitboards) => {
   return (
-    bitboards.whitePawns |
-    bitboards.whiteKnights |
-    bitboards.whiteBishops |
-    bitboards.whiteRooks |
-    bitboards.whiteQueens |
-    bitboards.whiteKings
+    bitboards[0] |
+    bitboards[1] |
+    bitboards[2] |
+    bitboards[3] |
+    bitboards[4] |
+    bitboards[5]
   );
 };
 
 /**
- * Gets the black piece bitboards
+ * Gets the black piece bitboards. 
  *
- * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {Bitboards} bitboards - the bitboards of the current position. Should have
+ * 11 entries, with the first 6 being white pieces, and the next six being black peices
  * @returns {object} black bitboards
  */
 export const getBlackBitboards = (bitboards) => {
-  return {
-    blackPawns: bitboards.blackPawns,
-    blackKnights: bitboards.blackKnights,
-    blackBishops: bitboards.blackBishops,
-    blackRooks: bitboards.blackRooks,
-    blackQueens: bitboards.blackQueens,
-    blackKings: bitboards.blackKings,
-  };
+  return [
+    bitboards[6],
+    bitboards[7],
+    bitboards[8],
+    bitboards[9],
+    bitboards[10],
+    bitboards[11],
+  ];
 };
 
 /**
@@ -72,12 +77,12 @@ export const getBlackBitboards = (bitboards) => {
  */
 export const getBlackPieces = (bitboards) => {
   return (
-    bitboards.blackPawns |
-    bitboards.blackKnights |
-    bitboards.blackBishops |
-    bitboards.blackRooks |
-    bitboards.blackQueens |
-    bitboards.blackKings
+    bitboards[6] |
+    bitboards[7] |
+    bitboards[8] |
+    bitboards[9] |
+    bitboards[10] |
+    bitboards[11]
   );
 };
 
@@ -120,13 +125,13 @@ export const getEmptySquares = (bitboards) => {
  * @returns {string} piece at the square
  */
 export const getPieceAtSquare = (square, bitboards) => {
-  for (const [piece, bitboard] of Object.entries(bitboards)) {
-    if ((bitboard >> BigInt(square)) & BigInt(1)) {
-      return piece;
+  const mask = 1n << BigInt(square);
+  for (let p = 0; p < NUM_PIECES; p++) {
+    if ((bitboards[p] & mask) !== 0n) {
+      return p;  
     }
   }
-
-  return null;
+  return null; // empty square
 };
 
 /**

@@ -1,21 +1,4 @@
-/**
- * @typedef {object} Bitboards
- * @property {bigint} whitePawns - bitboard of the white pawns
- * @property {bigint} whiteKnights - bitboard of the white knights
- * @property {bigint} whiteBishops - bitboard of the white bishops
- * @property {bigint} whiteRooks - bitboard of the white rooks
- * @property {bigint} whiteQueens - bitboard of the white queens
- * @property {bigint} whiteKings - bitboard of the white king
- * @property {bigint} blackPawns - bitboard of the black pawns
- * @property {bigint} blackKnights - bitboard of the black knights
- * @property {bigint} blackBishops - bitboard of the black bishops
- * @property {bigint} blackRooks - bitboard of the black rooks
- * @property {bigint} blackQueens - bitboard of the black queens
- * @property {bigint} blackKings - bitboard of the black king
- */
-
 import { isSquareAttacked } from "../bbChessLogic";
-import { PIECE_SYMBOLS } from "../constants";
 import { getPieceAtSquare } from "../pieceGetters";
 
 /**
@@ -66,7 +49,7 @@ export const updateCastlingRights = (from, prevRights) => {
 /**
  * Determines whether a given player can castle kingside
  *
- * @param {Bitboards} bitboards - the current positions bitboards
+ * @param {BigUint64Array} bitboards - the current positions bitboards
  * @param {string} player - the player who is castling ("w" or "b")
  * @param {bigint} attackHash - the attack hash for the player
  * @returns {boolean} whether the player can castle kingside
@@ -74,21 +57,19 @@ export const updateCastlingRights = (from, prevRights) => {
 export const isKingsideCastleLegal = (bitboards, player, attackHash) => {
   let squares;
   let opponent;
-  let playerKing;
   if (player === "w") {
     squares = [4, 5, 6];
     opponent = "b";
-    playerKing = "K";
   } else {
     squares = [60, 61, 62];
     opponent = "w";
-    playerKing = "k";
   }
 
   // Check if squares are empty or under attack
   for (let square of squares) {
     const piece = getPieceAtSquare(square, bitboards);
-    if (piece !== null && PIECE_SYMBOLS[piece] !== playerKing) {
+    const isKing = piece === 5 || piece === 11;
+    if (piece !== null && !isKing) {
       return false;
     }
     if (isSquareAttacked(bitboards, square, opponent, attackHash)) {
@@ -102,7 +83,7 @@ export const isKingsideCastleLegal = (bitboards, player, attackHash) => {
 /**
  * Determines whether a given player can castle queenside
  *
- * @param {Bitboards} bitboards - the current positions bitboards
+ * @param {BigUint64Array} bitboards - the current positions bitboards
  * @param {string} player - the player who is castling ("w" or "b")
  * @param {bigint} attackHash - the attack hash for the player
  * @returns {boolean} whether the player can castle queenside
@@ -110,21 +91,19 @@ export const isKingsideCastleLegal = (bitboards, player, attackHash) => {
 export const isQueensideCastleLegal = (bitboards, player, attackHash) => {
   let squares;
   let opponent;
-  let playerKing;
   if (player === "w") {
     squares = [1, 2, 3, 4];
     opponent = "b";
-    playerKing = "K";
   } else {
     squares = [57, 58, 59, 60];
     opponent = "w";
-    playerKing = "k";
   }
 
   // Check if squares are empty or under attack
   for (let square of squares) {
     const piece = getPieceAtSquare(square, bitboards);
-    if (piece !== null && PIECE_SYMBOLS[piece] !== playerKing) {
+    const isKing = piece === 5 || piece === 11;
+    if (piece !== null && !isKing) {
       return false;
     }
     if (isSquareAttacked(bitboards, square, opponent, attackHash)) {
@@ -138,7 +117,7 @@ export const isQueensideCastleLegal = (bitboards, player, attackHash) => {
 /**
  * Executes a castling move and returns updated game state.
  *
- * @param {Bitboards} bitboards - The current position's bitboards.
+ * @param {BigUint64Array} bitboards - The current position's bitboards.
  * @param {number} from - The square the king is moving from.
  * @param {number} to - The square the king is moving to.
  * @returns {MoveResult} An object containing the updated bitboards, null for enPassantSquare,and false for isCapture.
@@ -148,28 +127,30 @@ export const makeCastleMove = (bitboards, from, to) => {
 
   if (from === 4 && to === 6) {
     // White kingside castling
-    newBitboards.whiteKings &= ~(1n << 4n);
-    newBitboards.whiteKings |= 1n << 6n;
-    newBitboards.whiteRooks &= ~(1n << 7n);
-    newBitboards.whiteRooks |= 1n << 5n;
+    // 5 is the king bitboard and 3 is the rook bitboard
+    newBitboards[5] &= ~(1n << 4n);
+    newBitboards[5] |= 1n << 6n;
+    newBitboards[3] &= ~(1n << 7n);
+    newBitboards[3] |= 1n << 5n;
   } else if (from === 4 && to === 2) {
     // White queenside castling
-    newBitboards.whiteKings &= ~(1n << 4n);
-    newBitboards.whiteKings |= 1n << 2n;
-    newBitboards.whiteRooks &= ~(1n << 0n);
-    newBitboards.whiteRooks |= 1n << 3n;
+    newBitboards[5] &= ~(1n << 4n);
+    newBitboards[5] |= 1n << 2n;
+    newBitboards[3] &= ~(1n << 0n);
+    newBitboards[3] |= 1n << 3n;
   } else if (from === 60 && to === 62) {
     // Black kingside castling
-    newBitboards.blackKings &= ~(1n << 60n);
-    newBitboards.blackKings |= 1n << 62n;
-    newBitboards.blackRooks &= ~(1n << 63n);
-    newBitboards.blackRooks |= 1n << 61n;
+    // 11 is the king bitboard and 9 is the rook bitboard
+    newBitboards[11] &= ~(1n << 60n);
+    newBitboards[11] |= 1n << 62n;
+    newBitboards[9] &= ~(1n << 63n);
+    newBitboards[9] |= 1n << 61n;
   } else if (from === 60 && to === 58) {
     // Black queenside castling
-    newBitboards.blackKings &= ~(1n << 60n);
-    newBitboards.blackKings |= 1n << 58n;
-    newBitboards.blackRooks &= ~(1n << 56n);
-    newBitboards.blackRooks |= 1n << 59n;
+    newBitboards[11] &= ~(1n << 60n);
+    newBitboards[11] |= 1n << 58n;
+    newBitboards[9] &= ~(1n << 56n);
+    newBitboards[9] |= 1n << 59n;
   }
   return { bitboards: newBitboards, enPassantSquare: null, isCapture: false };
 };

@@ -1,22 +1,6 @@
-/**
- * @typedef {object} Bitboards
- * @property {bigint} whitePawns - bitboard of the white pawns
- * @property {bigint} whiteKnights - bitboard of the white knights
- * @property {bigint} whiteBishops - bitboard of the white bishops
- * @property {bigint} whiteRooks - bitboard of the white rooks
- * @property {bigint} whiteQueens - bitboard of the white queens
- * @property {bigint} whiteKings - bitboard of the white king
- * @property {bigint} blackPawns - bitboard of the black pawns
- * @property {bigint} blackKnights - bitboard of the black knights
- * @property {bigint} blackBishops - bitboard of the black bishops
- * @property {bigint} blackRooks - bitboard of the black rooks
- * @property {bigint} blackQueens - bitboard of the black queens
- * @property {bigint} blackKings - bitboard of the black king
- */
-
 import { isInCheck } from "./bbChessLogic";
 import { bitScanForward } from "./bbUtils";
-import { COLUMN_SYMBOLS, GENERAL_SYMBOLS, PIECE_SYMBOLS } from "./constants";
+import { COLUMN_SYMBOLS, GENERAL_SYMBOLS } from "./constants";
 import {
   getAllIndividualLegalMoves,
   getAllLegalMoves,
@@ -89,7 +73,7 @@ export const bigIntFullRep = (bitboard) => {
  * Turns a move into normal, readable chess notation. Currently does NOT disambiguate,
  * which is when two or more of the same piece can move to the same square.
  *
- * @param {Bitboards} bitboards - bitboards of the position AFTER the move is made
+ * @param {BigUint64Array} bitboards - bitboards of the position AFTER the move is made
  * @param {number} from - the square the piece moved from
  * @param {number} to - the square to piece moved to
  * @param {boolean} isCapture - whether or not the move captured a piece
@@ -109,9 +93,9 @@ export const moveToReadable = (
   const letterCol = COLUMN_SYMBOLS[col];
   const row = (to - col) / 8;
   const piece = getPieceAtSquare(to, bitboards);
-  const formattedPiece = PIECE_SYMBOLS[piece].toUpperCase();
+  const formattedPiece = GENERAL_SYMBOLS[piece].toUpperCase();
 
-  const player = piece.charAt(0); // Every bitboard starts with either w (white) or b (black)
+  const player = piece > 5; // 0-5 refers to white bitboards, and 6-11 refers to black bitboards
   const opponent = player === "w" ? "b" : "w";
 
   if (formattedPiece === "P" || promotionPiece) {
@@ -158,7 +142,7 @@ export const moveToReadable = (
  * Gets all the legal moves and returns them in an array. Moves are formatted as objects,
  * with from, to, and promotion fields. Helpful for sorting
  *
- * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {string} player - the player whose move it is ("w" or "b")
  * @param {CastlingRights} castlingRights - the castling rights for the game. Should have boolean fields whiteKingside, whiteQueenside,
  *                blackKingside, blackQueenside
@@ -182,15 +166,16 @@ export const allLegalMovesArr = (
 
   const isWhite = player === "w";
   const promotionFromRank = isWhite ? 6 : 1;
-  const promotionPieces = ["Queens", "Rooks", "Knights", "Bishops"];
+  const promotionPieces = [4, 3, 1, 2]; // Queen, Rook, Knight, Bishop
 
   let possibleMoves = [];
   for (const from in moves) {
     let moveBitboard = moves[from];
 
-    const formattedPiece = GENERAL_SYMBOLS[getPieceAtSquare(from, bitboards)];
+    const piece = getPieceAtSquare(from, bitboards);
+    const formattedPiece = piece > 5 ? piece - 6 : piece; // Player doesnt
     const row = Math.floor(parseInt(from) / 8);
-    const isPromotion = row === promotionFromRank && formattedPiece === "P";
+    const isPromotion = row === promotionFromRank && formattedPiece === 0; // 0 is a pawn
 
     while (moveBitboard !== 0n) {
       const moveTo = bitScanForward(moveBitboard);

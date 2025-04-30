@@ -1,29 +1,10 @@
-/**
- * @typedef {object} Bitboards
- * @property {bigint} whitePawns - bitboard of the white pawns
- * @property {bigint} whiteKnights - bitboard of the white knights
- * @property {bigint} whiteBishops - bitboard of the white bishops
- * @property {bigint} whiteRooks - bitboard of the white rooks
- * @property {bigint} whiteQueens - bitboard of the white queens
- * @property {bigint} whiteKings - bitboard of the white king
- * @property {bigint} blackPawns - bitboard of the black pawns
- * @property {bigint} blackKnights - bitboard of the black knights
- * @property {bigint} blackBishops - bitboard of the black bishops
- * @property {bigint} blackRooks - bitboard of the black rooks
- * @property {bigint} blackQueens - bitboard of the black queens
- * @property {bigint} blackKings - bitboard of the black king
- */
-
 import { filterIllegalMoves } from "../bbChessLogic";
 import { bitScanForward } from "../bbUtils";
-import { GENERAL_SYMBOLS, PIECE_SYMBOLS } from "../constants";
-import { bigIntFullRep } from "../generalHelpers";
 import {
   getBlackPieces,
   getPieceAtSquare,
   getWhitePieces,
 } from "../pieceGetters";
-import { getCachedAttackMask } from "../PieceMasks/attackMask";
 import {
   getKingMovesForSquare,
   getQueenMovesForSquare,
@@ -46,8 +27,8 @@ import {
 /**
  * Gets the moves for a specific piece. Returns a bitboard of the moves for that piece.
  *
- * @param {Bitboards} bitboards - the bitboards of the current position
- * @param {string} piece - the piece that is moving. "P", "N", "B", "R", "Q", or "K"
+ * @param {BigUint64Array} bitboards - the bitboards of the current position
+ * @param {int} piece - the piece that is moving. 0:pawn, 1:knight, 2:bishop, 3:rook, 4:queen, 5:king
  * @param {number} from - the square to move from
  * @param {string} player - whose move it is ("w" or "b")
  * @param {number} enPassantSquare - the square where en passant is legal
@@ -65,8 +46,8 @@ export const getPieceMoves = (
   onlyCaptures = false
 ) => {
   let moves = null;
-  switch (piece.toUpperCase()) {
-    case "P":
+  switch (piece) {
+    case 0:
       moves = getPawnMovesForSquare(
         bitboards,
         player,
@@ -75,19 +56,19 @@ export const getPieceMoves = (
         onlyCaptures
       );
       break;
-    case "N":
+    case 1:
       moves = getKnightMovesForSquare(bitboards, player, from);
       break;
-    case "B":
+    case 2:
       moves = getBishopMovesForSquare(bitboards, player, from);
       break;
-    case "R":
+    case 3:
       moves = getRookMovesForSquare(bitboards, player, from);
       break;
-    case "Q":
+    case 4:
       moves = getQueenMovesForSquare(bitboards, player, from);
       break;
-    case "K":
+    case 5:
       moves = getKingMovesForSquare(bitboards, player, from, castlingRights);
       break;
     default:
@@ -100,7 +81,7 @@ export const getPieceMoves = (
 /**
  * Creates a bitboard for all of the moves a player has. Does not check for legality
  *
- * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {string} player - whose move it is ("w" or "b")
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
@@ -125,7 +106,9 @@ export const getAllPlayerMoves = (
     pieces &= pieces - 1n;
 
     const piece = getPieceAtSquare(square, bitboards);
-    const formattedPiece = PIECE_SYMBOLS[piece].toUpperCase();
+    // Dont care about color, so if piece is bigger than 5, subtract 6 as that is how
+    // many distinct pieces each side has
+    const formattedPiece = piece > 5 ? piece - 6 : piece;
 
     const pieceMoves = getPieceMoves(
       bitboards,
@@ -146,7 +129,7 @@ export const getAllPlayerMoves = (
 /**
  * Gets all of the legal moves a player has as a bitboard.
  *
- * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {string} player - whose move it is ("w" or "b")
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
@@ -171,7 +154,9 @@ export const getAllLegalMoves = (
     pieces &= pieces - 1n;
 
     const piece = getPieceAtSquare(square, bitboards);
-    const formattedPiece = PIECE_SYMBOLS[piece].toUpperCase();
+    // Dont care about color, so if piece is bigger than 5, subtract 6 as that is how
+    // many distinct pieces each side has
+    const formattedPiece = piece > 5 ? piece - 6 : piece;
 
     const pieceMoves = getPieceMoves(
       bitboards,
@@ -187,7 +172,7 @@ export const getAllLegalMoves = (
       bitboards,
       pieceMoves,
       square,
-      player,
+      player
     );
 
     allMoves |= legalPieceMoves;
@@ -201,7 +186,7 @@ export const getAllLegalMoves = (
  * The keys are the square of the piece and the fields is the bitboard for the square.
  * Ex: { 10: bigint, 34: bigint, etc.}
  *
- * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {string} player - whose move it is ("w" or "b")
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
@@ -226,7 +211,9 @@ export const getAllIndividualLegalMoves = (
     pieces &= pieces - 1n;
 
     const piece = getPieceAtSquare(square, bitboards);
-    const formattedPiece = GENERAL_SYMBOLS[piece];
+    // Dont care about color, so if piece is bigger than 5, subtract 6 as that is how
+    // many distinct pieces each side has
+    const formattedPiece = piece > 5 ? piece - 6 : piece;
 
     const pieceMoves = getPieceMoves(
       bitboards,
@@ -236,13 +223,13 @@ export const getAllIndividualLegalMoves = (
       enPassantSquare,
       castlingRights
     );
-    
+
     const legalPieceMoves = filterIllegalMoves(
       bitboards,
       pieceMoves,
       square,
       player,
-      opponentHash,
+      opponentHash
     );
 
     if (legalPieceMoves !== 0n) {

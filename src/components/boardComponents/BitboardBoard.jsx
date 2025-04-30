@@ -31,7 +31,7 @@ const BitboardBoard = ({
           return (
             <Cell
               key={i}
-              piece={piece ? PIECE_SYMBOLS[piece] : "-"}
+              piece={piece !== null ? PIECE_SYMBOLS[piece] : "-"}
               row={actualRow}
               col={actualCol}
               onSquareClick={() => onSquareClick(actualRow, actualCol)}

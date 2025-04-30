@@ -1,19 +1,3 @@
-/**
- * @typedef {object} Bitboards
- * @property {bigint} whitePawns - bitboard of the white pawns
- * @property {bigint} whiteKnights - bitboard of the white knights
- * @property {bigint} whiteBishops - bitboard of the white bishops
- * @property {bigint} whiteRooks - bitboard of the white rooks
- * @property {bigint} whiteQueens - bitboard of the white queens
- * @property {bigint} whiteKings - bitboard of the white king
- * @property {bigint} blackPawns - bitboard of the black pawns
- * @property {bigint} blackKnights - bitboard of the black knights
- * @property {bigint} blackBishops - bitboard of the black bishops
- * @property {bigint} blackRooks - bitboard of the black rooks
- * @property {bigint} blackQueens - bitboard of the black queens
- * @property {bigint} blackKings - bitboard of the black king
- */
-
 import { hasLegalMove, isSquareAttacked } from "./bbChessLogic";
 import { bitScanForward, getNumPieces } from "./bbUtils";
 import { getBlackPieces, getWhitePieces } from "./pieceGetters";
@@ -28,7 +12,7 @@ import { getBlackPieces, getWhitePieces } from "./pieceGetters";
 
 /**
  * Determines if the game is over. Checks for checkmate, stalemate, threefold repetition, draw by insufficient material, and draw by 50 move rule.
- * @param {Bitboards} bitboards - the current positions bitboards
+ * @param {BigUint64Array} bitboards - the current positions bitboards
  * @param {string} player - player who would win if it was mate ("w" or "b")
  * @param {Map} pastPositions - the map of past positions stored as hashes.
  * @param {CastlingRights} castlingRights - the castling rights
@@ -48,7 +32,8 @@ export const checkGameOver = (
   const isPlayerWhite = player === "w";
   const opponent = isPlayerWhite ? "b" : "w";
 
-  const kingBB = bitboards[isPlayerWhite ? "blackKings" : "whiteKings"];
+  // 11 is index of black kings,
+  const kingBB = bitboards[isPlayerWhite ? 11 : 5];
   const kingSquare = bitScanForward(kingBB);
 
   const result = { isGameOver: false, result: null };
@@ -89,7 +74,7 @@ export const checkGameOver = (
 
 /**
  * Determines if the game is a draw because neither side has sufficient checkmating material. Only insufficient if both sides only have 1 or 0 minor pieces (knight and bishop).
- * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @returns {boolean} if it is a draw by insufficient material
  */
 export const drawByInsufficientMaterial = (bitboards) => {

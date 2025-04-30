@@ -1,20 +1,4 @@
-import { allLegalMovesArr, bigIntFullRep } from "../bitboardUtils/generalHelpers";
-import { getAllPieces } from "../bitboardUtils/pieceGetters";
-/**
- * @typedef {object} Bitboards
- * @property {bigint} whitePawns - bitboard of the white pawns
- * @property {bigint} whiteKnights - bitboard of the white knights
- * @property {bigint} whiteBishops - bitboard of the white bishops
- * @property {bigint} whiteRooks - bitboard of the white rooks
- * @property {bigint} whiteQueens - bitboard of the white queens
- * @property {bigint} whiteKings - bitboard of the white king
- * @property {bigint} blackPawns - bitboard of the black pawns
- * @property {bigint} blackKnights - bitboard of the black knights
- * @property {bigint} blackBishops - bitboard of the black bishops
- * @property {bigint} blackRooks - bitboard of the black rooks
- * @property {bigint} blackQueens - bitboard of the black queens
- * @property {bigint} blackKings - bitboard of the black king
- */
+import { allLegalMovesArr } from "../bitboardUtils/generalHelpers";
 
 /**
  * @typedef {object} CastlingRights
@@ -27,7 +11,7 @@ import { getAllPieces } from "../bitboardUtils/pieceGetters";
 /**
  * Gets the "best" move in the given position. This version simply selects a random move.
  *
- * @param {Bitboards} bitboards - the bitboards of the current position
+ * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {string} player - whose move it is ("w" or "b")
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
@@ -41,7 +25,7 @@ export const BMV1 = (
   castlingRights,
   enPassantSquare,
   depth = 0,
-  timeLimit = Infinity,
+  timeLimit = Infinity
 ) => {
   const moves = allLegalMovesArr(
     bitboards,

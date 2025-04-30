@@ -4,7 +4,6 @@ import Sidebar from "./sidebar/Sidebar";
 import "./UI.css";
 import BitboardBoard from "./boardComponents/BitboardBoard";
 import { getCachedAttackMask } from "./bitboardUtils/PieceMasks/attackMask";
-import { PIECE_SYMBOLS } from "./bitboardUtils/constants";
 import {
   isValidMove,
   makeMove,
@@ -139,20 +138,23 @@ const BitboardGame = () => {
     if (isPlayersPieceAtSquare(currPlayer, square, bitboards)) {
       useGameStore.setState({ selectedSquare: square });
       const piece = getPieceAtSquare(square, bitboards);
+
       const moveBitboard = getPieceMoves(
         bitboards,
-        PIECE_SYMBOLS[piece],
+        piece > 5 ? piece - 6 : piece,
         square,
         currPlayer,
         enPassantSquare,
         castlingRights
       );
+
       const filteredMoveBitboard = filterIllegalMoves(
         bitboards,
         moveBitboard,
         square,
         currPlayer
       );
+
       useGameStore.setState({
         moveBitboard: filteredMoveBitboard,
         promotion: false,
@@ -172,12 +174,8 @@ const BitboardGame = () => {
           castlingRights
         )
       ) {
-        if (
-          (row === 7 || row === 0) &&
-          PIECE_SYMBOLS[
-            getPieceAtSquare(selectedSquare, bitboards)
-          ].toLowerCase() === "p"
-        ) {
+        const piece = getPieceAtSquare(selectedSquare, bitboards);
+        if ((row === 7 || row === 0) && (piece === 0 || piece === 6)) {
           useGameStore.setState({
             promotion: true,
             promotionMove: { from: selectedSquare, to: square },

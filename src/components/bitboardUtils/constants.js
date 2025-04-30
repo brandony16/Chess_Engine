@@ -1,18 +1,37 @@
-// Inital bitboards
-export const INITIAL_BITBOARDS = {
-  whitePawns: BigInt("0x000000000000FF00"),
-  whiteKnights: BigInt("0x0000000000000042"),
-  whiteBishops: BigInt("0x0000000000000024"),
-  whiteRooks: BigInt("0x0000000000000081"),
-  whiteQueens: BigInt("0x0000000000000008"),
-  whiteKings: BigInt("0x0000000000000010"),
-  blackPawns: BigInt("0x00FF000000000000"),
-  blackKnights: BigInt("0x4200000000000000"),
-  blackBishops: BigInt("0x2400000000000000"),
-  blackRooks: BigInt("0x8100000000000000"),
-  blackQueens: BigInt("0x0800000000000000"),
-  blackKings: BigInt("0x1000000000000000"),
+export const PIECE = {
+  wP: 0,
+  wN: 1,
+  wB: 2,
+  wR: 3,
+  wQ: 4,
+  wK: 5,
+  bP: 6,
+  bN: 7,
+  bB: 8,
+  bR: 9,
+  bQ: 10,
+  bK: 11,
 };
+export const NUM_PIECES = 12;
+
+// Inital bitboards
+export const INITIAL_BITBOARDS = new BigUint64Array(NUM_PIECES);
+
+// white
+INITIAL_BITBOARDS[PIECE.wP] = BigInt("0x000000000000FF00");
+INITIAL_BITBOARDS[PIECE.wN] = BigInt("0x0000000000000042");
+INITIAL_BITBOARDS[PIECE.wB] = BigInt("0x0000000000000024");
+INITIAL_BITBOARDS[PIECE.wR] = BigInt("0x0000000000000081");
+INITIAL_BITBOARDS[PIECE.wQ] = BigInt("0x0000000000000008");
+INITIAL_BITBOARDS[PIECE.wK] = BigInt("0x0000000000000010");
+
+// black
+INITIAL_BITBOARDS[PIECE.bP] = BigInt("0x00FF000000000000");
+INITIAL_BITBOARDS[PIECE.bN] = BigInt("0x4200000000000000");
+INITIAL_BITBOARDS[PIECE.bB] = BigInt("0x2400000000000000");
+INITIAL_BITBOARDS[PIECE.bR] = BigInt("0x8100000000000000");
+INITIAL_BITBOARDS[PIECE.bQ] = BigInt("0x0800000000000000");
+INITIAL_BITBOARDS[PIECE.bK] = BigInt("0x1000000000000000");
 
 // MASKS
 export const FILE_H_MASK = 0x7f7f7f7f7f7f7f7fn;
@@ -24,36 +43,36 @@ export const RANK_1_MASK = 0xffffffffffffff00n;
  * Converts the pieces to the correct character. Uppercase is white, lowercase is black.
  */
 export const PIECE_SYMBOLS = {
-  whitePawns: "P",
-  whiteKnights: "N",
-  whiteBishops: "B",
-  whiteRooks: "R",
-  whiteQueens: "Q",
-  whiteKings: "K",
-  blackPawns: "p",
-  blackKnights: "n",
-  blackBishops: "b",
-  blackRooks: "r",
-  blackQueens: "q",
-  blackKings: "k",
+  0: "P",
+  1: "N",
+  2: "B",
+  3: "R",
+  4: "Q",
+  5: "K",
+  6: "p",
+  7: "n",
+  8: "b",
+  9: "r",
+  10: "q",
+  11: "k",
 };
 
 /**
  * Converts the pieces to the correct character independent of player. Uppercase for all
  */
 export const GENERAL_SYMBOLS = {
-  whitePawns: "P",
-  whiteKnights: "N",
-  whiteBishops: "B",
-  whiteRooks: "R",
-  whiteQueens: "Q",
-  whiteKings: "K",
-  blackPawns: "P",
-  blackKnights: "N",
-  blackBishops: "B",
-  blackRooks: "R",
-  blackQueens: "Q",
-  blackKings: "K",
+  0: "P",
+  1: "N",
+  2: "B",
+  3: "R",
+  4: "Q",
+  5: "K",
+  6: "P",
+  7: "N",
+  8: "B",
+  9: "R",
+  10: "Q",
+  11: "K",
 };
 
 /**

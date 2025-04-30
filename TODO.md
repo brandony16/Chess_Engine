@@ -14,7 +14,9 @@
 - Add quiscince search
 - Make it so engines play a predetermined opening so they don't play the same
   game every time against each other.
-- Make move generators use a occupancy mask calculated earlier
+- Make move generators use a occupancy mask calculated earlier - maybe
+- Add imcremental attack map updates instead of complete recalculation
+- Make players be 0 for white and 1 for black to reduce string comps
 - Add 50 move rule to engine sim
 
 ## General
