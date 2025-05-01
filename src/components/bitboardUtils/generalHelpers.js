@@ -93,9 +93,9 @@ export const moveToReadable = (
   const letterCol = COLUMN_SYMBOLS[col];
   const row = (to - col) / 8;
   const piece = getPieceAtSquare(to, bitboards);
-  const formattedPiece = GENERAL_SYMBOLS[piece].toUpperCase();
+  const formattedPiece = GENERAL_SYMBOLS[piece];
 
-  const player = piece > 5; // 0-5 refers to white bitboards, and 6-11 refers to black bitboards
+  const player = piece > 5 ? "b" : "w"; // 0-5 refers to white bitboards, and 6-11 refers to black bitboards
   const opponent = player === "w" ? "b" : "w";
 
   if (formattedPiece === "P" || promotionPiece) {
@@ -126,7 +126,7 @@ export const moveToReadable = (
 
   if (isInCheck(bitboards, opponent)) {
     if (
-      getAllLegalMoves(bitboards, player === "w" ? "b" : "w", null, null) === 0n
+      getAllLegalMoves(bitboards, opponent, null, null) === 0n
     ) {
       // Checkmate
       notation += "#";

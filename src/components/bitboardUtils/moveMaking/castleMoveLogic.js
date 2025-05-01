@@ -123,7 +123,7 @@ export const isQueensideCastleLegal = (bitboards, player, attackHash) => {
  * @returns {MoveResult} An object containing the updated bitboards, null for enPassantSquare,and false for isCapture.
  */
 export const makeCastleMove = (bitboards, from, to) => {
-  let newBitboards = { ...bitboards };
+  let newBitboards = [...bitboards];
 
   if (from === 4 && to === 6) {
     // White kingside castling

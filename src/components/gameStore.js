@@ -19,7 +19,7 @@ export const useGameStore = create((set, get) => ({
   pastPositions: new Map(),
   pastMoves: [],
   pastBitboards: [],
-  displayedBitboards: INITIAL_BITBOARDS,
+  displayedBitboards: [...INITIAL_BITBOARDS],
   isCurrPositionShown: true,
   currIndexOfDisplayed: -1,
   castlingRights: {
@@ -106,7 +106,7 @@ export const useGameStore = create((set, get) => ({
         pastPositions: new Map(),
         pastMoves: [],
         pastBitboards: [],
-        displayedBitboards: INITIAL_BITBOARDS,
+        displayedBitboards: [...INITIAL_BITBOARDS],
         isCurrPositionShown: true,
         currIndexOfDisplayed: -1,
         gameHistory: newHistory,

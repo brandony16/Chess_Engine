@@ -81,9 +81,9 @@ export const drawByInsufficientMaterial = (bitboards) => {
   const whitePieces = getWhitePieces(bitboards);
   const blackPieces = getBlackPieces(bitboards);
 
-  const queens = bitboards.whiteQueens | bitboards.blackQueens;
-  const rooks = bitboards.whiteRooks | bitboards.blackRooks;
-  const pawns = bitboards.whitePawns | bitboards.blackPawns;
+  const queens = bitboards[4] | bitboards[10];
+  const rooks = bitboards[3] | bitboards[9];
+  const pawns = bitboards[0] | bitboards[6];
   const queensRooksPawns = queens | rooks | pawns;
 
   if (queensRooksPawns !== 0n) {

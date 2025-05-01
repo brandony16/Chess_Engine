@@ -39,6 +39,7 @@ export const makeMove = (
   attackHash = null
 ) => {
   let updatedBitboards = [...bitboards];
+
   const bigIntFrom = BigInt(from);
   const bigIntTo = BigInt(to);
   const one = 1n;
@@ -47,7 +48,7 @@ export const makeMove = (
 
   // Handle castle case
   const pieceAtFrom = getPieceAtSquare(from, bitboards);
-  if (GENERAL_SYMBOLS[pieceAtFrom] === "K" && Math.abs(to - from) === 2) {
+  if ((pieceAtFrom === 5 || pieceAtFrom === 11) && Math.abs(to - from) === 2) {
     return makeCastleMove(bitboards, from, to, attackHash);
   }
 
@@ -100,9 +101,7 @@ export const makeMove = (
     }
     if (to === enPassantSquare) {
       // Remove the captured pawn from the opposing pawn bitboard
-      updatedBitboards[isPlayerWhite ? 6 : 0] &= ~(
-        one << BigInt(to + dir)
-      );
+      updatedBitboards[isPlayerWhite ? 6 : 0] &= ~(one << BigInt(to + dir));
     }
   }
 

@@ -47,7 +47,7 @@ const BitboardBoard = ({
 };
 
 BitboardBoard.propTypes = {
-  bitboards: PropTypes.object.isRequired,
+  bitboards: PropTypes.array.isRequired,
   onSquareClick: PropTypes.func.isRequired,
   selectedSquare: PropTypes.number,
   userSide: PropTypes.oneOf(["w", "b"]).isRequired,

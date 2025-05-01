@@ -70,6 +70,7 @@ export const filterIllegalMoves = (
 ) => {
   let filteredMoves = 0n;
   const isPlayerWhite = player === "w";
+  const opponent = isPlayerWhite ? "b" : "w";
   const one = 1n;
 
   // Iterate only over moves that are set (i.e. bits that are 1)
@@ -91,7 +92,7 @@ export const filterIllegalMoves = (
         from,
         to,
         opponentHash,
-        isPlayerWhite ? "b" : "w",
+        opponent,
         moveObj.enPassantSquare,
         true
       );
@@ -100,7 +101,7 @@ export const filterIllegalMoves = (
       !isSquareAttacked(
         tempBitboards,
         kingSquare,
-        isPlayerWhite ? "b" : "w",
+        opponent,
         newHash
       )
     ) {
