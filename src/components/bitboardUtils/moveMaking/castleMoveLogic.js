@@ -1,4 +1,13 @@
 import { isSquareAttacked } from "../bbChessLogic";
+import { isKing } from "../bbUtils";
+import {
+  BLACK,
+  BLACK_KING,
+  BLACK_ROOK,
+  WHITE,
+  WHITE_KING,
+  WHITE_ROOK,
+} from "../constants";
 import { getPieceAtSquare } from "../pieceGetters";
 
 /**
@@ -50,26 +59,25 @@ export const updateCastlingRights = (from, prevRights) => {
  * Determines whether a given player can castle kingside
  *
  * @param {BigUint64Array} bitboards - the current positions bitboards
- * @param {string} player - the player who is castling ("w" or "b")
+ * @param {number} player - the player who is castling (0 for w, 1 for b)
  * @param {bigint} attackHash - the attack hash for the player
  * @returns {boolean} whether the player can castle kingside
  */
 export const isKingsideCastleLegal = (bitboards, player, attackHash) => {
   let squares;
   let opponent;
-  if (player === "w") {
+  if (player === WHITE) {
     squares = [4, 5, 6];
-    opponent = "b";
+    opponent = BLACK;
   } else {
     squares = [60, 61, 62];
-    opponent = "w";
+    opponent = WHITE;
   }
 
   // Check if squares are empty or under attack
   for (let square of squares) {
     const piece = getPieceAtSquare(square, bitboards);
-    const isKing = piece === 5 || piece === 11;
-    if (piece !== null && !isKing) {
+    if (piece !== null && !isKing(piece)) {
       return false;
     }
     if (isSquareAttacked(bitboards, square, opponent, attackHash)) {
@@ -91,19 +99,18 @@ export const isKingsideCastleLegal = (bitboards, player, attackHash) => {
 export const isQueensideCastleLegal = (bitboards, player, attackHash) => {
   let squares;
   let opponent;
-  if (player === "w") {
+  if (player === WHITE) {
     squares = [1, 2, 3, 4];
-    opponent = "b";
+    opponent = BLACK;
   } else {
     squares = [57, 58, 59, 60];
-    opponent = "w";
+    opponent = WHITE;
   }
 
   // Check if squares are empty or under attack
   for (let square of squares) {
     const piece = getPieceAtSquare(square, bitboards);
-    const isKing = piece === 5 || piece === 11;
-    if (piece !== null && !isKing) {
+    if (piece !== null && !isKing(piece)) {
       return false;
     }
     if (isSquareAttacked(bitboards, square, opponent, attackHash)) {
@@ -127,30 +134,28 @@ export const makeCastleMove = (bitboards, from, to) => {
 
   if (from === 4 && to === 6) {
     // White kingside castling
-    // 5 is the king bitboard and 3 is the rook bitboard
-    newBitboards[5] &= ~(1n << 4n);
-    newBitboards[5] |= 1n << 6n;
-    newBitboards[3] &= ~(1n << 7n);
-    newBitboards[3] |= 1n << 5n;
+    newBitboards[WHITE_KING] &= ~(1n << 4n);
+    newBitboards[WHITE_KING] |= 1n << 6n;
+    newBitboards[WHITE_ROOK] &= ~(1n << 7n);
+    newBitboards[WHITE_ROOK] |= 1n << 5n;
   } else if (from === 4 && to === 2) {
     // White queenside castling
-    newBitboards[5] &= ~(1n << 4n);
-    newBitboards[5] |= 1n << 2n;
-    newBitboards[3] &= ~(1n << 0n);
-    newBitboards[3] |= 1n << 3n;
+    newBitboards[WHITE_KING] &= ~(1n << 4n);
+    newBitboards[WHITE_KING] |= 1n << 2n;
+    newBitboards[WHITE_ROOK] &= ~(1n << 0n);
+    newBitboards[WHITE_ROOK] |= 1n << 3n;
   } else if (from === 60 && to === 62) {
     // Black kingside castling
-    // 11 is the king bitboard and 9 is the rook bitboard
-    newBitboards[11] &= ~(1n << 60n);
-    newBitboards[11] |= 1n << 62n;
-    newBitboards[9] &= ~(1n << 63n);
-    newBitboards[9] |= 1n << 61n;
+    newBitboards[BLACK_KING] &= ~(1n << 60n);
+    newBitboards[BLACK_KING] |= 1n << 62n;
+    newBitboards[BLACK_ROOK] &= ~(1n << 63n);
+    newBitboards[BLACK_ROOK] |= 1n << 61n;
   } else if (from === 60 && to === 58) {
     // Black queenside castling
-    newBitboards[11] &= ~(1n << 60n);
-    newBitboards[11] |= 1n << 58n;
-    newBitboards[9] &= ~(1n << 56n);
-    newBitboards[9] |= 1n << 59n;
+    newBitboards[BLACK_KING] &= ~(1n << 60n);
+    newBitboards[BLACK_KING] |= 1n << 58n;
+    newBitboards[BLACK_ROOK] &= ~(1n << 56n);
+    newBitboards[BLACK_ROOK] |= 1n << 59n;
   }
   return { bitboards: newBitboards, enPassantSquare: null, isCapture: false };
 };

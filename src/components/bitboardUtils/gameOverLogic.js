@@ -1,21 +1,26 @@
 import { hasLegalMove, isSquareAttacked } from "./bbChessLogic";
 import { bitScanForward, getNumPieces } from "./bbUtils";
+import {
+  BLACK,
+  BLACK_KING,
+  BLACK_PAWN,
+  BLACK_QUEEN,
+  BLACK_ROOK,
+  WHITE,
+  WHITE_KING,
+  WHITE_PAWN,
+  WHITE_QUEEN,
+  WHITE_ROOK,
+} from "./constants";
 import { getBlackPieces, getWhitePieces } from "./pieceGetters";
 
 /**
- * @typedef {object} CastlingRights
- * @property {boolean} whiteKingside - Whether castling kingside is legal for white
- * @property {boolean} whiteQueenside - Whether castling queenside is legal for white
- * @property {boolean} blackKingside - Whether castling kingside is legal for black
- * @property {boolean} blackQueenside - Whether castling queenside is legal for black
- */
-
-/**
- * Determines if the game is over. Checks for checkmate, stalemate, threefold repetition, draw by insufficient material, and draw by 50 move rule.
+ * Determines if the game is over. Checks for checkmate, stalemate, threefold repetition,
+ * draw by insufficient material, and draw by 50 move rule.
+ *
  * @param {BigUint64Array} bitboards - the current positions bitboards
- * @param {string} player - player who would win if it was mate ("w" or "b")
+ * @param {number} player - player who would win if it was mate (0 for w, 1 for b)
  * @param {Map} pastPositions - the map of past positions stored as hashes.
- * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where enPassant can occur
  * @param {bigint} attackHash - the attack hash for the player
  * @returns {{ isGameOver: boolean, result: string}} An object with fields for isGameOver and result
@@ -24,16 +29,14 @@ export const checkGameOver = (
   bitboards,
   player,
   pastPositions,
-  castlingRights,
   enPassantSquare,
   fiftyMoveCounter,
   attackHash = null
 ) => {
-  const isPlayerWhite = player === "w";
-  const opponent = isPlayerWhite ? "b" : "w";
+  const isPlayerWhite = player === WHITE;
+  const opponent = isPlayerWhite ? BLACK : WHITE;
 
-  // 11 is index of black kings,
-  const kingBB = bitboards[isPlayerWhite ? 11 : 5];
+  const kingBB = bitboards[isPlayerWhite ? BLACK_KING : WHITE_KING];
   const kingSquare = bitScanForward(kingBB);
 
   const result = { isGameOver: false, result: null };
@@ -73,7 +76,8 @@ export const checkGameOver = (
 };
 
 /**
- * Determines if the game is a draw because neither side has sufficient checkmating material. Only insufficient if both sides only have 1 or 0 minor pieces (knight and bishop).
+ * Determines if the game is a draw because neither side has sufficient checkmating material.
+ * Only insufficient if both sides only have 1 or 0 minor pieces (knight and bishop).
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @returns {boolean} if it is a draw by insufficient material
  */
@@ -81,9 +85,9 @@ export const drawByInsufficientMaterial = (bitboards) => {
   const whitePieces = getWhitePieces(bitboards);
   const blackPieces = getBlackPieces(bitboards);
 
-  const queens = bitboards[4] | bitboards[10];
-  const rooks = bitboards[3] | bitboards[9];
-  const pawns = bitboards[0] | bitboards[6];
+  const queens = bitboards[WHITE_QUEEN] | bitboards[BLACK_QUEEN];
+  const rooks = bitboards[WHITE_ROOK] | bitboards[BLACK_ROOK];
+  const pawns = bitboards[WHITE_PAWN] | bitboards[BLACK_PAWN];
   const queensRooksPawns = queens | rooks | pawns;
 
   if (queensRooksPawns !== 0n) {
@@ -96,8 +100,10 @@ export const drawByInsufficientMaterial = (bitboards) => {
 };
 
 /**
- * Determines if the same position has been repeated three times. If so the game is a draw. Note: The positon is NOT the same if the pieces
- * are the same and whose move it is is different. It is also not the same if en Passant was legal, and is no longer legal
+ * Determines if the same position has been repeated three times. If so the game is a draw.
+ * Note: The positon is NOT the same if the pieces are the same and whose move it is is
+ * different. It is also not the same if en Passant was legal, and is no longer legal.
+ *
  * @param {Map} pastPositions - The map of the past positions. Stored as hashes
  * @returns {boolean} if it is a threefold repetition
  */
@@ -111,9 +117,11 @@ export const drawByRepetition = (pastPositions) => {
 };
 
 /**
- * Determines if the game should end by the 50 move rule. The fifty rule move is if there is no capture or pawn move for 50 moves then the
- * game is a draw. A move is each player moving once, so 100 ply.
- * @param {Array} pastPositions - an array of the past positions
+ * Determines if the game should end by the 50 move rule. The fifty rule move is if there
+ * is no capture or pawn move for 50 moves then the game is a draw. A move is each player
+ * moving once, so 100 ply.
+ *
+ * @param {number} fiftyMoveCounter - the amount of ply since the last pawn move or capture
  * @returns {boolean} if is a draw by the 50 move rule
  */
 export const drawByFiftyMoveRule = (fiftyMoveCounter) => {

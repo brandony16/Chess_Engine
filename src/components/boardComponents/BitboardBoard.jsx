@@ -3,7 +3,7 @@ import "./Board.css";
 
 import PropTypes from "prop-types";
 import { getPieceAtSquare } from "../bitboardUtils/pieceGetters";
-import { PIECE_SYMBOLS } from "../bitboardUtils/constants";
+import { BLACK, PIECE_SYMBOLS, WHITE } from "../bitboardUtils/constants";
 
 // Creates the board out of Cells
 const BitboardBoard = ({
@@ -16,10 +16,10 @@ const BitboardBoard = ({
   return (
     <div className="board">
       {Array.from({ length: 8 }, (_, row) => {
-        const actualRow = userSide === "b" ? row : 7 - row; // Flip row order for Black
+        const actualRow = userSide === BLACK ? row : 7 - row; // Flip row order for Black
 
         return Array.from({ length: 8 }, (_, col) => {
-          const actualCol = userSide === "w" ? col : 7 - col; // Flips columns if viewing from Black
+          const actualCol = userSide === WHITE ? col : 7 - col; // Flips columns if viewing from Black
           const i = actualRow * 8 + actualCol; // Flip columns per row
           const piece = getPieceAtSquare(i, bitboards);
           const isSelected = selectedSquare === i;
@@ -50,7 +50,7 @@ BitboardBoard.propTypes = {
   bitboards: PropTypes.array.isRequired,
   onSquareClick: PropTypes.func.isRequired,
   selectedSquare: PropTypes.number,
-  userSide: PropTypes.oneOf(["w", "b"]).isRequired,
+  userSide: PropTypes.oneOf([WHITE, BLACK]).isRequired,
   moveBitboard: PropTypes.object, // Throws a prop validation warning. Is a bigint but PropTypes does not support that.
 };
 

@@ -1,5 +1,6 @@
 import { filterIllegalMoves } from "../bbChessLogic";
-import { GENERAL_SYMBOLS, NUM_PIECES } from "../constants";
+import { isKing } from "../bbUtils";
+import { BLACK_PAWN, NUM_PIECES, WHITE_PAWN } from "../constants";
 import { getPieceMoves } from "../moveGeneration/allMoveGeneration";
 import { getPieceAtSquare, isPlayersPieceAtSquare } from "../pieceGetters";
 import { makeCastleMove } from "./castleMoveLogic";
@@ -48,23 +49,17 @@ export const makeMove = (
 
   // Handle castle case
   const pieceAtFrom = getPieceAtSquare(from, bitboards);
-  if ((pieceAtFrom === 5 || pieceAtFrom === 11) && Math.abs(to - from) === 2) {
+  if (isKing(pieceAtFrom) && Math.abs(to - from) === 2) {
     return makeCastleMove(bitboards, from, to, attackHash);
   }
 
-  // Find which piece is at 'from' square
-  let movingPiece = null;
-
-  for (let piece = 0; piece < NUM_PIECES; piece++) {
-    const bitboard = bitboards[piece];
-    if ((bitboard & maskFrom) !== 0n) {
-      movingPiece = piece;
-      updatedBitboards[piece] &= ~(one << bigIntFrom); // Remove moving piece
-      break;
-    }
+  // Remove moving piece
+  const bitboard = bitboards[pieceAtFrom];
+  if ((bitboard & maskFrom) !== 0n) {
+    updatedBitboards[pieceAtFrom] &= ~(one << bigIntFrom);
   }
 
-  if (movingPiece === null) throw new Error("No piece found for move");
+  if (pieceAtFrom === null) throw new Error("No piece found for move");
 
   // Check if a piece exists at 'to' (capture)
   let isCapture = false;
@@ -88,20 +83,22 @@ export const makeMove = (
   }
 
   // Move piece to 'to' square
-  updatedBitboards[movingPiece] |= maskTo;
+  updatedBitboards[pieceAtFrom] |= maskTo;
 
   // Handle En Passant
-  const isPawn = movingPiece === 0 || movingPiece === 6;
+  const isPawn = pieceAtFrom === 0 || pieceAtFrom === 6;
   let newEnPassantSquare = null;
   if (isPawn) {
-    const isPlayerWhite = movingPiece === 0;
+    const isPlayerWhite = pieceAtFrom === 0;
     const dir = isPlayerWhite ? -8 : 8;
     if (Math.abs(to - from) === 16) {
       newEnPassantSquare = to + dir;
     }
     if (to === enPassantSquare) {
       // Remove the captured pawn from the opposing pawn bitboard
-      updatedBitboards[isPlayerWhite ? 6 : 0] &= ~(one << BigInt(to + dir));
+      updatedBitboards[isPlayerWhite ? BLACK_PAWN : WHITE_PAWN] &= ~(
+        one << BigInt(to + dir)
+      );
     }
   }
 
@@ -118,7 +115,7 @@ export const makeMove = (
  * @param {BigUint64Array} bitboards - bitboards of the current position
  * @param {number} from - the square to move from
  * @param {number} to - the square to move to
- * @param {string} player - the player whose move it is ("w" or "b")
+ * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {number} enPassantSquare
  *                the square where enPassant can happen, if any
  * @param {CastlingRights} castlingRights - the castling rights
@@ -144,7 +141,7 @@ export const isValidMove = (
 
   // Dont care about color, so if piece is bigger than 5, subtract 6 as that is how
   // many distinct pieces each side has
-  const formattedPiece = piece > 5 ? piece - 6 : piece;
+  const formattedPiece = piece - 6 * player;
 
   const pieceMoves = getPieceMoves(
     bitboards,

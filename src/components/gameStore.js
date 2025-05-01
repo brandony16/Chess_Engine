@@ -1,5 +1,11 @@
 import { create } from "zustand";
-import { INITIAL_BITBOARDS } from "./bitboardUtils/constants";
+import {
+  BLACK,
+  BLACK_PAWN,
+  INITIAL_BITBOARDS,
+  WHITE,
+  WHITE_PAWN,
+} from "./bitboardUtils/constants";
 import { updateCastlingRights } from "./bitboardUtils/moveMaking/castleMoveLogic";
 import { clearAttackMaskCache } from "./bitboardUtils/PieceMasks/attackMask";
 import { getPieceAtSquare } from "./bitboardUtils/pieceGetters";
@@ -9,8 +15,8 @@ export const useGameStore = create((set, get) => ({
   bitboards: INITIAL_BITBOARDS,
   selectedSquare: null,
   moveBitboard: null,
-  currPlayer: "w",
-  userSide: "w",
+  currPlayer: WHITE,
+  userSide: WHITE,
   enPassantSquare: null,
   promotion: false,
   promotionMove: null,
@@ -48,7 +54,11 @@ export const useGameStore = create((set, get) => ({
     set((state) => {
       let newFiftyRuleNum = state.fiftyMoveRuleCounter + 1;
       const pieceMoved = getPieceAtSquare(from, state.bitboards);
-      if (moveObj.isCapture || pieceMoved === 0 || pieceMoved === 6) {
+      if (
+        moveObj.isCapture ||
+        pieceMoved === WHITE_PAWN ||
+        pieceMoved === BLACK_PAWN
+      ) {
         newFiftyRuleNum = 0;
       }
 
@@ -69,7 +79,7 @@ export const useGameStore = create((set, get) => ({
         pastBitboards: [...state.pastBitboards, newBitboards],
         displayedBitboards: newBitboards,
         currIndexOfDisplayed: state.currIndexOfDisplayed + 1,
-        currPlayer: state.currPlayer === "w" ? "b" : "w",
+        currPlayer: state.currPlayer === WHITE ? BLACK : WHITE,
         fiftyMoveRuleCounter: newFiftyRuleNum,
       };
     });
@@ -96,8 +106,8 @@ export const useGameStore = create((set, get) => ({
         bitboards: INITIAL_BITBOARDS,
         selectedSquare: null,
         moveBitboard: null,
-        currPlayer: "w",
-        userSide: state.userSide === "w" ? "b" : "w",
+        currPlayer: WHITE,
+        userSide: state.userSide === WHITE ? BLACK : WHITE,
         enPassantSquare: null,
         promotion: false,
         promotionMove: null,

@@ -1,3 +1,6 @@
+export const WHITE = 0;
+export const BLACK = 1;
+
 export const PIECE = {
   wP: 0,
   wN: 1,
@@ -13,6 +16,19 @@ export const PIECE = {
   bK: 11,
 };
 export const NUM_PIECES = 12;
+
+export const WHITE_PAWN = 0;
+export const WHITE_KNIGHT = 1;
+export const WHITE_BISHOP = 2;
+export const WHITE_ROOK = 3;
+export const WHITE_QUEEN = 4;
+export const WHITE_KING = 5;
+export const BLACK_PAWN = 6;
+export const BLACK_KNIGHT = 7;
+export const BLACK_BISHOP = 8;
+export const BLACK_ROOK = 9;
+export const BLACK_QUEEN = 10;
+export const BLACK_KING = 11;
 
 // Inital bitboards
 export const INITIAL_BITBOARDS = new BigUint64Array(NUM_PIECES);

@@ -10,13 +10,14 @@ import {
   getWhitePieces,
 } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
+import { BLACK, BLACK_KING, WHITE, WHITE_KING } from "./constants";
 
 /**
  * Determines whether a given square is attacked by the opponent
  *
  * @param {BigUint64Array} bitboards - bitboards of the current position
  * @param {number} square - square to check if it is attacked
- * @param {string} opponent - the other player ("w" or "b")
+ * @param {number} opponent - the other player (0 for w, 1 for b)
  * @param {bigint} attackHash - the hash of the attack map for the opponent
  * @returns {boolean} if the square is attacked
  */
@@ -34,15 +35,15 @@ export const isSquareAttacked = (bitboards, square, opponent, attackHash) => {
  * Determines whether a given player is in check.
  *
  * @param {BigUint64Array} bitboards - bitboards of the current position
- * @param {string} player - player whose turn it is ("w" or "b")
+ * @param {number} player - whose move it is (0 for w, 1 for b)
  * @returns {boolean} whether the player is in check
  */
 export const isInCheck = (bitboards, player) => {
-  let kingBB = bitboards[5]; // White King
-  let opponent = "b";
-  if (player === "b") {
-    kingBB = bitboards[11]; // Black king
-    opponent = "w";
+  let kingBB = bitboards[WHITE_KING];
+  let opponent = BLACK;
+  if (player === BLACK) {
+    kingBB = bitboards[BLACK_KING];
+    opponent = WHITE;
   }
 
   const kingSquare = bitScanForward(kingBB);
@@ -57,7 +58,7 @@ export const isInCheck = (bitboards, player) => {
  * @param {BigUint64Array} bitboards - bitboards of the current position
  * @param {bigint} moves - bitboard of moves for a piece
  * @param {number} from - square the piece is moving from
- * @param {string} player - player whose turn it is ("w" or "b")
+ * @param {number} player - whose move it is (0 for w, 1 for b)
  * @param {bigint} opponentHash - an attack hash for the position
  * @returns {bigint} the filtered moves
  */
@@ -69,8 +70,8 @@ export const filterIllegalMoves = (
   opponentHash = null
 ) => {
   let filteredMoves = 0n;
-  const isPlayerWhite = player === "w";
-  const opponent = isPlayerWhite ? "b" : "w";
+  const isPlayerWhite = player === WHITE;
+  const opponent = isPlayerWhite ? BLACK : WHITE;
   const one = 1n;
 
   // Iterate only over moves that are set (i.e. bits that are 1)
@@ -82,7 +83,7 @@ export const filterIllegalMoves = (
     // Simulate the move and check if the king is attacked
     const moveObj = makeMove(bitboards, from, to, null);
     const tempBitboards = moveObj.bitboards;
-    const kingBB = tempBitboards[isPlayerWhite ? 5 : 11];
+    const kingBB = tempBitboards[isPlayerWhite ? WHITE_KING : BLACK_KING];
     const kingSquare = bitScanForward(kingBB);
     let newHash = null;
     if (opponentHash) {
@@ -97,14 +98,8 @@ export const filterIllegalMoves = (
         true
       );
     }
-    if (
-      !isSquareAttacked(
-        tempBitboards,
-        kingSquare,
-        opponent,
-        newHash
-      )
-    ) {
+
+    if (!isSquareAttacked(tempBitboards, kingSquare, opponent, newHash)) {
       filteredMoves |= 1n << BigInt(to);
     }
   }
@@ -116,13 +111,13 @@ export const filterIllegalMoves = (
  * Determines if a given player has a legal move.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the position
- * @param {string} player - who to check if they have a move ("w" or "b")
+ * @param {number} player - whose move it is (0 for w, 1 for b)
  * @param {number} enPassantSquare - the square where en passant is legal. Null if none
  * @returns {boolean} if the player has a legal move.
  */
 export const hasLegalMove = (bitboards, player, enPassantSquare) => {
   const playerPieces =
-    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+    player === WHITE ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
 
   let pieces = playerPieces;
   while (pieces !== 0n) {
@@ -132,7 +127,7 @@ export const hasLegalMove = (bitboards, player, enPassantSquare) => {
     const piece = getPieceAtSquare(sq, bitboards);
     // Dont care about color, so if piece is bigger than 5, subtract 6 as that is how
     // many distinct pieces each side has
-    const formattedPiece = piece > 5 ? piece - 6 : piece;
+    const formattedPiece = piece - 6 * player;
     const moves = getPieceMoves(
       bitboards,
       formattedPiece,

@@ -1,11 +1,12 @@
 import PropTypes from "prop-types";
 import "./PromotionModal.css";
+import { BLACK, WHITE } from "../bitboardUtils/constants";
 
 const PromotionModal = ({ onPromote, square, userPlayer }) => {
   // Pieces for promotion. Are plural because the bitboards are plural
   const pieces = ["Queens", "Rooks", "Knights", "Bishops"];
 
-  const isUserWhite = userPlayer === "w";
+  const isUserWhite = userPlayer === WHITE;
   const col = isUserWhite ? square % 8 : 7 - (square % 8);
   const background = isUserWhite ? "#1a1a1a" : "#f3f3f3";
 
@@ -51,7 +52,7 @@ const PromotionModal = ({ onPromote, square, userPlayer }) => {
 PromotionModal.propTypes = {
   onPromote: PropTypes.func.isRequired,
   square: PropTypes.number.isRequired,
-  userPlayer: PropTypes.oneOf(["w", "b"]).isRequired,
+  userPlayer: PropTypes.oneOf([WHITE, BLACK]).isRequired,
 };
 
 export default PromotionModal;

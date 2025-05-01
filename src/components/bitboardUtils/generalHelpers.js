@@ -1,6 +1,12 @@
 import { isInCheck } from "./bbChessLogic";
 import { bitScanForward } from "./bbUtils";
-import { COLUMN_SYMBOLS, GENERAL_SYMBOLS } from "./constants";
+import {
+  BLACK,
+  COLUMN_SYMBOLS,
+  GENERAL_SYMBOLS,
+  WHITE,
+  WHITE_PAWN,
+} from "./constants";
 import {
   getAllIndividualLegalMoves,
   getAllLegalMoves,
@@ -95,8 +101,8 @@ export const moveToReadable = (
   const piece = getPieceAtSquare(to, bitboards);
   const formattedPiece = GENERAL_SYMBOLS[piece];
 
-  const player = piece > 5 ? "b" : "w"; // 0-5 refers to white bitboards, and 6-11 refers to black bitboards
-  const opponent = player === "w" ? "b" : "w";
+  // indexes 0-5 are white pieces, 6-11 are black pieces
+  const opponent = piece > 5 ? WHITE : BLACK;
 
   if (formattedPiece === "P" || promotionPiece) {
     // Pawns notation omits the p identifier. a3 instead of Pa3, dxe5 instead of pxe5
@@ -125,9 +131,7 @@ export const moveToReadable = (
   }
 
   if (isInCheck(bitboards, opponent)) {
-    if (
-      getAllLegalMoves(bitboards, opponent, null, null) === 0n
-    ) {
+    if (getAllLegalMoves(bitboards, opponent, null, null) === 0n) {
       // Checkmate
       notation += "#";
       return notation;
@@ -143,9 +147,9 @@ export const moveToReadable = (
  * with from, to, and promotion fields. Helpful for sorting
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {string} player - the player whose move it is ("w" or "b")
- * @param {CastlingRights} castlingRights - the castling rights for the game. Should have boolean fields whiteKingside, whiteQueenside,
- *                blackKingside, blackQueenside
+ * @param {number} player - the player whose move it is (0 for w, 1 for b)
+ * @param {CastlingRights} castlingRights - the castling rights for the game. Should have
+ * boolean fields whiteKingside, whiteQueenside, blackKingside, blackQueenside
  * @param {number} enPassantSquare - the square, if any, that a pawn could do en passant
  * @returns all legal moves in an array format
  */
@@ -164,7 +168,7 @@ export const allLegalMovesArr = (
     hash
   );
 
-  const isWhite = player === "w";
+  const isWhite = player === WHITE;
   const promotionFromRank = isWhite ? 6 : 1;
   const promotionPieces = [4, 3, 1, 2]; // Queen, Rook, Knight, Bishop
 
@@ -173,15 +177,17 @@ export const allLegalMovesArr = (
     let moveBitboard = moves[from];
 
     const piece = getPieceAtSquare(from, bitboards);
-    const formattedPiece = piece > 5 ? piece - 6 : piece; // Player doesnt
+    const formattedPiece = piece - 6 * player; // Player doesnt matter. Just need index 0-5
     const row = Math.floor(parseInt(from) / 8);
-    const isPromotion = row === promotionFromRank && formattedPiece === 0; // 0 is a pawn
+
+    const isPromotion =
+      row === promotionFromRank && formattedPiece === WHITE_PAWN;
 
     while (moveBitboard !== 0n) {
       const moveTo = bitScanForward(moveBitboard);
 
       let isCapture = false;
-      if (isPlayersPieceAtSquare(isWhite ? "b" : "w", moveTo, bitboards)) {
+      if (isPlayersPieceAtSquare(isWhite ? BLACK : WHITE, moveTo, bitboards)) {
         isCapture = true;
       }
 

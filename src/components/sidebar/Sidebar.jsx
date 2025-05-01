@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import MoveArrows from "./MoveArrows";
 import MoveList from "./MoveList";
 import { useGameStore } from "../gameStore";
+import { BLACK, WHITE } from "../bitboardUtils/constants";
 
 const Sidebar = ({
   currPlayer,
@@ -12,7 +13,7 @@ const Sidebar = ({
   changeBoardView,
   indexOfViewedMove,
 }) => {
-  const turnText = currPlayer === "w" ? "White's Turn" : "Black's Turn";
+  const turnText = currPlayer === WHITE ? "White's Turn" : "Black's Turn";
   const openGameHistory = useGameStore((state) => state.openGameHistory);
   const openBattleMenu = useGameStore((state) => state.openBattleMenu);
 
@@ -35,7 +36,7 @@ const Sidebar = ({
 };
 
 Sidebar.propTypes = {
-  currPlayer: PropTypes.oneOf(["w", "b"]).isRequired,
+  currPlayer: PropTypes.oneOf([WHITE, BLACK]).isRequired,
   resetGame: PropTypes.func.isRequired,
   isGameOver: PropTypes.bool.isRequired,
   result: PropTypes.string,

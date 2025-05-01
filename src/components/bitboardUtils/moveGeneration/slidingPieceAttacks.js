@@ -1,19 +1,3 @@
-/**
- * @typedef {object} Bitboards
- * @property {bigint} whitePawns - bitboard of the white pawns
- * @property {bigint} whiteKnights - bitboard of the white knights
- * @property {bigint} whiteBishops - bitboard of the white bishops
- * @property {bigint} whiteRooks - bitboard of the white rooks
- * @property {bigint} whiteQueens - bitboard of the white queens
- * @property {bigint} whiteKings - bitboard of the white king
- * @property {bigint} blackPawns - bitboard of the black pawns
- * @property {bigint} blackKnights - bitboard of the black knights
- * @property {bigint} blackBishops - bitboard of the black bishops
- * @property {bigint} blackRooks - bitboard of the black rooks
- * @property {bigint} blackQueens - bitboard of the black queens
- * @property {bigint} blackKings - bitboard of the black king
- */
-
 import {
   FILE_A_MASK,
   FILE_H_MASK,
@@ -25,7 +9,7 @@ import { getAllPieces } from "../pieceGetters";
 
 /**
  * Gets the attack bitboard for a bishop.
- * @param {Bitboards} bitboards - the bitboards in the current position
+ * @param {BigUint64Array} bitboards - the bitboards in the current position
  * @param {number} from - the square its moving from
  * @returns {bigint} the move bitboard for the bishop
  */
@@ -46,7 +30,7 @@ export const getBishopAttacksForSquare = (bitboards, from) => {
 
 /**
  * Gets the attack bitboard for a rook.
- * @param {Bitboards} bitboards - the bitboards in the current position
+ * @param {BigUint64Array} bitboards - the bitboards in the current position
  * @param {number} from - the square its moving from
  * @returns {bigint} the move bitboard for the rook
  */
@@ -66,7 +50,7 @@ export const getRookAttacksForSquare = (bitboards, from) => {
 
 /**
  * Gets the attack bitboard for a queen.
- * @param {Bitboards} bitboards - the bitboards in the current position
+ * @param {BigUint64Array} bitboards - the bitboards in the current position
  * @param {number} from - the square its moving from
  * @returns {bigint} the move bitboard for the queen
  */

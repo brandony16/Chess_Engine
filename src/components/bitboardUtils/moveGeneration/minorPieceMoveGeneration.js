@@ -3,12 +3,14 @@ import {
   FILE_H_MASK,
   RANK_1_MASK,
   RANK_8_MASK,
+  WHITE,
 } from "../constants";
 import { slide } from "../generalHelpers";
 import {
   getAllPieces,
   getBlackPieces,
   getEmptySquares,
+  getPlayerBoard,
   getWhitePieces,
 } from "../pieceGetters";
 import { knightMasks } from "../PieceMasks/knightMask";
@@ -17,7 +19,7 @@ import { blackPawnMasks, whitePawnMasks } from "../PieceMasks/pawnMask";
 /**
  * Gets the move bitboard for a pawn.
  * @param {BigUint64Array} bitboards - the bitboards in the current position
- * @param {string} player - whose piece it is ("w" or "b")
+ * @param {number} player - whose piece it is (0 for w, 1 for b)
  * @param {number} from - the square its moving from
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {boolean} attacksOnly - whether to only count attacking moves.
@@ -32,7 +34,7 @@ export const getPawnMovesForSquare = (
 ) => {
   const specificPawn = 1n << BigInt(from);
 
-  const isPlayerWhite = player === "w";
+  const isPlayerWhite = player === WHITE;
   const emptySquares = getEmptySquares(bitboards);
   const enemyPieces = isPlayerWhite
     ? getBlackPieces(bitboards)
@@ -91,7 +93,7 @@ export const getPawnMovesForSquare = (
 /**
  * Gets the move bitboard for a knight.
  * @param {BigUint64Array} bitboards - the bitboards in the current position
- * @param {string} player - whose piece it is ("w" or "b")
+ * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {number} from - the square its moving from
  * @returns {bigint} the move bitboard for the knight
  */
@@ -100,8 +102,7 @@ export const getKnightMovesForSquare = (bitboards, player, from) => {
   let moves = knightMasks[from];
 
   // Get player's pieces to mask out self-captures
-  const friendlyPieces =
-    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+  const friendlyPieces = getPlayerBoard(player, bitboards);
 
   // Remove moves that land on friendly pieces
   return moves & ~friendlyPieces;
@@ -110,7 +111,7 @@ export const getKnightMovesForSquare = (bitboards, player, from) => {
 /**
  * Gets the move bitboard for a bishop.
  * @param {BigUint64Array} bitboards - the bitboards in the current position
- * @param {string} player - whose piece it is ("w" or "b")
+ * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {number} from - the square its moving from
  * @returns {bigint} the move bitboard for the bishop
  */
@@ -120,8 +121,7 @@ export const getBishopMovesForSquare = (bitboards, player, from) => {
 
   // Get occupied squares
   const allPieces = getAllPieces(bitboards);
-  const friendlyPieces =
-    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+  const friendlyPieces = getPlayerBoard(player, bitboards);
 
   moves |= slide(bishopBitboard, 9n, FILE_H_MASK & RANK_8_MASK, allPieces); // Up-right
   moves |= slide(bishopBitboard, 7n, FILE_A_MASK & RANK_8_MASK, allPieces); // Up-left

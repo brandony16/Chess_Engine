@@ -19,7 +19,7 @@ import {
   TT_FLAG,
 } from "../bitboardUtils/TranspositionTable/transpositionTable";
 import { getPieceAtSquare } from "../bitboardUtils/pieceGetters";
-import { NUM_PIECES } from "../bitboardUtils/constants";
+import { BLACK, NUM_PIECES, WHITE } from "../bitboardUtils/constants";
 
 /**
  * @typedef {object} CastlingRights
@@ -33,7 +33,7 @@ import { NUM_PIECES } from "../bitboardUtils/constants";
  * Gets the best move in a position based purely off of material.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {string} player - the player whose move it is ("w" or "b")
+ * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {Map} prevPositions - a map of the previous positions
@@ -53,7 +53,7 @@ export function BMV2(
   clearTT(); // Clears transposition table
 
   const start = performance.now();
-  const opponent = player === "w" ? "b" : "w";
+  const opponent = player === WHITE ? BLACK : WHITE;
 
   let bestMove = null;
   let bestEval = null;
@@ -115,7 +115,7 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
 /**
  * A minimax function that recursively finds the evaluation of the function.
  * @param {Bitboards} bitboards - the bitboards of the current position
- * @param {string} player - whose move it is ("w" or "b")
+ * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {Map} prevPositions - a map of the previous positions
@@ -142,20 +142,21 @@ const minimax = (
   alpha,
   beta
 ) => {
+  if (result) {
+    return {
+      score: evaluate(bitboards, player, result, currentDepth),
+      move: null,
+    };
+  }
+
   if (currentDepth >= maxDepth) {
+    // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
       return {
         score: evaluate(bitboards, player, result, currentDepth),
         move: null,
       };
     }
-  }
-
-  if (result) {
-    return {
-      score: evaluate(bitboards, player, result, currentDepth),
-      move: null,
-    };
   }
 
   // Transpositition table logic
@@ -179,6 +180,8 @@ const minimax = (
 
   const ttMove = ttEntry?.bestMove || null;
 
+  // Gets the legal moves then assigns them scores based on the transposition table,
+  // if the move is a capture, if its a killer move, and if its in history.
   const scored = allLegalMovesArr(
     bitboards,
     player,
@@ -215,17 +218,18 @@ const minimax = (
     return { move, score };
   });
 
+  // If the game is over, it would have been caught by result existing
   if (scored.length === 0) {
     throw new Error("Issue with move generation. No moves generated");
   }
 
-  // sort descending
+  // Sort descending by score
   scored.sort((a, b) => b.score - a.score);
   const orderedMoves = scored.map((o) => o.move);
 
   let bestEval, bestMove;
 
-  if (player === "w") {
+  if (player === WHITE) {
     bestEval = -Infinity;
 
     for (const move of orderedMoves) {
@@ -252,15 +256,14 @@ const minimax = (
         from,
         to,
         prevAttackHash,
-        "w",
+        WHITE,
         newEnPassant
       );
 
       const gameOverObj = checkGameOver(
         newBitboards,
-        "w",
+        WHITE,
         newPositions,
-        newCastling,
         newEnPassant,
         0,
         whiteAttackHash
@@ -298,7 +301,7 @@ const minimax = (
 
       const { score: moveEval } = minimax(
         newBitboards,
-        "b",
+        BLACK,
         newCastling,
         newEnPassant,
         newPositions,
@@ -366,15 +369,14 @@ const minimax = (
         from,
         to,
         prevAttackHash,
-        "b",
+        BLACK,
         newEnPassant
       );
 
       const gameOverObj = checkGameOver(
         newBitboards,
-        "b",
+        BLACK,
         newPositions,
-        newCastling,
         newEnPassant,
         0,
         blackAttackHash
@@ -412,7 +414,7 @@ const minimax = (
 
       const { score: moveEval } = minimax(
         newBitboards,
-        "w",
+        WHITE,
         newCastling,
         newEnPassant,
         newPositions,
@@ -483,21 +485,9 @@ const minimax = (
   return { score: bestEval, move: bestMove };
 };
 
-// An object of all the weights of the pieces
-const weights = {
-  6: -1, // Black pawn
-  7: -3, // Black knight
-  8: -3, // Black bishop
-  9: -5, // Black rook
-  10: -9, // Black queen
-  11: -1000, // Black king
-  0: 1, // White pawn
-  1: 3, // White knight
-  2: 3, // White bishop
-  3: 5, // White rook
-  4: 9, // White queen
-  5: 1000, // White king
-};
+// An array of all the weights of the pieces
+// The indexes are the same as bitboards
+const weights = [1, 3, 3, 5, 9, 1000, -1, -3, -3, -5, -9, -1000];
 
 /**
  * Checkmate constant
@@ -506,8 +496,8 @@ const CHECKMATE_VALUE = 10_000_000;
 
 /**
  * Gets the evaluation of the given position based purely off of the material in the position.
- * @param {Bitboards} bitboards - the bitboards of the current position
- * @param {string} player - the opposite player. If black plays checkmate, this is white.
+ * @param {BigUint64Array} bitboards - the bitboards of the current position
+ * @param {number} player - the opposite player. If black plays checkmate, this is white.
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation
  */
@@ -515,7 +505,7 @@ const evaluate = (bitboards, player, result, depth) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
     if (result.includes("Checkmate")) {
-      return player === "w"
+      return player === WHITE
         ? -CHECKMATE_VALUE + depth
         : CHECKMATE_VALUE - depth;
     }

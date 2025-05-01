@@ -1,10 +1,6 @@
 import { filterIllegalMoves } from "../bbChessLogic";
 import { bitScanForward } from "../bbUtils";
-import {
-  getBlackPieces,
-  getPieceAtSquare,
-  getWhitePieces,
-} from "../pieceGetters";
+import { getPieceAtSquare, getPlayerBoard } from "../pieceGetters";
 import {
   getKingMovesForSquare,
   getQueenMovesForSquare,
@@ -30,7 +26,7 @@ import {
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {int} piece - the piece that is moving. 0:pawn, 1:knight, 2:bishop, 3:rook, 4:queen, 5:king
  * @param {number} from - the square to move from
- * @param {string} player - whose move it is ("w" or "b")
+ * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {boolean} onlyCaptures - whether the moves should only be captures
@@ -82,7 +78,7 @@ export const getPieceMoves = (
  * Creates a bitboard for all of the moves a player has. Does not check for legality
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {string} player - whose move it is ("w" or "b")
+ * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {boolean} onlyCaptures - whether the moves should only be captures
@@ -96,9 +92,7 @@ export const getAllPlayerMoves = (
   onlyCaptures = false
 ) => {
   let allMoves = 0n;
-  // Get player's overall pieces bitboard.
-  const playerPieces =
-    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+  const playerPieces = getPlayerBoard(player, bitboards);
 
   let pieces = playerPieces;
   while (pieces !== 0n) {
@@ -106,9 +100,7 @@ export const getAllPlayerMoves = (
     pieces &= pieces - 1n;
 
     const piece = getPieceAtSquare(square, bitboards);
-    // Dont care about color, so if piece is bigger than 5, subtract 6 as that is how
-    // many distinct pieces each side has
-    const formattedPiece = piece > 5 ? piece - 6 : piece;
+    const formattedPiece = piece - 6 * player; // Subtracts 6 if piece is bigger than 5
 
     const pieceMoves = getPieceMoves(
       bitboards,
@@ -130,7 +122,7 @@ export const getAllPlayerMoves = (
  * Gets all of the legal moves a player has as a bitboard.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {string} player - whose move it is ("w" or "b")
+ * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {boolean} onlyCaptures - whether the moves should only be captures
@@ -145,8 +137,7 @@ export const getAllLegalMoves = (
 ) => {
   let allMoves = 0n;
   // Get player's overall pieces bitboard.
-  const playerPieces =
-    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+  const playerPieces = getPlayerBoard(player, bitboards);
 
   let pieces = playerPieces;
   while (pieces !== 0n) {
@@ -154,9 +145,7 @@ export const getAllLegalMoves = (
     pieces &= pieces - 1n;
 
     const piece = getPieceAtSquare(square, bitboards);
-    // Dont care about color, so if piece is bigger than 5, subtract 6 as that is how
-    // many distinct pieces each side has
-    const formattedPiece = piece > 5 ? piece - 6 : piece;
+    const formattedPiece = piece - 6 * player; // Subtracts 6 if piece is bigger than 5
 
     const pieceMoves = getPieceMoves(
       bitboards,
@@ -187,7 +176,7 @@ export const getAllLegalMoves = (
  * Ex: { 10: bigint, 34: bigint, etc.}
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {string} player - whose move it is ("w" or "b")
+ * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {bigint} opponentHash - Hash that leads to the attack map of the opponent
@@ -202,8 +191,7 @@ export const getAllIndividualLegalMoves = (
 ) => {
   let allMoves = {};
   // Get player's overall pieces bitboard.
-  const playerPieces =
-    player === "w" ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+  const playerPieces = getPlayerBoard(player, bitboards);
 
   let pieces = playerPieces;
   while (pieces !== 0n) {
@@ -211,9 +199,7 @@ export const getAllIndividualLegalMoves = (
     pieces &= pieces - 1n;
 
     const piece = getPieceAtSquare(square, bitboards);
-    // Dont care about color, so if piece is bigger than 5, subtract 6 as that is how
-    // many distinct pieces each side has
-    const formattedPiece = piece > 5 ? piece - 6 : piece;
+    const formattedPiece = piece - 6 * player; // Subtracts 6 if piece is bigger than 5
 
     const pieceMoves = getPieceMoves(
       bitboards,

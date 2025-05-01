@@ -1,3 +1,4 @@
+import { BLACK_KING, WHITE_KING } from "./constants";
 
 /**
  * A helper to determine whether a square is on a board
@@ -39,9 +40,9 @@ const INDEX64 = [
 
 /**
  * Finds the index of the first square that is a 1 using De Brujin lookup.
- * 
  *
- * @param {bigint} bitboard - the bitboard to find the index of the least significant bit 
+ *
+ * @param {bigint} bitboard - the bitboard to find the index of the least significant bit
  * @returns {number} index of least signifigant bit
  */
 export const bitScanForward = (bitboard) => {
@@ -73,4 +74,14 @@ export const getNumPieces = (bitboard) => {
   }
 
   return count;
+};
+
+/**
+ * Helper function that determines if a given piece is a king
+ *
+ * @param {int} piece - the index of the piece
+ * @returns {boolean} if the piece is a king
+ */
+export const isKing = (piece) => {
+  return piece === WHITE_KING || piece === BLACK_KING;
 };

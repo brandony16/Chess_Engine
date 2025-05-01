@@ -1,10 +1,25 @@
-import { bitScanForward } from "../bbUtils";
+import { bitScanForward, isKing } from "../bbUtils";
 import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
 import { knightMasks } from "./knightMask";
 import { computeHash, zobristTable } from "../zobristHashing";
 import { getPieceAtSquare } from "../pieceGetters";
 import { LRUMap } from "../LRUMap";
-import { PLAYER_ZOBRIST } from "../constants";
+import {
+  BLACK,
+  BLACK_BISHOP,
+  BLACK_KING,
+  BLACK_KNIGHT,
+  BLACK_PAWN,
+  BLACK_QUEEN,
+  BLACK_ROOK,
+  PLAYER_ZOBRIST,
+  WHITE_BISHOP,
+  WHITE_KING,
+  WHITE_KNIGHT,
+  WHITE_PAWN,
+  WHITE_QUEEN,
+  WHITE_ROOK,
+} from "../constants";
 import {
   getBishopAttacksForSquare,
   getQueenAttacksForSquare,
@@ -16,26 +31,26 @@ import { kingMasks } from "./kingMask";
  * Computes an attack mask for a player
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {string} player - whose attack mask it is ("w" or "b")
+ * @param {number} player - whose attack mask it is (0 for w, 1 for b)
  * @returns {bigint} the attack mask for the player
  */
 export const computeAttackMask = (bitboards, player) => {
   const one = 1n;
   let attackMask = 0n;
-  let pawnBB = bitboards[0];
-  let knightBB = bitboards[1];
-  let bishopBB = bitboards[2];
-  let rookBB = bitboards[3];
-  let queenBB = bitboards[4];
-  let kingBB = bitboards[5];
+  let pawnBB = bitboards[WHITE_PAWN];
+  let knightBB = bitboards[WHITE_KNIGHT];
+  let bishopBB = bitboards[WHITE_BISHOP];
+  let rookBB = bitboards[WHITE_ROOK];
+  let queenBB = bitboards[WHITE_QUEEN];
+  let kingBB = bitboards[WHITE_KING];
   let pawnMasks = whitePawnMasks;
-  if (player === "b") {
-    pawnBB = bitboards[6];
-    knightBB = bitboards[7];
-    bishopBB = bitboards[8];
-    rookBB = bitboards[9];
-    queenBB = bitboards[10];
-    kingBB = bitboards[11];
+  if (player === BLACK) {
+    pawnBB = bitboards[BLACK_PAWN];
+    knightBB = bitboards[BLACK_KNIGHT];
+    bishopBB = bitboards[BLACK_BISHOP];
+    rookBB = bitboards[BLACK_ROOK];
+    queenBB = bitboards[BLACK_QUEEN];
+    kingBB = bitboards[BLACK_KING];
     pawnMasks = blackPawnMasks;
   }
 
@@ -90,7 +105,7 @@ export const attackMaskCache = new LRUMap(500_000);
 /**
  * Gets a cached attack mask
  * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {string} player - whose attack mask it is ("w" or "b")
+ * @param {number} player - whose attack mask it is (0 for w, 1 for b)
  * @param {bigint} hash - the hash of the mask to get. Computes it if no mask is found
  * @returns {bigint} the attack mask
  */
@@ -113,7 +128,7 @@ export const getCachedAttackMask = (bitboards, player, hash = null) => {
  * @param {number} from - the square moving from
  * @param {number} to - the square moving to
  * @param {bigint} prevHash - the previous hash
- * @param {string} player - the player
+ * @param {number} player - the player to compute the attack mask for (0 for w, 1 for b)
  * @returns {bigint} a hash of the new attack map
  */
 export const updateAttackMaskHash = (
@@ -154,7 +169,7 @@ export const updateAttackMaskHash = (
     newHash ^= PLAYER_ZOBRIST;
   }
 
-  if (Math.abs(from - to) === 2 && (pieceFrom === 5 || pieceFrom === 11)) {
+  if (Math.abs(from - to) === 2 && isKing(pieceFrom)) {
     newHash = handleCastleHashUpdate(newHash, from, to);
   }
 
@@ -189,8 +204,7 @@ const handleCastleHashUpdate = (hash, from, to) => {
 
   // White castling
   if (from === 4) {
-    // 3 is white rook
-    const rookZobrist = 3 * 64;
+    const rookZobrist = WHITE_ROOK * 64;
     if (to === 6) {
       // Kingside
       const rookZobristFrom = zobristTable[rookZobrist + 7];
@@ -208,7 +222,7 @@ const handleCastleHashUpdate = (hash, from, to) => {
   }
 
   // Black caslting
-  const rookZobrist = 9 * 64;
+  const rookZobrist = BLACK_ROOK * 64;
 
   if (to === 62) {
     // Kingside

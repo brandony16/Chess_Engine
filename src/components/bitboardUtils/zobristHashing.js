@@ -4,6 +4,7 @@ import {
   EN_PASSANT_ZOBRIST,
   NUM_PIECES,
   PLAYER_ZOBRIST,
+  WHITE,
 } from "./constants";
 import { getPieceAtSquare } from "./pieceGetters";
 
@@ -37,7 +38,7 @@ for (let p = 0; p < NUM_PIECES; p++) {
  * Positions are also NOT the same if en passant was legal before, but is no longer legal.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {string} player - the player whose move it is ("w" or "b")
+ * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {number} enPassant - the en passant square. None assumes it is not legal.
  * @returns {bigint} hash for the position
  */
@@ -61,7 +62,7 @@ export const computeHash = (
   }
 
   // XOR a value for the side to move
-  if (player === "w") {
+  if (player === WHITE) {
     hash ^= PLAYER_ZOBRIST;
   }
 

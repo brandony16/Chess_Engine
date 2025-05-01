@@ -12,12 +12,12 @@ import { allLegalMovesArr } from "../bitboardUtils/generalHelpers";
  * Gets the "best" move in the given position. This version simply selects a random move.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {string} player - whose move it is ("w" or "b")
+ * @param {int} player - whose move it is (0 for w, 1 for b)
  * @param {CastlingRights} castlingRights - the castling rights
- * @param {number} enPassantSquare - the square where en passant is legal
- * @param {number} depth - placeholder to have same inputs as other engines
- * @param {number} timeLimit - placeholder to have same inputs as other engines
- * @returns {{from: number, to: number, promotion: string}} The move found
+ * @param {int} enPassantSquare - the square where en passant is legal
+ * @param {int} depth - placeholder to have same inputs as other engines
+ * @param {int} timeLimit - placeholder to have same inputs as other engines
+ * @returns {{from: int, to: int, promotion: int}} The move found
  */
 export const BMV1 = (
   bitboards,

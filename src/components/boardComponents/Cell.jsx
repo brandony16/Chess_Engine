@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { COLUMN_SYMBOLS } from "../bitboardUtils/constants";
+import { BLACK, COLUMN_SYMBOLS, WHITE } from "../bitboardUtils/constants";
 import Piece from "./Piece";
 
 // A board cell
@@ -21,22 +21,23 @@ const Cell = ({
   };
 
   const squareColor = (row + col) % 2 === 0 ? "dark" : "light";
+  const isWhite = userSide === WHITE;
 
   return (
     <div
       className={`cell ${squareColor}`}
       onClick={() => onSquareClick(row, col)}
     >
-      {userSide === "w" && row === 0 && (
+      {isWhite && row === 0 && (
         <div className={`rowId ${squareColor}`}>{COLUMN_SYMBOLS[col]}</div>
       )}
-      {userSide === "b" && row === 7 && (
+      {!isWhite && row === 7 && (
         <div className={`rowId ${squareColor}`}>{COLUMN_SYMBOLS[col]}</div>
       )}
-      {userSide === "w" && col === 0 && (
+      {isWhite && col === 0 && (
         <div className={`colId ${squareColor}`}>{row + 1}</div>
       )}
-      {userSide === "b" && col === 7 && (
+      {!isWhite && col === 7 && (
         <div className={`colId ${squareColor}`}>{row + 1}</div>
       )}
       {piece !== "-" && <Piece type={piece} />}
@@ -66,7 +67,7 @@ Cell.propTypes = {
   onSquareClick: PropTypes.func.isRequired,
   isSelected: PropTypes.bool.isRequired,
   isMove: PropTypes.bool.isRequired,
-  userSide: PropTypes.oneOf(["w", "b"]).isRequired,
+  userSide: PropTypes.oneOf([WHITE, BLACK]).isRequired,
 };
 
 export default Cell;
