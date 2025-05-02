@@ -10,7 +10,7 @@ import {
 } from "./bitboardUtils/moveMaking/makeMoveLogic";
 import { computeHash } from "./bitboardUtils/zobristHashing";
 import { checkGameOver } from "./bitboardUtils/gameOverLogic";
-import { bigIntFullRep, moveToReadable } from "./bitboardUtils/generalHelpers";
+import { moveToReadable } from "./bitboardUtils/generalHelpers";
 import {
   getPieceAtSquare,
   isPlayersPieceAtSquare,
@@ -19,7 +19,8 @@ import { getPieceMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration"
 import { filterIllegalMoves } from "./bitboardUtils/bbChessLogic";
 import { useGameStore } from "./gameStore";
 import Modal from "./modals/Modal";
-import { BLACK_PAWN, WHITE_PAWN } from "./bitboardUtils/constants";
+import { BLACK_PAWN, INITIAL_BITBOARDS, WHITE_PAWN } from "./bitboardUtils/constants";
+import { computeAllAttackMasks } from "./bitboardUtils/PieceMasks/individualAttackMasks";
 
 // Runs the game
 const BitboardGame = () => {
@@ -40,6 +41,8 @@ const BitboardGame = () => {
     isGameHistoryMenuOpen,
     isBattleEnginesOpen,
   } = useGameStore();
+
+  computeAllAttackMasks(INITIAL_BITBOARDS);
 
   // Creates a new worker
   const worker = useMemo(() => {
@@ -272,7 +275,6 @@ const BitboardGame = () => {
     const {
       bitboards,
       currPlayer,
-      castlingRights,
       enPassantSquare,
       pastPositions,
       updateStates,

@@ -4,13 +4,10 @@ import {
   updateAttackMaskHash,
 } from "./PieceMasks/attackMask";
 import { makeMove } from "./moveMaking/makeMoveLogic";
-import {
-  getBlackPieces,
-  getPieceAtSquare,
-  getWhitePieces,
-} from "./pieceGetters";
+import { getPieceAtSquare, getPlayerBoard } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
 import { BLACK, BLACK_KING, WHITE, WHITE_KING } from "./constants";
+import { bigIntFullRep } from "./generalHelpers";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -101,6 +98,11 @@ export const filterIllegalMoves = (
 
     if (!isSquareAttacked(tempBitboards, kingSquare, opponent, newHash)) {
       filteredMoves |= 1n << BigInt(to);
+    } else {
+      console.log(bigIntFullRep(moves));
+      console.log(from, player);
+      console.log(bigIntFullRep(tempBitboards[1]));
+      console.log(bigIntFullRep(getCachedAttackMask(bitboards, player, newHash)));
     }
   }
 
@@ -116,8 +118,7 @@ export const filterIllegalMoves = (
  * @returns {boolean} if the player has a legal move.
  */
 export const hasLegalMove = (bitboards, player, enPassantSquare) => {
-  const playerPieces =
-    player === WHITE ? getWhitePieces(bitboards) : getBlackPieces(bitboards);
+  const playerPieces = getPlayerBoard(player, bitboards);
 
   let pieces = playerPieces;
   while (pieces !== 0n) {

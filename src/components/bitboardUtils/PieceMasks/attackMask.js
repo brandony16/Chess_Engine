@@ -2,7 +2,7 @@ import { bitScanForward, isKing } from "../bbUtils";
 import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
 import { knightMasks } from "./knightMask";
 import { computeHash, zobristTable } from "../zobristHashing";
-import { getPieceAtSquare } from "../pieceGetters";
+import { getBlackPieces, getPieceAtSquare, getWhitePieces } from "../pieceGetters";
 import { LRUMap } from "../LRUMap";
 import {
   BLACK,
@@ -13,6 +13,7 @@ import {
   BLACK_QUEEN,
   BLACK_ROOK,
   PLAYER_ZOBRIST,
+  WHITE,
   WHITE_BISHOP,
   WHITE_KING,
   WHITE_KNIGHT,
@@ -26,6 +27,8 @@ import {
   getRookAttacksForSquare,
 } from "../moveGeneration/slidingPieceAttacks";
 import { kingMasks } from "./kingMask";
+import { computeMaskForPiece, individualAttackMasks } from "./individualAttackMasks";
+import { bigIntFullRep } from "../generalHelpers";
 
 /**
  * Computes an attack mask for a player
@@ -99,6 +102,33 @@ export const computeAttackMask = (bitboards, player) => {
   return attackMask;
 };
 
+export const updateAttackMask = (bitboards, piece, captured, player) => {
+  // Remove old attacks of the piece
+  individualAttackMasks[piece] = computeMaskForPiece(bitboards, piece);
+  if (piece === 8) {
+    console.log(bigIntFullRep(bitboards[8]));
+    console.log(bigIntFullRep(individualAttackMasks[8]));
+    console.log("White pieces \n", bigIntFullRep(getWhitePieces(bitboards)));
+  }
+
+  if (captured !== null) {
+    individualAttackMasks[captured] = computeMaskForPiece(bitboards, captured);
+  }
+
+  let mask = 0n;
+  if (player === WHITE) {
+    for (let p = 0; p < 6; p++) {
+      mask |= individualAttackMasks[p];
+    }
+  } else {
+    for (let p = 6; p < 11; p++) {
+      mask |= individualAttackMasks[p];
+    }
+  }
+
+  return mask;
+}
+
 // Map of cached attack masks
 export const attackMaskCache = new LRUMap(500_000);
 
@@ -113,6 +143,7 @@ export const getCachedAttackMask = (bitboards, player, hash = null) => {
   if (attackMaskCache.has(hash)) {
     return attackMaskCache.get(hash);
   }
+
   const boardHash = computeHash(bitboards, player);
   const mask = computeAttackMask(bitboards, player);
   attackMaskCache.set(boardHash, mask);
@@ -174,18 +205,14 @@ export const updateAttackMaskHash = (
   }
 
   if (!attackMaskCache.has(newHash)) {
-    const newMask = computeAttackMask(bitboards, player);
+    const newMask = updateAttackMask(bitboards, pieceFrom, prevPieceTo, player);
     attackMaskCache.set(newHash, newMask);
+    if (getCachedAttackMask(prevHash) === newMask) {
+      console.log(pieceFrom, prevPieceTo, player);
+    }
   }
 
   return newHash;
-};
-
-/**
- * Clears the attak mask cache
- */
-export const clearAttackMaskCache = () => {
-  attackMaskCache.clear();
 };
 
 /**
@@ -240,3 +267,11 @@ const handleCastleHashUpdate = (hash, from, to) => {
   newHash ^= rookZobristTo;
   return newHash;
 };
+
+/**
+ * Clears the attak mask cache
+ */
+export const clearAttackMaskCache = () => {
+  attackMaskCache.clear();
+};
+

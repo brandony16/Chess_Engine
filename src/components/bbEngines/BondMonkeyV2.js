@@ -6,6 +6,7 @@ import {
 import { updateCastlingRights } from "../bitboardUtils/moveMaking/castleMoveLogic";
 import { makeMove } from "../bitboardUtils/moveMaking/makeMoveLogic";
 import {
+  attackMaskCache,
   getCachedAttackMask,
   updateAttackMaskHash,
 } from "../bitboardUtils/PieceMasks/attackMask";
@@ -18,8 +19,9 @@ import {
   setTT,
   TT_FLAG,
 } from "../bitboardUtils/TranspositionTable/transpositionTable";
-import { getPieceAtSquare } from "../bitboardUtils/pieceGetters";
+import { getBlackPieces, getPieceAtSquare, getWhitePieces } from "../bitboardUtils/pieceGetters";
 import { BLACK, NUM_PIECES, WHITE } from "../bitboardUtils/constants";
+import { individualAttackMasks } from "../bitboardUtils/PieceMasks/individualAttackMasks";
 
 /**
  * @typedef {object} CastlingRights
@@ -182,6 +184,7 @@ const minimax = (
 
   // Gets the legal moves then assigns them scores based on the transposition table,
   // if the move is a capture, if its a killer move, and if its in history.
+  console.log("fetching moves");
   const scored = allLegalMovesArr(
     bitboards,
     player,
@@ -220,6 +223,11 @@ const minimax = (
 
   // If the game is over, it would have been caught by result existing
   if (scored.length === 0) {
+    console.log("Depth:", currentDepth);
+    console.log("Max Depth:", maxDepth);
+    console.log("Player:", player);
+    console.log(bitboards, player, castlingRights, enPassantSquare, prevAttackHash);
+    console.log(bigIntFullRep(attackMaskCache.get(prevAttackHash)));
     throw new Error("Issue with move generation. No moves generated");
   }
 
