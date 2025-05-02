@@ -1,7 +1,8 @@
 import { isInCheck } from "./bbChessLogic";
-import { bitScanForward } from "./bbUtils";
+import { bitScanForward, isKing } from "./bbUtils";
 import {
   BLACK,
+  BLACK_PAWN,
   COLUMN_SYMBOLS,
   GENERAL_SYMBOLS,
   WHITE,
@@ -11,7 +12,8 @@ import {
   getAllIndividualLegalMoves,
   getAllLegalMoves,
 } from "./moveGeneration/allMoveGeneration";
-import { getPieceAtSquare, isPlayersPieceAtSquare } from "./pieceGetters";
+import Move from "./moveMaking/move";
+import { getPieceAtSquare } from "./pieceGetters";
 
 /**
  * @typedef {object} CastlingRights
@@ -174,11 +176,12 @@ export const allLegalMovesArr = (
 
   let possibleMoves = [];
   for (const from in moves) {
+    const numFrom = parseInt(from);
     let moveBitboard = moves[from];
 
     const piece = getPieceAtSquare(from, bitboards);
     const formattedPiece = piece - 6 * player; // Player doesnt matter. Just need index 0-5
-    const row = Math.floor(parseInt(from) / 8);
+    const row = Math.floor(numFrom / 8);
 
     const isPromotion =
       row === promotionFromRank && formattedPiece === WHITE_PAWN;
@@ -186,27 +189,38 @@ export const allLegalMovesArr = (
     while (moveBitboard !== 0n) {
       const moveTo = bitScanForward(moveBitboard);
 
-      let isCapture = false;
-      if (isPlayersPieceAtSquare(isWhite ? BLACK : WHITE, moveTo, bitboards)) {
-        isCapture = true;
-      }
+      let captured = getPieceAtSquare(moveTo, bitboards);
 
       if (isPromotion) {
-        promotionPieces.forEach((piece) => {
-          possibleMoves.push({
-            from: parseInt(from),
-            to: moveTo,
-            promotion: piece,
-            isCapture: isCapture,
-          });
+        promotionPieces.forEach((pPiece) => {
+          const newMove = new Move(
+            numFrom,
+            moveTo,
+            piece,
+            captured,
+            pPiece,
+            false,
+            false
+          );
+          possibleMoves.push(newMove);
         });
       } else {
-        possibleMoves.push({
-          from: parseInt(from),
-          to: moveTo,
-          promotion: null,
-          isCapture: isCapture,
-        });
+        const castling = isKing(piece) && Math.abs(numFrom - moveTo) === 2;
+        const enPassant =
+          moveTo === enPassantSquare && (piece === WHITE_PAWN || BLACK_PAWN);
+        if (enPassant) {
+          captured = piece === WHITE_PAWN ? BLACK_PAWN : WHITE_PAWN;
+        }
+        const newMove = new Move(
+          numFrom,
+          moveTo,
+          piece,
+          captured,
+          null,
+          castling,
+          enPassant
+        );
+        possibleMoves.push(newMove);
       }
       moveBitboard &= moveBitboard - 1n;
     }

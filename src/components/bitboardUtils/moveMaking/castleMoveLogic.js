@@ -159,3 +159,59 @@ export const makeCastleMove = (bitboards, from, to) => {
   }
   return { bitboards: newBitboards, enPassantSquare: null, isCapture: false };
 };
+
+export const updatedMakeCastleMove = (bitboards, from, to) => {
+  if (from === 4 && to === 6) {
+    // White kingside castling
+    bitboards[WHITE_KING] &= ~(1n << 4n);
+    bitboards[WHITE_KING] |= 1n << 6n;
+    bitboards[WHITE_ROOK] &= ~(1n << 7n);
+    bitboards[WHITE_ROOK] |= 1n << 5n;
+  } else if (from === 4 && to === 2) {
+    // White queenside castling
+    bitboards[WHITE_KING] &= ~(1n << 4n);
+    bitboards[WHITE_KING] |= 1n << 2n;
+    bitboards[WHITE_ROOK] &= ~(1n << 0n);
+    bitboards[WHITE_ROOK] |= 1n << 3n;
+  } else if (from === 60 && to === 62) {
+    // Black kingside castling
+    bitboards[BLACK_KING] &= ~(1n << 60n);
+    bitboards[BLACK_KING] |= 1n << 62n;
+    bitboards[BLACK_ROOK] &= ~(1n << 63n);
+    bitboards[BLACK_ROOK] |= 1n << 61n;
+  } else if (from === 60 && to === 58) {
+    // Black queenside castling
+    bitboards[BLACK_KING] &= ~(1n << 60n);
+    bitboards[BLACK_KING] |= 1n << 58n;
+    bitboards[BLACK_ROOK] &= ~(1n << 56n);
+    bitboards[BLACK_ROOK] |= 1n << 59n;
+  }
+};
+
+export const unMakeCastleMove = (bitboards, from, to) => {
+  if (from === 4 && to === 6) {
+    // White kingside castling
+    bitboards[WHITE_KING] &= ~(1n << 6n);
+    bitboards[WHITE_KING] |= 1n << 4n;
+    bitboards[WHITE_ROOK] &= ~(1n << 5n);
+    bitboards[WHITE_ROOK] |= 1n << 7n;
+  } else if (from === 4 && to === 2) {
+    // White queenside castling
+    bitboards[WHITE_KING] &= ~(1n << 2n);
+    bitboards[WHITE_KING] |= 1n << 4n;
+    bitboards[WHITE_ROOK] &= ~(1n << 3n);
+    bitboards[WHITE_ROOK] |= 1n << 0n;
+  } else if (from === 60 && to === 62) {
+    // Black kingside castling
+    bitboards[BLACK_KING] &= ~(1n << 62n);
+    bitboards[BLACK_KING] |= 1n << 60n;
+    bitboards[BLACK_ROOK] &= ~(1n << 61n);
+    bitboards[BLACK_ROOK] |= 1n << 63n;
+  } else if (from === 60 && to === 58) {
+    // Black queenside castling
+    bitboards[BLACK_KING] &= ~(1n << 58n);
+    bitboards[BLACK_KING] |= 1n << 60n;
+    bitboards[BLACK_ROOK] &= ~(1n << 59n);
+    bitboards[BLACK_ROOK] |= 1n << 56n;
+  }
+};

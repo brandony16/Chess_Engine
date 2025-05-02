@@ -6,7 +6,7 @@ import BitboardBoard from "./boardComponents/BitboardBoard";
 import { getCachedAttackMask } from "./bitboardUtils/PieceMasks/attackMask";
 import {
   isValidMove,
-  makeMove,
+  updatedMakeMove,
 } from "./bitboardUtils/moveMaking/makeMoveLogic";
 import { computeHash } from "./bitboardUtils/zobristHashing";
 import { checkGameOver } from "./bitboardUtils/gameOverLogic";
@@ -16,11 +16,20 @@ import {
   isPlayersPieceAtSquare,
 } from "./bitboardUtils/pieceGetters";
 import { getPieceMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration";
-import { filterIllegalMoves } from "./bitboardUtils/bbChessLogic";
+import {
+  filterIllegalMoves,
+  getNewEnPassant,
+} from "./bitboardUtils/bbChessLogic";
 import { useGameStore } from "./gameStore";
 import Modal from "./modals/Modal";
-import { BLACK_PAWN, INITIAL_BITBOARDS, WHITE_PAWN } from "./bitboardUtils/constants";
+import {
+  BLACK_PAWN,
+  INITIAL_BITBOARDS,
+  WHITE_PAWN,
+} from "./bitboardUtils/constants";
 import { computeAllAttackMasks } from "./bitboardUtils/PieceMasks/individualAttackMasks";
+import Move from "./bitboardUtils/moveMaking/move";
+import { isKing } from "./bitboardUtils/bbUtils";
 
 // Runs the game
 const BitboardGame = () => {
@@ -106,33 +115,48 @@ const BitboardGame = () => {
       fiftyMoveRuleCounter,
     } = useGameStore.getState();
 
-    const moveObj = makeMove(bitboards, from, to, enPassantSquare, promotion);
-    const newBitboards = moveObj.bitboards;
+    const piece = getPieceAtSquare(from, bitboards);
+    const captured = getPieceAtSquare(to, bitboards);
+    const castling = isKing(piece) && Math.abs(from - to) === 2;
+    const enPassant = to === enPassantSquare;
+    const move = new Move(
+      from,
+      to,
+      piece,
+      captured,
+      promotion,
+      castling,
+      enPassant
+    );
+    updatedMakeMove(bitboards, move);
+    const newEnPassant = getNewEnPassant(move);
 
     const hash = computeHash(
-      newBitboards,
+      bitboards,
       currPlayer,
-      moveObj.enPassantSquare,
+      newEnPassant,
       castlingRights
     );
 
     const gameOverObj = checkGameOver(
-      newBitboards,
+      bitboards,
       currPlayer,
       pastPositions,
-      moveObj.enPassantSquare,
+      newEnPassant,
       fiftyMoveRuleCounter
     );
 
     const readableMove = moveToReadable(
-      newBitboards,
+      bitboards,
       from,
       to,
-      moveObj.isCapture,
-      promotion
+      move.captured !== null
     );
 
-    updateStates(readableMove, moveObj, newBitboards, hash, gameOverObj, from);
+    // Ensures the attack map cache has the new attack map
+    getCachedAttackMask(bitboards, currPlayer);
+
+    updateStates(readableMove, move, hash, gameOverObj, selectedSquare);
   };
 
   /**
@@ -150,11 +174,8 @@ const BitboardGame = () => {
       currPlayer,
       castlingRights,
       enPassantSquare,
-      pastPositions,
-      updateStates,
       userSide,
       selectedSquare,
-      fiftyMoveRuleCounter,
     } = useGameStore.getState();
     if (isGameOver || !isCurrPositionShown || userSide !== currPlayer) return;
 
@@ -214,47 +235,7 @@ const BitboardGame = () => {
           return;
         }
 
-        const moveObj = makeMove(
-          bitboards,
-          selectedSquare,
-          square,
-          enPassantSquare
-        );
-        const newBitboards = moveObj.bitboards;
-
-        const hash = computeHash(
-          newBitboards,
-          currPlayer,
-          moveObj.enPassantSquare,
-          castlingRights
-        );
-
-        const gameOverObj = checkGameOver(
-          newBitboards,
-          currPlayer,
-          pastPositions,
-          moveObj.enPassantSquare,
-          fiftyMoveRuleCounter
-        );
-
-        const readableMove = moveToReadable(
-          newBitboards,
-          selectedSquare,
-          square,
-          moveObj.isCapture
-        );
-
-        // Ensures the attack map cache has the new attack map
-        getCachedAttackMask(newBitboards, currPlayer);
-
-        updateStates(
-          readableMove,
-          moveObj,
-          newBitboards,
-          hash,
-          gameOverObj,
-          selectedSquare
-        );
+        processMove(selectedSquare, square);
       } else {
         useGameStore.setState({
           selectedSquare: null,
@@ -272,45 +253,12 @@ const BitboardGame = () => {
    * @param {int} piece - the piece to promote to
    */
   const handlePromotion = (piece) => {
-    const {
-      bitboards,
-      currPlayer,
-      enPassantSquare,
-      pastPositions,
-      updateStates,
-      promotionMove,
-      fiftyMoveRuleCounter,
-    } = useGameStore.getState();
+    const { promotionMove } = useGameStore.getState();
 
     const from = promotionMove.from;
     const to = promotionMove.to;
 
-    const moveObj = makeMove(bitboards, from, to, enPassantSquare, piece);
-    const newBitboards = moveObj.bitboards;
-
-    const hash = computeHash(newBitboards, currPlayer, moveObj.enPassantSquare);
-
-    const gameOverObj = checkGameOver(
-      newBitboards,
-      currPlayer,
-      pastPositions,
-      moveObj.enPassantSquare,
-      fiftyMoveRuleCounter
-    );
-
-    const moveNotation = moveToReadable(
-      newBitboards,
-      from,
-      to,
-      moveObj.isCapture,
-      piece
-    );
-    getCachedAttackMask(newBitboards, currPlayer);
-    updateStates(moveNotation, moveObj, newBitboards, hash, gameOverObj, from);
-    useGameStore.setState({
-      promotion: false,
-      promotionMove: null,
-    });
+    processMove(from, to, piece);
   };
 
   /**

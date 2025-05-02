@@ -6,7 +6,6 @@ import {
   PLAYER_ZOBRIST,
   WHITE,
 } from "./constants";
-import { getPieceAtSquare } from "./pieceGetters";
 
 function rand64() {
   // Create two 32-bit random integers
@@ -82,43 +81,41 @@ export const computeHash = (
 };
 
 /**
- * Updates the previous hash. Is more efficient than computeHash as it only changes what it needs to for the new hash.
- * Compute hash redoes every calculation every time, which is inefficient, especially when only a few things have
- * changed since the last position.
+ * Updates the previous hash. Is more efficient than computeHash as it only changes what it
+ * needs to for the new hash. Compute hash redoes every calculation every time, which is
+ * inefficient, especially when only a few things have changed since the last position.
  *
- * @param {BigUint64Array} prevBitboards - bitboards before the move
- * @param {BigUint64Array} bitboards - bitboards after the move
- * @param {number} to - where the piece moved to
- * @param {number} from - where the piece moved from
- * @param {boolean} enPassantChanged - whether en passant has changed from legal to not legal or vice versa compared to the previous position.
  * @param {bigint} prevHash - the hash from the previous position
+ * @param {Move} move - the move object
+ * @param {boolean} enPassantChanged - whether en passant has changed from legal to not legal
+ * or vice versa compared to the previous position.
+ * @param {object} castlingChanged - an object with fields for each castling direction and
+ * whether they changed.
  * @returns {bigint} the new hash
  */
 export const updateHash = (
-  prevBitboards,
-  bitboards,
-  to,
-  from,
+  prevHash,
+  move,
   enPassantChanged,
-  castlingChanged,
-  prevHash
+  castlingChanged
 ) => {
   let newHash = prevHash;
-  let pieceFrom = getPieceAtSquare(from, prevBitboards);
+  const from = move.from;
+  const to = move.to;
+  const captured = move.captured;
 
   // XOR the piece at the previous position
-  const zobristFrom = zobristTable[pieceFrom * 64 + from];
+  const zobristFrom = zobristTable[move.piece * 64 + from];
   newHash ^= zobristFrom;
 
   // XOR the pieces new location
-  const pieceTo = getPieceAtSquare(to, bitboards);
+  const pieceTo = move.promotion ? move.promotion : move.piece;
   const zobristTo = zobristTable[pieceTo * 64 + to];
   newHash ^= zobristTo;
 
   // if a capture, XOR to remove captured piece
-  const prevPieceTo = getPieceAtSquare(to, prevBitboards);
-  if (prevPieceTo) {
-    const zobristCaptured = zobristTable[prevPieceTo * 64 + to];
+  if (captured !== null) {
+    const zobristCaptured = zobristTable[captured * 64 + to];
     newHash ^= zobristCaptured;
   }
 

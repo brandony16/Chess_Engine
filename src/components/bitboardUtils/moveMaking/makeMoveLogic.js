@@ -3,7 +3,11 @@ import { isKing } from "../bbUtils";
 import { BLACK_PAWN, NUM_PIECES, WHITE_PAWN } from "../constants";
 import { getPieceMoves } from "../moveGeneration/allMoveGeneration";
 import { getPieceAtSquare, isPlayersPieceAtSquare } from "../pieceGetters";
-import { makeCastleMove } from "./castleMoveLogic";
+import {
+  makeCastleMove,
+  unMakeCastleMove,
+  updatedMakeCastleMove,
+} from "./castleMoveLogic";
 
 /**
  * @typedef {object} CastlingRights
@@ -107,6 +111,90 @@ export const makeMove = (
     enPassantSquare: newEnPassantSquare,
     isCapture: isCapture,
   };
+};
+
+/**
+ *
+ * @param {BigUint64Array} bitboards - the bitboards of the position
+ * @param {Move} move - a move object
+ */
+export const updatedMakeMove = (bitboards, move) => {
+  const one = 1n;
+  const maskFrom = one << BigInt(move.from);
+  const maskTo = one << BigInt(move.to);
+
+  const piece = move.piece;
+  const captured = move.captured;
+  const promotion = move.promotion;
+  const enPassant = move.enPassant;
+
+  // Handle castle case
+  if (move.castling) {
+    updatedMakeCastleMove(bitboards, move.from, move.to);
+    return;
+  }
+
+  // Remove moving piece
+  bitboards[piece] &= ~maskFrom;
+
+  // Remove captured piece
+  if (move.captured !== null) {
+    bitboards[captured] &= ~maskTo;
+  }
+
+  // Handles promotions
+  if (promotion) {
+    bitboards[promotion] |= maskTo; // Add promoted piece
+  } else {
+    bitboards[piece] |= maskTo;
+  }
+
+  if (enPassant) {
+    const dir = piece === WHITE_PAWN ? -8 : 8;
+    // Remove the captured pawn from the opposing pawn bitboard
+    bitboards[captured] &= ~(one << BigInt(move.to + dir));
+  }
+};
+
+export const unMakeMove = (move, bitboards) => {
+  const from = move.from;
+  const to = move.to;
+
+  const one = 1n;
+  const maskFrom = one << BigInt(from);
+  const maskTo = one << BigInt(to);
+
+  const piece = move.piece;
+  const captured = move.captured;
+  const promotion = move.promotion;
+  const enPassant = move.enPassant;
+
+  // Undo castle
+  if (move.castling) {
+    unMakeCastleMove(bitboards, from, to);
+    return;
+  }
+
+  // Undo promotion
+  if (promotion) {
+    bitboards[promotion] &= ~maskTo;
+    bitboards[piece] |= maskFrom;
+  } else {
+    bitboards[piece] &= ~maskTo;
+    bitboards[piece] |= maskFrom;
+  }
+
+  // Restore captured piece
+  if (captured !== null) {
+    bitboards[captured] |= one << BigInt(to);
+  }
+
+  // Undo en passant capture
+  if (enPassant) {
+    const dir = piece === "whitePawns" ? -8 : 8;
+    const capturedPawnSquare = to + dir;
+    bitboards[captured] |= one << BigInt(capturedPawnSquare);
+  }
 };
 
 /**

@@ -9,6 +9,7 @@ import {
 import { updateCastlingRights } from "./bitboardUtils/moveMaking/castleMoveLogic";
 import { clearAttackMaskCache } from "./bitboardUtils/PieceMasks/attackMask";
 import { getPieceAtSquare } from "./bitboardUtils/pieceGetters";
+import { getNewEnPassant } from "./bitboardUtils/bbChessLogic";
 
 export const useGameStore = create((set, get) => ({
   // STATE
@@ -45,17 +46,16 @@ export const useGameStore = create((set, get) => ({
 
   updateStates: (
     moveNotation,
-    moveObj,
-    newBitboards,
+    move,
     hash,
     gameOverObj,
     from
   ) => {
     set((state) => {
       let newFiftyRuleNum = state.fiftyMoveRuleCounter + 1;
-      const pieceMoved = getPieceAtSquare(from, state.bitboards);
+      const pieceMoved = move.piece;
       if (
-        moveObj.isCapture ||
+        move.captured !== null ||
         pieceMoved === WHITE_PAWN ||
         pieceMoved === BLACK_PAWN
       ) {
@@ -66,18 +66,17 @@ export const useGameStore = create((set, get) => ({
         isGameOver: gameOverObj.isGameOver,
         result: gameOverObj.result,
         pastMoves: [...state.pastMoves, moveNotation],
-        enPassantSquare: moveObj.enPassantSquare,
+        enPassantSquare: getNewEnPassant(move),
         castlingRights: updateCastlingRights(from, state.castlingRights),
         selectedSquare: null,
-        bitboards: newBitboards,
         moveBitboard: null,
         pastPositions: (() => {
           const newPositions = new Map(state.pastPositions);
           newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
           return newPositions;
         })(),
-        pastBitboards: [...state.pastBitboards, newBitboards],
-        displayedBitboards: newBitboards,
+        pastBitboards: [...state.pastBitboards, [...state.bitboards]],
+        displayedBitboards: [...state.bitboards],
         currIndexOfDisplayed: state.currIndexOfDisplayed + 1,
         currPlayer: state.currPlayer === WHITE ? BLACK : WHITE,
         fiftyMoveRuleCounter: newFiftyRuleNum,

@@ -4,7 +4,10 @@ import {
   bigIntFullRep,
 } from "../bitboardUtils/generalHelpers";
 import { updateCastlingRights } from "../bitboardUtils/moveMaking/castleMoveLogic";
-import { makeMove } from "../bitboardUtils/moveMaking/makeMoveLogic";
+import {
+  unMakeMove,
+  updatedMakeMove,
+} from "../bitboardUtils/moveMaking/makeMoveLogic";
 import {
   attackMaskCache,
   getCachedAttackMask,
@@ -12,16 +15,15 @@ import {
 } from "../bitboardUtils/PieceMasks/attackMask";
 import { computeHash, updateHash } from "../bitboardUtils/zobristHashing";
 import { checkGameOver } from "../bitboardUtils/gameOverLogic";
-import { isInCheck } from "../bitboardUtils/bbChessLogic";
+import { getNewEnPassant, isInCheck } from "../bitboardUtils/bbChessLogic";
 import {
   clearTT,
   getTT,
   setTT,
   TT_FLAG,
 } from "../bitboardUtils/TranspositionTable/transpositionTable";
-import { getBlackPieces, getPieceAtSquare, getWhitePieces } from "../bitboardUtils/pieceGetters";
+import { getPieceAtSquare } from "../bitboardUtils/pieceGetters";
 import { BLACK, NUM_PIECES, WHITE } from "../bitboardUtils/constants";
-import { individualAttackMasks } from "../bitboardUtils/PieceMasks/individualAttackMasks";
 
 /**
  * @typedef {object} CastlingRights
@@ -192,30 +194,32 @@ const minimax = (
     prevAttackHash
   ).map((move) => {
     let score = 0;
+    const from = move.from;
+    const to = move.to;
 
     // 1) Transposition-table move is highest priority
-    if (ttMove && move.from === ttMove.from && move.to === ttMove.to) {
+    if (ttMove && from === ttMove.from && to === ttMove.to) {
       score += 1_000_000;
     }
 
     // 2) Captures (MVV/LVA: victim value minus your piece value)
-    if (move.isCapture) {
+    if (move.captured) {
       score +=
         100_000 +
-        (weights[getPieceAtSquare(move.to, bitboards)] || 0) -
-        (weights[getPieceAtSquare(move.from, bitboards)] || 0);
+        (weights[getPieceAtSquare(to, bitboards)] || 0) -
+        (weights[getPieceAtSquare(from, bitboards)] || 0);
     }
 
     // 3) Killer moves at this ply
     const [k0, k1] = killerMoves[currentDepth];
-    if (k0 && move.from === k0.from && move.to === k0.to) {
+    if (k0 && from === k0.from && to === k0.to) {
       score += 90_000;
-    } else if (k1 && move.from === k1.from && move.to === k1.to) {
+    } else if (k1 && from === k1.from && to === k1.to) {
       score += 80_000;
     }
 
     // 4) History heuristic
-    score += historyScores[move.from][move.to];
+    score += historyScores[from][to];
 
     return { move, score };
   });
@@ -225,7 +229,13 @@ const minimax = (
     console.log("Depth:", currentDepth);
     console.log("Max Depth:", maxDepth);
     console.log("Player:", player);
-    console.log(bitboards, player, castlingRights, enPassantSquare, prevAttackHash);
+    console.log(
+      bitboards,
+      player,
+      castlingRights,
+      enPassantSquare,
+      prevAttackHash
+    );
     console.log(bigIntFullRep(attackMaskCache.get(prevAttackHash)));
     throw new Error("Issue with move generation. No moves generated");
   }
@@ -241,50 +251,16 @@ const minimax = (
 
     for (const move of orderedMoves) {
       const from = move.from;
-      const to = move.to;
-      const promotion = move.promotion || null;
-      let moveObj = makeMove(
-        bitboards,
-        from,
-        to,
-        enPassantSquare,
-        promotion,
-        prevAttackHash
-      );
+
+      updatedMakeMove(bitboards, move);
 
       // New game states
-      const newBitboards = moveObj.bitboards;
-      const newEnPassant = moveObj.enPassantSquare;
+      const newEnPassant = getNewEnPassant(move);
       const newCastling = updateCastlingRights(from, castlingRights);
       const newPositions = new Map(prevPositions);
-      const whiteAttackHash = updateAttackMaskHash(
-        bitboards,
-        newBitboards,
-        from,
-        to,
-        prevAttackHash,
-        WHITE,
-        newEnPassant
-      );
-
-      const gameOverObj = checkGameOver(
-        newBitboards,
-        WHITE,
-        newPositions,
-        newEnPassant,
-        0,
-        whiteAttackHash
-      );
-      const result = gameOverObj.result;
 
       // Update Hash
-      let enPassantChanged = false;
-      if (
-        (enPassantSquare && !moveObj.enPassantSquare) ||
-        (!enPassantSquare && moveObj.enPassantSquare)
-      ) {
-        enPassantChanged = true;
-      }
+      let enPassantChanged = enPassantSquare !== newEnPassant;
       const castlingChanged = {
         whiteKingside:
           castlingRights.whiteKingside !== newCastling.whiteKingside,
@@ -296,18 +272,33 @@ const minimax = (
           castlingRights.blackQueenside !== newCastling.blackQueenside,
       };
       const hash = updateHash(
-        bitboards,
-        newBitboards,
-        to,
-        from,
+        prevHash,
+        move,
         enPassantChanged,
-        castlingChanged,
-        prevHash
+        castlingChanged
       );
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
+      const whiteAttackHash = updateAttackMaskHash(
+        bitboards,
+        prevAttackHash,
+        move,
+        WHITE,
+        newEnPassant
+      );
+
+      const gameOverObj = checkGameOver(
+        bitboards,
+        WHITE,
+        newPositions,
+        newEnPassant,
+        0,
+        whiteAttackHash
+      );
+      const result = gameOverObj.result;
+
       const { score: moveEval } = minimax(
-        newBitboards,
+        bitboards,
         BLACK,
         newCastling,
         newEnPassant,
@@ -321,9 +312,12 @@ const minimax = (
         beta
       );
 
+      unMakeMove(move, bitboards);
+
       if (moveEval > bestEval) {
         bestEval = moveEval;
         bestMove = move;
+        console.log(bigIntFullRep(getCachedAttackMask(whiteAttackHash)));
       }
       if (moveEval > alpha) {
         alpha = moveEval;
@@ -331,7 +325,7 @@ const minimax = (
 
       if (beta <= alpha) {
         // Update killer moves and history scores
-        if (!move.isCapture) {
+        if (move.captured === null) {
           const killer = killerMoves[currentDepth];
 
           if (
@@ -354,50 +348,16 @@ const minimax = (
 
     for (const move of orderedMoves) {
       const from = move.from;
-      const to = move.to;
-      const promotion = move.promotion || null;
-      let moveObj = makeMove(
-        bitboards,
-        from,
-        to,
-        enPassantSquare,
-        promotion,
-        prevAttackHash
-      );
+
+      updatedMakeMove(bitboards, move);
 
       // New game states
-      const newBitboards = moveObj.bitboards;
-      const newEnPassant = moveObj.enPassantSquare;
+      const newEnPassant = getNewEnPassant(move);
       const newCastling = updateCastlingRights(from, castlingRights);
       const newPositions = new Map(prevPositions);
-      const blackAttackHash = updateAttackMaskHash(
-        bitboards,
-        newBitboards,
-        from,
-        to,
-        prevAttackHash,
-        BLACK,
-        newEnPassant
-      );
 
-      const gameOverObj = checkGameOver(
-        newBitboards,
-        BLACK,
-        newPositions,
-        newEnPassant,
-        0,
-        blackAttackHash
-      );
-      const result = gameOverObj.result;
-
-      // Update Hashes
-      let enPassantChanged = false;
-      if (
-        (enPassantSquare && !moveObj.enPassantSquare) ||
-        (!enPassantSquare && moveObj.enPassantSquare)
-      ) {
-        enPassantChanged = true;
-      }
+      // Update Hash
+      let enPassantChanged = enPassantSquare !== newEnPassant;
       const castlingChanged = {
         whiteKingside:
           castlingRights.whiteKingside !== newCastling.whiteKingside,
@@ -409,18 +369,33 @@ const minimax = (
           castlingRights.blackQueenside !== newCastling.blackQueenside,
       };
       const hash = updateHash(
-        bitboards,
-        newBitboards,
-        to,
-        from,
+        prevHash,
+        move,
         enPassantChanged,
-        castlingChanged,
-        prevHash
+        castlingChanged
       );
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
+      const blackAttackHash = updateAttackMaskHash(
+        bitboards,
+        prevAttackHash,
+        move,
+        BLACK,
+        newEnPassant
+      );
+
+      const gameOverObj = checkGameOver(
+        bitboards,
+        BLACK,
+        newPositions,
+        newEnPassant,
+        0,
+        blackAttackHash
+      );
+      const result = gameOverObj.result;
+
       const { score: moveEval } = minimax(
-        newBitboards,
+        bitboards,
         WHITE,
         newCastling,
         newEnPassant,
@@ -434,9 +409,12 @@ const minimax = (
         beta
       );
 
+      unMakeMove(move, bitboards);
+
       if (moveEval < bestEval) {
         bestEval = moveEval;
         bestMove = move;
+        console.log(bigIntFullRep(getCachedAttackMask(blackAttackHash)));
       }
       if (moveEval < beta) {
         beta = moveEval;
@@ -444,7 +422,7 @@ const minimax = (
 
       if (beta <= alpha) {
         // Update killer moves and history scores
-        if (!move.isCapture) {
+        if (move.captured === null) {
           const killer = killerMoves[currentDepth];
 
           if (

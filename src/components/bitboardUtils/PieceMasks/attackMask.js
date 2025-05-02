@@ -1,8 +1,7 @@
-import { bitScanForward, isKing } from "../bbUtils";
+import { bitScanForward } from "../bbUtils";
 import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
 import { knightMasks } from "./knightMask";
 import { computeHash, zobristTable } from "../zobristHashing";
-import { getPieceAtSquare } from "../pieceGetters";
 import { LRUMap } from "../LRUMap";
 import {
   BLACK,
@@ -177,45 +176,46 @@ export const getCachedAttackMask = (bitboards, player, hash = null) => {
 /**
  * Updates the previous attack mask. Is much more efficient than recomputing it every time.
  *
- * @param {BigUint64Array} prevBitboards - the previous positions bitboards
  * @param {BigUint64Array} bitboards - the current positions bitboards
- * @param {number} from - the square moving from
- * @param {number} to - the square moving to
  * @param {bigint} prevHash - the previous hash
+ * @param {Move} move - the move object
  * @param {number} player - the player to compute the attack mask for (0 for w, 1 for b)
+ * @param {number} enPassantSquare - the square where en passant is legal
  * @returns {bigint} a hash of the new attack map
  */
 export const updateAttackMaskHash = (
-  prevBitboards,
   bitboards,
-  from,
-  to,
   prevHash,
+  move,
   player,
   enPassantSquare,
   isSamePlayer = false
 ) => {
   let newHash = prevHash;
-  let pieceFrom = getPieceAtSquare(from, prevBitboards);
+  const from = move.from;
+  const to = move.to;
+  const piece = move.piece;
+  const captured = move.captured;
 
   // XOR the piece at the previous position
-  const zobristFrom = zobristTable[pieceFrom * 64 + from];
+  const zobristFrom = zobristTable[move.piece * 64 + from];
   newHash ^= zobristFrom;
 
   // XOR the pieces new location
-  const pieceTo = getPieceAtSquare(to, bitboards);
+  const pieceTo = move.promotion ? move.promotion : piece;
   const zobristTo = zobristTable[pieceTo * 64 + to];
   newHash ^= zobristTo;
 
   // if a capture, XOR to remove captured piece
-  const prevPieceTo = getPieceAtSquare(to, prevBitboards);
-  if (to === enPassantSquare) {
+  if (
+    to === enPassantSquare &&
+    (piece === WHITE_PAWN || piece === BLACK_PAWN)
+  ) {
     // white EP: captured pawn is one rank down; black EP: one rank up
     const capSq = player ? to + 8 : to - 8;
-    const capPiece = player ? BLACK_PAWN : WHITE_PAWN
-    newHash ^= zobristTable[capPiece * 64 + capSq];
-  } else if (prevPieceTo) {
-    newHash ^= zobristTable[prevPieceTo * 64 + to];
+    newHash ^= zobristTable[captured * 64 + capSq];
+  } else if (captured !== null) {
+    newHash ^= zobristTable[captured * 64 + to];
   }
 
   // XOR player
@@ -223,12 +223,12 @@ export const updateAttackMaskHash = (
     newHash ^= PLAYER_ZOBRIST;
   }
 
-  if (isKing(pieceFrom) && Math.abs(from - to) === 2) {
+  if (move.castling) {
     newHash = handleCastleHashUpdate(newHash, from, to);
   }
 
   if (!attackMaskCache.has(newHash)) {
-    const newMask = updateAttackMask(bitboards, pieceFrom, prevPieceTo, player);
+    const newMask = updateAttackMask(bitboards, piece, captured, player);
     attackMaskCache.set(newHash, newMask);
   }
 

@@ -3,10 +3,18 @@ import {
   getCachedAttackMask,
   updateAttackMaskHash,
 } from "./PieceMasks/attackMask";
-import { makeMove } from "./moveMaking/makeMoveLogic";
+import { unMakeMove, updatedMakeMove } from "./moveMaking/makeMoveLogic";
 import { getPieceAtSquare, getPlayerBoard } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
-import { BLACK, BLACK_KING, WHITE, WHITE_KING } from "./constants";
+import {
+  BLACK,
+  BLACK_KING,
+  BLACK_PAWN,
+  WHITE,
+  WHITE_KING,
+  WHITE_PAWN,
+} from "./constants";
+import Move from "./moveMaking/move";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -63,6 +71,7 @@ export const filterIllegalMoves = (
   moves,
   from,
   player,
+  enPassantSquare,
   opponentHash = null
 ) => {
   let filteredMoves = 0n;
@@ -76,28 +85,33 @@ export const filterIllegalMoves = (
     const to = bitScanForward(remainingMoves);
     remainingMoves &= remainingMoves - one;
 
+    const piece = getPieceAtSquare(from, bitboards);
+    const enPassant =
+      to === enPassantSquare && (piece === WHITE_PAWN || piece === BLACK_PAWN);
+    const dir = enPassant ? (isPlayerWhite ? -8 : +8) : 0;
+    const captured = getPieceAtSquare(to + dir, bitboards);
+    const move = new Move(from, to, piece, captured, null, false, enPassant);
+
     // Simulate the move and check if the king is attacked
-    const moveObj = makeMove(bitboards, from, to, null);
-    const tempBitboards = moveObj.bitboards;
-    const kingBB = tempBitboards[isPlayerWhite ? WHITE_KING : BLACK_KING];
+    updatedMakeMove(bitboards, move);
+    const kingBB = bitboards[isPlayerWhite ? WHITE_KING : BLACK_KING];
     const kingSquare = bitScanForward(kingBB);
     let newHash = null;
     if (opponentHash) {
       newHash = updateAttackMaskHash(
         bitboards,
-        tempBitboards,
-        from,
-        to,
         opponentHash,
+        move,
         opponent,
-        moveObj.enPassantSquare,
+        getNewEnPassant(move),
         true
       );
     }
 
-    if (!isSquareAttacked(tempBitboards, kingSquare, opponent, newHash)) {
+    if (!isSquareAttacked(bitboards, kingSquare, opponent, newHash)) {
       filteredMoves |= 1n << BigInt(to);
     }
+    unMakeMove(move, bitboards);
   }
 
   return filteredMoves;
@@ -136,4 +150,23 @@ export const hasLegalMove = (bitboards, player, enPassantSquare) => {
     if (filtered !== 0n) return true;
   }
   return false;
+};
+
+/**
+ * Gets the new en passant square for a move
+ *
+ * @param {Move} move - the move object
+ * @returns the new enPassant square
+ */
+export const getNewEnPassant = (move) => {
+  const piece = move.piece;
+  let enPassantSquare = null;
+  if (
+    (piece === WHITE_PAWN || piece === BLACK_PAWN) &&
+    Math.abs(move.to - move.from) === 16
+  ) {
+    const dir = piece === WHITE_PAWN ? -8 : 8;
+    enPassantSquare = move.from + dir;
+  }
+  return enPassantSquare;
 };
