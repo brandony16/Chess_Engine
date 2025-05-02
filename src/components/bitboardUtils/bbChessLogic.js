@@ -7,7 +7,6 @@ import { makeMove } from "./moveMaking/makeMoveLogic";
 import { getPieceAtSquare, getPlayerBoard } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
 import { BLACK, BLACK_KING, WHITE, WHITE_KING } from "./constants";
-import { bigIntFullRep } from "./generalHelpers";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -98,11 +97,6 @@ export const filterIllegalMoves = (
 
     if (!isSquareAttacked(tempBitboards, kingSquare, opponent, newHash)) {
       filteredMoves |= 1n << BigInt(to);
-    } else {
-      console.log(bigIntFullRep(moves));
-      console.log(from, player);
-      console.log(bigIntFullRep(tempBitboards[1]));
-      console.log(bigIntFullRep(getCachedAttackMask(bitboards, player, newHash)));
     }
   }
 

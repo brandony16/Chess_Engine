@@ -16,15 +16,16 @@ import { getAllPieces } from "../pieceGetters";
 export const getBishopAttacksForSquare = (bitboards, from) => {
   let bishopBitboard = 1n << BigInt(from);
   let attacks = 0n;
-
+  
   // Get occupied squares
   const allPieces = getAllPieces(bitboards);
 
+  
   attacks |= slide(bishopBitboard, 9n, FILE_H_MASK & RANK_8_MASK, allPieces); // Up-right
   attacks |= slide(bishopBitboard, 7n, FILE_A_MASK & RANK_8_MASK, allPieces); // Up-left
   attacks |= slide(bishopBitboard, -7n, FILE_H_MASK & RANK_1_MASK, allPieces); // Down-right
   attacks |= slide(bishopBitboard, -9n, FILE_A_MASK & RANK_1_MASK, allPieces); // Down-left
-
+  
   return attacks;
 };
 

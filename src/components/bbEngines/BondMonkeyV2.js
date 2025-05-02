@@ -184,7 +184,6 @@ const minimax = (
 
   // Gets the legal moves then assigns them scores based on the transposition table,
   // if the move is a capture, if its a killer move, and if its in history.
-  console.log("fetching moves");
   const scored = allLegalMovesArr(
     bitboards,
     player,

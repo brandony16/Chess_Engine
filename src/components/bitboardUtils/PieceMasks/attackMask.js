@@ -2,7 +2,7 @@ import { bitScanForward, isKing } from "../bbUtils";
 import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
 import { knightMasks } from "./knightMask";
 import { computeHash, zobristTable } from "../zobristHashing";
-import { getBlackPieces, getPieceAtSquare, getWhitePieces } from "../pieceGetters";
+import { getPieceAtSquare } from "../pieceGetters";
 import { LRUMap } from "../LRUMap";
 import {
   BLACK,
@@ -27,8 +27,10 @@ import {
   getRookAttacksForSquare,
 } from "../moveGeneration/slidingPieceAttacks";
 import { kingMasks } from "./kingMask";
-import { computeMaskForPiece, individualAttackMasks } from "./individualAttackMasks";
-import { bigIntFullRep } from "../generalHelpers";
+import {
+  computeMaskForPiece,
+  individualAttackMasks,
+} from "./individualAttackMasks";
 
 /**
  * Computes an attack mask for a player
@@ -105,15 +107,36 @@ export const computeAttackMask = (bitboards, player) => {
 export const updateAttackMask = (bitboards, piece, captured, player) => {
   // Remove old attacks of the piece
   individualAttackMasks[piece] = computeMaskForPiece(bitboards, piece);
-  if (piece === 8) {
-    console.log(bigIntFullRep(bitboards[8]));
-    console.log(bigIntFullRep(individualAttackMasks[8]));
-    console.log("White pieces \n", bigIntFullRep(getWhitePieces(bitboards)));
-  }
 
   if (captured !== null) {
     individualAttackMasks[captured] = computeMaskForPiece(bitboards, captured);
   }
+
+  // Recompute sliding pieces to account for blockers
+  individualAttackMasks[WHITE_BISHOP] = computeMaskForPiece(
+    bitboards,
+    WHITE_BISHOP
+  );
+  individualAttackMasks[WHITE_ROOK] = computeMaskForPiece(
+    bitboards,
+    WHITE_ROOK
+  );
+  individualAttackMasks[WHITE_QUEEN] = computeMaskForPiece(
+    bitboards,
+    WHITE_QUEEN
+  );
+  individualAttackMasks[BLACK_BISHOP] = computeMaskForPiece(
+    bitboards,
+    BLACK_BISHOP
+  );
+  individualAttackMasks[BLACK_ROOK] = computeMaskForPiece(
+    bitboards,
+    BLACK_ROOK
+  );
+  individualAttackMasks[BLACK_QUEEN] = computeMaskForPiece(
+    bitboards,
+    BLACK_QUEEN
+  );
 
   let mask = 0n;
   if (player === WHITE) {
@@ -127,7 +150,7 @@ export const updateAttackMask = (bitboards, piece, captured, player) => {
   }
 
   return mask;
-}
+};
 
 // Map of cached attack masks
 export const attackMaskCache = new LRUMap(500_000);
@@ -188,8 +211,8 @@ export const updateAttackMaskHash = (
   const prevPieceTo = getPieceAtSquare(to, prevBitboards);
   if (to === enPassantSquare) {
     // white EP: captured pawn is one rank down; black EP: one rank up
-    const capSq = prevPieceTo <= 5 ? to - 8 : to + 8;
-    const capPiece = getPieceAtSquare(capSq, prevBitboards);
+    const capSq = player ? to + 8 : to - 8;
+    const capPiece = player ? BLACK_PAWN : WHITE_PAWN
     newHash ^= zobristTable[capPiece * 64 + capSq];
   } else if (prevPieceTo) {
     newHash ^= zobristTable[prevPieceTo * 64 + to];
@@ -200,16 +223,13 @@ export const updateAttackMaskHash = (
     newHash ^= PLAYER_ZOBRIST;
   }
 
-  if (Math.abs(from - to) === 2 && isKing(pieceFrom)) {
+  if (isKing(pieceFrom) && Math.abs(from - to) === 2) {
     newHash = handleCastleHashUpdate(newHash, from, to);
   }
 
   if (!attackMaskCache.has(newHash)) {
     const newMask = updateAttackMask(bitboards, pieceFrom, prevPieceTo, player);
     attackMaskCache.set(newHash, newMask);
-    if (getCachedAttackMask(prevHash) === newMask) {
-      console.log(pieceFrom, prevPieceTo, player);
-    }
   }
 
   return newHash;
@@ -274,4 +294,3 @@ const handleCastleHashUpdate = (hash, from, to) => {
 export const clearAttackMaskCache = () => {
   attackMaskCache.clear();
 };
-
