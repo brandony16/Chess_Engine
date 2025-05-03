@@ -1,4 +1,4 @@
-import { bitScanForward } from "./bbUtils";
+import { bitScanForward, isKing } from "./bbUtils";
 import {
   getCachedAttackMask,
   updateAttackMaskHash,
@@ -15,6 +15,7 @@ import {
   WHITE_PAWN,
 } from "./constants";
 import Move from "./moveMaking/move";
+import { bigIntFullRep } from "./generalHelpers";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -78,6 +79,7 @@ export const filterIllegalMoves = (
   const isPlayerWhite = player === WHITE;
   const opponent = isPlayerWhite ? BLACK : WHITE;
   const one = 1n;
+  const piece = getPieceAtSquare(from, bitboards);
 
   // Iterate only over moves that are set (i.e. bits that are 1)
   let remainingMoves = moves;
@@ -85,11 +87,12 @@ export const filterIllegalMoves = (
     const to = bitScanForward(remainingMoves);
     remainingMoves &= remainingMoves - one;
 
-    const piece = getPieceAtSquare(from, bitboards);
     const enPassant =
       to === enPassantSquare && (piece === WHITE_PAWN || piece === BLACK_PAWN);
-    const dir = enPassant ? (isPlayerWhite ? -8 : +8) : 0;
-    const captured = getPieceAtSquare(to + dir, bitboards);
+    let captured = getPieceAtSquare(to, bitboards);
+    if (enPassant) {
+      captured = isPlayerWhite ? BLACK_PAWN : WHITE_PAWN;
+    }
     const move = new Move(from, to, piece, captured, null, false, enPassant);
 
     // Simulate the move and check if the king is attacked
@@ -134,19 +137,23 @@ export const hasLegalMove = (bitboards, player, enPassantSquare) => {
     pieces &= pieces - 1n;
 
     const piece = getPieceAtSquare(sq, bitboards);
-    // Dont care about color, so if piece is bigger than 5, subtract 6 as that is how
-    // many distinct pieces each side has
-    const formattedPiece = piece - 6 * player;
+
     const moves = getPieceMoves(
       bitboards,
-      formattedPiece,
+      piece % 6,
       sq,
       player,
       enPassantSquare,
       null // Never a case where castling is the only king move
     );
 
-    const filtered = filterIllegalMoves(bitboards, moves, sq, player);
+    const filtered = filterIllegalMoves(
+      bitboards,
+      moves,
+      sq,
+      player,
+      enPassantSquare
+    );
     if (filtered !== 0n) return true;
   }
   return false;

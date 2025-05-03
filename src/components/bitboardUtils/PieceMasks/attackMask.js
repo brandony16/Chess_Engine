@@ -198,7 +198,7 @@ export const updateAttackMaskHash = (
   const captured = move.captured;
 
   // XOR the piece at the previous position
-  const zobristFrom = zobristTable[move.piece * 64 + from];
+  const zobristFrom = zobristTable[piece * 64 + from];
   newHash ^= zobristFrom;
 
   // XOR the pieces new location

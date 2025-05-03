@@ -8,12 +8,11 @@ import {
 } from "./bitboardUtils/constants";
 import { updateCastlingRights } from "./bitboardUtils/moveMaking/castleMoveLogic";
 import { clearAttackMaskCache } from "./bitboardUtils/PieceMasks/attackMask";
-import { getPieceAtSquare } from "./bitboardUtils/pieceGetters";
 import { getNewEnPassant } from "./bitboardUtils/bbChessLogic";
 
 export const useGameStore = create((set, get) => ({
   // STATE
-  bitboards: INITIAL_BITBOARDS,
+  bitboards: INITIAL_BITBOARDS.slice(),
   selectedSquare: null,
   moveBitboard: null,
   currPlayer: WHITE,
@@ -26,7 +25,7 @@ export const useGameStore = create((set, get) => ({
   pastPositions: new Map(),
   pastMoves: [],
   pastBitboards: [],
-  displayedBitboards: [...INITIAL_BITBOARDS],
+  displayedBitboards: INITIAL_BITBOARDS.slice(),
   isCurrPositionShown: true,
   currIndexOfDisplayed: -1,
   castlingRights: {
@@ -44,13 +43,7 @@ export const useGameStore = create((set, get) => ({
 
   // ACTIONS / UPDATER FUNCTIONS
 
-  updateStates: (
-    moveNotation,
-    move,
-    hash,
-    gameOverObj,
-    from
-  ) => {
+  updateStates: (moveNotation, move, hash, gameOverObj, from) => {
     set((state) => {
       let newFiftyRuleNum = state.fiftyMoveRuleCounter + 1;
       const pieceMoved = move.piece;
@@ -75,8 +68,8 @@ export const useGameStore = create((set, get) => ({
           newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
           return newPositions;
         })(),
-        pastBitboards: [...state.pastBitboards, [...state.bitboards]],
-        displayedBitboards: [...state.bitboards],
+        pastBitboards: [...state.pastBitboards, state.bitboards.slice()],
+        displayedBitboards: state.bitboards.slice(),
         currIndexOfDisplayed: state.currIndexOfDisplayed + 1,
         currPlayer: state.currPlayer === WHITE ? BLACK : WHITE,
         fiftyMoveRuleCounter: newFiftyRuleNum,
@@ -102,7 +95,7 @@ export const useGameStore = create((set, get) => ({
         : state.gameHistory;
 
       return {
-        bitboards: INITIAL_BITBOARDS,
+        bitboards: INITIAL_BITBOARDS.slice(),
         selectedSquare: null,
         moveBitboard: null,
         currPlayer: WHITE,
@@ -115,7 +108,7 @@ export const useGameStore = create((set, get) => ({
         pastPositions: new Map(),
         pastMoves: [],
         pastBitboards: [],
-        displayedBitboards: [...INITIAL_BITBOARDS],
+        displayedBitboards: INITIAL_BITBOARDS.slice(),
         isCurrPositionShown: true,
         currIndexOfDisplayed: -1,
         gameHistory: newHistory,

@@ -82,7 +82,6 @@ export function BMV2(
       prevPositions,
       rootHash,
       rootAttackHash,
-      null,
       0,
       depth,
       -Infinity,
@@ -125,7 +124,6 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  * @param {Map} prevPositions - a map of the previous positions
  * @param {bigint} prevHash - the hash of the current position before moves are simulated.
  * @param {bigint} prevAttackHash - the attack hash of the current position before moves are simulated.
- * @param {string} result - a string of the result of the game. Null if game not over
  * @param {depth} currentDepth - the current depth of the search
  * @param {depth} maxDepth - the maximum depth of the search
  * @param {number} alpha - the alpha value for alpha-beta pruning
@@ -140,15 +138,23 @@ const minimax = (
   prevPositions,
   prevHash,
   prevAttackHash,
-  result,
   currentDepth,
   maxDepth,
   alpha,
   beta
 ) => {
-  if (result) {
+  const gameOver = checkGameOver(
+    bitboards,
+    player === WHITE ? BLACK : WHITE,
+    prevPositions,
+    enPassantSquare,
+    0,
+    prevAttackHash
+  );
+
+  if (gameOver.isGameOver) {
     return {
-      score: evaluate(bitboards, player, result, currentDepth),
+      score: evaluate(bitboards, player, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -157,7 +163,7 @@ const minimax = (
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
       return {
-        score: evaluate(bitboards, player, result, currentDepth),
+        score: evaluate(bitboards, player, gameOver.result, currentDepth),
         move: null,
       };
     }
@@ -287,16 +293,6 @@ const minimax = (
         newEnPassant
       );
 
-      const gameOverObj = checkGameOver(
-        bitboards,
-        WHITE,
-        newPositions,
-        newEnPassant,
-        0,
-        whiteAttackHash
-      );
-      const result = gameOverObj.result;
-
       const { score: moveEval } = minimax(
         bitboards,
         BLACK,
@@ -305,7 +301,6 @@ const minimax = (
         newPositions,
         hash,
         whiteAttackHash,
-        result,
         currentDepth + 1,
         maxDepth,
         alpha,
@@ -317,7 +312,6 @@ const minimax = (
       if (moveEval > bestEval) {
         bestEval = moveEval;
         bestMove = move;
-        console.log(bigIntFullRep(getCachedAttackMask(whiteAttackHash)));
       }
       if (moveEval > alpha) {
         alpha = moveEval;
@@ -384,16 +378,6 @@ const minimax = (
         newEnPassant
       );
 
-      const gameOverObj = checkGameOver(
-        bitboards,
-        BLACK,
-        newPositions,
-        newEnPassant,
-        0,
-        blackAttackHash
-      );
-      const result = gameOverObj.result;
-
       const { score: moveEval } = minimax(
         bitboards,
         WHITE,
@@ -402,7 +386,6 @@ const minimax = (
         newPositions,
         hash,
         blackAttackHash,
-        result,
         currentDepth + 1,
         maxDepth,
         alpha,
@@ -414,7 +397,6 @@ const minimax = (
       if (moveEval < bestEval) {
         bestEval = moveEval;
         bestMove = move;
-        console.log(bigIntFullRep(getCachedAttackMask(blackAttackHash)));
       }
       if (moveEval < beta) {
         beta = moveEval;

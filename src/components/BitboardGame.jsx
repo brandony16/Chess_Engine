@@ -81,7 +81,7 @@ const BitboardGame = () => {
 
     if (!isCurrPositionShown || isGameOver) return;
 
-    const bestMoveObj = engine(
+    const bestMove = engine(
       bitboards,
       currPlayer,
       castlingRights,
@@ -90,9 +90,9 @@ const BitboardGame = () => {
       depth,
       timeLimit
     );
-    const from = bestMoveObj.from;
-    const to = bestMoveObj.to;
-    const promotion = bestMoveObj.promotion;
+    const from = bestMove.from;
+    const to = bestMove.to;
+    const promotion = bestMove.promotion;
 
     processMove(from, to, promotion);
   };
@@ -311,6 +311,7 @@ const BitboardGame = () => {
     let whiteSide = engine1;
     let blackSide = engine2;
     while (gameNum <= games) {
+      resetGame(true);
       console.log("Game " + gameNum + " started");
 
       while (!useGameStore.getState().isGameOver) {
@@ -382,7 +383,7 @@ const BitboardGame = () => {
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
-      getEngineMove(5, 5000);
+      getEngineMove(4, 5000);
     }
   }, [currPlayer, userSide]);
 
