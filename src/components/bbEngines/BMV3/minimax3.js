@@ -1,113 +1,29 @@
-import { getNumPieces } from "../bitboardUtils/bbUtils";
 import {
   allLegalMovesArr,
   bigIntFullRep,
-} from "../bitboardUtils/generalHelpers";
-import { updateCastlingRights } from "../bitboardUtils/moveMaking/castleMoveLogic";
+} from "../../bitboardUtils/generalHelpers";
+import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic";
 import {
   unMakeMove,
   updatedMakeMove,
-} from "../bitboardUtils/moveMaking/makeMoveLogic";
+} from "../../bitboardUtils/moveMaking/makeMoveLogic";
 import {
   attackMaskCache,
   getCachedAttackMask,
   updateAttackMaskHash,
-} from "../bitboardUtils/PieceMasks/attackMask";
-import { computeHash, updateHash } from "../bitboardUtils/zobristHashing";
-import { checkGameOver } from "../bitboardUtils/gameOverLogic";
-import { getNewEnPassant, isInCheck } from "../bitboardUtils/bbChessLogic";
+} from "../../bitboardUtils/PieceMasks/attackMask";
+import { updateHash } from "../../bitboardUtils/zobristHashing";
+import { checkGameOver } from "../../bitboardUtils/gameOverLogic";
+import { getNewEnPassant, isInCheck } from "../../bitboardUtils/bbChessLogic";
 import {
-  clearTT,
   getTT,
   setTT,
   TT_FLAG,
-} from "../bitboardUtils/TranspositionTable/transpositionTable";
-import { getPieceAtSquare } from "../bitboardUtils/pieceGetters";
-import { BLACK, NUM_PIECES, WHITE } from "../bitboardUtils/constants";
-
-/**
- * @typedef {object} CastlingRights
- * @property {boolean} whiteKingside - Whether castling kingside is legal for white
- * @property {boolean} whiteQueenside - Whether castling queenside is legal for white
- * @property {boolean} blackKingside - Whether castling kingside is legal for black
- * @property {boolean} blackQueenside - Whether castling queenside is legal for black
- */
-
-/**
- * Gets the best move in a position based purely off of material.
- *
- * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {CastlingRights} castlingRights - the castling rights
- * @param {number} enPassantSquare - the square where en passant is legal
- * @param {Map} prevPositions - a map of the previous positions
- * @param {number} depth - the depth to search in ply. 1 ply is one player moving. 2 ply is one move, where each side gets to play.
- * @param {number} timeLimit - the max time the engine can search in milliseconds.
- * @returns {{ from: number, to: number, promotion: string}, number} the best move found and the evaluation
- */
-export function BMV2(
-  bitboards,
-  player,
-  castlingRights,
-  enPassantSquare,
-  prevPositions,
-  maxDepth,
-  timeLimit = Infinity
-) {
-  clearTT(); // Clears transposition table
-
-  const start = performance.now();
-  const opponent = player === WHITE ? BLACK : WHITE;
-
-  let bestMove = null;
-  let bestEval = null;
-
-  const rootHash = computeHash(
-    bitboards,
-    player,
-    enPassantSquare,
-    castlingRights
-  );
-  const rootAttackHash = computeHash(bitboards, opponent);
-
-  // Ensures the attack mask cache has the attack mask at the rootAttackHash
-  getCachedAttackMask(bitboards, opponent, rootAttackHash);
-
-  for (let depth = 1; depth <= maxDepth; depth++) {
-    const { score, move } = minimax(
-      bitboards,
-      player,
-      castlingRights,
-      enPassantSquare,
-      prevPositions,
-      rootHash,
-      rootAttackHash,
-      0,
-      depth,
-      -Infinity,
-      Infinity
-    );
-
-    if (move != null) {
-      bestEval = score;
-      bestMove = move;
-    }
-
-    if (Math.abs(score) > CHECKMATE_VALUE - depth && move) {
-      console.log("mate break");
-      break;
-    }
-
-    if (performance.now() - start > timeLimit) {
-      console.log("time limit");
-      break;
-    }
-  }
-  return { ...bestMove, bestEval };
-}
-
-// Maximum search depth
-const MAX_PLY = 32;
+} from "../../bitboardUtils/TranspositionTable/transpositionTable";
+import { getPieceAtSquare } from "../../bitboardUtils/pieceGetters";
+import { BLACK, MAX_PLY, WEIGHTS, WHITE } from "../../bitboardUtils/constants";
+import { rootId } from "./BondMonkeyV3";
+import { evaluate2 } from "./evaluation3";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -130,7 +46,7 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  * @param {number} beta - the beta value for alpha-beta pruning
  * @returns {{score: number, move: object}} evaluation of the move and the move
  */
-const minimax = (
+export const minimax3 = (
   bitboards,
   player,
   castlingRights,
@@ -154,7 +70,7 @@ const minimax = (
 
   if (gameOver.isGameOver) {
     return {
-      score: evaluate(bitboards, player, gameOver.result, currentDepth),
+      score: evaluate2(bitboards, player, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -163,7 +79,7 @@ const minimax = (
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
       return {
-        score: evaluate(bitboards, player, gameOver.result, currentDepth),
+        score: evaluate2(bitboards, player, gameOver.result, currentDepth),
         move: null,
       };
     }
@@ -172,8 +88,10 @@ const minimax = (
   // Transpositition table logic
   const key = prevHash;
   const origAlpha = alpha;
+  const remaining = maxDepth - currentDepth;
   const ttEntry = getTT(key);
-  if (ttEntry && ttEntry.depth >= maxDepth - currentDepth) {
+
+  if (ttEntry && ttEntry.depth >= remaining && ttEntry.rootId === rootId) {
     if (ttEntry.flag === TT_FLAG.EXACT) {
       return { score: ttEntry.value, move: ttEntry.bestMove };
     }
@@ -212,8 +130,8 @@ const minimax = (
     if (move.captured) {
       score +=
         100_000 +
-        (weights[getPieceAtSquare(to, bitboards)] || 0) -
-        (weights[getPieceAtSquare(from, bitboards)] || 0);
+        (WEIGHTS[getPieceAtSquare(to, bitboards)] || 0) -
+        (WEIGHTS[getPieceAtSquare(from, bitboards)] || 0);
     }
 
     // 3) Killer moves at this ply
@@ -293,7 +211,7 @@ const minimax = (
         newEnPassant
       );
 
-      const { score: moveEval } = minimax(
+      const { score: moveEval } = minimax3(
         bitboards,
         BLACK,
         newCastling,
@@ -378,7 +296,7 @@ const minimax = (
         newEnPassant
       );
 
-      const { score: moveEval } = minimax(
+      const { score: moveEval } = minimax3(
         bitboards,
         WHITE,
         newCastling,
@@ -432,6 +350,7 @@ const minimax = (
     flag = TT_FLAG.LOWER_BOUND;
   }
   setTT(key, {
+    rootId: rootId,
     depth: maxDepth - currentDepth,
     value: bestEval,
     flag,
@@ -450,39 +369,4 @@ const minimax = (
   }
 
   return { score: bestEval, move: bestMove };
-};
-
-// An array of all the weights of the pieces
-// The indexes are the same as bitboards
-const weights = [1, 3, 3, 5, 9, 1000, -1, -3, -3, -5, -9, -1000];
-
-/**
- * Checkmate constant
- */
-const CHECKMATE_VALUE = 10_000_000;
-
-/**
- * Gets the evaluation of the given position based purely off of the material in the position.
- * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {number} player - the opposite player. If black plays checkmate, this is white.
- * @param {string} result - the game over result of the position. Null if game is not over
- * @returns {number} The evaluation
- */
-const evaluate = (bitboards, player, result, depth) => {
-  // Needs to be a big number but not infinity because then it wont update the move
-  if (result) {
-    if (result.includes("Checkmate")) {
-      return player === WHITE
-        ? -CHECKMATE_VALUE + depth
-        : CHECKMATE_VALUE - depth;
-    }
-    return 0; // Draw
-  }
-
-  let evaluation = 0;
-
-  for (let piece = 0; piece < NUM_PIECES; piece++) {
-    evaluation += getNumPieces(bitboards[piece]) * weights[piece];
-  }
-  return evaluation;
 };

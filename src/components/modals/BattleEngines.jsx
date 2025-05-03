@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import { BMV1 } from "../bbEngines/BondMonkeyV1";
-import { BMV2 } from "../bbEngines/BondMonkeyV2";
 import "./BattleEngines.css";
+import { BMV2 } from "../bbEngines/BMV2/BondMonkeyV2";
 
 const BattleEngines = ({ battleEngines }) => {
   const engines = ["BondMonkeyV1", "BondMonkeyV2"];

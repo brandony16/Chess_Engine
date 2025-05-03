@@ -116,3 +116,12 @@ export const CASTLING_ZOBRIST = {
 // Random big ints to generate distinct hashes for when it is one players turn and when en passant is legal.
 export const PLAYER_ZOBRIST = 0x9d39247e33776d41n;
 export const EN_PASSANT_ZOBRIST = 0xf3a9b72c85d614e7n;
+
+// PIece weights
+export const WEIGHTS = [1, 3, 3, 5, 9, 1000, -1, -3, -3, -5, -9, -1000];
+
+// Checkmate evaluation constant
+export const CHECKMATE_VALUE = 100_000;
+
+// Max search depth
+export const MAX_PLY = 32;

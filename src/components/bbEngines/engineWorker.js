@@ -1,5 +1,5 @@
 import { clearTT } from "../bitboardUtils/TranspositionTable/transpositionTable";
-import { BMV2 } from "./BondMonkeyV2";
+import { BMV2 } from "./BMV2/BondMonkeyV2";
 
 onmessage = (e) => {
   const {
