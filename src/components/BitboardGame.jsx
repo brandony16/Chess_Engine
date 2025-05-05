@@ -383,7 +383,7 @@ const BitboardGame = () => {
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
-      getEngineMove(4, 5000);
+      getEngineMove(5, 5000);
     }
   }, [currPlayer, userSide]);
 

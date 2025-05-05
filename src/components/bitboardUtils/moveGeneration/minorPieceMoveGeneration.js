@@ -78,10 +78,10 @@ export const getPawnMovesForSquare = (
     // En Passant for black
     if (enPassantSquare !== null) {
       const epMask = 1n << BigInt(enPassantSquare);
-      if ((specificPawn >> 9n) & epMask) {
+      if ((specificPawn >> 9n) & epMask & FILE_H_MASK) {
         enPassantCapture |= 1n << BigInt(enPassantSquare);
       }
-      if ((specificPawn >> 7n) & epMask) {
+      if ((specificPawn >> 7n) & epMask & FILE_A_MASK) {
         enPassantCapture |= 1n << BigInt(enPassantSquare);
       }
     }

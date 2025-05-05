@@ -1,5 +1,5 @@
 import { clearTT } from "../bitboardUtils/TranspositionTable/transpositionTable";
-import { BMV2 } from "./BMV2/BondMonkeyV2";
+import { BMV3 } from "./BMV3/BondMonkeyV3";
 
 onmessage = (e) => {
   const {
@@ -13,7 +13,7 @@ onmessage = (e) => {
   } = e.data;
 
   clearTT();
-  const move = BMV2(
+  const move = BMV3(
     bitboards,
     player,
     castlingRights,

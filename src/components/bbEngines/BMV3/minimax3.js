@@ -23,7 +23,8 @@ import {
 import { getPieceAtSquare } from "../../bitboardUtils/pieceGetters";
 import { BLACK, MAX_PLY, WEIGHTS, WHITE } from "../../bitboardUtils/constants";
 import { rootId } from "./BondMonkeyV3";
-import { evaluate2 } from "./evaluation3";
+import { evaluate3 } from "./evaluation3";
+import { quiesce } from "./quiesce";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -70,7 +71,7 @@ export const minimax3 = (
 
   if (gameOver.isGameOver) {
     return {
-      score: evaluate2(bitboards, player, gameOver.result, currentDepth),
+      score: evaluate3(bitboards, player, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -78,10 +79,17 @@ export const minimax3 = (
   if (currentDepth >= maxDepth) {
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
-      return {
-        score: evaluate2(bitboards, player, gameOver.result, currentDepth),
-        move: null,
-      };
+      return quiesce(
+        bitboards,
+        player,
+        alpha,
+        beta,
+        enPassantSquare,
+        castlingRights,
+        prevPositions,
+        prevHash,
+        prevAttackHash
+      );
     }
   }
 

@@ -125,3 +125,17 @@ export const CHECKMATE_VALUE = 100_000;
 
 // Max search depth
 export const MAX_PLY = 32;
+
+// Promotion pieces
+export const WHITE_PROMO_PIECES = [
+  WHITE_QUEEN,
+  WHITE_ROOK,
+  WHITE_BISHOP,
+  WHITE_KNIGHT,
+];
+export const BLACK_PROMO_PIECES = [
+  BLACK_QUEEN,
+  BLACK_ROOK,
+  BLACK_BISHOP,
+  BLACK_KNIGHT,
+];
