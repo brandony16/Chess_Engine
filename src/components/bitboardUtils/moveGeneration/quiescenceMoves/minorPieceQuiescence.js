@@ -8,9 +8,7 @@ import {
 } from "../../constants";
 import Move from "../../moveMaking/move";
 import {
-  getBlackPieces,
   getPieceAtSquare,
-  getWhitePieces,
 } from "../../pieceGetters";
 import { knightMasks } from "../../PieceMasks/knightMask";
 import { getBishopAttacksForSquare } from "../slidingPieceAttacks";
@@ -22,14 +20,11 @@ import { getBishopAttacksForSquare } from "../slidingPieceAttacks";
  * @param {number} from - the square its moving from
  * @returns {bigint} the move bitboard for the knight
  */
-export const knightQuiescence = (bitboards, player) => {
+export const knightQuiescence = (bitboards, player, opponentPieces) => {
   const moves = [];
 
   const isWhite = player === WHITE;
   const piece = isWhite ? WHITE_KNIGHT : BLACK_KNIGHT;
-  const opponentPieces = isWhite
-    ? getBlackPieces(bitboards)
-    : getWhitePieces(bitboards);
   let knightBB = isWhite ? bitboards[WHITE_KNIGHT] : bitboards[BLACK_KNIGHT];
 
   while (knightBB) {
@@ -59,13 +54,11 @@ export const knightQuiescence = (bitboards, player) => {
  * @param {number} from - the square its moving from
  * @returns {bigint} the move bitboard for the bishop
  */
-export const bishopQuiescence = (bitboards, player) => {
+export const bishopQuiescence = (bitboards, player, opponentPieces) => {
   const moves = [];
 
   const isWhite = player === WHITE;
-  const opponentPieces = isWhite
-    ? getBlackPieces(bitboards)
-    : getWhitePieces(bitboards);
+
   const piece = isWhite ? WHITE_BISHOP : BLACK_BISHOP;
 
   let bishopBB = isWhite ? bitboards[WHITE_BISHOP] : bitboards[BLACK_BISHOP];
