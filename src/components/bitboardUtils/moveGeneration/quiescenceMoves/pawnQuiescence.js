@@ -11,11 +11,7 @@ import {
   WHITE_PROMO_PIECES,
 } from "../../constants";
 import Move from "../../moveMaking/move";
-import {
-  getBlackPieces,
-  getPieceAtSquare,
-  getWhitePieces,
-} from "../../pieceGetters";
+import { getPieceAtSquare } from "../../pieceGetters";
 
 /**
  * Gets the captures and promotions for the pawns
@@ -24,24 +20,26 @@ import {
  * @param {number} player - whose piece it is (0 for w, 1 for b)
  * @param {number} from - the square its moving from
  * @param {number} enPassantSquare - the square where en passant is legal
- * @returns {bigint} the move bitboard for the pawn
+ * @returns {Array<Move>} the move bitboard for the pawn
  */
-export const pawnQuiescence = (bitboards, player, enPassantSquare) => {
+export const pawnQuiescence = (
+  bitboards,
+  player,
+  opponentPieces,
+  enPassantSquare
+) => {
   const moves = [];
   const piece = isPlayerWhite ? WHITE_PAWN : BLACK_PAWN;
 
   const isPlayerWhite = player === WHITE;
   const pawns = isPlayerWhite ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
-  const enemyPieces = isPlayerWhite
-    ? getBlackPieces(bitboards)
-    : getWhitePieces(bitboards);
 
   let captureLeft = isPlayerWhite
-    ? (pawns << 7n) & FILE_H_MASK & enemyPieces
-    : (pawns >> 9n) & FILE_A_MASK & enemyPieces;
+    ? (pawns << 7n) & FILE_H_MASK & opponentPieces
+    : (pawns >> 9n) & FILE_A_MASK & opponentPieces;
   let captureRight = isPlayerWhite
-    ? (pawns << 9n) & FILE_A_MASK & enemyPieces
-    : (pawns >> 7n) & FILE_H_MASK & enemyPieces;
+    ? (pawns << 9n) & FILE_A_MASK & opponentPieces
+    : (pawns >> 7n) & FILE_H_MASK & opponentPieces;
 
   // The masks are everything but that rank, so we to negate them
   const promoRankMask = isPlayerWhite ? !RANK_8_MASK : !RANK_1_MASK;
@@ -100,8 +98,8 @@ export const pawnQuiescence = (bitboards, player, enPassantSquare) => {
   // Normal promotions
   // Needs squares that enemy pieces are not at, as pawns cannot capute moving forward
   let promoSquares = isPlayerWhite
-    ? (pawns << 8n) & promoRankMask & !enemyPieces
-    : (pawns >> 8n) & promoRankMask & !enemyPieces;
+    ? (pawns << 8n) & promoRankMask & !opponentPieces
+    : (pawns >> 8n) & promoRankMask & !opponentPieces;
   while (promoSquares) {
     const to = bitScanForward(promoSquares);
     promoSquares &= promoSquares - 1n;

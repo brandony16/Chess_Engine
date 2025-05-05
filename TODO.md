@@ -11,7 +11,8 @@
 - Improve evaluation function using tables that show where pieces "should" go
 - Implement magic bitboards
 - Improve move storing
-- Add quiscince search
+- Add quiscince search - IN PROGRESS
+- Optimize filterIllegalMoves
 - Make it so engines play a predetermined opening so they don't play the same
   game every time against each other.
 - Make move generators use a occupancy mask calculated earlier - maybe

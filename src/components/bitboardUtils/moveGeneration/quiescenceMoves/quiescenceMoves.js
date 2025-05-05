@@ -1,5 +1,10 @@
 import { WHITE } from "../../constants";
 import { getBlackPieces, getWhitePieces } from "../../pieceGetters";
+import {
+  kingQuiescence,
+  queenQuiescence,
+  rookQuiescence,
+} from "./majorPieceQuiescence";
 import { bishopQuiescence, knightQuiescence } from "./minorPieceQuiescence";
 import { pawnQuiescence } from "./pawnQuiescence";
 
@@ -9,13 +14,13 @@ import { pawnQuiescence } from "./pawnQuiescence";
 export const getQuiescenceMoves = (bitboards, player, enPassantSquare) => {
   const moves = [];
 
-  
-  const opponentPieces = player === WHITE
-    ? getBlackPieces(bitboards)
-    : getWhitePieces(bitboards);
+  const opponentPieces =
+    player === WHITE ? getBlackPieces(bitboards) : getWhitePieces(bitboards);
 
-  moves.append(pawnQuiescence(bitboards, player, enPassantSquare));
-  moves.append(knightQuiescence(bitboards, player, opponentPieces));
-  moves.append(bishopQuiescence(bitboards, player, opponentPieces));
+  moves.concat(pawnQuiescence(bitboards, player, opponentPieces, enPassantSquare));
+  moves.concat(knightQuiescence(bitboards, player, opponentPieces));
+  moves.concat(bishopQuiescence(bitboards, player, opponentPieces));
+  moves.concat(rookQuiescence(bitboards, player, opponentPieces));
+  moves.concat(queenQuiescence(bitboards, player, opponentPieces));
+  moves.concat(kingQuiescence(bitboards, player, opponentPieces));
 };
-

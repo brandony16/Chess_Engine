@@ -1,3 +1,4 @@
+import { filterIllegalMoves } from "../../bbChessLogic";
 import { bitScanForward } from "../../bbUtils";
 import {
   BLACK_BISHOP,
@@ -7,25 +8,23 @@ import {
   WHITE_KNIGHT,
 } from "../../constants";
 import Move from "../../moveMaking/move";
-import {
-  getPieceAtSquare,
-} from "../../pieceGetters";
+import { getPieceAtSquare } from "../../pieceGetters";
 import { knightMasks } from "../../PieceMasks/knightMask";
 import { getBishopAttacksForSquare } from "../slidingPieceAttacks";
 
 /**
- * Gets the move bitboard for a knight.
+ * Gets the quiescence moves for a knight.
  * @param {BigUint64Array} bitboards - the bitboards in the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {number} from - the square its moving from
- * @returns {bigint} the move bitboard for the knight
+ * @param {bigint} opponentPieces - a bitboard of the opponents positions
+ * @returns {Array<Move>} the move bitboard for the knight
  */
 export const knightQuiescence = (bitboards, player, opponentPieces) => {
   const moves = [];
 
   const isWhite = player === WHITE;
   const piece = isWhite ? WHITE_KNIGHT : BLACK_KNIGHT;
-  let knightBB = isWhite ? bitboards[WHITE_KNIGHT] : bitboards[BLACK_KNIGHT];
+  let knightBB = bitboards[piece];
 
   while (knightBB) {
     const from = bitScanForward(knightBB);
@@ -33,6 +32,7 @@ export const knightQuiescence = (bitboards, player, opponentPieces) => {
 
     // Get raw knight captures
     let kMoves = knightMasks[from] & opponentPieces;
+    kMoves = filterIllegalMoves(bitboards, kMoves, from, player, null);
     while (moves) {
       const to = bitScanForward(kMoves);
       kMoves &= kMoves - 1n;
@@ -48,11 +48,11 @@ export const knightQuiescence = (bitboards, player, opponentPieces) => {
 };
 
 /**
- * Gets the move bitboard for a bishop.
+ * Gets the quiescence moves for a bishop.
  * @param {BigUint64Array} bitboards - the bitboards in the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {number} from - the square its moving from
- * @returns {bigint} the move bitboard for the bishop
+ * @param {bigint} opponentPieces - a bitboard of the opponents positions
+ * @returns {Array<Move>} the move bitboard for the bishop
  */
 export const bishopQuiescence = (bitboards, player, opponentPieces) => {
   const moves = [];
@@ -61,12 +61,13 @@ export const bishopQuiescence = (bitboards, player, opponentPieces) => {
 
   const piece = isWhite ? WHITE_BISHOP : BLACK_BISHOP;
 
-  let bishopBB = isWhite ? bitboards[WHITE_BISHOP] : bitboards[BLACK_BISHOP];
+  let bishopBB = bitboards[piece];
   while (bishopBB) {
     const from = bitScanForward(bishopBB);
     bishopBB &= bishopBB - 1n;
 
     let moveBB = getBishopAttacksForSquare(bitboards, from) & opponentPieces;
+    moveBB = filterIllegalMoves(bitboards, moveBB, from, player, null);
     while (moveBB) {
       const to = bitScanForward(moveBB);
       moveBB &= moveBB - 1n;
