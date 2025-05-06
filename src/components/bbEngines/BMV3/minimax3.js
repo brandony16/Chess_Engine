@@ -1,7 +1,4 @@
-import {
-  allLegalMovesArr,
-  bigIntFullRep,
-} from "../../bitboardUtils/generalHelpers";
+import { bigIntFullRep } from "../../bitboardUtils/generalHelpers";
 import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic";
 import {
   unMakeMove,
@@ -25,6 +22,7 @@ import { BLACK, MAX_PLY, WEIGHTS, WHITE } from "../../bitboardUtils/constants";
 import { rootId } from "./BondMonkeyV3";
 import { evaluate3 } from "./evaluation3";
 import { quiesce } from "./quiesce";
+import { getAllLegalMoves } from "../../bitboardUtils/moveGeneration/allMoveGeneration";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -118,7 +116,7 @@ export const minimax3 = (
 
   // Gets the legal moves then assigns them scores based on the transposition table,
   // if the move is a capture, if its a killer move, and if its in history.
-  const scored = allLegalMovesArr(
+  const scored = getAllLegalMoves(
     bitboards,
     player,
     castlingRights,

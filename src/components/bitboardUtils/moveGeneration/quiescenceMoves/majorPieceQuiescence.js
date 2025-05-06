@@ -9,9 +9,7 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../../constants";
-import Move from "../../moveMaking/move";
-import { getPieceAtSquare } from "../../pieceGetters";
-import { knightMasks } from "../../PieceMasks/knightMask";
+import { kingMasks } from "../../PieceMasks/kingMask";
 import {
   getQueenAttacksForSquare,
   getRookAttacksForSquare,
@@ -22,9 +20,15 @@ import {
  * @param {BigUint64Array} bitboards - the bitboards in the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {bigint} opponentPieces - a bitboard of the opponents positions
+ * @param {bigint} oppAttackHash - the hash of the opponents attack map
  * @returns {bigint} the move bitboard for the bishop
  */
-export const rookQuiescence = (bitboards, player, opponentPieces) => {
+export const rookQuiescence = (
+  bitboards,
+  player,
+  opponentPieces,
+  oppAttackHash
+) => {
   const moves = [];
 
   const isWhite = player === WHITE;
@@ -37,16 +41,16 @@ export const rookQuiescence = (bitboards, player, opponentPieces) => {
     rookBB &= rookBB - 1n;
 
     let moveBB = getRookAttacksForSquare(bitboards, from) & opponentPieces;
-    moveBB = filterIllegalMoves(bitboards, moveBB, from, player, null);
-    while (moveBB) {
-      const to = bitScanForward(moveBB);
-      moveBB &= moveBB - 1n;
+    const rookMoves = filterIllegalMoves(
+      bitboards,
+      moveBB,
+      from,
+      player,
+      null, // En passant square
+      oppAttackHash
+    );
 
-      const captured = getPieceAtSquare(to, bitboards);
-      const move = new Move(from, to, piece, captured, null, false, false);
-
-      moves.push(move);
-    }
+    moves.concat(rookMoves);
   }
 
   return moves;
@@ -57,9 +61,15 @@ export const rookQuiescence = (bitboards, player, opponentPieces) => {
  * @param {BigUint64Array} bitboards - the bitboards in the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {bigint} opponentPieces - a bitboard of the opponents positions
+ * @param {bigint} oppAttackHash - the hash of the opponents attack map
  * @returns {bigint} the move bitboard for the bishop
  */
-export const queenQuiescence = (bitboards, player, opponentPieces) => {
+export const queenQuiescence = (
+  bitboards,
+  player,
+  opponentPieces,
+  oppAttackHash
+) => {
   const moves = [];
 
   const isWhite = player === WHITE;
@@ -72,16 +82,16 @@ export const queenQuiescence = (bitboards, player, opponentPieces) => {
     queenBB &= queenBB - 1n;
 
     let moveBB = getQueenAttacksForSquare(bitboards, from) & opponentPieces;
-    moveBB = filterIllegalMoves(bitboards, moveBB, from, player, null);
-    while (moveBB) {
-      const to = bitScanForward(moveBB);
-      moveBB &= moveBB - 1n;
+    const queenMoves = filterIllegalMoves(
+      bitboards,
+      moveBB,
+      from,
+      player,
+      null,
+      oppAttackHash
+    );
 
-      const captured = getPieceAtSquare(to, bitboards);
-      const move = new Move(from, to, piece, captured, null, false, false);
-
-      moves.push(move);
-    }
+    moves.concat(queenMoves);
   }
 
   return moves;
@@ -92,9 +102,15 @@ export const queenQuiescence = (bitboards, player, opponentPieces) => {
  * @param {BigUint64Array} bitboards - the bitboards in the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {bigint} opponentPieces - a bitboard of the opponents positions
+ * @param {bigint} oppAttackHash - the hash of the opponents attack map
  * @returns {bigint} the move bitboard for the bishop
  */
-export const kingQuiescence = (bitboards, player, opponentPieces) => {
+export const kingQuiescence = (
+  bitboards,
+  player,
+  opponentPieces,
+  oppAttackHash
+) => {
   const moves = [];
 
   const isWhite = player === WHITE;
@@ -104,17 +120,17 @@ export const kingQuiescence = (bitboards, player, opponentPieces) => {
   const from = bitScanForward(kingBB);
 
   // Get raw king captures
-  let kMoves = knightMasks[from] & opponentPieces;
-  kMoves = filterIllegalMoves(bitboards, kMoves, from, player, null);
-  while (moves) {
-    const to = bitScanForward(kMoves);
-    kMoves &= kMoves - 1n;
+  let moveBB = kingMasks[from] & opponentPieces;
+  const queenMoves = filterIllegalMoves(
+    bitboards,
+    moveBB,
+    from,
+    player,
+    null,
+    oppAttackHash
+  );
 
-    const captured = getPieceAtSquare(to, bitboards);
-    const move = new Move(from, to, piece, captured, null, false, false);
-
-    moves.push(move);
-  }
+  moves.concat(queenMoves);
 
   return moves;
 };

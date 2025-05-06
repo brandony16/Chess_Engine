@@ -22,6 +22,26 @@ class Move {
     this.castling = castling;
     this.enPassant = enPassant;
   }
+
+  /**
+   * Copies the current move and changes any fields to what fields are given.
+   * Helpful for promotion moves when you need 4 different moves each with
+   * different promotion fields
+   *
+   * @param {object} param0 - an object with all of the fields of a move
+   * @returns {Move} a new move with given fields changed
+   */
+  copyWith({ from, to, piece, captured, promotion, castling, enPassant }) {
+    return new Move(
+      from ?? this.from,
+      to ?? this.to,
+      piece ?? this.piece,
+      captured ?? this.captured,
+      promotion ?? this.promotion,
+      castling ?? this.castling,
+      enPassant ?? this.enPassant
+    );
+  }
 }
 
 export default Move;

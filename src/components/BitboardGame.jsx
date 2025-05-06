@@ -10,7 +10,7 @@ import {
 } from "./bitboardUtils/moveMaking/makeMoveLogic";
 import { computeHash } from "./bitboardUtils/zobristHashing";
 import { checkGameOver } from "./bitboardUtils/gameOverLogic";
-import { moveToReadable } from "./bitboardUtils/generalHelpers";
+import { movesToBB, moveToReadable } from "./bitboardUtils/generalHelpers";
 import {
   getPieceAtSquare,
   isPlayersPieceAtSquare,
@@ -116,9 +116,14 @@ const BitboardGame = () => {
     } = useGameStore.getState();
 
     const piece = getPieceAtSquare(from, bitboards);
-    const captured = getPieceAtSquare(to, bitboards);
     const castling = isKing(piece) && Math.abs(from - to) === 2;
-    const enPassant = to === enPassantSquare;
+    const enPassant =
+      to === enPassantSquare && (piece === WHITE_PAWN || piece === BLACK_PAWN);
+    let captured = getPieceAtSquare(to, bitboards);
+    if (enPassant) {
+      captured = piece === WHITE_PAWN ? BLACK_PAWN : WHITE_PAWN;
+    }
+
     const move = new Move(
       from,
       to,
@@ -156,7 +161,7 @@ const BitboardGame = () => {
     // Ensures the attack map cache has the new attack map
     getCachedAttackMask(bitboards, currPlayer);
 
-    updateStates(readableMove, move, hash, gameOverObj, selectedSquare);
+    updateStates(readableMove, move, hash, gameOverObj);
   };
 
   /**
@@ -187,19 +192,21 @@ const BitboardGame = () => {
 
       const moveBitboard = getPieceMoves(
         bitboards,
-        piece - 6 * currPlayer, // normalizes piece to be between 0 and 5
+        piece % 6, // normalizes piece to be between 0 and 5
         square,
         currPlayer,
         enPassantSquare,
         castlingRights
       );
 
-      const filteredMoveBitboard = filterIllegalMoves(
+      const filteredMoves = filterIllegalMoves(
         bitboards,
         moveBitboard,
         square,
         currPlayer
       );
+
+      const filteredMoveBitboard = movesToBB(filteredMoves);
 
       useGameStore.setState({
         moveBitboard: filteredMoveBitboard,
@@ -254,7 +261,7 @@ const BitboardGame = () => {
    */
   const handlePromotion = (piece) => {
     const { promotionMove } = useGameStore.getState();
-
+    console.log(promotionMove);
     const from = promotionMove.from;
     const to = promotionMove.to;
 
@@ -383,7 +390,7 @@ const BitboardGame = () => {
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
-      getEngineMove(5, 5000);
+      getEngineMove(4, 5000);
     }
   }, [currPlayer, userSide]);
 

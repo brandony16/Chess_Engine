@@ -29,9 +29,9 @@ export const pawnQuiescence = (
   enPassantSquare
 ) => {
   const moves = [];
-  const piece = isPlayerWhite ? WHITE_PAWN : BLACK_PAWN;
-
+  
   const isPlayerWhite = player === WHITE;
+  const piece = isPlayerWhite ? WHITE_PAWN : BLACK_PAWN;
   const pawns = isPlayerWhite ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];
 
   let captureLeft = isPlayerWhite
@@ -42,7 +42,7 @@ export const pawnQuiescence = (
     : (pawns >> 7n) & FILE_H_MASK & opponentPieces;
 
   // The masks are everything but that rank, so we to negate them
-  const promoRankMask = isPlayerWhite ? !RANK_8_MASK : !RANK_1_MASK;
+  const promoRankMask = isPlayerWhite ? ~RANK_8_MASK : ~RANK_1_MASK;
   let promoCapLeft = captureLeft & promoRankMask;
   let promoCapRight = captureRight & promoRankMask;
 
@@ -98,8 +98,8 @@ export const pawnQuiescence = (
   // Normal promotions
   // Needs squares that enemy pieces are not at, as pawns cannot capute moving forward
   let promoSquares = isPlayerWhite
-    ? (pawns << 8n) & promoRankMask & !opponentPieces
-    : (pawns >> 8n) & promoRankMask & !opponentPieces;
+    ? (pawns << 8n) & promoRankMask & ~opponentPieces
+    : (pawns >> 8n) & promoRankMask & ~opponentPieces;
   while (promoSquares) {
     const to = bitScanForward(promoSquares);
     promoSquares &= promoSquares - 1n;

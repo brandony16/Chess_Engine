@@ -1,4 +1,4 @@
-import { allLegalMovesArr } from "../bitboardUtils/generalHelpers";
+import { getAllLegalMoves } from "../bitboardUtils/moveGeneration/allMoveGeneration";
 
 /**
  * @typedef {object} CastlingRights
@@ -27,7 +27,7 @@ export const BMV1 = (
   depth = 0,
   timeLimit = Infinity
 ) => {
-  const moves = allLegalMovesArr(
+  const moves = getAllLegalMoves(
     bitboards,
     player,
     castlingRights,

@@ -43,7 +43,7 @@ export const useGameStore = create((set, get) => ({
 
   // ACTIONS / UPDATER FUNCTIONS
 
-  updateStates: (moveNotation, move, hash, gameOverObj, from) => {
+  updateStates: (moveNotation, move, hash, gameOverObj) => {
     set((state) => {
       let newFiftyRuleNum = state.fiftyMoveRuleCounter + 1;
       const pieceMoved = move.piece;
@@ -60,7 +60,7 @@ export const useGameStore = create((set, get) => ({
         result: gameOverObj.result,
         pastMoves: [...state.pastMoves, moveNotation],
         enPassantSquare: getNewEnPassant(move),
-        castlingRights: updateCastlingRights(from, state.castlingRights),
+        castlingRights: updateCastlingRights(move.from, state.castlingRights),
         selectedSquare: null,
         moveBitboard: null,
         pastPositions: (() => {
@@ -73,6 +73,8 @@ export const useGameStore = create((set, get) => ({
         currIndexOfDisplayed: state.currIndexOfDisplayed + 1,
         currPlayer: state.currPlayer === WHITE ? BLACK : WHITE,
         fiftyMoveRuleCounter: newFiftyRuleNum,
+        promotion: false,
+        promotionMove: null,
       };
     });
   },

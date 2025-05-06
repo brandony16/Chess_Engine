@@ -1,7 +1,7 @@
 import { getNewEnPassant } from "../../bitboardUtils/bbChessLogic";
 import { BLACK, WEIGHTS, WHITE } from "../../bitboardUtils/constants";
 import { checkGameOver } from "../../bitboardUtils/gameOverLogic";
-import { allLegalMovesArr } from "../../bitboardUtils/generalHelpers";
+import { getQuiescenceMoves } from "../../bitboardUtils/moveGeneration/quiescenceMoves/quiescenceMoves";
 import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic";
 import {
   unMakeMove,
@@ -13,7 +13,7 @@ import { updateHash } from "../../bitboardUtils/zobristHashing";
 import { evaluate3 } from "./evaluation3";
 
 /**
- * Performs a quiescience search, which calculates lines of captures. Only evaluates moves
+ * Performs a quiescence search, which calculates lines of captures. Only evaluates moves
  * that are captures or promotions to increase tactical capabilities.
  *
  * @param {Bitboards} bitboards - the bitboards of the current position
@@ -68,14 +68,13 @@ export const quiesce = (
   }
   alpha = Math.max(alpha, standPat);
 
-  // 2) Generate *only* capture moves
-  const captures = allLegalMovesArr(
+  // Generates only capture and promotion moves
+  const captures = getQuiescenceMoves(
     bitboards,
     player,
-    castlingRights,
     enPassantSquare,
     prevAttackHash
-  ).filter((m) => m.captured || m.promotion); // Include promotions and captures
+  );
 
   // Sort by MVV/LVA
   captures.sort((a, b) => {
@@ -119,7 +118,6 @@ export const quiesce = (
     const newPositions = new Map(prevPositions);
     newPositions.set(newHash, (newPositions.get(newHash) || 0) + 1);
 
-    // Recurse at same depth (quiescence doesn’t increment currentDepth)
     const { score: scoreAfterCapture } = quiesce(
       bitboards,
       opponent,

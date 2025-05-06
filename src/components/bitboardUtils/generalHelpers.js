@@ -1,18 +1,6 @@
 import { isInCheck } from "./bbChessLogic";
-import { bitScanForward, isKing } from "./bbUtils";
-import {
-  BLACK,
-  BLACK_PAWN,
-  COLUMN_SYMBOLS,
-  GENERAL_SYMBOLS,
-  WHITE,
-  WHITE_PAWN,
-} from "./constants";
-import {
-  getAllIndividualLegalMoves,
-  getAllLegalMoves,
-} from "./moveGeneration/allMoveGeneration";
-import Move from "./moveMaking/move";
+import { BLACK, COLUMN_SYMBOLS, GENERAL_SYMBOLS, WHITE } from "./constants";
+import { getAllLegalMoves } from "./moveGeneration/allMoveGeneration";
 import { getPieceAtSquare } from "./pieceGetters";
 
 /**
@@ -133,7 +121,7 @@ export const moveToReadable = (
   }
 
   if (isInCheck(bitboards, opponent)) {
-    if (getAllLegalMoves(bitboards, opponent, null, null) === 0n) {
+    if (getAllLegalMoves(bitboards, opponent, null, null).length === 0) {
       // Checkmate
       notation += "#";
       return notation;
@@ -145,86 +133,18 @@ export const moveToReadable = (
 };
 
 /**
- * Gets all the legal moves and returns them in an array. Moves are formatted as objects,
- * with from, to, and promotion fields. Helpful for sorting
+ * Converts an array of moves into a bitboard showing all moves.
+ * Helpful for displaying the moves when a player clicks a square.
  *
- * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {CastlingRights} castlingRights - the castling rights for the game. Should have
- * boolean fields whiteKingside, whiteQueenside, blackKingside, blackQueenside
- * @param {number} enPassantSquare - the square, if any, that a pawn could do en passant
- * @returns all legal moves in an array format
+ * @param {Array<Move>} moves - an array of moves
+ * @returns {bigint} a move bitboard
  */
-export const allLegalMovesArr = (
-  bitboards,
-  player,
-  castlingRights,
-  enPassantSquare = null,
-  hash = null
-) => {
-  const moves = getAllIndividualLegalMoves(
-    bitboards,
-    player,
-    castlingRights,
-    enPassantSquare,
-    hash
-  );
+export const movesToBB = (moves) => {
+  let bitboard = 0n;
 
-  const isWhite = player === WHITE;
-  const promotionFromRank = isWhite ? 6 : 1;
-  const promotionPieces = [4, 3, 1, 2]; // Queen, Rook, Knight, Bishop
-
-  let possibleMoves = [];
-  for (const from in moves) {
-    const numFrom = parseInt(from);
-    let moveBitboard = moves[from];
-
-    const piece = getPieceAtSquare(from, bitboards);
-    const formattedPiece = piece - 6 * player; // Player doesnt matter. Just need index 0-5
-    const row = Math.floor(numFrom / 8);
-
-    const isPromotion =
-      row === promotionFromRank && formattedPiece === WHITE_PAWN;
-
-    while (moveBitboard !== 0n) {
-      const moveTo = bitScanForward(moveBitboard);
-
-      let captured = getPieceAtSquare(moveTo, bitboards);
-
-      if (isPromotion) {
-        promotionPieces.forEach((pPiece) => {
-          const newMove = new Move(
-            numFrom,
-            moveTo,
-            piece,
-            captured,
-            pPiece,
-            false,
-            false
-          );
-          possibleMoves.push(newMove);
-        });
-      } else {
-        const castling = isKing(piece) && Math.abs(numFrom - moveTo) === 2;
-        const enPassant =
-          moveTo === enPassantSquare && (piece === WHITE_PAWN || BLACK_PAWN);
-        if (enPassant) {
-          captured = piece === WHITE_PAWN ? BLACK_PAWN : WHITE_PAWN;
-        }
-        const newMove = new Move(
-          numFrom,
-          moveTo,
-          piece,
-          captured,
-          null,
-          castling,
-          enPassant
-        );
-        possibleMoves.push(newMove);
-      }
-      moveBitboard &= moveBitboard - 1n;
-    }
+  for (const move of moves) {
+    bitboard |= 1n << BigInt(move.to);
   }
 
-  return possibleMoves;
+  return bitboard;
 };

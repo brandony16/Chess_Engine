@@ -1,21 +1,25 @@
-import { bitScanForward, isKing } from "./bbUtils";
+import { bitScanForward } from "./bbUtils";
 import {
   getCachedAttackMask,
   updateAttackMaskHash,
 } from "./PieceMasks/attackMask";
-import { unMakeMove, updatedMakeMove } from "./moveMaking/makeMoveLogic";
+import {
+  getMove,
+  unMakeMove,
+  updatedMakeMove,
+} from "./moveMaking/makeMoveLogic";
 import { getPieceAtSquare, getPlayerBoard } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
 import {
   BLACK,
   BLACK_KING,
   BLACK_PAWN,
+  BLACK_PROMO_PIECES,
   WHITE,
   WHITE_KING,
   WHITE_PAWN,
+  WHITE_PROMO_PIECES,
 } from "./constants";
-import Move from "./moveMaking/move";
-import { bigIntFullRep } from "./generalHelpers";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -65,7 +69,7 @@ export const isInCheck = (bitboards, player) => {
  * @param {number} from - square the piece is moving from
  * @param {number} player - whose move it is (0 for w, 1 for b)
  * @param {bigint} opponentHash - an attack hash for the position
- * @returns {bigint} the filtered moves
+ * @returns {Array<Move>} the filtered moves
  */
 export const filterIllegalMoves = (
   bitboards,
@@ -75,11 +79,15 @@ export const filterIllegalMoves = (
   enPassantSquare,
   opponentHash = null
 ) => {
-  let filteredMoves = 0n;
+  let filteredMoves = [];
   const isPlayerWhite = player === WHITE;
   const opponent = isPlayerWhite ? BLACK : WHITE;
   const one = 1n;
   const piece = getPieceAtSquare(from, bitboards);
+
+  const promotionFromRank = isPlayerWhite ? 6 : 1;
+  const row = Math.floor(from / 8);
+  const isPromotion = row === promotionFromRank && piece % 6 === WHITE_PAWN;
 
   // Iterate only over moves that are set (i.e. bits that are 1)
   let remainingMoves = moves;
@@ -87,13 +95,7 @@ export const filterIllegalMoves = (
     const to = bitScanForward(remainingMoves);
     remainingMoves &= remainingMoves - one;
 
-    const enPassant =
-      to === enPassantSquare && (piece === WHITE_PAWN || piece === BLACK_PAWN);
-    let captured = getPieceAtSquare(to, bitboards);
-    if (enPassant) {
-      captured = isPlayerWhite ? BLACK_PAWN : WHITE_PAWN;
-    }
-    const move = new Move(from, to, piece, captured, null, false, enPassant);
+    const move = getMove(bitboards, from, to, piece, enPassantSquare);
 
     // Simulate the move and check if the king is attacked
     updatedMakeMove(bitboards, move);
@@ -112,7 +114,17 @@ export const filterIllegalMoves = (
     }
 
     if (!isSquareAttacked(bitboards, kingSquare, opponent, newHash)) {
-      filteredMoves |= 1n << BigInt(to);
+      if (isPromotion) {
+        const promoPieces = isPlayerWhite
+          ? WHITE_PROMO_PIECES
+          : BLACK_PROMO_PIECES;
+        for (const promoPiece of promoPieces) {
+          const promoMove = move.copyWith({ promotion: promoPiece });
+          filteredMoves.push(promoMove);
+        }
+      } else {
+        filteredMoves.push(move);
+      }
     }
     unMakeMove(move, bitboards);
   }
@@ -154,7 +166,7 @@ export const hasLegalMove = (bitboards, player, enPassantSquare) => {
       player,
       enPassantSquare
     );
-    if (filtered !== 0n) return true;
+    if (filtered.length > 0) return true;
   }
   return false;
 };
@@ -173,7 +185,7 @@ export const getNewEnPassant = (move) => {
     Math.abs(move.to - move.from) === 16
   ) {
     const dir = piece === WHITE_PAWN ? -8 : 8;
-    enPassantSquare = move.from + dir;
+    enPassantSquare = move.to + dir;
   }
   return enPassantSquare;
 };

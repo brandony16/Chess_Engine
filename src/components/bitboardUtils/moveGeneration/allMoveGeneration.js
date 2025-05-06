@@ -75,50 +75,6 @@ export const getPieceMoves = (
 };
 
 /**
- * Creates a bitboard for all of the moves a player has. Does not check for legality
- *
- * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {CastlingRights} castlingRights - the castling rights
- * @param {number} enPassantSquare - the square where en passant is legal
- * @param {boolean} onlyCaptures - whether the moves should only be captures
- * @returns {bigint} a bitboard of all the moves a player has
- */
-export const getAllPlayerMoves = (
-  bitboards,
-  player,
-  castlingRights,
-  enPassantSquare,
-  onlyCaptures = false
-) => {
-  let allMoves = 0n;
-  const playerPieces = getPlayerBoard(player, bitboards);
-
-  let pieces = playerPieces;
-  while (pieces !== 0n) {
-    const square = bitScanForward(pieces);
-    pieces &= pieces - 1n;
-
-    const piece = getPieceAtSquare(square, bitboards);
-    const formattedPiece = piece - 6 * player; // Subtracts 6 if piece is bigger than 5
-
-    const pieceMoves = getPieceMoves(
-      bitboards,
-      formattedPiece,
-      square,
-      player,
-      enPassantSquare,
-      castlingRights,
-      onlyCaptures
-    );
-
-    allMoves |= pieceMoves;
-  }
-
-  return allMoves;
-};
-
-/**
  * Gets all of the legal moves a player has as a bitboard.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
@@ -126,16 +82,16 @@ export const getAllPlayerMoves = (
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {boolean} onlyCaptures - whether the moves should only be captures
- * @returns {bigint} a bitboard of all the legal moves a player has
+ * @returns {Array<Move>} a bitboard of all the legal moves a player has
  */
 export const getAllLegalMoves = (
   bitboards,
   player,
   castlingRights,
   enPassantSquare,
-  onlyCaptures = false
+  opponentHash = null
 ) => {
-  let allMoves = 0n;
+  let allMoves = [];
   // Get player's overall pieces bitboard.
   const playerPieces = getPlayerBoard(player, bitboards);
 
@@ -145,7 +101,7 @@ export const getAllLegalMoves = (
     pieces &= pieces - 1n;
 
     const piece = getPieceAtSquare(square, bitboards);
-    const formattedPiece = piece - 6 * player; // Subtracts 6 if piece is bigger than 5
+    const formattedPiece = piece % 6;
 
     const pieceMoves = getPieceMoves(
       bitboards,
@@ -154,60 +110,6 @@ export const getAllLegalMoves = (
       player,
       enPassantSquare,
       castlingRights,
-      onlyCaptures
-    );
-
-    const legalPieceMoves = filterIllegalMoves(
-      bitboards,
-      pieceMoves,
-      square,
-      player
-    );
-
-    allMoves |= legalPieceMoves;
-  }
-
-  return allMoves;
-};
-
-/**
- * Gets all of the legal moves for each square and returns it as an object.
- * The keys are the square of the piece and the fields is the bitboard for the square.
- * Ex: { 10: bigint, 34: bigint, etc.}
- *
- * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {CastlingRights} castlingRights - the castling rights
- * @param {number} enPassantSquare - the square where en passant is legal
- * @param {bigint} opponentHash - Hash that leads to the attack map of the opponent
- * @returns {object} an object with corresponding bitboards for each square.
- */
-export const getAllIndividualLegalMoves = (
-  bitboards,
-  player,
-  castlingRights,
-  enPassantSquare,
-  opponentHash
-) => {
-  let allMoves = {};
-  // Get player's overall pieces bitboard.
-  const playerPieces = getPlayerBoard(player, bitboards);
-
-  let pieces = playerPieces;
-  while (pieces !== 0n) {
-    const square = bitScanForward(pieces);
-    pieces &= pieces - 1n;
-
-    const piece = getPieceAtSquare(square, bitboards);
-    const formattedPiece = piece - 6 * player; // Subtracts 6 if piece is bigger than 5
-
-    const pieceMoves = getPieceMoves(
-      bitboards,
-      formattedPiece,
-      square,
-      player,
-      enPassantSquare,
-      castlingRights
     );
 
     const legalPieceMoves = filterIllegalMoves(
@@ -218,9 +120,7 @@ export const getAllIndividualLegalMoves = (
       opponentHash
     );
 
-    if (legalPieceMoves !== 0n) {
-      allMoves[square] = legalPieceMoves;
-    }
+    allMoves = allMoves.concat(legalPieceMoves);
   }
 
   return allMoves;

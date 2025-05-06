@@ -5,6 +5,12 @@ import { BLACK, WHITE } from "../bitboardUtils/constants";
 const PromotionModal = ({ onPromote, square, userPlayer }) => {
   // Pieces for promotion. Are plural because the bitboards are plural
   const pieces = ["Queens", "Rooks", "Knights", "Bishops"];
+  const piecesToIndex = {
+    Queens: 4,
+    Rooks: 3,
+    Knights: 1,
+    Bishops: 2,
+  };
 
   const isUserWhite = userPlayer === WHITE;
   const col = isUserWhite ? square % 8 : 7 - (square % 8);
@@ -31,7 +37,7 @@ const PromotionModal = ({ onPromote, square, userPlayer }) => {
             return (
               <button
                 key={piece}
-                onClick={() => onPromote(piece)}
+                onClick={() => onPromote(piecesToIndex[piece] + userPlayer * 6)} // If black, add 6 to get black indexes
                 className="promotionButton"
                 style={modalStyle}
               >
