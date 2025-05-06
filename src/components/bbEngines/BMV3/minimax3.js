@@ -5,7 +5,6 @@ import {
   updatedMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic";
 import {
-  attackMaskCache,
   getCachedAttackMask,
   updateAttackMaskHash,
 } from "../../bitboardUtils/PieceMasks/attackMask";
@@ -154,19 +153,11 @@ export const minimax3 = (
     return { move, score };
   });
 
-  // If the game is over, it would have been caught by result existing
+  // If the game is over, it would have been caught by gameOver check at beginning
   if (scored.length === 0) {
     console.log("Depth:", currentDepth);
     console.log("Max Depth:", maxDepth);
     console.log("Player:", player);
-    console.log(
-      bitboards,
-      player,
-      castlingRights,
-      enPassantSquare,
-      prevAttackHash
-    );
-    console.log(bigIntFullRep(attackMaskCache.get(prevAttackHash)));
     throw new Error("Issue with move generation. No moves generated");
   }
 

@@ -166,6 +166,7 @@ export const hasLegalMove = (bitboards, player, enPassantSquare) => {
       player,
       enPassantSquare
     );
+
     if (filtered.length > 0) return true;
   }
   return false;

@@ -1,6 +1,6 @@
 import { filterIllegalMoves } from "../bbChessLogic";
 import { isKing } from "../bbUtils";
-import { BLACK_PAWN, WHITE, WHITE_PAWN } from "../constants";
+import { BLACK_PAWN, WHITE_PAWN } from "../constants";
 import { getPieceMoves } from "../moveGeneration/allMoveGeneration";
 import { getPieceAtSquare, isPlayersPieceAtSquare } from "../pieceGetters";
 import { unMakeCastleMove, updatedMakeCastleMove } from "./castleMoveLogic";
@@ -86,13 +86,13 @@ export const unMakeMove = (move, bitboards) => {
   }
 
   // Restore captured piece
-  if (captured !== null) {
+  if (captured !== null && !enPassant) {
     bitboards[captured] |= one << BigInt(to);
   }
 
   // Undo en passant capture
   if (enPassant) {
-    const dir = piece === "whitePawns" ? -8 : 8;
+    const dir = piece === WHITE_PAWN ? -8 : 8;
     const capturedPawnSquare = to + dir;
     bitboards[captured] |= one << BigInt(capturedPawnSquare);
   }
