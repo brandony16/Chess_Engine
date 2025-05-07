@@ -374,6 +374,7 @@ const BitboardGame = () => {
       castlingRights: state.castlingRights,
       enPassantSquare: state.enPassantSquare,
       prevPositions: state.pastPositions,
+      pastMoves: state.pastMoves,
       maxDepth: depth,
       timeLimit,
     });

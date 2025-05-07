@@ -74,6 +74,24 @@ export const PIECE_SYMBOLS = {
 };
 
 /**
+ * Converts the string pieces to the correct piece index
+ */
+export const PIECE_INDEXES = {
+  P: WHITE_PAWN,
+  N: WHITE_KNIGHT,
+  B: WHITE_BISHOP,
+  R: WHITE_ROOK,
+  Q: WHITE_QUEEN,
+  K: WHITE_KING,
+  p: BLACK_PAWN,
+  n: BLACK_KNIGHT,
+  b: BLACK_BISHOP,
+  r: BLACK_ROOK,
+  q: BLACK_QUEEN,
+  k: BLACK_KING,
+};
+
+/**
  * Converts the pieces to the correct character independent of player. Uppercase for all
  */
 export const GENERAL_SYMBOLS = {
@@ -103,6 +121,20 @@ export const COLUMN_SYMBOLS = {
   5: "f",
   6: "g",
   7: "h",
+};
+
+/**
+ * Converts letter columns to their corresponding column index
+ */
+export const COLUMN_INDEXES = {
+  a: 0,
+  b: 1,
+  c: 2,
+  d: 3,
+  e: 4,
+  f: 5,
+  g: 6,
+  h: 7,
 };
 
 // ZOBRIST CONSTANTS

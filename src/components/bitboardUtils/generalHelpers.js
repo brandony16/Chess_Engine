@@ -149,7 +149,14 @@ export const movesToBB = (moves) => {
   return bitboard;
 };
 
-
+/**
+ * Determines if two bitboard arrays are equal.
+ * Mainly used for debugging.
+ *
+ * @param {BigUint64Array} a - the first set of bitboards
+ * @param {BigUint64Array} b - the second set of bitboards
+ * @returns {boolean} if they are equal
+ */
 export function areBigUint64ArraysEqual(a, b) {
   if (a.length !== b.length) return false;
 
