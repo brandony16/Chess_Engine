@@ -135,12 +135,23 @@ export function uciToMove(uciMove, bitboards, player, casRights, epSquare) {
  * @param {string} square - string rep of the square (a3)
  * @returns {number} index of the square
  */
-function squareToIndex(square) {
+export function squareToIndex(square) {
   const col = square.charAt(0);
   const row = square.charAt(1);
 
-  const rowNum = parseInt(row);
+  const rowNum = parseInt(row) - 1; // Rows arent 0 indexed
   const colNum = COLUMN_INDEXES[col];
 
   return rowNum * 8 + colNum;
+}
+
+export async function getOpeningMoves() {
+  const res = await fetch("openings.json");
+  if (!res.ok) throw new Error("Error fetching opening moves");
+
+  const openings = await res.json();
+
+  const randIndex = Math.floor(Math.random() * openings.length);
+
+  return openings[randIndex];
 }

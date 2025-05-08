@@ -30,6 +30,7 @@ import {
 import { computeAllAttackMasks } from "./bitboardUtils/PieceMasks/individualAttackMasks";
 import Move from "./bitboardUtils/moveMaking/move";
 import { isKing } from "./bitboardUtils/bbUtils";
+import { getOpeningMoves, squareToIndex } from "./bitboardUtils/FENandUCIHelpers";
 
 // Runs the game
 const BitboardGame = () => {
@@ -143,10 +144,13 @@ const BitboardGame = () => {
       castlingRights
     );
 
+    const newPositions = new Map(pastPositions);
+    newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
+
     const gameOverObj = checkGameOver(
       bitboards,
       currPlayer,
-      pastPositions,
+      newPositions,
       newEnPassant,
       fiftyMoveRuleCounter
     );
@@ -157,7 +161,6 @@ const BitboardGame = () => {
       to,
       move.captured !== null
     );
-
     // Ensures the attack map cache has the new attack map
     getCachedAttackMask(bitboards, currPlayer);
 
@@ -261,12 +264,24 @@ const BitboardGame = () => {
    */
   const handlePromotion = (piece) => {
     const { promotionMove } = useGameStore.getState();
-    console.log(promotionMove);
     const from = promotionMove.from;
     const to = promotionMove.to;
 
     processMove(from, to, piece);
   };
+
+  const playRandomOpening = async () => {
+    // Fetches an 8ply opening from openings.json
+    const moves = await getOpeningMoves();
+
+    for (const uciMove of moves) {
+      const from = squareToIndex(uciMove.slice(0, 2));
+      const to = squareToIndex(uciMove.slice(2, 4));
+      const promotion = null; // Cant have a promotion in 4 moves
+
+      processMove(from, to, promotion);
+    }
+  }
 
   /**
    * Changes what move is visible to the user. The direction should be -1 or 1
@@ -306,7 +321,7 @@ const BitboardGame = () => {
    * @param {int} games - the number of games to play
    * @param {int} depth - the depth to search for each move
    */
-  const battleTwoEngines = (engine1, engine2, games = 10, depth = 3) => {
+  const battleTwoEngines = async (engine1, engine2, games = 10, depth = 3) => {
     resetGame();
     useGameStore.setState({ userSide: null });
 
@@ -320,6 +335,7 @@ const BitboardGame = () => {
     while (gameNum <= games) {
       resetGame(true);
       console.log("Game " + gameNum + " started");
+      await playRandomOpening();
 
       while (!useGameStore.getState().isGameOver) {
         makeEngineMove(whiteSide, depth, 5000);

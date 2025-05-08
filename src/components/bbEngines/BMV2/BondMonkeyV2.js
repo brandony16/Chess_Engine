@@ -72,9 +72,9 @@ export function BMV2(
     );
 
     if (move != null) {
-      bestEval = score;
       bestMove = move;
     }
+    bestEval = score;
 
     if (Math.abs(score) > CHECKMATE_VALUE - depth && move) {
       console.log("mate break");

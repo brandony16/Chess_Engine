@@ -3,12 +3,7 @@ import { computeHash } from "../../bitboardUtils/zobristHashing";
 import { clearTT } from "../../bitboardUtils/TranspositionTable/transpositionTable";
 import { BLACK, CHECKMATE_VALUE, WHITE } from "../../bitboardUtils/constants";
 import { minimax3 } from "./minimax3";
-import { getBook } from "../book/book";
-import {
-  bitboardsToFEN,
-  pickBookMove,
-  uciToMove,
-} from "../../bitboardUtils/FENandUCIHelpers";
+
 
 /**
  * @typedef {object} CastlingRights
