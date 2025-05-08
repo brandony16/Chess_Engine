@@ -33,38 +33,16 @@ export let rootId = 0;
  * @param {number} timeLimit - the max time the engine can search in milliseconds.
  * @returns {{ from: number, to: number, promotion: string}, number} the best move found and the evaluation
  */
-export async function BMV3(
+export function BMV3(
   bitboards,
   player,
   castlingRights,
   enPassantSquare,
   prevPositions,
-  pastMoves,
   maxDepth,
   timeLimit = Infinity
 ) {
   clearTT(); // Clears transposition table
-
-  const fen = bitboardsToFEN(
-    bitboards,
-    player,
-    castlingRights,
-    enPassantSquare
-  );
-  const book = await getBook();
-  const entries = book[fen];
-
-  if (entries.length > 0 && pastMoves.length < 20) {
-    const UCIMove = pickBookMove(entries);
-    const move = uciToMove(
-      UCIMove,
-      bitboards,
-      player,
-      castlingRights,
-      enPassantSquare
-    );
-    return { move: move };
-  }
 
   const start = performance.now();
   const opponent = player === WHITE ? BLACK : WHITE;
