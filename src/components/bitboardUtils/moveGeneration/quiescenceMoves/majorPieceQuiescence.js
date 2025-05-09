@@ -113,15 +113,14 @@ export const kingQuiescence = (
 ) => {
   const moves = [];
 
-  const isWhite = player === WHITE;
-  const piece = isWhite ? WHITE_KING : BLACK_KING;
+  const piece = player === WHITE ? WHITE_KING : BLACK_KING;
 
   let kingBB = bitboards[piece];
   const from = bitScanForward(kingBB);
 
   // Get raw king captures
   let moveBB = kingMasks[from] & opponentPieces;
-  const queenMoves = filterIllegalMoves(
+  const kingMoves = filterIllegalMoves(
     bitboards,
     moveBB,
     from,
@@ -130,7 +129,7 @@ export const kingQuiescence = (
     oppAttackHash
   );
 
-  moves.concat(queenMoves);
+  moves.concat(kingMoves);
 
   return moves;
 };

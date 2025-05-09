@@ -1,4 +1,5 @@
 import {
+  BLACK,
   COLUMN_INDEXES,
   COLUMN_SYMBOLS,
   PIECE_INDEXES,
@@ -145,6 +146,11 @@ export function squareToIndex(square) {
   return rowNum * 8 + colNum;
 }
 
+/**
+ * Gets a sequence of 8 opening moves (ply) for engines to play from.
+ * Used so engines don't play the same game every time.
+ * @returns {Array<String>} - 8 opening moves
+ */
 export async function getOpeningMoves() {
   const res = await fetch("openings.json");
   if (!res.ok) throw new Error("Error fetching opening moves");
@@ -154,4 +160,87 @@ export async function getOpeningMoves() {
   const randIndex = Math.floor(Math.random() * openings.length);
 
   return openings[randIndex];
+}
+
+/**
+ * Converts the position part of a FEN into a bitboards array
+ *
+ * @param {string} bbString - the part of a FEN that stores the piece positions
+ * @returns {BigUint64Array} - bitboards of the position
+ */
+function FENToBitboards(bbString) {
+  let bitboards = new BigUint64Array(12).fill(0n);
+
+  const rows = bbString.split("/");
+
+  for (let i = 0; i < 8; i++) {
+    const row = rows[i];
+    let file = 0;
+
+    for (let j = 0; j < row.length; j++) {
+      const ch = row.charAt(j);
+      if (/\d/.test(ch)) {
+        // Skip digits (empty squares)
+        file += parseInt(ch, 10);
+      } else {
+        const piece = PIECE_INDEXES[ch];
+        // Fen is rank 8 first
+        const square = BigInt(8 * (7 - i) + file);
+        bitboards[piece] |= 1n << square;
+        file++;
+      }
+    }
+  }
+
+  return bitboards;
+}
+
+function castlingRightsFromFEN(rights) {
+  const castlingRights = {
+    whiteKingside: false,
+    whiteQueenside: false,
+    blackKingside: false,
+    blackQueenside: false,
+  }
+
+  const charToRights = {
+    K: "whiteKingside",
+    Q: "whiteQueenside",
+    k: "blackKingside",
+    q: "blackQueenside",
+  }
+
+  if (rights === "-") return castlingRights;
+
+  for (let i = 0; i < rights.length; i++) {
+    const char = rights.charAt(i);
+    castlingRights[charToRights[char]] = true;
+  }
+  return castlingRights;
+}
+
+export function epFromFEN(algebraicEp) {
+  if (algebraicEp === "-") return null;
+
+  return squareToIndex(algebraicEp);
+}
+
+export function playerFromFEN(player) {
+  if (player === "w") return WHITE;
+  return BLACK;
+}
+
+export function getFENData(fen) {
+  const data = fen.split(" ");
+  const bbStr = data[0];
+  const playerStr = data[1];
+  const castlingStr = data[2];
+  const epStr = data[3];
+
+  const bitboards = FENToBitboards(bbStr);
+  const player = playerFromFEN(playerStr);
+  const castling = castlingRightsFromFEN(castlingStr);
+  const ep = epFromFEN(epStr);
+
+  return { bitboards, player, castling, ep};
 }

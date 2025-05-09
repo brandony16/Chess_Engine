@@ -94,7 +94,7 @@ const BitboardGame = () => {
     const from = bestMove.from;
     const to = bestMove.to;
     const promotion = bestMove.promotion;
-
+    
     processMove(from, to, promotion);
   };
 
