@@ -81,7 +81,7 @@ export const getPieceMoves = (
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
- * @param {boolean} onlyCaptures - whether the moves should only be captures
+ * @param {bigint} opponentHash - A hash for the opponents attack map
  * @returns {Array<Move>} a bitboard of all the legal moves a player has
  */
 export const getAllLegalMoves = (
@@ -109,7 +109,7 @@ export const getAllLegalMoves = (
       square,
       player,
       enPassantSquare,
-      castlingRights,
+      castlingRights
     );
 
     const legalPieceMoves = filterIllegalMoves(

@@ -58,12 +58,7 @@ export const getPawnMovesForSquare = (
     // En Passant for white
     if (enPassantSquare !== null) {
       const epMask = 1n << BigInt(enPassantSquare);
-      if ((specificPawn << 7n) & epMask) {
-        enPassantCapture |= 1n << BigInt(enPassantSquare);
-      }
-      if ((specificPawn << 9n) & epMask) {
-        enPassantCapture |= 1n << BigInt(enPassantSquare);
-      }
+      enPassantCapture = whitePawnMasks[from] & epMask;
     }
   } else {
     if (!attacksOnly) {
@@ -78,12 +73,7 @@ export const getPawnMovesForSquare = (
     // En Passant for black
     if (enPassantSquare !== null) {
       const epMask = 1n << BigInt(enPassantSquare);
-      if ((specificPawn >> 9n) & epMask & FILE_H_MASK) {
-        enPassantCapture |= 1n << BigInt(enPassantSquare);
-      }
-      if ((specificPawn >> 7n) & epMask & FILE_A_MASK) {
-        enPassantCapture |= 1n << BigInt(enPassantSquare);
-      }
+      enPassantCapture = blackPawnMasks[from] & epMask;
     }
   }
 

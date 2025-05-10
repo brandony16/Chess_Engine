@@ -2,6 +2,7 @@ import {
   BLACK,
   COLUMN_INDEXES,
   COLUMN_SYMBOLS,
+  GENERAL_SYMBOLS,
   PIECE_INDEXES,
   PIECE_SYMBOLS,
   WHITE,
@@ -138,6 +139,16 @@ export function uciToMove(uciMove, bitboards, player, casRights, epSquare) {
   throw new Error("UCI move not found");
 }
 
+export function moveToUCI(move) {
+  const from = indexToSquare(move.from);
+  const to = indexToSquare(move.to);
+  const promo = move.promotion
+    ? GENERAL_SYMBOLS[move.promotion].toLowerCase()
+    : "";
+
+  return from + to + promo;
+}
+
 /**
  * Converts a string square into the index of that square.
  *
@@ -227,13 +238,13 @@ function castlingRightsFromFEN(rights) {
   return castlingRights;
 }
 
-export function epFromFEN(algebraicEp) {
+function epFromFEN(algebraicEp) {
   if (algebraicEp === "-") return null;
 
   return squareToIndex(algebraicEp);
 }
 
-export function playerFromFEN(player) {
+function playerFromFEN(player) {
   if (player === "w") return WHITE;
   return BLACK;
 }
