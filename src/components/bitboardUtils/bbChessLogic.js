@@ -6,7 +6,7 @@ import {
 import {
   getMove,
   unMakeMove,
-  updatedMakeMove,
+  makeMove,
 } from "./moveMaking/makeMoveLogic";
 import { getPieceAtSquare, getPlayerBoard } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
@@ -98,7 +98,7 @@ export const filterIllegalMoves = (
     const move = getMove(bitboards, from, to, piece, enPassantSquare);
 
     // Simulate the move and check if the king is attacked
-    updatedMakeMove(bitboards, move);
+    makeMove(bitboards, move);
     const kingBB = bitboards[isPlayerWhite ? WHITE_KING : BLACK_KING];
     const kingSquare = bitScanForward(kingBB);
     let newHash = null;

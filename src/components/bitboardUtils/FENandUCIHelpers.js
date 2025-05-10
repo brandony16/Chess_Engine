@@ -117,7 +117,15 @@ export function pickBookMove(entries) {
 export function uciToMove(uciMove, bitboards, player, casRights, epSquare) {
   const from = squareToIndex(uciMove.slice(0, 2));
   const to = squareToIndex(uciMove.slice(2, 4));
-  const promotion = uciMove.length === 5 ? PIECE_INDEXES[uciMove[4]] : null;
+  let promotion =
+    uciMove.length === 5
+      ? player === WHITE
+        ? uciMove[4].toUpperCase()
+        : uciMove[4]
+      : null;
+  if (promotion) {
+    promotion = PIECE_INDEXES[promotion];
+  }
 
   const legalMoves = getAllLegalMoves(bitboards, player, casRights, epSquare);
 
@@ -201,14 +209,14 @@ function castlingRightsFromFEN(rights) {
     whiteQueenside: false,
     blackKingside: false,
     blackQueenside: false,
-  }
+  };
 
   const charToRights = {
     K: "whiteKingside",
     Q: "whiteQueenside",
     k: "blackKingside",
     q: "blackQueenside",
-  }
+  };
 
   if (rights === "-") return castlingRights;
 
@@ -242,5 +250,5 @@ export function getFENData(fen) {
   const castling = castlingRightsFromFEN(castlingStr);
   const ep = epFromFEN(epStr);
 
-  return { bitboards, player, castling, ep};
+  return { bitboards, player, castling, ep };
 }

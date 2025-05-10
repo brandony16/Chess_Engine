@@ -19,7 +19,7 @@ import Move from "./move";
  * @param {BigUint64Array} bitboards - the bitboards of the position
  * @param {Move} move - a move object
  */
-export const updatedMakeMove = (bitboards, move) => {
+export const makeMove = (bitboards, move) => {
   const one = 1n;
   const maskFrom = one << BigInt(move.from);
   const maskTo = one << BigInt(move.to);
@@ -39,7 +39,7 @@ export const updatedMakeMove = (bitboards, move) => {
   bitboards[piece] &= ~maskFrom;
 
   // Remove captured piece
-  if (move.captured !== null) {
+  if (move.captured !== null && !enPassant) {
     bitboards[captured] &= ~maskTo;
   }
 
