@@ -1,5 +1,6 @@
 import { filterIllegalMoves } from "../bbChessLogic";
 import { bitScanForward } from "../bbUtils";
+import { bigIntFullRep } from "../generalHelpers";
 import { getPieceAtSquare, getPlayerBoard } from "../pieceGetters";
 import {
   getKingMovesForSquare,
@@ -111,12 +112,13 @@ export const getAllLegalMoves = (
       enPassantSquare,
       castlingRights
     );
-
+    
     const legalPieceMoves = filterIllegalMoves(
       bitboards,
       pieceMoves,
       square,
       player,
+      enPassantSquare,
       opponentHash
     );
 

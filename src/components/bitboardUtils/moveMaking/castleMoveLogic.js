@@ -100,10 +100,10 @@ export const isQueensideCastleLegal = (bitboards, player, attackHash) => {
   let squares;
   let opponent;
   if (player === WHITE) {
-    squares = [1, 2, 3, 4];
+    squares = [2, 3, 4];
     opponent = BLACK;
   } else {
-    squares = [57, 58, 59, 60];
+    squares = [58, 59, 60];
     opponent = WHITE;
   }
 

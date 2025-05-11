@@ -1,8 +1,9 @@
 import { filterIllegalMoves } from "../bbChessLogic";
 import { isKing } from "../bbUtils";
-import { BLACK_PAWN, WHITE_PAWN } from "../constants";
+import { BLACK_PAWN, WHITE_KNIGHT, WHITE_PAWN } from "../constants";
 import { getPieceMoves } from "../moveGeneration/allMoveGeneration";
 import { getPieceAtSquare, isPlayersPieceAtSquare } from "../pieceGetters";
+import { computeMaskForPiece, individualAttackMasks } from "../PieceMasks/individualAttackMasks";
 import { unMakeCastleMove, updatedMakeCastleMove } from "./castleMoveLogic";
 import Move from "./move";
 
@@ -95,6 +96,11 @@ export const unMakeMove = (move, bitboards) => {
     const dir = piece === WHITE_PAWN ? -8 : 8;
     const capturedPawnSquare = to + dir;
     bitboards[captured] |= one << BigInt(capturedPawnSquare);
+  }
+
+  // If a not a sliding move, need to undo it
+  if (piece % 6 === WHITE_PAWN || piece % 6 === WHITE_KNIGHT || isKing(piece)) {
+    individualAttackMasks[piece] = computeMaskForPiece(bitboards, piece);
   }
 };
 

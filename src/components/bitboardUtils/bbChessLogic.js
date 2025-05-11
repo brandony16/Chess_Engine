@@ -3,11 +3,7 @@ import {
   getCachedAttackMask,
   updateAttackMaskHash,
 } from "./PieceMasks/attackMask";
-import {
-  getMove,
-  unMakeMove,
-  makeMove,
-} from "./moveMaking/makeMoveLogic";
+import { getMove, unMakeMove, makeMove } from "./moveMaking/makeMoveLogic";
 import { getPieceAtSquare, getPlayerBoard } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
 import {
@@ -20,6 +16,7 @@ import {
   WHITE_PAWN,
   WHITE_PROMO_PIECES,
 } from "./constants";
+import { bigIntFullRep } from "./generalHelpers";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -123,6 +120,12 @@ export const filterIllegalMoves = (
           filteredMoves.push(promoMove);
         }
       } else {
+        if (from === 31 && to === 23) {
+          console.log(
+            move, player,
+            bigIntFullRep(getCachedAttackMask(bitboards, opponent, newHash))
+          );
+        }
         filteredMoves.push(move);
       }
     }

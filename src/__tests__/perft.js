@@ -5,9 +5,10 @@ import {
   makeMove,
   unMakeMove,
 } from "../components/bitboardUtils/moveMaking/makeMoveLogic";
-import { updateAttackMaskHash } from "../components/bitboardUtils/PieceMasks/attackMask";
+import { getCachedAttackMask, updateAttackMaskHash } from "../components/bitboardUtils/PieceMasks/attackMask";
 import { moveToUCI } from "../components/bitboardUtils/FENandUCIHelpers";
 import { BLACK, WHITE } from "../components/bitboardUtils/constants";
+import { bigIntFullRep } from "../components/bitboardUtils/generalHelpers";
 
 /**
  * Count leaf nodes to `depth` by recursively generating, making, and unmaking moves.
@@ -73,14 +74,7 @@ export function perftDivide(
       player,
       newEp
     );
-    
-    // if (uci === "a7a5") {
-    //   const newMoves = getAllLegalMoves(board, opp, newCastling, newEp, attackHash);
-    //   console.log(newMoves);
-    //   for (const move of newMoves) {
-    //     console.log(moveToUCI(move));
-    //   }
-    // }
+
     divide[uci] = perft(board, opp, newCastling, newEp, attackHash, depth - 1);
 
     unMakeMove(move, board);
