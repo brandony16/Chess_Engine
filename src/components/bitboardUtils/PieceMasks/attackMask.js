@@ -30,7 +30,6 @@ import {
   computeMaskForPiece,
   individualAttackMasks,
 } from "./individualAttackMasks";
-import { bigIntFullRep } from "../generalHelpers";
 
 /**
  * Computes an attack mask for a player
@@ -230,10 +229,6 @@ export const updateAttackMaskHash = (
 
   if (!attackMaskCache.has(newHash)) {
     const newMask = updateAttackMask(bitboards, piece, captured, player);
-    if (from === 31 && to === 23 && ((bitboards[3] & 1n << 1n) !== 0n)) {
-      console.log(move, player)
-      console.log(bigIntFullRep(newMask));
-    }
     attackMaskCache.set(newHash, newMask);
   }
 

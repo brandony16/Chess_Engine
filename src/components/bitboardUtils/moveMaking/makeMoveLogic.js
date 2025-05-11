@@ -1,9 +1,12 @@
 import { filterIllegalMoves } from "../bbChessLogic";
-import { isKing } from "../bbUtils";
-import { BLACK_PAWN, WHITE_KNIGHT, WHITE_PAWN } from "../constants";
+import { isKing, isSliding } from "../bbUtils";
+import { BLACK_PAWN, WHITE_PAWN } from "../constants";
 import { getPieceMoves } from "../moveGeneration/allMoveGeneration";
 import { getPieceAtSquare, isPlayersPieceAtSquare } from "../pieceGetters";
-import { computeMaskForPiece, individualAttackMasks } from "../PieceMasks/individualAttackMasks";
+import {
+  computeMaskForPiece,
+  individualAttackMasks,
+} from "../PieceMasks/individualAttackMasks";
 import { unMakeCastleMove, updatedMakeCastleMove } from "./castleMoveLogic";
 import Move from "./move";
 
@@ -98,9 +101,13 @@ export const unMakeMove = (move, bitboards) => {
     bitboards[captured] |= one << BigInt(capturedPawnSquare);
   }
 
-  // If a not a sliding move, need to undo it
-  if (piece % 6 === WHITE_PAWN || piece % 6 === WHITE_KNIGHT || isKing(piece)) {
+  // If a not a sliding move, need to undo it. Non sliding piece masks are not recomputed every time.
+  // Sliding piece masks currently are recomputed every time.
+  if (!isSliding(piece)) {
     individualAttackMasks[piece] = computeMaskForPiece(bitboards, piece);
+  }
+  if (!isSliding(captured)) {
+    individualAttackMasks[captured] = computeMaskForPiece(bitboards, captured);
   }
 };
 

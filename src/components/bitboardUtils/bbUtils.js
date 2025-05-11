@@ -1,4 +1,4 @@
-import { BLACK_KING, WHITE_KING } from "./constants";
+import { BLACK_KING, WHITE_KING, WHITE_KNIGHT, WHITE_PAWN } from "./constants";
 
 /**
  * A helper to determine whether a square is on a board
@@ -84,4 +84,17 @@ export const getNumPieces = (bitboard) => {
  */
 export const isKing = (piece) => {
   return piece === WHITE_KING || piece === BLACK_KING;
+};
+
+/**
+ * Helper that determines if a piece is a sliding piece
+ *
+ * @param {number} piece - the piece
+ * @returns {boolean} if the piece is a sliding piece
+ */
+export const isSliding = (piece) => {
+  if (piece % 6 === WHITE_PAWN || piece % 6 === WHITE_KNIGHT || isKing(piece)) {
+    return false;
+  }
+  return true;
 };
