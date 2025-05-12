@@ -1,14 +1,10 @@
-import { isSquareAttacked } from "../bbChessLogic";
-import { isKing } from "../bbUtils";
 import {
-  BLACK,
   BLACK_KING,
   BLACK_ROOK,
   WHITE,
   WHITE_KING,
   WHITE_ROOK,
 } from "../constants";
-import { getPieceAtSquare } from "../pieceGetters";
 
 /**
  * @typedef {object} CastlingRights
@@ -58,29 +54,21 @@ export const updateCastlingRights = (from, prevRights) => {
 /**
  * Determines whether a given player can castle kingside
  *
- * @param {BigUint64Array} bitboards - the current positions bitboards
  * @param {number} player - the player who is castling (0 for w, 1 for b)
- * @param {bigint} attackHash - the attack hash for the player
+ * @param {bigint} attackMask - the attack mask for the other player
  * @returns {boolean} whether the player can castle kingside
  */
-export const isKingsideCastleLegal = (bitboards, player, attackHash) => {
+export const isKingsideCastleLegal = (player, attackMask) => {
   let squares;
-  let opponent;
   if (player === WHITE) {
     squares = [4, 5, 6];
-    opponent = BLACK;
   } else {
     squares = [60, 61, 62];
-    opponent = WHITE;
   }
 
-  // Check if squares are empty or under attack
-  for (let square of squares) {
-    const piece = getPieceAtSquare(square, bitboards);
-    if (piece !== null && !isKing(piece)) {
-      return false;
-    }
-    if (isSquareAttacked(bitboards, square, opponent, attackHash)) {
+  for (const square of squares) {
+    const mask = 1n << BigInt(square);
+    if (attackMask & mask) {
       return false;
     }
   }
@@ -91,29 +79,21 @@ export const isKingsideCastleLegal = (bitboards, player, attackHash) => {
 /**
  * Determines whether a given player can castle queenside
  *
- * @param {BigUint64Array} bitboards - the current positions bitboards
- * @param {string} player - the player who is castling ("w" or "b")
- * @param {bigint} attackHash - the attack hash for the player
+ * @param {number} player - the player who is castling (0 for w, 1 for b)
+ * @param {bigint} attackMask - the attack mask for the other player
  * @returns {boolean} whether the player can castle queenside
  */
-export const isQueensideCastleLegal = (bitboards, player, attackHash) => {
+export const isQueensideCastleLegal = (player, attackMap) => {
   let squares;
-  let opponent;
   if (player === WHITE) {
     squares = [2, 3, 4];
-    opponent = BLACK;
   } else {
     squares = [58, 59, 60];
-    opponent = WHITE;
   }
 
-  // Check if squares are empty or under attack
-  for (let square of squares) {
-    const piece = getPieceAtSquare(square, bitboards);
-    if (piece !== null && !isKing(piece)) {
-      return false;
-    }
-    if (isSquareAttacked(bitboards, square, opponent, attackHash)) {
+  for (const square of squares) {
+    const mask = 1n << BigInt(square);
+    if (attackMap & mask) {
       return false;
     }
   }
@@ -122,44 +102,12 @@ export const isQueensideCastleLegal = (bitboards, player, attackHash) => {
 };
 
 /**
- * Executes a castling move and returns updated game state.
+ * Performs a castling move.
  *
  * @param {BigUint64Array} bitboards - The current position's bitboards.
  * @param {number} from - The square the king is moving from.
  * @param {number} to - The square the king is moving to.
- * @returns {MoveResult} An object containing the updated bitboards, null for enPassantSquare,and false for isCapture.
  */
-export const makeCastleMove = (bitboards, from, to) => {
-  let newBitboards = [...bitboards];
-
-  if (from === 4 && to === 6) {
-    // White kingside castling
-    newBitboards[WHITE_KING] &= ~(1n << 4n);
-    newBitboards[WHITE_KING] |= 1n << 6n;
-    newBitboards[WHITE_ROOK] &= ~(1n << 7n);
-    newBitboards[WHITE_ROOK] |= 1n << 5n;
-  } else if (from === 4 && to === 2) {
-    // White queenside castling
-    newBitboards[WHITE_KING] &= ~(1n << 4n);
-    newBitboards[WHITE_KING] |= 1n << 2n;
-    newBitboards[WHITE_ROOK] &= ~(1n << 0n);
-    newBitboards[WHITE_ROOK] |= 1n << 3n;
-  } else if (from === 60 && to === 62) {
-    // Black kingside castling
-    newBitboards[BLACK_KING] &= ~(1n << 60n);
-    newBitboards[BLACK_KING] |= 1n << 62n;
-    newBitboards[BLACK_ROOK] &= ~(1n << 63n);
-    newBitboards[BLACK_ROOK] |= 1n << 61n;
-  } else if (from === 60 && to === 58) {
-    // Black queenside castling
-    newBitboards[BLACK_KING] &= ~(1n << 60n);
-    newBitboards[BLACK_KING] |= 1n << 58n;
-    newBitboards[BLACK_ROOK] &= ~(1n << 56n);
-    newBitboards[BLACK_ROOK] |= 1n << 59n;
-  }
-  return { bitboards: newBitboards, enPassantSquare: null, isCapture: false };
-};
-
 export const updatedMakeCastleMove = (bitboards, from, to) => {
   if (from === 4 && to === 6) {
     // White kingside castling
@@ -188,6 +136,13 @@ export const updatedMakeCastleMove = (bitboards, from, to) => {
   }
 };
 
+/**
+ * Undoes a castling move.
+ *
+ * @param {BigUint64Array} bitboards - The current position's bitboards.
+ * @param {number} from - The square the king is moving from.
+ * @param {number} to - The square the king is moving to.
+ */
 export const unMakeCastleMove = (bitboards, from, to) => {
   if (from === 4 && to === 6) {
     // White kingside castling

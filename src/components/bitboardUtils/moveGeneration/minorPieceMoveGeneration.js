@@ -23,7 +23,6 @@ import {
 import { knightMasks } from "../PieceMasks/knightMask";
 import { blackPawnMasks, whitePawnMasks } from "../PieceMasks/pawnMask";
 import {
-  getBishopAttacksForSquare,
   getRookAttacksForSquare,
 } from "./slidingPieceAttacks";
 
@@ -33,7 +32,8 @@ import {
  * @param {number} player - whose piece it is (0 for w, 1 for b)
  * @param {number} from - the square its moving from
  * @param {number} enPassantSquare - the square where en passant is legal
- * @param {boolean} attacksOnly - whether to only count attacking moves.
+ * @param {bigint} pinnedMask - a bitboard of all of whites pinned pieces
+ * @param {function} getRayMask - a function that gets the ray mask for a pinned piece
  * @returns {bigint} the move bitboard for the pawn
  */
 export const getPawnMovesForSquare = (
@@ -41,7 +41,6 @@ export const getPawnMovesForSquare = (
   player,
   from,
   enPassantSquare,
-  oppAttackMask,
   pinnedMask,
   getRayMask
 ) => {
@@ -131,13 +130,23 @@ export const getPawnMovesForSquare = (
  * @param {BigUint64Array} bitboards - the bitboards in the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {number} from - the square its moving from
+ * @param {bigint} pinnedMask - a bitboard of all of whites pinned pieces
  * @returns {bigint} the move bitboard for the knight
  */
-export const getKnightMovesForSquare = (bitboards, player, from) => {
-  // Get raw knight moves
+export const getKnightMovesForSquare = (
+  bitboards,
+  player,
+  from,
+  pinnedMask
+) => {
+  // If a knight is pinned, it has no moves
+  const knight = 1n << BigInt(from);
+  if (knight & pinnedMask) {
+    return 0n;
+  }
+
   let moves = knightMasks[from];
 
-  // Get player's pieces to mask out self-captures
   const friendlyPieces = getPlayerBoard(player, bitboards);
 
   // Remove moves that land on friendly pieces
@@ -149,20 +158,32 @@ export const getKnightMovesForSquare = (bitboards, player, from) => {
  * @param {BigUint64Array} bitboards - the bitboards in the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {number} from - the square its moving from
+ * @param {bigint} pinnedMask - a bitboard of all of whites pinned pieces
+ * @param {function} getRayMask - a function that gets the ray mask for a pinned piece
  * @returns {bigint} the move bitboard for the bishop
  */
-export const getBishopMovesForSquare = (bitboards, player, from) => {
-  let bishopBitboard = 1n << BigInt(from);
+export const getBishopMovesForSquare = (
+  bitboards,
+  player,
+  from,
+  pinnedMask,
+  getRayMask
+) => {
+  let bishop = 1n << BigInt(from);
   let moves = 0n;
-
   // Get occupied squares
   const allPieces = getAllPieces(bitboards);
   const friendlyPieces = getPlayerBoard(player, bitboards);
 
-  moves |= slide(bishopBitboard, 9n, FILE_H_MASK & RANK_8_MASK, allPieces); // Up-right
-  moves |= slide(bishopBitboard, 7n, FILE_A_MASK & RANK_8_MASK, allPieces); // Up-left
-  moves |= slide(bishopBitboard, -7n, FILE_H_MASK & RANK_1_MASK, allPieces); // Down-right
-  moves |= slide(bishopBitboard, -9n, FILE_A_MASK & RANK_1_MASK, allPieces); // Down-left
+  moves |= slide(bishop, 9n, FILE_H_MASK & RANK_8_MASK, allPieces); // Up-right
+  moves |= slide(bishop, 7n, FILE_A_MASK & RANK_8_MASK, allPieces); // Up-left
+  moves |= slide(bishop, -7n, FILE_H_MASK & RANK_1_MASK, allPieces); // Down-right
+  moves |= slide(bishop, -9n, FILE_A_MASK & RANK_1_MASK, allPieces); // Down-left
+
+  if (bishop & pinnedMask) {
+    const pinRay = getRayMask(from);
+    moves &= pinRay;
+  }
 
   return moves & ~friendlyPieces;
 };

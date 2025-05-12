@@ -98,3 +98,18 @@ export const isSliding = (piece) => {
   }
   return true;
 };
+
+/**
+ * Count the number of 1-bits in a BigInt.
+ * @param {bigint} bb - the bitboard
+ * @returns {number}
+ */
+export function popcount(bb) {
+  let count = 0;
+  while (bb !== 0n) {
+    // Remove the lowest bit:
+    bb &= bb - 1n;
+    count++;
+  }
+  return count;
+}

@@ -86,11 +86,6 @@ export const filterIllegalMoves = (
   const promotionFromRank = isPlayerWhite ? 6 : 1;
   const row = Math.floor(from / 8);
   const isPromotion = row === promotionFromRank && piece % 6 === WHITE_PAWN;
-  if (from === 32 && enPassantSquare === 42) {
-    console.log(
-      bigIntFullRep(getCachedAttackMask(bitboards, player, opponentHash))
-    );
-  }
 
   // Iterate only over moves that are set (i.e. bits that are 1)
   let remainingMoves = moves;
@@ -113,14 +108,6 @@ export const filterIllegalMoves = (
         opponent,
         getNewEnPassant(move),
         true
-      );
-    }
-
-    if (from === 32 && enPassantSquare === 42) {
-      console.log(
-        bigIntFullRep(getCachedAttackMask(bitboards, player, newHash)),
-        bigIntFullRep(bitboards[BLACK_PAWN]),
-        move
       );
     }
 

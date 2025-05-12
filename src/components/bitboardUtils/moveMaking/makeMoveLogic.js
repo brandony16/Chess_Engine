@@ -1,6 +1,12 @@
 import { filterIllegalMoves } from "../bbChessLogic";
-import { isKing, isSliding } from "../bbUtils";
-import { BLACK_PAWN, WHITE_PAWN } from "../constants";
+import { bitScanForward, isKing, isSliding } from "../bbUtils";
+import {
+  BLACK_PAWN,
+  BLACK_PROMO_PIECES,
+  WHITE,
+  WHITE_PAWN,
+  WHITE_PROMO_PIECES,
+} from "../constants";
 import { getPieceMoves } from "../moveGeneration/allMoveGeneration";
 import { getPieceAtSquare, isPlayersPieceAtSquare } from "../pieceGetters";
 import {
@@ -174,4 +180,40 @@ export const getMove = (bitboards, from, to, piece, enPassantSquare) => {
 
   const move = new Move(from, to, piece, captured, null, castling, enPassant);
   return move;
+};
+
+export const getMovesFromBB = (
+  bitboards,
+  bitboard,
+  from,
+  piece,
+  enPassantSquare,
+  player
+) => {
+  const moveArr = [];
+
+  const promotionFromRank = player === WHITE ? 6 : 1;
+  const row = Math.floor(from / 8);
+  const isPromotion = row === promotionFromRank && piece % 6 === WHITE_PAWN;
+
+  let moves = bitboard;
+  while (moves !== 0n) {
+    const to = bitScanForward(moves);
+    moves &= moves - 1n;
+
+    const move = getMove(bitboards, from, to, piece, enPassantSquare);
+
+    if (isPromotion) {
+      const promoPieces =
+        player === WHITE ? WHITE_PROMO_PIECES : BLACK_PROMO_PIECES;
+      for (const promoPiece of promoPieces) {
+        const promoMove = move.copyWith({ promotion: promoPiece });
+        moveArr.push(promoMove);
+      }
+    } else {
+      moveArr.push(move);
+    }
+  }
+
+  return moveArr;
 };

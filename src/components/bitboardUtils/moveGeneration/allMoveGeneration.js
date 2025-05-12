@@ -1,8 +1,24 @@
-import { filterIllegalMoves } from "../bbChessLogic";
-import { bitScanForward } from "../bbUtils";
-import { BLACK, BLACK_KING, WHITE, WHITE_KING } from "../constants";
+import { bitScanForward, popcount } from "../bbUtils";
+import {
+  BLACK,
+  BLACK_BISHOP,
+  BLACK_KING,
+  BLACK_KNIGHT,
+  BLACK_PAWN,
+  BLACK_QUEEN,
+  BLACK_ROOK,
+  WHITE,
+  WHITE_BISHOP,
+  WHITE_KING,
+  WHITE_KNIGHT,
+  WHITE_PAWN,
+  WHITE_QUEEN,
+  WHITE_ROOK,
+} from "../constants";
+import { getMovesFromBB } from "../moveMaking/makeMoveLogic";
 import { getPieceAtSquare, getPlayerBoard } from "../pieceGetters";
 import { getCachedAttackMask } from "../PieceMasks/attackMask";
+import { getCheckers, getRayBetween } from "./checkersMask";
 import { computePinned, makePinRayMaskGenerator } from "./computePinned";
 import {
   getKingMovesForSquare,
@@ -27,7 +43,7 @@ import {
  * Gets the moves for a specific piece. Returns a bitboard of the moves for that piece.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {int} piece - the piece that is moving. 0:pawn, 1:knight, 2:bishop, 3:rook, 4:queen, 5:king
+ * @param {int} piece - index of the piece to get the moves for
  * @param {number} from - the square to move from
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {number} enPassantSquare - the square where en passant is legal
@@ -44,35 +60,64 @@ export const getPieceMoves = (
   castlingRights,
   oppAttackMask,
   pinnedMask,
-  getRayMask,
+  getRayMask
 ) => {
   let moves = null;
   switch (piece) {
-    case 0:
+    case WHITE_PAWN:
+    case BLACK_PAWN:
       moves = getPawnMovesForSquare(
         bitboards,
         player,
         from,
         enPassantSquare,
-        oppAttackMask,
         pinnedMask,
-        getRayMask,
+        getRayMask
       );
       break;
-    case 1:
-      moves = getKnightMovesForSquare(bitboards, player, from);
+    case WHITE_KNIGHT:
+    case BLACK_KNIGHT:
+      moves = getKnightMovesForSquare(bitboards, player, from, pinnedMask);
       break;
-    case 2:
-      moves = getBishopMovesForSquare(bitboards, player, from);
+    case WHITE_BISHOP:
+    case BLACK_BISHOP:
+      moves = getBishopMovesForSquare(
+        bitboards,
+        player,
+        from,
+        pinnedMask,
+        getRayMask
+      );
       break;
-    case 3:
-      moves = getRookMovesForSquare(bitboards, player, from);
+    case WHITE_ROOK:
+    case BLACK_ROOK:
+      moves = getRookMovesForSquare(
+        bitboards,
+        player,
+        from,
+        pinnedMask,
+        getRayMask
+      );
       break;
-    case 4:
-      moves = getQueenMovesForSquare(bitboards, player, from);
+    case WHITE_QUEEN:
+    case BLACK_QUEEN:
+      moves = getQueenMovesForSquare(
+        bitboards,
+        player,
+        from,
+        pinnedMask,
+        getRayMask
+      );
       break;
-    case 5:
-      moves = getKingMovesForSquare(bitboards, player, from, castlingRights);
+    case WHITE_KING:
+    case BLACK_KING:
+      moves = getKingMovesForSquare(
+        bitboards,
+        player,
+        from,
+        oppAttackMask,
+        castlingRights
+      );
       break;
     default:
       moves = BigInt(0); // No legal moves
@@ -99,7 +144,7 @@ export const getAllLegalMoves = (
   opponentHash = null
 ) => {
   let allMoves = [];
-  // Get player's overall pieces bitboard.
+
   const isWhite = player === WHITE;
   const opponent = isWhite ? BLACK : WHITE;
   const oppAttackMask = getCachedAttackMask(bitboards, opponent, opponentHash);
@@ -108,6 +153,38 @@ export const getAllLegalMoves = (
   const kingBB = isWhite ? bitboards[WHITE_KING] : bitboards[BLACK_KING];
   const kingSq = bitScanForward(kingBB);
   const getRayMask = makePinRayMaskGenerator(kingSq);
+  let kingCheckMask = ~0n;
+
+  // If king is in check
+  if (oppAttackMask & (1n << BigInt(kingSq))) {
+    const checkers = getCheckers(bitboards, player, kingSq);
+    const numCheck = popcount(checkers);
+
+    // Double check, only king moves are possible
+    if (numCheck > 1) {
+      const kingMoves = getKingMovesForSquare(
+        bitboards,
+        player,
+        kingSq,
+        oppAttackMask,
+        castlingRights
+      );
+
+      return getMovesFromBB(
+        bitboards,
+        kingMoves,
+        kingSq,
+        isWhite ? WHITE_KING : BLACK_KING,
+        enPassantSquare,
+        player
+      );
+    }
+
+    // Single check
+    const oppSq = bitScanForward(checkers);
+    const rayMask = getRayBetween(kingSq, oppSq);
+    kingCheckMask = rayMask & checkers;
+  }
 
   let pieces = getPlayerBoard(player, bitboards);
   while (pieces !== 0n) {
@@ -126,19 +203,21 @@ export const getAllLegalMoves = (
       castlingRights,
       oppAttackMask,
       pinnedMask,
-      getRayMask,
+      getRayMask
     );
 
-    const legalPieceMoves = filterIllegalMoves(
+    const legalMoves = pieceMoves & kingCheckMask;
+
+    const legalMoveArr = getMovesFromBB(
       bitboards,
-      pieceMoves,
+      legalMoves,
       square,
-      player,
+      piece,
       enPassantSquare,
-      opponentHash
+      player
     );
 
-    allMoves = allMoves.concat(legalPieceMoves);
+    allMoves = allMoves.concat(legalMoveArr);
   }
 
   return allMoves;
