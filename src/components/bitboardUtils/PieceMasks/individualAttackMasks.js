@@ -19,11 +19,12 @@ import {
   getQueenAttacksForSquare,
   getRookAttacksForSquare,
 } from "../moveGeneration/slidingPieceAttacks";
+import { getAllPieces } from "../pieceGetters";
 import { kingMasks } from "./kingMask";
 import { knightMasks } from "./knightMask";
 import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
 
-export const attacksOf = (bitboards, piece, square) => {
+export const attacksOf = (occupancy, piece, square) => {
   switch (piece) {
     case WHITE_PAWN:
       return whitePawnMasks[square];
@@ -37,15 +38,15 @@ export const attacksOf = (bitboards, piece, square) => {
       return kingMasks[square];
     case WHITE_BISHOP:
     case BLACK_BISHOP: {
-      return getBishopAttacksForSquare(bitboards, square);
+      return getBishopAttacksForSquare(occupancy, square);
     }
     case WHITE_ROOK:
     case BLACK_ROOK: {
-      return getRookAttacksForSquare(bitboards, square);
+      return getRookAttacksForSquare(occupancy, square);
     }
     case WHITE_QUEEN:
     case BLACK_QUEEN: {
-      return getQueenAttacksForSquare(bitboards, square);
+      return getQueenAttacksForSquare(occupancy, square);
     }
     default:
       return 0n;
@@ -55,10 +56,11 @@ export const attacksOf = (bitboards, piece, square) => {
 export const computeMaskForPiece = (bitboards, piece) => {
   let mask = 0n;
   let bitboard = bitboards[piece];
+  const occupancy = getAllPieces(bitboards);
 
   while (bitboard) {
     const sq = bitScanForward(bitboard);
-    mask |= attacksOf(bitboards, piece, sq);
+    mask |= attacksOf(occupancy, piece, sq);
     bitboard &= bitboard - 1n;
   }
 

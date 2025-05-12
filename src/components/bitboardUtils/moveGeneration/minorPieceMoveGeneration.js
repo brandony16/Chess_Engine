@@ -1,9 +1,16 @@
+import { bitScanForward } from "../bbUtils";
 import {
+  BLACK_KING,
+  BLACK_QUEEN,
+  BLACK_ROOK,
   FILE_A_MASK,
   FILE_H_MASK,
   RANK_1_MASK,
   RANK_8_MASK,
   WHITE,
+  WHITE_KING,
+  WHITE_QUEEN,
+  WHITE_ROOK,
 } from "../constants";
 import { slide } from "../generalHelpers";
 import {
@@ -15,6 +22,10 @@ import {
 } from "../pieceGetters";
 import { knightMasks } from "../PieceMasks/knightMask";
 import { blackPawnMasks, whitePawnMasks } from "../PieceMasks/pawnMask";
+import {
+  getBishopAttacksForSquare,
+  getRookAttacksForSquare,
+} from "./slidingPieceAttacks";
 
 /**
  * Gets the move bitboard for a pawn.
@@ -30,13 +41,15 @@ export const getPawnMovesForSquare = (
   player,
   from,
   enPassantSquare,
-  attacksOnly = false
+  oppAttackMask,
+  pinnedMask,
+  getRayMask
 ) => {
   const specificPawn = 1n << BigInt(from);
 
-  const isPlayerWhite = player === WHITE;
+  const isWhite = player === WHITE;
   const emptySquares = getEmptySquares(bitboards);
-  const enemyPieces = isPlayerWhite
+  const enemyPieces = isWhite
     ? getBlackPieces(bitboards)
     : getWhitePieces(bitboards);
 
@@ -45,14 +58,12 @@ export const getPawnMovesForSquare = (
   let capture = 0n;
   let enPassantCapture = 0n;
 
-  if (isPlayerWhite) {
-    if (!attacksOnly) {
-      singlePush = (specificPawn << 8n) & emptySquares;
-      doublePush =
-        ((specificPawn & 0x000000000000ff00n) << 16n) &
-        emptySquares &
-        (emptySquares << 8n);
-    }
+  if (isWhite) {
+    singlePush = (specificPawn << 8n) & emptySquares;
+    doublePush =
+      ((specificPawn & 0x000000000000ff00n) << 16n) &
+      emptySquares &
+      (emptySquares << 8n);
     capture = whitePawnMasks[from] & enemyPieces;
 
     // En Passant for white
@@ -61,19 +72,54 @@ export const getPawnMovesForSquare = (
       enPassantCapture = whitePawnMasks[from] & epMask;
     }
   } else {
-    if (!attacksOnly) {
-      singlePush = (specificPawn >> 8n) & emptySquares;
-      doublePush =
-        ((specificPawn & 0x00ff000000000000n) >> 16n) &
-        emptySquares &
-        (emptySquares >> 8n);
-    }
+    singlePush = (specificPawn >> 8n) & emptySquares;
+    doublePush =
+      ((specificPawn & 0x00ff000000000000n) >> 16n) &
+      emptySquares &
+      (emptySquares >> 8n);
     capture = blackPawnMasks[from] & enemyPieces;
 
     // En Passant for black
     if (enPassantSquare !== null) {
       const epMask = 1n << BigInt(enPassantSquare);
       enPassantCapture = blackPawnMasks[from] & epMask;
+    }
+  }
+
+  if (pinnedMask & specificPawn) {
+    const pinRay = getRayMask(from);
+    singlePush &= pinRay;
+    doublePush &= pinRay;
+    capture &= pinRay;
+    enPassantCapture &= pinRay;
+  }
+
+  // En passant captures can put the king in check without being considered "pinned".
+  // This can occur when the king is on the same rank as its pawn, and its pawn captures
+  // with en passant. This moves the pawn off of the rank, and removes the pawn directly
+  // next to it. If an enemy queen or rook is behind this, they will now see the king.
+  if (enPassantCapture) {
+    const kingSq = bitScanForward(bitboards[isWhite ? WHITE_KING : BLACK_KING]);
+
+    const kingFile = kingSq % 8;
+    const epFile = enPassantSquare % 8;
+    const df = kingFile - epFile;
+
+    if (df === 0) {
+      const to = enPassantSquare;
+      const capSq = isWhite ? to - 8 : to + 8;
+      const capMask = 1n << BigInt(capSq);
+
+      // Remove both the captured and capturee pawns
+      const occSansPawns = getAllPieces(bitboards) & ~capMask & ~specificPawn;
+      const rookQueen =
+        bitboards[isWhite ? BLACK_ROOK : WHITE_ROOK] |
+        bitboards[isWhite ? BLACK_QUEEN : WHITE_QUEEN];
+
+      const rAttacks = getRookAttacksForSquare(occSansPawns, kingSq);
+      if ((rAttacks & rookQueen) !== 0n) {
+        enPassantCapture = 0n;
+      }
     }
   }
 

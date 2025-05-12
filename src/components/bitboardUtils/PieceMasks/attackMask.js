@@ -1,32 +1,19 @@
-import { bitScanForward } from "../bbUtils";
-import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
-import { knightMasks } from "./knightMask";
 import { computeHash, zobristTable } from "../zobristHashing";
 import { LRUMap } from "../LRUMap";
 import {
-  BLACK,
   BLACK_BISHOP,
-  BLACK_KING,
-  BLACK_KNIGHT,
   BLACK_PAWN,
   BLACK_QUEEN,
   BLACK_ROOK,
   PLAYER_ZOBRIST,
   WHITE,
   WHITE_BISHOP,
-  WHITE_KING,
-  WHITE_KNIGHT,
   WHITE_PAWN,
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../constants";
 import {
-  getBishopAttacksForSquare,
-  getQueenAttacksForSquare,
-  getRookAttacksForSquare,
-} from "../moveGeneration/slidingPieceAttacks";
-import { kingMasks } from "./kingMask";
-import {
+  computeAllAttackMasks,
   computeMaskForPiece,
   individualAttackMasks,
 } from "./individualAttackMasks";
@@ -39,68 +26,15 @@ import {
  * @returns {bigint} the attack mask for the player
  */
 export const computeAttackMask = (bitboards, player) => {
-  const one = 1n;
-  let attackMask = 0n;
-  let pawnBB = bitboards[WHITE_PAWN];
-  let knightBB = bitboards[WHITE_KNIGHT];
-  let bishopBB = bitboards[WHITE_BISHOP];
-  let rookBB = bitboards[WHITE_ROOK];
-  let queenBB = bitboards[WHITE_QUEEN];
-  let kingBB = bitboards[WHITE_KING];
-  let pawnMasks = whitePawnMasks;
-  if (player === BLACK) {
-    pawnBB = bitboards[BLACK_PAWN];
-    knightBB = bitboards[BLACK_KNIGHT];
-    bishopBB = bitboards[BLACK_BISHOP];
-    rookBB = bitboards[BLACK_ROOK];
-    queenBB = bitboards[BLACK_QUEEN];
-    kingBB = bitboards[BLACK_KING];
-    pawnMasks = blackPawnMasks;
-  }
+  const masks = computeAllAttackMasks(bitboards);
 
-  while (pawnBB) {
-    const lsBit = pawnBB & -pawnBB;
-    const sq = bitScanForward(lsBit);
-    attackMask |= pawnMasks[sq];
-    pawnBB &= pawnBB - one;
+  let mask = 0n;
+  // Player is 1 for black and 0 for white, so multiplying it by 6
+  // gives the correct starting and ending points
+  for (let i = player * 6; i < 5 + player * 6; i++) {
+    mask |= masks[i];
   }
-
-  while (knightBB) {
-    const lsBit = knightBB & -knightBB;
-    const sq = bitScanForward(lsBit);
-    attackMask |= knightMasks[sq];
-    knightBB &= knightBB - one;
-  }
-
-  while (bishopBB) {
-    const lsBit = bishopBB & -bishopBB;
-    const sq = bitScanForward(lsBit);
-    attackMask |= getBishopAttacksForSquare(bitboards, sq);
-    bishopBB &= bishopBB - one;
-  }
-
-  while (rookBB) {
-    const lsBit = rookBB & -rookBB;
-    const sq = bitScanForward(lsBit);
-    attackMask |= getRookAttacksForSquare(bitboards, sq);
-    rookBB &= rookBB - one;
-  }
-
-  while (queenBB) {
-    const lsBit = queenBB & -queenBB;
-    const sq = bitScanForward(lsBit);
-    attackMask |= getQueenAttacksForSquare(bitboards, sq);
-    queenBB &= queenBB - one;
-  }
-
-  while (kingBB) {
-    const lsBit = kingBB & -kingBB;
-    const sq = bitScanForward(lsBit);
-    attackMask |= kingMasks[sq];
-    kingBB &= kingBB - one;
-  }
-
-  return attackMask;
+  return mask;
 };
 
 export const updateAttackMask = (bitboards, piece, captured, player) => {

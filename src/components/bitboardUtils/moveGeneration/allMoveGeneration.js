@@ -1,6 +1,9 @@
 import { filterIllegalMoves } from "../bbChessLogic";
 import { bitScanForward } from "../bbUtils";
+import { BLACK, BLACK_KING, WHITE, WHITE_KING } from "../constants";
 import { getPieceAtSquare, getPlayerBoard } from "../pieceGetters";
+import { getCachedAttackMask } from "../PieceMasks/attackMask";
+import { computePinned, makePinRayMaskGenerator } from "./computePinned";
 import {
   getKingMovesForSquare,
   getQueenMovesForSquare,
@@ -39,7 +42,9 @@ export const getPieceMoves = (
   player,
   enPassantSquare,
   castlingRights,
-  onlyCaptures = false
+  oppAttackMask,
+  pinnedMask,
+  getRayMask,
 ) => {
   let moves = null;
   switch (piece) {
@@ -49,7 +54,9 @@ export const getPieceMoves = (
         player,
         from,
         enPassantSquare,
-        onlyCaptures
+        oppAttackMask,
+        pinnedMask,
+        getRayMask,
       );
       break;
     case 1:
@@ -93,9 +100,16 @@ export const getAllLegalMoves = (
 ) => {
   let allMoves = [];
   // Get player's overall pieces bitboard.
-  const playerPieces = getPlayerBoard(player, bitboards);
+  const isWhite = player === WHITE;
+  const opponent = isWhite ? BLACK : WHITE;
+  const oppAttackMask = getCachedAttackMask(bitboards, opponent, opponentHash);
+  const pinnedMask = computePinned(bitboards, player);
 
-  let pieces = playerPieces;
+  const kingBB = isWhite ? bitboards[WHITE_KING] : bitboards[BLACK_KING];
+  const kingSq = bitScanForward(kingBB);
+  const getRayMask = makePinRayMaskGenerator(kingSq);
+
+  let pieces = getPlayerBoard(player, bitboards);
   while (pieces !== 0n) {
     const square = bitScanForward(pieces);
     pieces &= pieces - 1n;
@@ -109,10 +123,12 @@ export const getAllLegalMoves = (
       square,
       player,
       enPassantSquare,
-      castlingRights
+      castlingRights,
+      oppAttackMask,
+      pinnedMask,
+      getRayMask,
     );
 
-    
     const legalPieceMoves = filterIllegalMoves(
       bitboards,
       pieceMoves,
