@@ -1,10 +1,17 @@
+import { bitScanForward } from "../bbUtils";
 import {
   BLACK,
+  BLACK_BISHOP,
+  BLACK_QUEEN,
+  BLACK_ROOK,
   FILE_A_MASK,
   FILE_H_MASK,
   RANK_1_MASK,
   RANK_8_MASK,
   WHITE,
+  WHITE_BISHOP,
+  WHITE_QUEEN,
+  WHITE_ROOK,
 } from "../constants";
 import { slide } from "../generalHelpers";
 import {
@@ -13,6 +20,10 @@ import {
 } from "../moveMaking/castleMoveLogic";
 import { getAllPieces, getPlayerBoard } from "../pieceGetters";
 import { kingMasks } from "../PieceMasks/kingMask";
+import {
+  getBishopAttacksForSquare,
+  getRookAttacksForSquare,
+} from "./slidingPieceAttacks";
 
 /**
  * Gets the move bitboard for a rook.
@@ -107,15 +118,15 @@ export const getKingMovesForSquare = (
   oppAttackMask,
   castlingRights = null
 ) => {
-  let moves = kingMasks[from];
-  const isPlayerWhite = player === WHITE;
-
   const friendlyPieces = getPlayerBoard(player, bitboards);
+  let moves = kingMasks[from] & ~friendlyPieces;
+  const isWhite = player === WHITE;
+
   const occupancy = getAllPieces(bitboards);
 
   /* CASTLING */
   if (castlingRights) {
-    if (isPlayerWhite) {
+    if (isWhite) {
       if (
         castlingRights.whiteKingside &&
         isKingsideCastleLegal(WHITE, oppAttackMask, occupancy)
@@ -144,6 +155,37 @@ export const getKingMovesForSquare = (
     }
   }
 
-  // Remove squares occupied by own pieces & those attacked by the enemy
-  return moves & ~friendlyPieces & ~oppAttackMask;
+  const kingMask = 1n << BigInt(from);
+  if (kingMask & oppAttackMask) {
+    let dest = moves;
+    while (dest) {
+      const to = bitScanForward(dest);
+      const toMask = 1n << BigInt(to);
+      dest &= dest - 1n;
+
+      let occ2 = occupancy;
+
+      // Move king to new square
+      occ2 &= ~kingMask;
+      occ2 |= toMask;
+
+      const orthAttacks =
+        getRookAttacksForSquare(occ2, to) &
+        (isWhite
+          ? bitboards[BLACK_ROOK] | bitboards[BLACK_QUEEN]
+          : bitboards[WHITE_ROOK] | bitboards[WHITE_QUEEN]);
+      const diagAttacks =
+        getBishopAttacksForSquare(occ2, to) &
+        (isWhite
+          ? bitboards[BLACK_BISHOP] | bitboards[BLACK_QUEEN]
+          : bitboards[WHITE_BISHOP] | bitboards[WHITE_QUEEN]);
+
+      if (orthAttacks || diagAttacks) {
+        moves &= ~toMask;
+      }
+    }
+  }
+
+  // Remove squares attacked by the enemy
+  return moves & ~oppAttackMask;
 };

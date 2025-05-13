@@ -29,7 +29,7 @@ export function perft(board, player, castling, ep, prevAttackHash, depth) {
 
     // New game states
     const newEp = getNewEnPassant(move);
-    const newCastling = updateCastlingRights(move.from, castling);
+    const newCastling = updateCastlingRights(move.from, move.to, castling);
 
     const attackHash = updateAttackMaskHash(
       board,
@@ -66,7 +66,7 @@ export function perftDivide(
     
     // New game states
     const newEp = getNewEnPassant(move);
-    const newCastling = updateCastlingRights(move.from, castling);
+    const newCastling = updateCastlingRights(move.from, move.to, castling);
     
     const attackHash = updateAttackMaskHash(
       board,

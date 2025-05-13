@@ -27,10 +27,11 @@ import { bigIntFullRep } from "../generalHelpers";
  * Because they always start at squares 0, 4, 7, 56, 60, and 63; any move from these squares means the rights need to be updated.
  *
  * @param {number} from - the square the piece is moving from
+ * @param {number} to - the square the piece is moving to
  * @param {CastlingRights} prevRights - the rights to update. Has fields whiteKingside, whiteQueenside, blackKingside, blackQueenside
  * @returns {CastlingRights} the new castling rights
  */
-export const updateCastlingRights = (from, prevRights) => {
+export const updateCastlingRights = (from, to, prevRights) => {
   const newRights = { ...prevRights };
 
   // If a king moves, it loses castling rights
@@ -42,11 +43,11 @@ export const updateCastlingRights = (from, prevRights) => {
     newRights.blackQueenside = false;
   }
 
-  // If rooks move, disable their respective castling
-  else if (from === 0) newRights.whiteQueenside = false;
-  else if (from === 7) newRights.whiteKingside = false;
-  else if (from === 56) newRights.blackQueenside = false;
-  else if (from === 63) newRights.blackKingside = false;
+  // If rooks move or are captured, disable their respective castling
+  else if (from === 0 || to === 0) newRights.whiteQueenside = false;
+  else if (from === 7 || to === 7) newRights.whiteKingside = false;
+  else if (from === 56 || to === 56) newRights.blackQueenside = false;
+  else if (from === 63 || to === 63) newRights.blackKingside = false;
 
   return newRights;
 };
