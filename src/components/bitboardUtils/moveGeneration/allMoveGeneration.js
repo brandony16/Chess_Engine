@@ -1,22 +1,5 @@
 import { bitScanForward, isKing, popcount } from "../bbUtils";
-import {
-  BLACK,
-  BLACK_BISHOP,
-  BLACK_KING,
-  BLACK_KNIGHT,
-  BLACK_PAWN,
-  BLACK_QUEEN,
-  BLACK_ROOK,
-  WHITE,
-  WHITE_BISHOP,
-  WHITE_KING,
-  WHITE_KNIGHT,
-  WHITE_PAWN,
-  WHITE_QUEEN,
-  WHITE_ROOK,
-} from "../constants";
-import { bitboardsToFEN } from "../FENandUCIHelpers";
-import { bigIntFullRep } from "../generalHelpers";
+import * as C from "../constants";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic";
 import { getPieceAtSquare, getPlayerBoard } from "../pieceGetters";
 import { getCachedAttackMask } from "../PieceMasks/attackMask";
@@ -66,8 +49,8 @@ export const getPieceMoves = (
 ) => {
   let moves = null;
   switch (piece) {
-    case WHITE_PAWN:
-    case BLACK_PAWN:
+    case C.WHITE_PAWN:
+    case C.BLACK_PAWN:
       moves = getPawnMovesForSquare(
         bitboards,
         player,
@@ -77,12 +60,12 @@ export const getPieceMoves = (
         getRayMask
       );
       break;
-    case WHITE_KNIGHT:
-    case BLACK_KNIGHT:
+    case C.WHITE_KNIGHT:
+    case C.BLACK_KNIGHT:
       moves = getKnightMovesForSquare(bitboards, player, from, pinnedMask);
       break;
-    case WHITE_BISHOP:
-    case BLACK_BISHOP:
+    case C.WHITE_BISHOP:
+    case C.BLACK_BISHOP:
       moves = getBishopMovesForSquare(
         bitboards,
         player,
@@ -91,8 +74,8 @@ export const getPieceMoves = (
         getRayMask
       );
       break;
-    case WHITE_ROOK:
-    case BLACK_ROOK:
+    case C.WHITE_ROOK:
+    case C.BLACK_ROOK:
       moves = getRookMovesForSquare(
         bitboards,
         player,
@@ -101,8 +84,8 @@ export const getPieceMoves = (
         getRayMask
       );
       break;
-    case WHITE_QUEEN:
-    case BLACK_QUEEN:
+    case C.WHITE_QUEEN:
+    case C.BLACK_QUEEN:
       moves = getQueenMovesForSquare(
         bitboards,
         player,
@@ -111,8 +94,8 @@ export const getPieceMoves = (
         getRayMask
       );
       break;
-    case WHITE_KING:
-    case BLACK_KING:
+    case C.WHITE_KING:
+    case C.BLACK_KING:
       moves = getKingMovesForSquare(
         bitboards,
         player,
@@ -147,12 +130,12 @@ export const getAllLegalMoves = (
 ) => {
   let allMoves = [];
 
-  const isWhite = player === WHITE;
-  const opponent = isWhite ? BLACK : WHITE;
+  const isWhite = player === C.WHITE;
+  const opponent = isWhite ? C.BLACK : C.WHITE;
   const oppAttackMask = getCachedAttackMask(bitboards, opponent, opponentHash);
   const pinnedMask = computePinned(bitboards, player);
 
-  const kingBB = isWhite ? bitboards[WHITE_KING] : bitboards[BLACK_KING];
+  const kingBB = isWhite ? bitboards[C.WHITE_KING] : bitboards[C.BLACK_KING];
   const kingSq = bitScanForward(kingBB);
   const getRayMask = makePinRayMaskGenerator(kingSq);
   let kingCheckMask = ~0n;
@@ -176,7 +159,7 @@ export const getAllLegalMoves = (
         bitboards,
         kingMoves,
         kingSq,
-        isWhite ? WHITE_KING : BLACK_KING,
+        isWhite ? C.WHITE_KING : C.BLACK_KING,
         enPassantSquare,
         player
       );
@@ -186,7 +169,7 @@ export const getAllLegalMoves = (
     const oppSq = bitScanForward(checkers);
 
     // If a knight check, need to catpure it (or move king)
-    if (getPieceAtSquare(oppSq, bitboards) % 6 == WHITE_KNIGHT) {
+    if (getPieceAtSquare(oppSq, bitboards) % 6 == C.WHITE_KNIGHT) {
       kingCheckMask = checkers;
     } else {
       const rayMask = getRayBetween(kingSq, oppSq);
@@ -200,11 +183,10 @@ export const getAllLegalMoves = (
     pieces &= pieces - 1n;
 
     const piece = getPieceAtSquare(square, bitboards);
-    const formattedPiece = piece % 6;
 
     const pieceMoves = getPieceMoves(
       bitboards,
-      formattedPiece,
+      piece,
       square,
       player,
       enPassantSquare,

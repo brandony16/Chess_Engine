@@ -4,8 +4,8 @@ import { checkGameOver } from "../../bitboardUtils/gameOverLogic";
 import { getQuiescenceMoves } from "../../bitboardUtils/moveGeneration/quiescenceMoves/quiescenceMoves";
 import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic";
 import {
+  makeMove,
   unMakeMove,
-  updatedMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic";
 import { getPieceAtSquare } from "../../bitboardUtils/pieceGetters";
 import { updateAttackMaskHash } from "../../bitboardUtils/PieceMasks/attackMask";
@@ -89,7 +89,7 @@ export const quiesce = (
 
   const opponent = player === WHITE ? BLACK : WHITE;
   for (const move of captures) {
-    updatedMakeMove(bitboards, move);
+    makeMove(bitboards, move);
     const newEnPassant = getNewEnPassant(move);
     const newCastling = updateCastlingRights(move.from, castlingRights);
     const newAttackHash = updateAttackMaskHash(

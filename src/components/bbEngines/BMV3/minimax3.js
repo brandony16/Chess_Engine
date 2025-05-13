@@ -1,8 +1,8 @@
 import { bigIntFullRep } from "../../bitboardUtils/generalHelpers";
 import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic";
 import {
+  makeMove,
   unMakeMove,
-  updatedMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic";
 import {
   getCachedAttackMask,
@@ -173,7 +173,7 @@ export const minimax3 = (
     for (const move of orderedMoves) {
       const from = move.from;
 
-      updatedMakeMove(bitboards, move);
+      makeMove(bitboards, move);
 
       // New game states
       const newEnPassant = getNewEnPassant(move);
@@ -258,7 +258,7 @@ export const minimax3 = (
     for (const move of orderedMoves) {
       const from = move.from;
 
-      updatedMakeMove(bitboards, move);
+      makeMove(bitboards, move);
 
       // New game states
       const newEnPassant = getNewEnPassant(move);

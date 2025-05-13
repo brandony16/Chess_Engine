@@ -1,4 +1,3 @@
-import { filterIllegalMoves } from "../bbChessLogic";
 import { bitScanForward, isKing, isSliding } from "../bbUtils";
 import {
   BLACK_PAWN,
@@ -7,8 +6,7 @@ import {
   WHITE_PAWN,
   WHITE_PROMO_PIECES,
 } from "../constants";
-import { getPieceMoves } from "../moveGeneration/allMoveGeneration";
-import { getPieceAtSquare, isPlayersPieceAtSquare } from "../pieceGetters";
+import { getPieceAtSquare } from "../pieceGetters";
 import {
   computeMaskForPiece,
   individualAttackMasks,
@@ -118,56 +116,15 @@ export const unMakeMove = (move, bitboards) => {
 };
 
 /**
- * Determines whether a given move is legal.
+ * Function that turns move info into a move object.
  *
- * @param {BigUint64Array} bitboards - bitboards of the current position
- * @param {number} from - the square to move from
- * @param {number} to - the square to move to
- * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {number} enPassantSquare
- *                the square where enPassant can happen, if any
- * @param {CastlingRights} castlingRights - the castling rights
- * @returns {boolean} - if the move is legal
+ * @param {BigUint64Array} bitboards - the bitboards of the position
+ * @param {number} from - the square moving from
+ * @param {number} to - the square moving to
+ * @param {number} piece - the index of the piece
+ * @param {number} enPassantSquare - the square where en passant is legal
+ * @returns {Move} - the move object
  */
-export const isValidMove = (
-  bitboards,
-  from,
-  to,
-  player,
-  enPassantSquare = null,
-  castlingRights
-) => {
-  // If the final square is one of the player's pieces, then it is not valid
-  // Cannot capture your own piece
-  if (isPlayersPieceAtSquare(player, to, bitboards)) {
-    return false;
-  }
-
-  // Get the piece type then convert it to 'P', 'N', 'B', 'R', 'Q', or 'K'
-  const piece = getPieceAtSquare(from, bitboards);
-  if (piece === null) return false;
-
-  // Dont care about color, so if piece is bigger than 5, subtract 6 as that is how
-  // many distinct pieces each side has
-  const formattedPiece = piece % 6;
-
-  const pieceMoves = getPieceMoves(
-    bitboards,
-    formattedPiece,
-    from,
-    player,
-    enPassantSquare,
-    castlingRights
-  );
-  const legalMoves = filterIllegalMoves(bitboards, pieceMoves, from, player);
-
-  for (const move of legalMoves) {
-    if (move.to === to) return true;
-  }
-
-  return false;
-};
-
 export const getMove = (bitboards, from, to, piece, enPassantSquare) => {
   const isWhite = piece <= 5;
   const castling = isKing(piece) && Math.abs(from - to) === 2;
@@ -182,6 +139,16 @@ export const getMove = (bitboards, from, to, piece, enPassantSquare) => {
   return move;
 };
 
+/**
+ *
+ * @param {BigUint64Array} bitboards - the bitboards of the position
+ * @param {bigint} bitboard - the move bitboard
+ * @param {number} from - the square moving from
+ * @param {number} piece - the index of the piece
+ * @param {number} enPassantSquare - the square where en passant is legal
+ * @param {0 | 1} player - whose move it is (0 for w, 1 for b)
+ * @returns {Array<Move>} - an array of move objects
+ */
 export const getMovesFromBB = (
   bitboards,
   bitboard,

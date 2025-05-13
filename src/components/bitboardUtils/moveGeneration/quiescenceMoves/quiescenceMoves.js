@@ -1,5 +1,8 @@
-import { WHITE } from "../../constants";
+import { bitScanForward } from "../../bbUtils";
+import { BLACK_KING, WHITE, WHITE_KING } from "../../constants";
 import { getBlackPieces, getWhitePieces } from "../../pieceGetters";
+import { getCachedAttackMask } from "../../PieceMasks/attackMask";
+import { computePinned, makePinRayMaskGenerator } from "../computePinned";
 import {
   kingQuiescence,
   queenQuiescence,
@@ -19,33 +22,28 @@ export const getQuiescenceMoves = (
 ) => {
   const moves = [];
 
-  const opponentPieces =
-    player === WHITE ? getBlackPieces(bitboards) : getWhitePieces(bitboards);
+  const isWhite = player === WHITE;
+  const oppPieces = isWhite
+    ? getBlackPieces(bitboards)
+    : getWhitePieces(bitboards);
+  const oppAttackMask = getCachedAttackMask(bitboards, player, oppAttackHash);
+  const pinnedMask = computePinned(bitboards, player);
 
+  const kingSq = bitScanForward(bitboards[isWhite ? WHITE_KING : BLACK_KING]);
+  const getRayMask = makePinRayMaskGenerator(kingSq);
+
+  moves.concat(pawnQuiescence(bitboards, player, oppPieces, enPassantSquare));
+  moves.concat(knightQuiescence(bitboards, player, oppPieces, pinnedMask));
   moves.concat(
-    pawnQuiescence(
-      bitboards,
-      player,
-      opponentPieces,
-      enPassantSquare,
-      oppAttackHash
-    )
+    bishopQuiescence(bitboards, player, oppPieces, pinnedMask, getRayMask)
   );
   moves.concat(
-    knightQuiescence(bitboards, player, opponentPieces, oppAttackHash)
+    rookQuiescence(bitboards, player, oppPieces, pinnedMask, getRayMask)
   );
   moves.concat(
-    bishopQuiescence(bitboards, player, opponentPieces, oppAttackHash)
+    queenQuiescence(bitboards, player, oppPieces, pinnedMask, getRayMask)
   );
-  moves.concat(
-    rookQuiescence(bitboards, player, opponentPieces, oppAttackHash)
-  );
-  moves.concat(
-    queenQuiescence(bitboards, player, opponentPieces, oppAttackHash)
-  );
-  moves.concat(
-    kingQuiescence(bitboards, player, opponentPieces, oppAttackHash)
-  );
+  moves.concat(kingQuiescence(bitboards, player, oppPieces, oppAttackMask));
 
   return moves;
 };

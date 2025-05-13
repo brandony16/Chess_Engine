@@ -58,7 +58,7 @@ export const checkGameOver = (
   }
 
   // If player has no moves it is stalemate or checkmate
-  if (!hasLegalMove(bitboards, opponent, enPassantSquare)) {
+  if (!hasLegalMove(bitboards, opponent, null, enPassantSquare)) {
     result.isGameOver = true;
 
     if (isSquareAttacked(bitboards, kingSquare, player, attackHash)) {

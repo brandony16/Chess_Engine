@@ -1,23 +1,23 @@
-import { bitScanForward } from "./bbUtils";
-import {
-  getCachedAttackMask,
-  updateAttackMaskHash,
-} from "./PieceMasks/attackMask";
-import { getMove, unMakeMove, makeMove } from "./moveMaking/makeMoveLogic";
+import { bitScanForward, isKing, popcount } from "./bbUtils";
+import { getCachedAttackMask } from "./PieceMasks/attackMask";
 import { getPieceAtSquare, getPlayerBoard } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
 import {
   BLACK,
   BLACK_KING,
   BLACK_PAWN,
-  BLACK_PROMO_PIECES,
   WHITE,
   WHITE_KING,
+  WHITE_KNIGHT,
   WHITE_PAWN,
-  WHITE_PROMO_PIECES,
 } from "./constants";
-import { bigIntFullRep } from "./generalHelpers";
-import { blackPawnMasks } from "./PieceMasks/pawnMask";
+
+import {
+  computePinned,
+  makePinRayMaskGenerator,
+} from "./moveGeneration/computePinned";
+import { getCheckers, getRayBetween } from "./moveGeneration/checkersMask";
+import { getKingMovesForSquare } from "./moveGeneration/majorPieceMoveGeneration";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -59,114 +59,89 @@ export const isInCheck = (bitboards, player) => {
 };
 
 /**
- * Filters out illegal moves from a bitboard of moves for a piece.
- * Mainly filters out moves that put your own king in check.
+ * Determines if a player has a legal move. Same logic as getAllLegalMoves, but
+ * it breaks whenever it finds a piece that has moves.
  *
- * @param {BigUint64Array} bitboards - bitboards of the current position
- * @param {bigint} moves - bitboard of moves for a piece
- * @param {number} from - square the piece is moving from
- * @param {number} player - whose move it is (0 for w, 1 for b)
- * @param {bigint} opponentHash - an attack hash for the position
- * @returns {Array<Move>} the filtered moves
+ * @param {BigUint64Array} bitboards - the bitboards of the current position
+ * @param {number} player - the player whose move it is (0 for w, 1 for b)
+ * @param {CastlingRights} castlingRights - the castling rights
+ * @param {number} enPassantSquare - the square where en passant is legal
+ * @param {bigint} opponentHash - A hash for the opponents attack map
+ * @returns {boolean} if the player has a legal move
  */
-export const filterIllegalMoves = (
+export const hasLegalMove = (
   bitboards,
-  moves,
-  from,
   player,
+  castlingRights,
   enPassantSquare,
   opponentHash = null
 ) => {
-  let filteredMoves = [];
-  const isPlayerWhite = player === WHITE;
-  const opponent = isPlayerWhite ? BLACK : WHITE;
-  const one = 1n;
-  const piece = getPieceAtSquare(from, bitboards);
+  const isWhite = player === WHITE;
+  const opponent = isWhite ? BLACK : WHITE;
+  const oppAttackMask = getCachedAttackMask(bitboards, opponent, opponentHash);
+  const pinnedMask = computePinned(bitboards, player);
 
-  const promotionFromRank = isPlayerWhite ? 6 : 1;
-  const row = Math.floor(from / 8);
-  const isPromotion = row === promotionFromRank && piece % 6 === WHITE_PAWN;
+  const kingBB = isWhite ? bitboards[WHITE_KING] : bitboards[BLACK_KING];
+  const kingSq = bitScanForward(kingBB);
+  const getRayMask = makePinRayMaskGenerator(kingSq);
+  let kingCheckMask = ~0n;
 
-  // Iterate only over moves that are set (i.e. bits that are 1)
-  let remainingMoves = moves;
-  while (remainingMoves !== 0n) {
-    const to = bitScanForward(remainingMoves);
-    remainingMoves &= remainingMoves - one;
+  // If king is in check
+  if (oppAttackMask & (1n << BigInt(kingSq))) {
+    const checkers = getCheckers(bitboards, player, kingSq);
+    const numCheck = popcount(checkers);
 
-    const move = getMove(bitboards, from, to, piece, enPassantSquare);
-
-    // Simulate the move and check if the king is attacked
-    makeMove(bitboards, move);
-    const kingBB = bitboards[isPlayerWhite ? WHITE_KING : BLACK_KING];
-    const kingSquare = bitScanForward(kingBB);
-    let newHash = null;
-    if (opponentHash) {
-      newHash = updateAttackMaskHash(
+    // Double check, only king moves are possible
+    if (numCheck > 1) {
+      const kingMoves = getKingMovesForSquare(
         bitboards,
-        opponentHash,
-        move,
-        opponent,
-        getNewEnPassant(move),
-        true
+        player,
+        kingSq,
+        oppAttackMask,
+        castlingRights
       );
+
+      return kingMoves !== 0n;
     }
 
-    if (!isSquareAttacked(bitboards, kingSquare, opponent, newHash)) {
-      if (isPromotion) {
-        const promoPieces = isPlayerWhite
-          ? WHITE_PROMO_PIECES
-          : BLACK_PROMO_PIECES;
-        for (const promoPiece of promoPieces) {
-          const promoMove = move.copyWith({ promotion: promoPiece });
-          filteredMoves.push(promoMove);
-        }
-      } else {
-        filteredMoves.push(move);
-      }
+    // Single check
+    const oppSq = bitScanForward(checkers);
+
+    // If a knight check, need to catpure it (or move king)
+    if (getPieceAtSquare(oppSq, bitboards) % 6 == WHITE_KNIGHT) {
+      kingCheckMask = checkers;
+    } else {
+      const rayMask = getRayBetween(kingSq, oppSq);
+      kingCheckMask = rayMask | checkers;
     }
-    unMakeMove(move, bitboards);
   }
 
-  return filteredMoves;
-};
-
-/**
- * Determines if a given player has a legal move.
- *
- * @param {BigUint64Array} bitboards - the bitboards of the position
- * @param {number} player - whose move it is (0 for w, 1 for b)
- * @param {number} enPassantSquare - the square where en passant is legal. Null if none
- * @returns {boolean} if the player has a legal move.
- */
-export const hasLegalMove = (bitboards, player, enPassantSquare) => {
-  const playerPieces = getPlayerBoard(player, bitboards);
-
-  let pieces = playerPieces;
+  let pieces = getPlayerBoard(player, bitboards);
   while (pieces !== 0n) {
-    const sq = bitScanForward(pieces);
+    const square = bitScanForward(pieces);
     pieces &= pieces - 1n;
 
-    const piece = getPieceAtSquare(sq, bitboards);
+    const piece = getPieceAtSquare(square, bitboards);
 
-    const moves = getPieceMoves(
+    const pieceMoves = getPieceMoves(
       bitboards,
-      piece % 6,
-      sq,
+      piece,
+      square,
       player,
       enPassantSquare,
-      null // Never a case where castling is the only king move
+      castlingRights,
+      oppAttackMask,
+      pinnedMask,
+      getRayMask
     );
 
-    const filtered = filterIllegalMoves(
-      bitboards,
-      moves,
-      sq,
-      player,
-      enPassantSquare
-    );
+    const legalMoves = isKing(piece) ? pieceMoves : pieceMoves & kingCheckMask;
 
-    if (filtered.length > 0) return true;
+    if (legalMoves !== 0n) {
+      return true;
+    }
   }
+
   return false;
 };
 

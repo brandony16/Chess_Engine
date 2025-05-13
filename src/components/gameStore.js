@@ -60,7 +60,7 @@ export const useGameStore = create((set, get) => ({
         result: gameOverObj.result,
         pastMoves: [...state.pastMoves, moveNotation],
         enPassantSquare: getNewEnPassant(move),
-        castlingRights: updateCastlingRights(move.from, state.castlingRights),
+        castlingRights: updateCastlingRights(move.from, move.to, state.castlingRights),
         selectedSquare: null,
         moveBitboard: null,
         pastPositions: (() => {

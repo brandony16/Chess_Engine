@@ -4,10 +4,7 @@ import Sidebar from "./sidebar/Sidebar";
 import "./UI.css";
 import BitboardBoard from "./boardComponents/BitboardBoard";
 import { getCachedAttackMask } from "./bitboardUtils/PieceMasks/attackMask";
-import {
-  isValidMove,
-  updatedMakeMove,
-} from "./bitboardUtils/moveMaking/makeMoveLogic";
+import { makeMove } from "./bitboardUtils/moveMaking/makeMoveLogic";
 import { computeHash } from "./bitboardUtils/zobristHashing";
 import { checkGameOver } from "./bitboardUtils/gameOverLogic";
 import { movesToBB, moveToReadable } from "./bitboardUtils/generalHelpers";
@@ -15,11 +12,8 @@ import {
   getPieceAtSquare,
   isPlayersPieceAtSquare,
 } from "./bitboardUtils/pieceGetters";
-import { getPieceMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration";
-import {
-  filterIllegalMoves,
-  getNewEnPassant,
-} from "./bitboardUtils/bbChessLogic";
+import { getAllLegalMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration";
+import { getNewEnPassant } from "./bitboardUtils/bbChessLogic";
 import { useGameStore } from "./gameStore";
 import Modal from "./modals/Modal";
 import {
@@ -30,7 +24,10 @@ import {
 import { computeAllAttackMasks } from "./bitboardUtils/PieceMasks/individualAttackMasks";
 import Move from "./bitboardUtils/moveMaking/move";
 import { isKing } from "./bitboardUtils/bbUtils";
-import { getOpeningMoves, squareToIndex } from "./bitboardUtils/FENandUCIHelpers";
+import {
+  getOpeningMoves,
+  squareToIndex,
+} from "./bitboardUtils/FENandUCIHelpers";
 
 // Runs the game
 const BitboardGame = () => {
@@ -94,7 +91,7 @@ const BitboardGame = () => {
     const from = bestMove.from;
     const to = bestMove.to;
     const promotion = bestMove.promotion;
-    
+
     processMove(from, to, promotion);
   };
 
@@ -134,7 +131,7 @@ const BitboardGame = () => {
       castling,
       enPassant
     );
-    updatedMakeMove(bitboards, move);
+    makeMove(bitboards, move);
     const newEnPassant = getNewEnPassant(move);
 
     const hash = computeHash(
@@ -191,28 +188,18 @@ const BitboardGame = () => {
     // Sets a selected square and gets the move bitboard for that piece
     if (isPlayersPieceAtSquare(currPlayer, square, bitboards)) {
       useGameStore.setState({ selectedSquare: square });
-      const piece = getPieceAtSquare(square, bitboards);
 
-      const moveBitboard = getPieceMoves(
+      const moves = getAllLegalMoves(
         bitboards,
-        piece % 6, // normalizes piece to be between 0 and 5
-        square,
         currPlayer,
-        enPassantSquare,
-        castlingRights
+        castlingRights,
+        enPassantSquare
       );
 
-      const filteredMoves = filterIllegalMoves(
-        bitboards,
-        moveBitboard,
-        square,
-        currPlayer
-      );
-
-      const filteredMoveBitboard = movesToBB(filteredMoves);
+      const moveBB = movesToBB(moves.filter((a) => a.from === square));
 
       useGameStore.setState({
-        moveBitboard: filteredMoveBitboard,
+        moveBitboard: moveBB,
         promotion: false,
         promotionMove: null,
       });
@@ -221,16 +208,10 @@ const BitboardGame = () => {
 
     // Handles when a move is being made.
     if (selectedSquare !== null) {
-      if (
-        isValidMove(
-          bitboards,
-          selectedSquare,
-          square,
-          currPlayer,
-          enPassantSquare,
-          castlingRights
-        )
-      ) {
+      const moveBitboard = useGameStore.getState().moveBitboard;
+      const mask = 1n << BigInt(square);
+
+      if (moveBitboard & mask) {
         const piece = getPieceAtSquare(selectedSquare, bitboards);
 
         // Promotion
@@ -281,7 +262,7 @@ const BitboardGame = () => {
 
       processMove(from, to, promotion);
     }
-  }
+  };
 
   /**
    * Changes what move is visible to the user. The direction should be -1 or 1

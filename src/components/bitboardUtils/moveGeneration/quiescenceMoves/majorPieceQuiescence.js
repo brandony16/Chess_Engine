@@ -1,4 +1,3 @@
-import { filterIllegalMoves } from "../../bbChessLogic";
 import { bitScanForward } from "../../bbUtils";
 import {
   BLACK_KING,
@@ -9,12 +8,12 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../../constants";
-import { kingMasks } from "../../PieceMasks/kingMask";
+import { getMovesFromBB } from "../../moveMaking/makeMoveLogic";
 import {
-  getQueenAttacksForSquare,
-  getRookAttacksForSquare,
-} from "../slidingPieceAttacks";
-
+  getKingMovesForSquare,
+  getQueenMovesForSquare,
+  getRookMovesForSquare,
+} from "../majorPieceMoveGeneration";
 /**
  * Gets the quiescence moves for a rook.
  * @param {BigUint64Array} bitboards - the bitboards in the current position
@@ -27,7 +26,8 @@ export const rookQuiescence = (
   bitboards,
   player,
   opponentPieces,
-  oppAttackHash
+  pinnedMask,
+  getRayMask
 ) => {
   const moves = [];
 
@@ -40,16 +40,18 @@ export const rookQuiescence = (
     const from = bitScanForward(rookBB);
     rookBB &= rookBB - 1n;
 
-    let moveBB = getRookAttacksForSquare(bitboards, from) & opponentPieces;
-    const rookMoves = filterIllegalMoves(
+    let moveBB =
+      getRookMovesForSquare(bitboards, player, from, pinnedMask, getRayMask) &
+      opponentPieces;
+
+    const rookMoves = getMovesFromBB(
       bitboards,
       moveBB,
       from,
-      player,
-      null, // En passant square
-      oppAttackHash
+      piece,
+      null,
+      player
     );
-
     moves.concat(rookMoves);
   }
 
@@ -68,7 +70,8 @@ export const queenQuiescence = (
   bitboards,
   player,
   opponentPieces,
-  oppAttackHash
+  pinnedMask,
+  getRayMask
 ) => {
   const moves = [];
 
@@ -81,16 +84,18 @@ export const queenQuiescence = (
     const from = bitScanForward(queenBB);
     queenBB &= queenBB - 1n;
 
-    let moveBB = getQueenAttacksForSquare(bitboards, from) & opponentPieces;
-    const queenMoves = filterIllegalMoves(
+    let moveBB =
+      getQueenMovesForSquare(bitboards, player, from, pinnedMask, getRayMask) &
+      opponentPieces;
+
+    const queenMoves = getMovesFromBB(
       bitboards,
       moveBB,
       from,
-      player,
+      piece,
       null,
-      oppAttackHash
+      player
     );
-
     moves.concat(queenMoves);
   }
 
@@ -102,14 +107,14 @@ export const queenQuiescence = (
  * @param {BigUint64Array} bitboards - the bitboards in the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {bigint} opponentPieces - a bitboard of the opponents positions
- * @param {bigint} oppAttackHash - the hash of the opponents attack map
+ * @param {bigint} oppAttackMask - the opponents attack mask
  * @returns {bigint} the move bitboard for the bishop
  */
 export const kingQuiescence = (
   bitboards,
   player,
   opponentPieces,
-  oppAttackHash
+  oppAttackMask
 ) => {
   const moves = [];
 
@@ -119,14 +124,17 @@ export const kingQuiescence = (
   const from = bitScanForward(kingBB);
 
   // Get raw king captures
-  let moveBB = kingMasks[from] & opponentPieces;
-  const kingMoves = filterIllegalMoves(
+  let moveBB =
+    getKingMovesForSquare(bitboards, player, from, oppAttackMask) &
+    opponentPieces;
+
+  const kingMoves = getMovesFromBB(
     bitboards,
     moveBB,
     from,
-    player,
+    piece,
     null,
-    oppAttackHash
+    player
   );
 
   moves.concat(kingMoves);
