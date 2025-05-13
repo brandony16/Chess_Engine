@@ -5,6 +5,7 @@ import {
   WHITE_KING,
   WHITE_ROOK,
 } from "../constants";
+import { bigIntFullRep } from "../generalHelpers";
 
 /**
  * @typedef {object} CastlingRights
@@ -56,9 +57,10 @@ export const updateCastlingRights = (from, prevRights) => {
  *
  * @param {number} player - the player who is castling (0 for w, 1 for b)
  * @param {bigint} attackMask - the attack mask for the other player
+ * @param {bigint} occ - the occupancy bitboard
  * @returns {boolean} whether the player can castle kingside
  */
-export const isKingsideCastleLegal = (player, attackMask) => {
+export const isKingsideCastleLegal = (player, attackMask, occ) => {
   let squares;
   if (player === WHITE) {
     squares = [4, 5, 6];
@@ -68,7 +70,13 @@ export const isKingsideCastleLegal = (player, attackMask) => {
 
   for (const square of squares) {
     const mask = 1n << BigInt(square);
+    // Square isnt attacked
     if (attackMask & mask) {
+      return false;
+    }
+
+    // Square isnt occupied, unless its the king square
+    if (mask & occ && (player === WHITE ? square !== 4 : square !== 60)) {
       return false;
     }
   }
@@ -81,9 +89,10 @@ export const isKingsideCastleLegal = (player, attackMask) => {
  *
  * @param {number} player - the player who is castling (0 for w, 1 for b)
  * @param {bigint} attackMask - the attack mask for the other player
+ * @param {bigint} occ - the occupancy bitboard
  * @returns {boolean} whether the player can castle queenside
  */
-export const isQueensideCastleLegal = (player, attackMap) => {
+export const isQueensideCastleLegal = (player, attackMask, occ) => {
   let squares;
   if (player === WHITE) {
     squares = [2, 3, 4];
@@ -93,7 +102,13 @@ export const isQueensideCastleLegal = (player, attackMap) => {
 
   for (const square of squares) {
     const mask = 1n << BigInt(square);
-    if (attackMap & mask) {
+    // Square isnt attacked
+    if (attackMask & mask) {
+      return false;
+    }
+
+    // Square isnt occupied, unless its the king square
+    if (mask & occ && (player === WHITE ? square !== 4 : square !== 60)) {
       return false;
     }
   }

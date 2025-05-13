@@ -101,10 +101,11 @@ export const getPawnMovesForSquare = (
     const kingSq = bitScanForward(bitboards[isWhite ? WHITE_KING : BLACK_KING]);
 
     const kingFile = kingSq % 8;
-    const epFile = enPassantSquare % 8;
-    const df = kingFile - epFile;
+    const kingRow = (kingSq - kingFile) / 8;
+    const dr = kingRow - Math.floor(from / 8);
 
-    if (df === 0) {
+
+    if (dr === 0) {
       const to = enPassantSquare;
       const capSq = isWhite ? to - 8 : to + 8;
       const capMask = 1n << BigInt(capSq);

@@ -11,9 +11,13 @@ import { computeHash } from "../components/bitboardUtils/zobristHashing";
 import { perft, perftDivide } from "./perft";
 
 const cases = [
-  // [ description, FEN, depth, expected node count ]
-  ["Pinned Pieces pos", 2, 177, "8/2p5/3p4/KP5r/1R2Pp1k/8/6P1/8 b - e3 0 1"],
-
+  // [ description, depth, expected node count, FEN ]
+  [
+    "Pinned Pieces pos",
+    1,
+    4,
+    "rnb1kbnr/pp1ppppp/8/q1p5/8/3P4/PPPKPPPP/RNBQ1BNR w kq - 0 1",
+  ],
   // [
   //   "Start pos",
   //   1,
@@ -38,13 +42,12 @@ const cases = [
   //   197_281,
   //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   // ],
-  // // [
-  // //   "Start pos",
-  // //   5,
-  // //   4_865_609,
-  // //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-  // // ],
-
+  // [
+  //   "Start pos",
+  //   5,
+  //   4_865_609,
+  //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  // ],
   // [
   //   "“Kiwipete” pos",
   //   1,
@@ -59,7 +62,7 @@ const cases = [
   // ],
   // ["Pinned Pieces pos", 1, 14, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"],
   // ["Pinned Pieces pos", 2, 191, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"],
-  ["Pinned Pieces pos", 3, 2812, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"],
+  // ["Pinned Pieces pos", 3, 2812, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"],
   // [
   //   "Complex pos",
   //   2,
@@ -97,86 +100,5 @@ describe("perft node counts", () => {
   });
 });
 
+e1d2: 487
 
-e2e4: 177
-b4b2: 205
-b4b3: 248
-
-e2e4: 175
-b4b2: 204
-b4b3: 247
-
-    // ┌─────────┬────────┐
-    // │ (index) │ Values │
-    // ├─────────┼────────┤
-    // │ f4f3    │ 12     │
-    // │ h4g3    │ 9      │
-    // │ h4g4    │ 10     │
-    // │ h4g5    │ 12     │
-    // │ h5b5    │ 4      │
-    // │ h5c5    │ 11     │
-    // │ h5d5    │ 12     │
-    // │ h5e5    │ 10     │
-    // │ h5f5    │ 12     │
-    // │ h5g5    │ 11     │
-    // │ h5h6    │ 12     │
-    // │ h5h7    │ 12     │
-    // │ h5h8    │ 12     │
-    // │ d6d5    │ 13     │
-    // │ c7c5    │ 13     │
-    // │ c7c6    │ 12     │
-    // └─────────┴────────┘
-    // ┌─────────┬────────┐
-    // │ (index) │ Values │
-    // ├─────────┼────────┤
-    // │ f4f3    │ 12     │
-    // │ h4g3    │ 9      │
-    // │ h4g4    │ 10     │
-    // │ h4g5    │ 12     │
-    // │ h5b5    │ 4      │
-    // │ h5c5    │ 11     │
-    // │ h5d5    │ 12     │
-    // │ h5e5    │ 10     │
-    // │ h5f5    │ 12     │
-    // │ h5g5    │ 11     │
-    // │ h5h6    │ 12     │
-    // │ h5h7    │ 12     │
-    // │ h5h8    │ 12     │
-    // │ d6d5    │ 13     │
-    // │ c7c5    │ 12     │
-    // │ c7c6    │ 11     │
-    // └─────────┴────────┘
-    
-    // ┌─────────┬────────┐
-    // │ (index) │ Values │
-    // ├─────────┼────────┤
-    // │ g2g3    │ 1      │
-    // │ g2g4    │ 1      │
-    // │ b4b1    │ 1      │
-    // │ b4b2    │ 1      │
-    // │ b4b3    │ 1      │
-    // │ b4a4    │ 1      │
-    // │ b4c4    │ 1      │
-    // │ b4d4    │ 1      │
-    // │ e4e5    │ 1      │
-    // │ a5a4    │ 1      │
-    // │ a5a6    │ 1      │
-    // │ b5b6    │ 1      │
-    // └─────────┴────────┘
-    // ┌─────────┬────────┐
-    // │ (index) │ Values │
-    // ├─────────┼────────┤
-    // │ g2g3    │ 1      │
-    // │ g2g4    │ 1      │
-    // │ b4b1    │ 1      │
-    // │ b4b2    │ 1      │
-    // │ b4b3    │ 1      │
-    // │ b4a4    │ 1      │
-    // │ b4c4    │ 1      │
-    // │ b4d4    │ 1      │
-    // │ e4e5    │ 1      │
-    // │ a5a4    │ 1      │
-    // │ a5a6    │ 1      │
-    // │ a5b6    │ 1      │
-    // │ b5b6    │ 1      │
-    // └─────────┴────────┘

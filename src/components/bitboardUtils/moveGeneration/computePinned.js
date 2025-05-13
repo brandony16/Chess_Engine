@@ -45,7 +45,7 @@ export function computePinned(bitboards, player) {
         }
       }
       file += dir.df;
-      row += row.df;
+      row += dir.dr;
     }
   }
 
@@ -54,7 +54,7 @@ export function computePinned(bitboards, player) {
 
 /**
  * Determines if a piece on a given direction is an enemy piece that can move along the ray
- * 
+ *
  * @param {number} piece - the index of the piece
  * @param {{ df: number, dr: number}} dir - the direction
  * @param {boolean} isWhite - if the player is white
@@ -74,7 +74,8 @@ function isEnemySlider(piece, dir, isWhite) {
   }
   // Diagonal Rays
   if (
-    (dir.df !== 0 || dir.dr !== 0) &&
+    dir.df !== 0 &&
+    dir.dr !== 0 &&
     (type === C.WHITE_BISHOP || type === C.WHITE_QUEEN)
   ) {
     return true;
@@ -100,32 +101,28 @@ export function makePinRayMaskGenerator(kingSq) {
     const fRank = Math.floor(fromSq / 8);
 
     // delta from piece to king
-    const df = kFile - fFile;
-    const dr = kRank - fRank;
+    const df = fFile - kFile;
+    const dr = fRank - kRank;
 
     // normalize direction to -1, 0, or +1
     const normFile = df === 0 ? 0 : df / Math.abs(df);
     const normRow = dr === 0 ? 0 : dr / Math.abs(dr);
 
     // must be straight or diagonal
-    const isStraight = (normFile === 0 || normRow === 0);
+    const isStraight = normFile === 0 || normRow === 0;
     const isDiagonal = Math.abs(df) === Math.abs(dr);
     if (!(isStraight || isDiagonal)) return 0n;
 
-    // walk from the piece _towards_ the king, collecting squares
     let mask = 0n;
-    let curFile = fFile;
-    let curRank = fRank;
+    let curFile = kFile + normFile;
+    let curRank = kRank + normRow;
 
-    // include the piece’s own square
-    mask |= 1n << BigInt(fromSq);
-
-    // step until we hit the king
-    while (curFile !== kFile || curRank !== kRank) {
-      curFile += normFile;
-      curRank += normRow;
+    // step until the edge of the board
+    while (curFile >= 0 && curFile < 8 && curRank >= 0 && curRank < 8) {
       const sq = curRank * 8 + curFile;
       mask |= 1n << BigInt(sq);
+      curFile += normFile;
+      curRank += normRow;
     }
 
     return mask;

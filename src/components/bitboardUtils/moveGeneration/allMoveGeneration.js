@@ -1,4 +1,4 @@
-import { bitScanForward, popcount } from "../bbUtils";
+import { bitScanForward, isKing, popcount } from "../bbUtils";
 import {
   BLACK,
   BLACK_BISHOP,
@@ -15,6 +15,8 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../constants";
+import { bitboardsToFEN } from "../FENandUCIHelpers";
+import { bigIntFullRep } from "../generalHelpers";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic";
 import { getPieceAtSquare, getPlayerBoard } from "../pieceGetters";
 import { getCachedAttackMask } from "../PieceMasks/attackMask";
@@ -182,8 +184,14 @@ export const getAllLegalMoves = (
 
     // Single check
     const oppSq = bitScanForward(checkers);
-    const rayMask = getRayBetween(kingSq, oppSq);
-    kingCheckMask = rayMask & checkers;
+
+    // If a knight check, need to catpure it (or move king)
+    if (getPieceAtSquare(oppSq, bitboards) % 6 == WHITE_KNIGHT) {
+      kingCheckMask = checkers;
+    } else {
+      const rayMask = getRayBetween(kingSq, oppSq);
+      kingCheckMask = rayMask | checkers;
+    }
   }
 
   let pieces = getPlayerBoard(player, bitboards);
@@ -206,7 +214,7 @@ export const getAllLegalMoves = (
       getRayMask
     );
 
-    const legalMoves = pieceMoves & kingCheckMask;
+    const legalMoves = isKing(piece) ? pieceMoves : pieceMoves & kingCheckMask;
 
     const legalMoveArr = getMovesFromBB(
       bitboards,

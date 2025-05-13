@@ -111,32 +111,33 @@ export const getKingMovesForSquare = (
   const isPlayerWhite = player === WHITE;
 
   const friendlyPieces = getPlayerBoard(player, bitboards);
+  const occupancy = getAllPieces(bitboards);
 
   /* CASTLING */
   if (castlingRights) {
     if (isPlayerWhite) {
       if (
         castlingRights.whiteKingside &&
-        isKingsideCastleLegal(WHITE, oppAttackMask)
+        isKingsideCastleLegal(WHITE, oppAttackMask, occupancy)
       ) {
         moves |= 1n << 6n;
       }
       if (
         castlingRights.whiteQueenside &&
-        isQueensideCastleLegal(WHITE, oppAttackMask)
+        isQueensideCastleLegal(WHITE, oppAttackMask, occupancy)
       ) {
         moves |= 1n << 2n;
       }
     } else {
       if (
         castlingRights.blackKingside &&
-        isKingsideCastleLegal(BLACK, oppAttackMask)
+        isKingsideCastleLegal(BLACK, oppAttackMask, occupancy)
       ) {
         moves |= 1n << 62n;
       }
       if (
         castlingRights.blackQueenside &&
-        isQueensideCastleLegal(BLACK, oppAttackMask)
+        isQueensideCastleLegal(BLACK, oppAttackMask, occupancy)
       ) {
         moves |= 1n << 58n;
       }

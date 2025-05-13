@@ -76,13 +76,6 @@ export function perftDivide(
       newEp
     );
 
-    if (uci === "e2e4") {
-      console.table(perftDivide(board, opp, newCastling, newEp, attackHash, depth - 1));
-    }
-    if (uci === "c7c5" && newEp === 42) {
-      console.table(perftDivide(board, opp, newCastling, newEp, attackHash, depth - 1))
-    }
-
     divide[uci] = perft(board, opp, newCastling, newEp, attackHash, depth - 1);
 
     unMakeMove(move, board);
