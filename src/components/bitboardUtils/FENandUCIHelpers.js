@@ -52,11 +52,12 @@ export function bitboardsToFEN(
 
   const active = player === WHITE ? "w" : "b";
 
-  const castling =
-    (castlingRights.whiteKingside ? "K" : "") +
-      (castlingRights.whiteQueenside ? "Q" : "") +
-      (castlingRights.blackKingside ? "k" : "") +
-      (castlingRights.blackQueenside ? "q" : "") || "-";
+  const castling = castlingRights
+    ? (castlingRights.whiteKingside ? "K" : "") +
+        (castlingRights.whiteQueenside ? "Q" : "") +
+        (castlingRights.blackKingside ? "k" : "") +
+        (castlingRights.blackQueenside ? "q" : "") || "-"
+    : "-";
 
   const ep = enPassantSquare !== null ? indexToSquare(enPassantSquare) : "-";
 

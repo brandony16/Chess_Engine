@@ -33,8 +33,8 @@ export const attacksOf = (occupancy, piece, square) => {
     case WHITE_KNIGHT:
     case BLACK_KNIGHT:
       return knightMasks[square];
-    case WHITE_KING.wK:
-    case BLACK_KING.bK:
+    case WHITE_KING:
+    case BLACK_KING:
       return kingMasks[square];
     case WHITE_BISHOP:
     case BLACK_BISHOP: {

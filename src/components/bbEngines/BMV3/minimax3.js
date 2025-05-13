@@ -17,11 +17,21 @@ import {
   TT_FLAG,
 } from "../../bitboardUtils/TranspositionTable/transpositionTable";
 import { getPieceAtSquare } from "../../bitboardUtils/pieceGetters";
-import { BLACK, MAX_PLY, WEIGHTS, WHITE } from "../../bitboardUtils/constants";
+import {
+  BLACK,
+  BLACK_KING,
+  MAX_PLY,
+  WEIGHTS,
+  WHITE,
+  WHITE_KING,
+} from "../../bitboardUtils/constants";
 import { rootId } from "./BondMonkeyV3";
 import { evaluate3 } from "./evaluation3";
 import { quiesce } from "./quiesce";
 import { getAllLegalMoves } from "../../bitboardUtils/moveGeneration/allMoveGeneration";
+import { bitScanForward, isKing } from "../../bitboardUtils/bbUtils";
+import { bitboardsToFEN } from "../../bitboardUtils/FENandUCIHelpers";
+import { individualAttackMasks } from "../../bitboardUtils/PieceMasks/individualAttackMasks";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);

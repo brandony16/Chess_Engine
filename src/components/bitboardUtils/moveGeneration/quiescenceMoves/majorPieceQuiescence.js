@@ -8,6 +8,7 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../../constants";
+import { bigIntFullRep } from "../../generalHelpers";
 import { getMovesFromBB } from "../../moveMaking/makeMoveLogic";
 import {
   getKingMovesForSquare,

@@ -1,5 +1,9 @@
 import { getNewEnPassant } from "../../bitboardUtils/bbChessLogic";
-import { BLACK, WEIGHTS, WHITE } from "../../bitboardUtils/constants";
+import {
+  BLACK,
+  WEIGHTS,
+  WHITE,
+} from "../../bitboardUtils/constants";
 import { checkGameOver } from "../../bitboardUtils/gameOverLogic";
 import { getQuiescenceMoves } from "../../bitboardUtils/moveGeneration/quiescenceMoves/quiescenceMoves";
 import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic";
@@ -68,6 +72,7 @@ export const quiesce = (
   }
   alpha = Math.max(alpha, standPat);
 
+
   // Generates only capture and promotion moves
   const captures = getQuiescenceMoves(
     bitboards,
@@ -80,10 +85,10 @@ export const quiesce = (
   captures.sort((a, b) => {
     const vA =
       (WEIGHTS[getPieceAtSquare(a.to, bitboards)] || 0) -
-      (WEIGHTS[getPieceAtSquare(a.from, bitboards)] || 0);
+      (WEIGHTS[a.captured] || 0);
     const vB =
       (WEIGHTS[getPieceAtSquare(b.to, bitboards)] || 0) -
-      (WEIGHTS[getPieceAtSquare(b.from, bitboards)] || 0);
+      (WEIGHTS[b.captured] || 0);
     return vB - vA;
   });
 
@@ -117,6 +122,7 @@ export const quiesce = (
     );
     const newPositions = new Map(prevPositions);
     newPositions.set(newHash, (newPositions.get(newHash) || 0) + 1);
+
 
     const { score: scoreAfterCapture } = quiesce(
       bitboards,

@@ -31,6 +31,9 @@ export const getQuiescenceMoves = (
 
   const kingSq = bitScanForward(bitboards[isWhite ? WHITE_KING : BLACK_KING]);
   const getRayMask = makePinRayMaskGenerator(kingSq);
+  if (kingSq === -1) {
+    throw new Error('no king');
+  }
 
   moves.concat(pawnQuiescence(bitboards, player, oppPieces, enPassantSquare));
   moves.concat(knightQuiescence(bitboards, player, oppPieces, pinnedMask));
