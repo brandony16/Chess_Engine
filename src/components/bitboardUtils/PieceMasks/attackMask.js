@@ -31,7 +31,7 @@ export const updateAttackMasks = (bitboards, move) => {
   }
 
   if (promotion !== null) {
-    individualAttackMasks[promotion] = computeMaskForPiece(bitboards, captured);
+    individualAttackMasks[promotion] = computeMaskForPiece(bitboards, promotion);
   }
 
   // Recompute sliding pieces to account for blockers

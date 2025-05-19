@@ -13,6 +13,7 @@ import {
   WHITE_ROOK,
 } from "./constants";
 import { getBlackPieces, getWhitePieces } from "./pieceGetters";
+import { getAttackMask } from "./PieceMasks/attackMask";
 
 /**
  * Determines if the game is over. Checks for checkmate, stalemate, threefold repetition,
@@ -22,7 +23,6 @@ import { getBlackPieces, getWhitePieces } from "./pieceGetters";
  * @param {number} player - player who would win if it was mate (0 for w, 1 for b)
  * @param {Map} pastPositions - the map of past positions stored as hashes.
  * @param {number} enPassantSquare - the square where enPassant can occur
- * @param {bigint} attackHash - the attack hash for the player
  * @returns {{ isGameOver: boolean, result: string}} An object with fields for isGameOver and result
  */
 export const checkGameOver = (
@@ -30,14 +30,14 @@ export const checkGameOver = (
   player,
   pastPositions,
   enPassantSquare,
-  fiftyMoveCounter,
-  attackHash = null
+  fiftyMoveCounter
 ) => {
   const isPlayerWhite = player === WHITE;
   const opponent = isPlayerWhite ? BLACK : WHITE;
 
   const kingBB = bitboards[isPlayerWhite ? BLACK_KING : WHITE_KING];
   const kingSquare = bitScanForward(kingBB);
+  const attackMask = getAttackMask(player);
 
   const result = { isGameOver: false, result: null };
 
@@ -61,7 +61,7 @@ export const checkGameOver = (
   if (!hasLegalMove(bitboards, opponent, null, enPassantSquare)) {
     result.isGameOver = true;
 
-    if (isSquareAttacked(bitboards, kingSquare, player, attackHash)) {
+    if (isSquareAttacked(kingSquare, attackMask)) {
       const fullPlayer = isPlayerWhite ? "White" : "Black";
 
       result.result = `${fullPlayer} Wins by Checkmate`;

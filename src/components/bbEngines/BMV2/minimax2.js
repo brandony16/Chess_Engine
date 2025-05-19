@@ -20,6 +20,11 @@ import {
   getAttackMask,
   updateAttackMasks,
 } from "../../bitboardUtils/PieceMasks/attackMask";
+import { bitScanForward, isKing } from "../../bitboardUtils/bbUtils";
+import {
+  bigIntFullRep,
+  logAllBitboards,
+} from "../../bitboardUtils/generalHelpers";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -49,7 +54,6 @@ export const minimax2 = (
   enPassantSquare,
   prevPositions,
   prevHash,
-  prevAttackMask,
   currentDepth,
   maxDepth,
   alpha,
@@ -60,8 +64,7 @@ export const minimax2 = (
     player === WHITE ? BLACK : WHITE,
     prevPositions,
     enPassantSquare,
-    0,
-    prevAttackMask
+    0
   );
 
   if (gameOver.isGameOver) {
@@ -110,7 +113,7 @@ export const minimax2 = (
     bitboards,
     player,
     castlingRights,
-    enPassantSquare,
+    enPassantSquare
   ).map((move) => {
     let score = 0;
     const from = move.from;
@@ -161,164 +164,190 @@ export const minimax2 = (
     bestEval = -Infinity;
 
     for (const move of orderedMoves) {
-      const from = move.from;
+      try {
+        const from = move.from;
 
-      makeMove(bitboards, move);
+        makeMove(bitboards, move);
+        updateAttackMasks(bitboards, move);
 
-      // New game states
-      const newEnPassant = getNewEnPassant(move);
-      const newCastling = updateCastlingRights(from, castlingRights);
-      const newPositions = new Map(prevPositions);
+        // New game states
+        const newEnPassant = getNewEnPassant(move);
+        const newCastling = updateCastlingRights(from, move.to, castlingRights);
+        const newPositions = new Map(prevPositions);
 
-      // Update Hash
-      const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
-      const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
-      const castlingChanged = {
-        whiteKingside:
-          castlingRights.whiteKingside !== newCastling.whiteKingside,
-        whiteQueenside:
-          castlingRights.whiteQueenside !== newCastling.whiteQueenside,
-        blackKingside:
-          castlingRights.blackKingside !== newCastling.blackKingside,
-        blackQueenside:
-          castlingRights.blackQueenside !== newCastling.blackQueenside,
-      };
-      const hash = updateHash(
-        prevHash,
-        move,
-        newEpFile,
-        prevEpFile,
-        castlingChanged
-      );
-      newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
+        // Update Hash
+        const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
+        const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
+        const castlingChanged = {
+          whiteKingside:
+            castlingRights.whiteKingside !== newCastling.whiteKingside,
+          whiteQueenside:
+            castlingRights.whiteQueenside !== newCastling.whiteQueenside,
+          blackKingside:
+            castlingRights.blackKingside !== newCastling.blackKingside,
+          blackQueenside:
+            castlingRights.blackQueenside !== newCastling.blackQueenside,
+        };
+        const hash = updateHash(
+          prevHash,
+          move,
+          newEpFile,
+          prevEpFile,
+          castlingChanged
+        );
+        newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
-      updateAttackMasks(bitboards, move);
-      const whiteAttackMask = getAttackMask(WHITE);
-
-      const { score: moveEval } = minimax2(
-        bitboards,
-        BLACK,
-        newCastling,
-        newEnPassant,
-        newPositions,
-        hash,
-        whiteAttackMask,
-        currentDepth + 1,
-        maxDepth,
-        alpha,
-        beta
-      );
-
-      unMakeMove(move, bitboards);
-
-      if (moveEval > bestEval) {
-        bestEval = moveEval;
-        bestMove = move;
-      }
-      if (moveEval > alpha) {
-        alpha = moveEval;
-      }
-
-      if (beta <= alpha) {
-        // Update killer moves and history scores
-        if (move.captured === null) {
-          const killer = killerMoves[currentDepth];
-
-          if (
-            !killer[0] ||
-            move.from !== killer[0].from ||
-            move.to !== killer[0].to
-          ) {
-            killer[1] = killer[0];
-            killer[0] = move;
-          }
-
-          // Weights this move higher in history
-          historyScores[move.from][move.to] += 2 ^ (maxDepth - currentDepth);
+        if (isKing(move.captured)) {
+          console.error("Captured King for player " + player);
+          unMakeMove(move, bitboards);
+          logAllBitboards(bitboards);
+          console.log(move);
+          console.log(bigIntFullRep(getAttackMask(player)));
+          throw new Error("Captured King");
         }
-        break;
+
+        const { score: moveEval } = minimax2(
+          bitboards,
+          BLACK,
+          newCastling,
+          newEnPassant,
+          newPositions,
+          hash,
+          currentDepth + 1,
+          maxDepth,
+          alpha,
+          beta
+        );
+
+        unMakeMove(move, bitboards);
+
+        if (moveEval > bestEval) {
+          bestEval = moveEval;
+          bestMove = move;
+        }
+        if (moveEval > alpha) {
+          alpha = moveEval;
+        }
+
+        if (beta <= alpha) {
+          // Update killer moves and history scores
+          if (move.captured === null) {
+            const killer = killerMoves[currentDepth];
+
+            if (
+              !killer[0] ||
+              move.from !== killer[0].from ||
+              move.to !== killer[0].to
+            ) {
+              killer[1] = killer[0];
+              killer[0] = move;
+            }
+
+            // Weights this move higher in history
+            historyScores[move.from][move.to] += 2 ^ (maxDepth - currentDepth);
+          }
+          break;
+        }
+      } catch (e) {
+        console.log(move);
+        console.log(bigIntFullRep(getAttackMask(player)));
+
+        throw new Error(e);
       }
     }
   } else {
     bestEval = Infinity;
 
     for (const move of orderedMoves) {
-      const from = move.from;
+      try {
+        makeMove(bitboards, move);
 
-      makeMove(bitboards, move);
+        const from = move.from;
 
-      // New game states
-      const newEnPassant = getNewEnPassant(move);
-      const newCastling = updateCastlingRights(from, castlingRights);
-      const newPositions = new Map(prevPositions);
+        // New game states
+        const newEnPassant = getNewEnPassant(move);
+        const newCastling = updateCastlingRights(from, move.to, castlingRights);
+        const newPositions = new Map(prevPositions);
 
-      // Update Hash
-      const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
-      const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
-      const castlingChanged = {
-        whiteKingside:
-          castlingRights.whiteKingside !== newCastling.whiteKingside,
-        whiteQueenside:
-          castlingRights.whiteQueenside !== newCastling.whiteQueenside,
-        blackKingside:
-          castlingRights.blackKingside !== newCastling.blackKingside,
-        blackQueenside:
-          castlingRights.blackQueenside !== newCastling.blackQueenside,
-      };
-      const hash = updateHash(
-        prevHash,
-        move,
-        newEpFile,
-        prevEpFile,
-        castlingChanged
-      );
-      newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
+        // Update Hash
+        const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
+        const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
+        const castlingChanged = {
+          whiteKingside:
+            castlingRights.whiteKingside !== newCastling.whiteKingside,
+          whiteQueenside:
+            castlingRights.whiteQueenside !== newCastling.whiteQueenside,
+          blackKingside:
+            castlingRights.blackKingside !== newCastling.blackKingside,
+          blackQueenside:
+            castlingRights.blackQueenside !== newCastling.blackQueenside,
+        };
+        const hash = updateHash(
+          prevHash,
+          move,
+          newEpFile,
+          prevEpFile,
+          castlingChanged
+        );
+        newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
-      updateAttackMasks(bitboards, move);
-      const blackAttackMask = getAttackMask(BLACK);
+        updateAttackMasks(bitboards, move);
 
-      const { score: moveEval } = minimax2(
-        bitboards,
-        WHITE,
-        newCastling,
-        newEnPassant,
-        newPositions,
-        hash,
-        blackAttackMask,
-        currentDepth + 1,
-        maxDepth,
-        alpha,
-        beta
-      );
-
-      unMakeMove(move, bitboards);
-
-      if (moveEval < bestEval) {
-        bestEval = moveEval;
-        bestMove = move;
-      }
-      if (moveEval < beta) {
-        beta = moveEval;
-      }
-
-      if (beta <= alpha) {
-        // Update killer moves and history scores
-        if (move.captured === null) {
-          const killer = killerMoves[currentDepth];
-
-          if (
-            !killer[0] ||
-            move.from !== killer[0].from ||
-            move.to !== killer[0].to
-          ) {
-            killer[1] = killer[0];
-            killer[0] = move;
-          }
-
-          // Weights this move higher in history
-          historyScores[move.from][move.to] += 2 ^ (maxDepth - currentDepth);
+        if (isKing(move.captured)) {
+          console.error("Captured King for player " + player);
+          unMakeMove(move, bitboards);
+          logAllBitboards(bitboards);
+          console.log(move);
+          console.log(bigIntFullRep(getAttackMask(player)));
+          throw new Error("Captured King");
         }
-        break;
+
+        const { score: moveEval } = minimax2(
+          bitboards,
+          WHITE,
+          newCastling,
+          newEnPassant,
+          newPositions,
+          hash,
+          currentDepth + 1,
+          maxDepth,
+          alpha,
+          beta
+        );
+
+        unMakeMove(move, bitboards);
+
+        if (moveEval < bestEval) {
+          bestEval = moveEval;
+          bestMove = move;
+        }
+        if (moveEval < beta) {
+          beta = moveEval;
+        }
+
+        if (beta <= alpha) {
+          // Update killer moves and history scores
+          if (move.captured === null) {
+            const killer = killerMoves[currentDepth];
+
+            if (
+              !killer[0] ||
+              move.from !== killer[0].from ||
+              move.to !== killer[0].to
+            ) {
+              killer[1] = killer[0];
+              killer[0] = move;
+            }
+
+            // Weights this move higher in history
+            historyScores[move.from][move.to] += 2 ^ (maxDepth - currentDepth);
+          }
+          break;
+        }
+      } catch (e) {
+        console.log(move);
+        console.log(bigIntFullRep(getAttackMask(player)));
+        throw new Error(e);
       }
     }
   }

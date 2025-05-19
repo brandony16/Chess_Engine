@@ -18,13 +18,13 @@ import { BLACK, WHITE } from "../components/bitboardUtils/constants";
  * @param {number} depth  How many plies to search
  * @returns {number}      Number of leaf nodes at exactly `depth` plies
  */
-export function perft(board, player, castling, ep, prevAttackHash, depth) {
+export function perft(board, player, castling, ep, prevAttackMask, depth) {
   if (depth === 0) return 1;
 
   let nodes = 0;
   const opp = player === WHITE ? BLACK : WHITE;
 
-  const moves = getAllLegalMoves(board, player, castling, ep, prevAttackHash);
+  const moves = getAllLegalMoves(board, player, castling, ep);
   for (const move of moves) {
     makeMove(board, move);
 
@@ -48,7 +48,6 @@ export function perftDivide(
   player,
   castling,
   ep,
-  prevAttackHash,
   depth
 ) {
   const divide = {};

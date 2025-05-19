@@ -62,7 +62,6 @@ export const minimax3 = (
     prevPositions,
     enPassantSquare,
     0,
-    prevAttackMask
   );
 
   if (gameOver.isGameOver) {
@@ -84,7 +83,6 @@ export const minimax3 = (
         castlingRights,
         prevPositions,
         prevHash,
-        prevAttackMask
       );
     }
   }
@@ -169,13 +167,13 @@ export const minimax3 = (
     bestEval = -Infinity;
 
     for (const move of orderedMoves) {
-      const from = move.from;
-
       makeMove(bitboards, move);
-
+      
+      const from = move.from;
+      
       // New game states
       const newEnPassant = getNewEnPassant(move);
-      const newCastling = updateCastlingRights(from, castlingRights);
+      const newCastling = updateCastlingRights(from, move.to, castlingRights);
       const newPositions = new Map(prevPositions);
 
       // Update Hash
@@ -257,7 +255,7 @@ export const minimax3 = (
 
       // New game states
       const newEnPassant = getNewEnPassant(move);
-      const newCastling = updateCastlingRights(from, castlingRights);
+      const newCastling = updateCastlingRights(from, move.to, castlingRights);
       const newPositions = new Map(prevPositions);
 
       // Update Hash

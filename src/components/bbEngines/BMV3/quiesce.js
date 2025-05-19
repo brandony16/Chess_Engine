@@ -28,7 +28,6 @@ import { evaluate3 } from "./evaluation3";
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {Map} prevPositions - a map of the previous positions
  * @param {bigint} prevHash - the hash of the current position before moves are simulated.
- * @param {bigint} prevAttackMask - the attack mask of the position before moves are simulated.
  *
  * @returns {{ score: number, move: null }} - an object with the score and move number
  */
@@ -40,16 +39,14 @@ export const quiesce = (
   enPassantSquare,
   castlingRights,
   prevPositions,
-  prevHash,
-  prevAttackMask
+  prevHash
 ) => {
   const gameOver = checkGameOver(
     bitboards,
     player,
     prevPositions,
     enPassantSquare,
-    0,
-    prevAttackMask
+    0
   );
   if (gameOver.isGameOver) {
     return {
@@ -73,11 +70,7 @@ export const quiesce = (
   alpha = Math.max(alpha, standPat);
 
   // Generates only capture and promotion moves
-  const captures = getQuiescenceMoves(
-    bitboards,
-    player,
-    enPassantSquare,
-  );
+  const captures = getQuiescenceMoves(bitboards, player, enPassantSquare);
 
   // Sort by MVV/LVA
   captures.sort((a, b) => {
@@ -94,7 +87,7 @@ export const quiesce = (
   for (const move of captures) {
     makeMove(bitboards, move);
     const newEnPassant = getNewEnPassant(move);
-    const newCastling = updateCastlingRights(move.from, castlingRights);
+    const newCastling = updateCastlingRights(move.from, move.to, castlingRights);
     updateAttackMasks(bitboards, move);
     const newAttackMask = getAttackMask(player);
 

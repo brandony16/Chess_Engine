@@ -7,7 +7,6 @@ import {
   WHITE_PAWN,
 } from "./bitboardUtils/constants";
 import { updateCastlingRights } from "./bitboardUtils/moveMaking/castleMoveLogic";
-import { clearAttackMaskCache } from "./bitboardUtils/PieceMasks/attackMask";
 import { getNewEnPassant } from "./bitboardUtils/bbChessLogic";
 
 export const useGameStore = create((set, get) => ({
@@ -60,7 +59,11 @@ export const useGameStore = create((set, get) => ({
         result: gameOverObj.result,
         pastMoves: [...state.pastMoves, moveNotation],
         enPassantSquare: getNewEnPassant(move),
-        castlingRights: updateCastlingRights(move.from, move.to, state.castlingRights),
+        castlingRights: updateCastlingRights(
+          move.from,
+          move.to,
+          state.castlingRights
+        ),
         selectedSquare: null,
         moveBitboard: null,
         pastPositions: (() => {
@@ -80,8 +83,6 @@ export const useGameStore = create((set, get) => ({
   },
 
   resetGame: (isEngineGame = null) => {
-    clearAttackMaskCache();
-
     set((state) => {
       const newHistory = state.isGameOver
         ? [

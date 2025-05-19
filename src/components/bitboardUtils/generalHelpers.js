@@ -1,5 +1,12 @@
 import { isInCheck } from "./bbChessLogic";
-import { BLACK, COLUMN_SYMBOLS, GENERAL_SYMBOLS, WHITE } from "./constants";
+import {
+  BLACK,
+  COLUMN_SYMBOLS,
+  GENERAL_SYMBOLS,
+  NUM_PIECES,
+  PIECE_SYMBOLS,
+  WHITE,
+} from "./constants";
 import { getAllLegalMoves } from "./moveGeneration/allMoveGeneration";
 import { getPieceAtSquare } from "./pieceGetters";
 
@@ -166,3 +173,11 @@ export function areBigUint64ArraysEqual(a, b) {
 
   return true;
 }
+
+export const logAllBitboards = (bitboards) => {
+  for (let i = 0; i < NUM_PIECES; i++) {
+    const bitboard = bitboards[i];
+    console.log(PIECE_SYMBOLS[i]);
+    console.log(bigIntFullRep(bitboard));
+  }
+};

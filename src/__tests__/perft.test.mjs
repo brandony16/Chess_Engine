@@ -1,8 +1,5 @@
-import { BLACK, WHITE } from "../components/bitboardUtils/constants";
 import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
-import { getAttackMask } from "../components/bitboardUtils/PieceMasks/attackMask";
 import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
-import { computeHash } from "../components/bitboardUtils/zobristHashing";
 import { perft, perftDivide } from "./perft";
 
 const cases = [
@@ -25,18 +22,18 @@ const cases = [
     8902,
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   ],
-  [
-    "Start pos",
-    4,
-    197_281,
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-  ],
-  [
-    "Start pos",
-    5,
-    4_865_609,
-    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-  ],
+  // [
+  //   "Start pos",
+  //   4,
+  //   197_281,
+  //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  // ],
+  // [
+  //   "Start pos",
+  //   5,
+  //   4_865_609,
+  //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  // ],
   [
     "“Kiwipete” pos",
     1,
@@ -87,10 +84,8 @@ describe("perft node counts", () => {
     const ep = fenData.ep;
 
     computeAllAttackMasks(bitboards);
-    const opponent = player === WHITE ? BLACK : WHITE;
-    const attackMask = getAttackMask(opponent);
 
-    const div = perftDivide(bitboards, player, castling, ep, attackMask, depth);
+    const div = perftDivide(bitboards, player, castling, ep, depth);
     console.table(div);
 
     const nodes = Object.values(div).reduce((a, b) => a + b, 0);

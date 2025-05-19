@@ -15,12 +15,7 @@ import { getAllLegalMoves } from "./bitboardUtils/moveGeneration/allMoveGenerati
 import { getNewEnPassant } from "./bitboardUtils/bbChessLogic";
 import { useGameStore } from "./gameStore";
 import Modal from "./modals/Modal";
-import {
-  BLACK_PAWN,
-  INITIAL_BITBOARDS,
-  WHITE_PAWN,
-} from "./bitboardUtils/constants";
-import { computeAllAttackMasks } from "./bitboardUtils/PieceMasks/individualAttackMasks";
+import { BLACK_PAWN, WHITE_PAWN } from "./bitboardUtils/constants";
 import Move from "./bitboardUtils/moveMaking/move";
 import { isKing } from "./bitboardUtils/bbUtils";
 import {
@@ -48,8 +43,6 @@ const BitboardGame = () => {
     isGameHistoryMenuOpen,
     isBattleEnginesOpen,
   } = useGameStore();
-
-  computeAllAttackMasks(INITIAL_BITBOARDS);
 
   // Creates a new worker
   const worker = useMemo(() => {
@@ -113,6 +106,7 @@ const BitboardGame = () => {
       fiftyMoveRuleCounter,
     } = useGameStore.getState();
 
+    // Get variables for Move object
     const piece = getPieceAtSquare(from, bitboards);
     const castling = isKing(piece) && Math.abs(from - to) === 2;
     const enPassant =
@@ -131,16 +125,14 @@ const BitboardGame = () => {
       castling,
       enPassant
     );
+
     makeMove(bitboards, move);
+    updateAttackMasks(bitboards, move);
+
     const newEnPassant = getNewEnPassant(move);
     const epFile = newEnPassant ? newEnPassant % 8 : -1;
 
-    const hash = computeHash(
-      bitboards,
-      currPlayer,
-      epFile,
-      castlingRights
-    );
+    const hash = computeHash(bitboards, currPlayer, epFile, castlingRights);
 
     const newPositions = new Map(pastPositions);
     newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
@@ -160,8 +152,6 @@ const BitboardGame = () => {
       move.captured !== null
     );
 
-    
-    updateAttackMasks(bitboards, move);
     updateStates(readableMove, move, hash, gameOverObj);
   };
 

@@ -17,6 +17,8 @@ import {
 import { getCheckers, getRayBetween } from "./moveGeneration/checkersMask";
 import { getKingMovesForSquare } from "./moveGeneration/majorPieceMoveGeneration";
 import { getAttackMask } from "./PieceMasks/attackMask";
+import { bigIntFullRep, logAllBitboards } from "./generalHelpers";
+import { computeAllAttackMasks } from "./PieceMasks/individualAttackMasks";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -45,8 +47,9 @@ export const isInCheck = (bitboards, player) => {
   }
 
   const kingSquare = bitScanForward(kingBB);
+  const opponentAttackMask = getAttackMask(opponent);
 
-  return isSquareAttacked(bitboards, kingSquare, opponent);
+  return isSquareAttacked(kingSquare, opponentAttackMask);
 };
 
 /**
@@ -92,12 +95,20 @@ export const hasLegalMove = (
 
       return kingMoves !== 0n;
     }
+    if (numCheck !== 1) {
+      console.error("King in check but no checkers");
+      console.log(bigIntFullRep(checkers));
+      console.log(bigIntFullRep(oppAttackMask));
+      console.log(kingSq);
+      logAllBitboards(bitboards);
+      throw new Error("KING IN CHECK W/O CHECKERS");
+    }
 
     // Single check
     const oppSq = bitScanForward(checkers);
 
     // If a knight check, need to catpure it (or move king)
-    if (getPieceAtSquare(oppSq, bitboards) % 6 == WHITE_KNIGHT) {
+    if (getPieceAtSquare(oppSq, bitboards) % 6 === WHITE_KNIGHT) {
       kingCheckMask = checkers;
     } else {
       const rayMask = getRayBetween(kingSq, oppSq);

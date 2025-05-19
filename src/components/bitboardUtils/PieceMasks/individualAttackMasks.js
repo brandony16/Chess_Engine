@@ -6,6 +6,7 @@ import {
   BLACK_PAWN,
   BLACK_QUEEN,
   BLACK_ROOK,
+  INITIAL_BITBOARDS,
   NUM_PIECES,
   WHITE_BISHOP,
   WHITE_KING,
@@ -76,3 +77,4 @@ export const computeAllAttackMasks = (bitboards) => {
 };
 
 export const individualAttackMasks = new BigUint64Array(NUM_PIECES).fill(0n);
+computeAllAttackMasks(INITIAL_BITBOARDS);
