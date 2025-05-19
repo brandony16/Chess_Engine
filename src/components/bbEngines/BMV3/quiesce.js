@@ -1,9 +1,5 @@
 import { getNewEnPassant } from "../../bitboardUtils/bbChessLogic";
-import {
-  BLACK,
-  WEIGHTS,
-  WHITE,
-} from "../../bitboardUtils/constants";
+import { BLACK, WEIGHTS, WHITE } from "../../bitboardUtils/constants";
 import { checkGameOver } from "../../bitboardUtils/gameOverLogic";
 import { getQuiescenceMoves } from "../../bitboardUtils/moveGeneration/quiescenceMoves/quiescenceMoves";
 import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic";
@@ -12,13 +8,17 @@ import {
   unMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic";
 import { getPieceAtSquare } from "../../bitboardUtils/pieceGetters";
-import { updateAttackMaskHash } from "../../bitboardUtils/PieceMasks/attackMask";
+import {
+  getAttackMask,
+  updateAttackMasks,
+} from "../../bitboardUtils/PieceMasks/attackMask";
 import { updateHash } from "../../bitboardUtils/zobristHashing";
 import { evaluate3 } from "./evaluation3";
 
 /**
  * Performs a quiescence search, which calculates lines of captures. Only evaluates moves
- * that are captures or promotions to increase tactical capabilities.
+ * that are captures or promotions to increase tactical capabilities. Uses negamax, a
+ * variation of minimax that serves the same purpose.
  *
  * @param {Bitboards} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
@@ -28,7 +28,7 @@ import { evaluate3 } from "./evaluation3";
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {Map} prevPositions - a map of the previous positions
  * @param {bigint} prevHash - the hash of the current position before moves are simulated.
- * @param {bigint} prevAttackHash - the attack hash of the current position before moves are simulated.
+ * @param {bigint} prevAttackMask - the attack mask of the position before moves are simulated.
  *
  * @returns {{ score: number, move: null }} - an object with the score and move number
  */
@@ -41,7 +41,7 @@ export const quiesce = (
   castlingRights,
   prevPositions,
   prevHash,
-  prevAttackHash
+  prevAttackMask
 ) => {
   const gameOver = checkGameOver(
     bitboards,
@@ -49,7 +49,7 @@ export const quiesce = (
     prevPositions,
     enPassantSquare,
     0,
-    prevAttackHash
+    prevAttackMask
   );
   if (gameOver.isGameOver) {
     return {
@@ -72,13 +72,11 @@ export const quiesce = (
   }
   alpha = Math.max(alpha, standPat);
 
-
   // Generates only capture and promotion moves
   const captures = getQuiescenceMoves(
     bitboards,
     player,
     enPassantSquare,
-    prevAttackHash
   );
 
   // Sort by MVV/LVA
@@ -97,15 +95,11 @@ export const quiesce = (
     makeMove(bitboards, move);
     const newEnPassant = getNewEnPassant(move);
     const newCastling = updateCastlingRights(move.from, castlingRights);
-    const newAttackHash = updateAttackMaskHash(
-      bitboards,
-      prevAttackHash,
-      move,
-      player,
-      enPassantSquare
-    );
+    updateAttackMasks(bitboards, move);
+    const newAttackMask = getAttackMask(player);
 
-    const enPassantChanged = enPassantSquare !== newEnPassant;
+    const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
+    const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
     const castlingChanged = {
       whiteKingside: castlingRights.whiteKingside !== newCastling.whiteKingside,
       whiteQueenside:
@@ -117,23 +111,23 @@ export const quiesce = (
     const newHash = updateHash(
       prevHash,
       move,
-      enPassantChanged,
+      newEpFile,
+      prevEpFile,
       castlingChanged
     );
     const newPositions = new Map(prevPositions);
     newPositions.set(newHash, (newPositions.get(newHash) || 0) + 1);
 
-
     const { score: scoreAfterCapture } = quiesce(
       bitboards,
       opponent,
-      -beta, // Negamax to condense code
+      -beta,
       -alpha,
       newEnPassant,
       newCastling,
       newPositions,
       newHash,
-      newAttackHash
+      newAttackMask
     );
 
     unMakeMove(move, bitboards);

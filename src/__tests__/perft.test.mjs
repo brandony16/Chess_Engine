@@ -1,11 +1,6 @@
 import { BLACK, WHITE } from "../components/bitboardUtils/constants";
 import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
-import { bigIntFullRep } from "../components/bitboardUtils/generalHelpers";
-import {
-  clearAttackMaskCache,
-  computeAttackMask,
-  getCachedAttackMask,
-} from "../components/bitboardUtils/PieceMasks/attackMask";
+import { getAttackMask } from "../components/bitboardUtils/PieceMasks/attackMask";
 import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
 import { computeHash } from "../components/bitboardUtils/zobristHashing";
 import { perft, perftDivide } from "./perft";
@@ -73,32 +68,29 @@ const cases = [
     "Knight Fork",
     3,
     62_379,
-    "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8"
+    "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
   ],
   [
     "Alt Perft by Steven Edwards",
     3,
     89_890,
-    "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10"
+    "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
   ],
 ];
 
 describe("perft node counts", () => {
   test.each(cases)("%s depth %i → %i nodes", (_desc, depth, expected, fen) => {
-    clearAttackMaskCache();
     const fenData = getFENData(fen);
     const bitboards = fenData.bitboards;
     const player = fenData.player;
     const castling = fenData.castling;
     const ep = fenData.ep;
 
-    const opponent = player === WHITE ? BLACK : WHITE;
-
-    const attackHash = computeHash(bitboards, opponent);
     computeAllAttackMasks(bitboards);
-    getCachedAttackMask(bitboards, opponent, attackHash); // Puts hash in map
+    const opponent = player === WHITE ? BLACK : WHITE;
+    const attackMask = getAttackMask(opponent);
 
-    const div = perftDivide(bitboards, player, castling, ep, attackHash, depth);
+    const div = perftDivide(bitboards, player, castling, ep, attackMask, depth);
     console.table(div);
 
     const nodes = Object.values(div).reduce((a, b) => a + b, 0);

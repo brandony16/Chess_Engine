@@ -3,7 +3,6 @@ import PromotionModal from "./modals/PromotionModal";
 import Sidebar from "./sidebar/Sidebar";
 import "./UI.css";
 import BitboardBoard from "./boardComponents/BitboardBoard";
-import { getCachedAttackMask } from "./bitboardUtils/PieceMasks/attackMask";
 import { makeMove } from "./bitboardUtils/moveMaking/makeMoveLogic";
 import { computeHash } from "./bitboardUtils/zobristHashing";
 import { checkGameOver } from "./bitboardUtils/gameOverLogic";
@@ -28,6 +27,7 @@ import {
   getOpeningMoves,
   squareToIndex,
 } from "./bitboardUtils/FENandUCIHelpers";
+import { updateAttackMasks } from "./bitboardUtils/PieceMasks/attackMask";
 
 // Runs the game
 const BitboardGame = () => {
@@ -133,11 +133,12 @@ const BitboardGame = () => {
     );
     makeMove(bitboards, move);
     const newEnPassant = getNewEnPassant(move);
+    const epFile = newEnPassant ? newEnPassant % 8 : -1;
 
     const hash = computeHash(
       bitboards,
       currPlayer,
-      newEnPassant,
+      epFile,
       castlingRights
     );
 
@@ -158,9 +159,9 @@ const BitboardGame = () => {
       to,
       move.captured !== null
     );
-    // Ensures the attack map cache has the new attack map
-    getCachedAttackMask(bitboards, currPlayer);
 
+    
+    updateAttackMasks(bitboards, move);
     updateStates(readableMove, move, hash, gameOverObj);
   };
 

@@ -1,48 +1,37 @@
-import { computeHash, zobristTable } from "../zobristHashing";
-import { LRUMap } from "../LRUMap";
 import {
   BLACK_BISHOP,
-  BLACK_PAWN,
   BLACK_QUEEN,
   BLACK_ROOK,
-  PLAYER_ZOBRIST,
   WHITE,
   WHITE_BISHOP,
-  WHITE_PAWN,
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../constants";
 import {
-  computeAllAttackMasks,
   computeMaskForPiece,
   individualAttackMasks,
 } from "./individualAttackMasks";
 
 /**
- * Computes an attack mask for a player
- *
- * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {number} player - whose attack mask it is (0 for w, 1 for b)
- * @returns {bigint} the attack mask for the player
+ * Updates the individualAttackMasks array with new values based off of the
+ * move made.
+ * @param {BigUint64Array} bitboards - the new bitboards of the position
+ * @param {Move} - the move that was made.
  */
-export const computeAttackMask = (bitboards, player) => {
-  const masks = computeAllAttackMasks(bitboards);
+export const updateAttackMasks = (bitboards, move) => {
+  const piece = move.piece;
+  const captured = move.captured;
+  const promotion = move.promotion;
 
-  let mask = 0n;
-  // Player is 1 for black and 0 for white, so multiplying it by 6
-  // gives the correct starting and ending points
-  for (let i = player * 6; i < 5 + player * 6; i++) {
-    mask |= masks[i];
-  }
-  return mask;
-};
-
-export const updateAttackMask = (bitboards, piece, captured, player) => {
   // Remove old attacks of the piece
   individualAttackMasks[piece] = computeMaskForPiece(bitboards, piece);
 
   if (captured !== null) {
     individualAttackMasks[captured] = computeMaskForPiece(bitboards, captured);
+  }
+
+  if (promotion !== null) {
+    individualAttackMasks[promotion] = computeMaskForPiece(bitboards, captured);
   }
 
   // Recompute sliding pieces to account for blockers
@@ -70,7 +59,14 @@ export const updateAttackMask = (bitboards, piece, captured, player) => {
     bitboards,
     BLACK_QUEEN
   );
+};
 
+/**
+ * Gets the stored attack mask for a side
+ * @param {0 | 1} player - whose mask to get
+ * @returns {bigint} - the attack mask
+ */
+export const getAttackMask = (player) => {
   let mask = 0n;
   if (player === WHITE) {
     for (let p = 0; p < 6; p++) {
@@ -83,148 +79,4 @@ export const updateAttackMask = (bitboards, piece, captured, player) => {
   }
 
   return mask;
-};
-
-// Map of cached attack masks
-export const attackMaskCache = new LRUMap(500_000);
-
-/**
- * Gets a cached attack mask
- * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {number} player - whose attack mask it is (0 for w, 1 for b)
- * @param {bigint} hash - the hash of the mask to get. Computes it if no mask is found
- * @returns {bigint} the attack mask
- */
-export const getCachedAttackMask = (bitboards, player, hash = null) => {
-  if (attackMaskCache.has(hash)) {
-    return attackMaskCache.get(hash);
-  }
-
-  const boardHash = computeHash(bitboards, player);
-  const mask = computeAttackMask(bitboards, player);
-  attackMaskCache.set(boardHash, mask);
-
-  return mask;
-};
-
-/**
- * Updates the previous attack mask. Is much more efficient than recomputing it every time.
- *
- * @param {BigUint64Array} bitboards - the current positions bitboards
- * @param {bigint} prevHash - the previous hash
- * @param {Move} move - the move object
- * @param {number} player - the player to compute the attack mask for (0 for w, 1 for b)
- * @param {number} enPassantSquare - the square where en passant is legal
- * @returns {bigint} a hash of the new attack map
- */
-export const updateAttackMaskHash = (
-  bitboards,
-  prevHash,
-  move,
-  player,
-  enPassantSquare,
-  isSamePlayer = false
-) => {
-  let newHash = prevHash;
-  const from = move.from;
-  const to = move.to;
-  const piece = move.piece;
-  const captured = move.captured;
-
-  // XOR the piece at the previous position
-  const zobristFrom = zobristTable[piece * 64 + from];
-  newHash ^= zobristFrom;
-
-  // XOR the pieces new location
-  const pieceTo = move.promotion ? move.promotion : piece;
-  const zobristTo = zobristTable[pieceTo * 64 + to];
-  newHash ^= zobristTo;
-
-  // if a capture, XOR to remove captured piece
-  if (
-    to === enPassantSquare &&
-    (piece === WHITE_PAWN || piece === BLACK_PAWN)
-  ) {
-    // white EP: captured pawn is one rank down; black EP: one rank up
-    const capSq = player ? to + 8 : to - 8;
-    newHash ^= zobristTable[captured * 64 + capSq];
-  } else if (captured !== null) {
-    newHash ^= zobristTable[captured * 64 + to];
-  }
-
-  // XOR player
-  if (!isSamePlayer) {
-    newHash ^= PLAYER_ZOBRIST;
-  }
-
-  if (move.castling) {
-    newHash = handleCastleHashUpdate(newHash, from, to);
-  }
-
-  if (!attackMaskCache.has(newHash)) {
-    const newMask = updateAttackMask(bitboards, piece, captured, player);
-    attackMaskCache.set(newHash, newMask);
-  }
-
-  return newHash;
-};
-
-/**
- * Handles updating the hash when castling occurs. Only moves the rook, as the king is handled by the updateAttackMaskHash
- * function when it XORs the piece at the from and to locations.
- *
- * @param {bigint} hash - the hash to update
- * @param {number} from - the square the king moved from
- * @param {number} to - the square the king moved t0
- * @returns {bigint} the updated hash
- */
-const handleCastleHashUpdate = (hash, from, to) => {
-  if (from !== 4 && from !== 60) return hash;
-
-  let newHash = hash;
-
-  // White castling
-  if (from === 4) {
-    const rookZobrist = WHITE_ROOK * 64;
-    if (to === 6) {
-      // Kingside
-      const rookZobristFrom = zobristTable[rookZobrist + 7];
-      const rookZobristTo = zobristTable[rookZobrist + 5];
-      newHash ^= rookZobristFrom;
-      newHash ^= rookZobristTo;
-      return newHash;
-    }
-    // Queenside
-    const rookZobristFrom = zobristTable[rookZobrist + 0];
-    const rookZobristTo = zobristTable[rookZobrist + 3];
-    newHash ^= rookZobristFrom;
-    newHash ^= rookZobristTo;
-    return newHash;
-  }
-
-  // Black caslting
-  const rookZobrist = BLACK_ROOK * 64;
-
-  if (to === 62) {
-    // Kingside
-    const rookZobristFrom = zobristTable[rookZobrist + 63];
-    const rookZobristTo = zobristTable[rookZobrist + 61];
-    newHash ^= rookZobristFrom;
-    newHash ^= rookZobristTo;
-    return newHash;
-  }
-
-  // Queenside
-  const rookZobristFrom = zobristTable[rookZobrist + 56];
-  const rookZobristTo = zobristTable[rookZobrist + 59];
-  newHash ^= rookZobristFrom;
-  newHash ^= rookZobristTo;
-  return newHash;
-};
-
-/**
- * Clears the attak mask cache
- */
-export const clearAttackMaskCache = () => {
-  attackMaskCache.clear();
 };

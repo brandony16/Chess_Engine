@@ -1,10 +1,10 @@
 import { bitScanForward } from "./bbUtils";
 import {
+  BLACK,
+  BLACK_ROOK,
   CASTLING_ZOBRIST,
-  EN_PASSANT_ZOBRIST,
   NUM_PIECES,
-  PLAYER_ZOBRIST,
-  WHITE,
+  WHITE_ROOK,
 } from "./constants";
 
 function rand64() {
@@ -31,20 +31,26 @@ for (let p = 0; p < NUM_PIECES; p++) {
   }
 }
 
+export const epKeys = Array(8)
+  .fill(null)
+  .map(() => rand64());
+export const castleKeys = [rand64(), rand64(), rand64(), rand64()];
+export const playerKey = rand64();
+
 /**
  * Computes a hash given the bitboards, the player whose turn it is, and an enPassantSquare.
  * Positions are NOT the same if the pieces are the same but it is a different players turn.
  * Positions are also NOT the same if en passant was legal before, but is no longer legal.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {number} enPassant - the en passant square. None assumes it is not legal.
+ * @param {number} sideToMove - whose move it is (0 for w, 1 for b)
+ * @param {number} enPassantFile - The file where enPassant is legal (0-7, -1 if none)
  * @returns {bigint} hash for the position
  */
 export const computeHash = (
   bitboards,
-  player,
-  enPassant = null,
+  sideToMove,
+  enPassantFile = null,
   castlingRights = null
 ) => {
   let hash = 0n;
@@ -61,20 +67,20 @@ export const computeHash = (
   }
 
   // XOR a value for the side to move
-  if (player === WHITE) {
-    hash ^= PLAYER_ZOBRIST;
+  if (sideToMove === BLACK) {
+    hash ^= playerKey;
   }
 
-  // Value for if enPassant is legal
-  if (enPassant) {
-    hash ^= EN_PASSANT_ZOBRIST;
+  // En passant
+  if (enPassantFile >= 0) {
+    hash ^= epKeys[enPassantFile];
   }
 
   if (castlingRights) {
-    if (castlingRights.whiteKingside) hash ^= CASTLING_ZOBRIST.K;
-    if (castlingRights.whiteQueenside) hash ^= CASTLING_ZOBRIST.Q;
-    if (castlingRights.blackKingside) hash ^= CASTLING_ZOBRIST.k;
-    if (castlingRights.blackQueenside) hash ^= CASTLING_ZOBRIST.q;
+    if (castlingRights.whiteKingside) hash ^= castleKeys[0];
+    if (castlingRights.whiteQueenside) hash ^= castleKeys[1];
+    if (castlingRights.blackKingside) hash ^= castleKeys[2];
+    if (castlingRights.blackQueenside) hash ^= castleKeys[3];
   }
 
   return hash;
@@ -87,8 +93,8 @@ export const computeHash = (
  *
  * @param {bigint} prevHash - the hash from the previous position
  * @param {Move} move - the move object
- * @param {boolean} enPassantChanged - whether en passant has changed from legal to not legal
- * or vice versa compared to the previous position.
+ * @param {number} prevEpFile - the file where en passant was legal before the move (-1 for none)
+ * @param {number} newEpFile - the file where en passant is legal after the move (-1 for none)
  * @param {object} castlingChanged - an object with fields for each castling direction and
  * whether they changed.
  * @returns {bigint} the new hash
@@ -96,7 +102,8 @@ export const computeHash = (
 export const updateHash = (
   prevHash,
   move,
-  enPassantChanged,
+  prevEpFile,
+  newEpFile,
   castlingChanged
 ) => {
   let newHash = prevHash;
@@ -120,10 +127,37 @@ export const updateHash = (
   }
 
   // XOR player
-  newHash ^= PLAYER_ZOBRIST;
+  newHash ^= playerKey;
 
-  if (enPassantChanged) {
-    newHash ^= EN_PASSANT_ZOBRIST;
+  if (prevEpFile !== newEpFile) {
+    if (prevEpFile >= 0) {
+      newHash ^= epKeys[prevEpFile];
+    }
+    if (newEpFile >= 0) {
+      newHash ^= epKeys[newEpFile];
+    }
+  }
+
+  if (move.castling) {
+    // King must move from square 4 if white is castling
+    const isWhite = from === 4;
+    const rook = isWhite ? WHITE_ROOK : BLACK_ROOK;
+
+    // Queenside
+    if (from > to) {
+      const queenRookFromSquare = isWhite ? 0 : 56;
+      newHash ^= zobristTable[rook * 64 + queenRookFromSquare];
+
+      const queenRookToSquare = queenRookFromSquare + 3;
+      newHash ^= zobristTable[rook * 64 + queenRookToSquare];
+    } else {
+      // Kingside
+      const kingRookFromSquare = isWhite ? 7 : 63;
+      newHash ^= zobristTable[rook * 64 + kingRookFromSquare];
+
+      const kingRookToSquare = kingRookFromSquare - 2;
+      newHash ^= zobristTable[rook * 64 + kingRookToSquare];
+    }
   }
 
   if (castlingChanged.whiteKingside) newHash ^= CASTLING_ZOBRIST.K;

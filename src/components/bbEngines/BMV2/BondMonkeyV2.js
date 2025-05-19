@@ -1,8 +1,8 @@
-import { getCachedAttackMask } from "../../bitboardUtils/PieceMasks/attackMask";
 import { computeHash } from "../../bitboardUtils/zobristHashing";
 import { clearTT } from "../../bitboardUtils/TranspositionTable/transpositionTable";
-import { BLACK, CHECKMATE_VALUE, WHITE } from "../../bitboardUtils/constants";
+import { CHECKMATE_VALUE } from "../../bitboardUtils/constants";
 import { minimax2 } from "./minimax2";
+import { getAttackMask } from "../../bitboardUtils/PieceMasks/attackMask";
 
 /**
  * @typedef {object} CastlingRights
@@ -39,21 +39,13 @@ export function BMV2(
   clearTT(); // Clears transposition table
 
   const start = performance.now();
-  const opponent = player === WHITE ? BLACK : WHITE;
 
   let bestMove = null;
   let bestEval = null;
 
-  const rootHash = computeHash(
-    bitboards,
-    player,
-    enPassantSquare,
-    castlingRights
-  );
-  const rootAttackHash = computeHash(bitboards, opponent);
-
-  // Ensures the attack mask cache has the attack mask at the rootAttackHash
-  getCachedAttackMask(bitboards, opponent, rootAttackHash);
+  const epFile = enPassantSquare ? enPassantSquare % 8 : -1;
+  const rootHash = computeHash(bitboards, player, epFile, castlingRights);
+  const rootAttackMask = getAttackMask(player);
 
   rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {
@@ -64,7 +56,7 @@ export function BMV2(
       enPassantSquare,
       prevPositions,
       rootHash,
-      rootAttackHash,
+      rootAttackMask,
       0,
       depth,
       -Infinity,

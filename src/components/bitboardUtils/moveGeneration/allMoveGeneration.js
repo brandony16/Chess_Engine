@@ -2,7 +2,7 @@ import { bitScanForward, isKing, popcount } from "../bbUtils";
 import * as C from "../constants";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic";
 import { getPieceAtSquare, getPlayerBoard } from "../pieceGetters";
-import { getCachedAttackMask } from "../PieceMasks/attackMask";
+import { getAttackMask } from "../PieceMasks/attackMask";
 import { getCheckers, getRayBetween } from "./checkersMask";
 import { computePinned, makePinRayMaskGenerator } from "./computePinned";
 import {
@@ -118,7 +118,6 @@ export const getPieceMoves = (
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
- * @param {bigint} opponentHash - A hash for the opponents attack map
  * @returns {Array<Move>} a bitboard of all the legal moves a player has
  */
 export const getAllLegalMoves = (
@@ -126,13 +125,12 @@ export const getAllLegalMoves = (
   player,
   castlingRights,
   enPassantSquare,
-  opponentHash = null
 ) => {
   let allMoves = [];
 
   const isWhite = player === C.WHITE;
   const opponent = isWhite ? C.BLACK : C.WHITE;
-  const oppAttackMask = getCachedAttackMask(bitboards, opponent, opponentHash);
+  const oppAttackMask = getAttackMask(opponent);
   const pinnedMask = computePinned(bitboards, player);
 
   const kingBB = isWhite ? bitboards[C.WHITE_KING] : bitboards[C.BLACK_KING];

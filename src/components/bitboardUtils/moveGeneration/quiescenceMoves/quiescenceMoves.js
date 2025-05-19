@@ -1,7 +1,7 @@
 import { bitScanForward } from "../../bbUtils";
 import { BLACK_KING, WHITE, WHITE_KING } from "../../constants";
 import { getBlackPieces, getWhitePieces } from "../../pieceGetters";
-import { getCachedAttackMask } from "../../PieceMasks/attackMask";
+import { getAttackMask } from "../../PieceMasks/attackMask";
 import { computePinned, makePinRayMaskGenerator } from "../computePinned";
 import {
   kingQuiescence,
@@ -18,7 +18,6 @@ export const getQuiescenceMoves = (
   bitboards,
   player,
   enPassantSquare,
-  oppAttackHash
 ) => {
   const moves = [];
 
@@ -26,7 +25,7 @@ export const getQuiescenceMoves = (
   const oppPieces = isWhite
     ? getBlackPieces(bitboards)
     : getWhitePieces(bitboards);
-  const oppAttackMask = getCachedAttackMask(bitboards, player, oppAttackHash);
+  const oppAttackMask = getAttackMask(player);
   const pinnedMask = computePinned(bitboards, player);
 
   const kingSq = bitScanForward(bitboards[isWhite ? WHITE_KING : BLACK_KING]);

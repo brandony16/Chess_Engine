@@ -5,7 +5,6 @@ import {
   WHITE_KING,
   WHITE_ROOK,
 } from "../constants";
-import { bigIntFullRep } from "../generalHelpers";
 
 /**
  * @typedef {object} CastlingRights
@@ -13,13 +12,6 @@ import { bigIntFullRep } from "../generalHelpers";
  * @property {boolean} whiteQueenside - Whether castling queenside is legal for white
  * @property {boolean} blackKingside - Whether castling kingside is legal for black
  * @property {boolean} blackQueenside - Whether castling queenside is legal for black
- */
-
-/**
- * @typedef {Object} MoveResult
- * @property {object} bitboards - The updated bitboards after the move
- * @property {number} enPassantSquare - The square where enPassant is legal
- * @property {boolean} isCapture - Whether the move was a capture
  */
 
 /**

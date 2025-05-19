@@ -1,7 +1,6 @@
 import {
   bitboardsToFEN,
   getFENData,
-  uciToMove,
 } from "../components/bitboardUtils/FENandUCIHelpers";
 
 describe("FEN - Board Conversions", () => {
@@ -38,10 +37,14 @@ describe("FEN - Board Conversions", () => {
     "%s round-trips through boardToFEN to fenToBoard",
     (_desc, fen) => {
       const fenData = getFENData(fen);
-      const fenData2 = getFENData(bitboardsToFEN(fenData.bitboards,
-        fenData.player,
-        fenData.castling,
-        fenData.ep));
+      const fenData2 = getFENData(
+        bitboardsToFEN(
+          fenData.bitboards,
+          fenData.player,
+          fenData.castling,
+          fenData.ep
+        )
+      );
       expect(fenData.bitboards).toEqual(fenData2.bitboards);
     }
   );

@@ -1,5 +1,4 @@
 import { bitScanForward, isKing, popcount } from "./bbUtils";
-import { getCachedAttackMask } from "./PieceMasks/attackMask";
 import { getPieceAtSquare, getPlayerBoard } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
 import {
@@ -11,31 +10,23 @@ import {
   WHITE_KNIGHT,
   WHITE_PAWN,
 } from "./constants";
-
 import {
   computePinned,
   makePinRayMaskGenerator,
 } from "./moveGeneration/computePinned";
 import { getCheckers, getRayBetween } from "./moveGeneration/checkersMask";
 import { getKingMovesForSquare } from "./moveGeneration/majorPieceMoveGeneration";
+import { getAttackMask } from "./PieceMasks/attackMask";
 
 /**
  * Determines whether a given square is attacked by the opponent
  *
- * @param {BigUint64Array} bitboards - bitboards of the current position
  * @param {number} square - square to check if it is attacked
- * @param {number} opponent - the other player (0 for w, 1 for b)
- * @param {bigint} attackHash - the hash of the attack map for the opponent
+ * @param {bigint} opponentAttackMap - the attack map for the opponent
  * @returns {boolean} if the square is attacked
  */
-export const isSquareAttacked = (bitboards, square, opponent, attackHash) => {
-  const opponentAttackMask = getCachedAttackMask(
-    bitboards,
-    opponent,
-    attackHash
-  );
-
-  return (opponentAttackMask & (1n << BigInt(square))) !== 0n;
+export const isSquareAttacked = (square, opponentAttackMap) => {
+  return (opponentAttackMap & (1n << BigInt(square))) !== 0n;
 };
 
 /**
@@ -66,19 +57,17 @@ export const isInCheck = (bitboards, player) => {
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
- * @param {bigint} opponentHash - A hash for the opponents attack map
  * @returns {boolean} if the player has a legal move
  */
 export const hasLegalMove = (
   bitboards,
   player,
   castlingRights,
-  enPassantSquare,
-  opponentHash = null
+  enPassantSquare
 ) => {
   const isWhite = player === WHITE;
   const opponent = isWhite ? BLACK : WHITE;
-  const oppAttackMask = getCachedAttackMask(bitboards, opponent, opponentHash);
+  const oppAttackMask = getAttackMask(opponent);
   const pinnedMask = computePinned(bitboards, player);
 
   const kingBB = isWhite ? bitboards[WHITE_KING] : bitboards[BLACK_KING];

@@ -1,14 +1,8 @@
-import { bigIntFullRep } from "../../bitboardUtils/generalHelpers";
 import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic";
 import {
   makeMove,
   unMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic";
-import {
-  attackMaskCache,
-  getCachedAttackMask,
-  updateAttackMaskHash,
-} from "../../bitboardUtils/PieceMasks/attackMask";
 import { updateHash } from "../../bitboardUtils/zobristHashing";
 import { checkGameOver } from "../../bitboardUtils/gameOverLogic";
 import { getNewEnPassant, isInCheck } from "../../bitboardUtils/bbChessLogic";
@@ -22,6 +16,10 @@ import { BLACK, MAX_PLY, WEIGHTS, WHITE } from "../../bitboardUtils/constants";
 import { rootId } from "./BondMonkeyV2";
 import { evaluate2 } from "./evaluation2";
 import { getAllLegalMoves } from "../../bitboardUtils/moveGeneration/allMoveGeneration";
+import {
+  getAttackMask,
+  updateAttackMasks,
+} from "../../bitboardUtils/PieceMasks/attackMask";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -36,8 +34,8 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  * @param {CastlingRights} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {Map} prevPositions - a map of the previous positions
- * @param {bigint} prevHash - the hash of the current position before moves are simulated.
- * @param {bigint} prevAttackHash - the attack hash of the current position before moves are simulated.
+ * @param {bigint} prevHash - the hash of the position before moves are simulated.
+ * @param {bigint} prevAttackMask - the attack mask of the position before moves are simulated.
  * @param {depth} currentDepth - the current depth of the search
  * @param {depth} maxDepth - the maximum depth of the search
  * @param {number} alpha - the alpha value for alpha-beta pruning
@@ -51,7 +49,7 @@ export const minimax2 = (
   enPassantSquare,
   prevPositions,
   prevHash,
-  prevAttackHash,
+  prevAttackMask,
   currentDepth,
   maxDepth,
   alpha,
@@ -63,7 +61,7 @@ export const minimax2 = (
     prevPositions,
     enPassantSquare,
     0,
-    prevAttackHash
+    prevAttackMask
   );
 
   if (gameOver.isGameOver) {
@@ -113,7 +111,6 @@ export const minimax2 = (
     player,
     castlingRights,
     enPassantSquare,
-    prevAttackHash
   ).map((move) => {
     let score = 0;
     const from = move.from;
@@ -151,14 +148,6 @@ export const minimax2 = (
     console.log("Depth:", currentDepth);
     console.log("Max Depth:", maxDepth);
     console.log("Player:", player);
-    console.log(
-      bitboards,
-      player,
-      castlingRights,
-      enPassantSquare,
-      prevAttackHash
-    );
-    console.log(bigIntFullRep(attackMaskCache.get(prevAttackHash)));
     throw new Error("Issue with move generation. No moves generated");
   }
 
@@ -182,7 +171,8 @@ export const minimax2 = (
       const newPositions = new Map(prevPositions);
 
       // Update Hash
-      let enPassantChanged = enPassantSquare !== newEnPassant;
+      const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
+      const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
       const castlingChanged = {
         whiteKingside:
           castlingRights.whiteKingside !== newCastling.whiteKingside,
@@ -196,18 +186,14 @@ export const minimax2 = (
       const hash = updateHash(
         prevHash,
         move,
-        enPassantChanged,
+        newEpFile,
+        prevEpFile,
         castlingChanged
       );
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
-      const whiteAttackHash = updateAttackMaskHash(
-        bitboards,
-        prevAttackHash,
-        move,
-        WHITE,
-        newEnPassant
-      );
+      updateAttackMasks(bitboards, move);
+      const whiteAttackMask = getAttackMask(WHITE);
 
       const { score: moveEval } = minimax2(
         bitboards,
@@ -216,7 +202,7 @@ export const minimax2 = (
         newEnPassant,
         newPositions,
         hash,
-        whiteAttackHash,
+        whiteAttackMask,
         currentDepth + 1,
         maxDepth,
         alpha,
@@ -267,7 +253,8 @@ export const minimax2 = (
       const newPositions = new Map(prevPositions);
 
       // Update Hash
-      let enPassantChanged = enPassantSquare !== newEnPassant;
+      const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
+      const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
       const castlingChanged = {
         whiteKingside:
           castlingRights.whiteKingside !== newCastling.whiteKingside,
@@ -281,18 +268,14 @@ export const minimax2 = (
       const hash = updateHash(
         prevHash,
         move,
-        enPassantChanged,
+        newEpFile,
+        prevEpFile,
         castlingChanged
       );
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
-      const blackAttackHash = updateAttackMaskHash(
-        bitboards,
-        prevAttackHash,
-        move,
-        BLACK,
-        newEnPassant
-      );
+      updateAttackMasks(bitboards, move);
+      const blackAttackMask = getAttackMask(BLACK);
 
       const { score: moveEval } = minimax2(
         bitboards,
@@ -301,7 +284,7 @@ export const minimax2 = (
         newEnPassant,
         newPositions,
         hash,
-        blackAttackHash,
+        blackAttackMask,
         currentDepth + 1,
         maxDepth,
         alpha,
@@ -360,9 +343,6 @@ export const minimax2 = (
     console.log("Best Move:", bestMove);
     console.log("Depth:", currentDepth);
     console.log("Max Depth:", maxDepth);
-    console.log(
-      bigIntFullRep(getCachedAttackMask(bitboards, player, prevAttackHash))
-    );
     throw new Error("Score is infinite");
   }
 
