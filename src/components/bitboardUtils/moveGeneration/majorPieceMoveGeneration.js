@@ -13,7 +13,6 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../constants";
-import { bitboardsToFEN } from "../FENandUCIHelpers";
 import { slide } from "../generalHelpers";
 import {
   isKingsideCastleLegal,
@@ -119,7 +118,7 @@ export const getKingMovesForSquare = (
   oppAttackMask,
   castlingRights = null
 ) => {
- try { const friendlyPieces = getPlayerBoard(player, bitboards);
+  const friendlyPieces = getPlayerBoard(player, bitboards);
   let moves = kingMasks[from] & ~friendlyPieces;
   const isWhite = player === WHITE;
 
@@ -184,15 +183,9 @@ export const getKingMovesForSquare = (
       if (orthAttacks || diagAttacks) {
         moves &= ~toMask;
       }
-    }}
-    
-    // Remove squares attacked by the enemy
-    return moves & ~oppAttackMask;
-  } catch (e) {
-    console.log(from);
-    console.log(kingMasks[from]);
-    console.log(getPlayerBoard(player, bitboards));
-    console.log(bitboardsToFEN(bitboards, player, castlingRights, null));
-    throw new Error("King gen error", e);
+    }
   }
+
+  // Remove squares attacked by the enemy
+  return moves & ~oppAttackMask;
 };

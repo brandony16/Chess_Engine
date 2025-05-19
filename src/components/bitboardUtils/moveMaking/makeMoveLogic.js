@@ -1,4 +1,4 @@
-import { bitScanForward, isKing, isSliding } from "../bbUtils";
+import { bitScanForward, isKing } from "../bbUtils";
 import {
   BLACK_PAWN,
   BLACK_PROMO_PIECES,
@@ -105,14 +105,10 @@ export const unMakeMove = (move, bitboards) => {
     bitboards[captured] |= one << BigInt(capturedPawnSquare);
   }
 
-  // If a not a sliding move, need to undo it. Non sliding piece masks are not recomputed every time.
-  // Sliding piece masks currently are recomputed every time.
-  if (!isSliding(piece)) {
-    individualAttackMasks[piece] = computeMaskForPiece(bitboards, piece);
-  }
-  if (!isSliding(captured)) {
-    individualAttackMasks[captured] = computeMaskForPiece(bitboards, captured);
-  }
+  // Update attack masks
+  individualAttackMasks[piece] = computeMaskForPiece(bitboards, piece);
+  individualAttackMasks[captured] = computeMaskForPiece(bitboards, captured);
+  individualAttackMasks[promotion] = computeMaskForPiece(bitboards, promotion);
 };
 
 /**

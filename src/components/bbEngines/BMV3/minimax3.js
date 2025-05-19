@@ -3,10 +3,7 @@ import {
   makeMove,
   unMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic";
-import {
-  getAttackMask,
-  updateAttackMasks,
-} from "../../bitboardUtils/PieceMasks/attackMask";
+import { updateAttackMasks } from "../../bitboardUtils/PieceMasks/attackMask";
 import { updateHash } from "../../bitboardUtils/zobristHashing";
 import { checkGameOver } from "../../bitboardUtils/gameOverLogic";
 import { getNewEnPassant, isInCheck } from "../../bitboardUtils/bbChessLogic";
@@ -50,7 +47,6 @@ export const minimax3 = (
   enPassantSquare,
   prevPositions,
   prevHash,
-  prevAttackMask,
   currentDepth,
   maxDepth,
   alpha,
@@ -61,7 +57,7 @@ export const minimax3 = (
     player === WHITE ? BLACK : WHITE,
     prevPositions,
     enPassantSquare,
-    0,
+    0
   );
 
   if (gameOver.isGameOver) {
@@ -82,7 +78,7 @@ export const minimax3 = (
         enPassantSquare,
         castlingRights,
         prevPositions,
-        prevHash,
+        prevHash
       );
     }
   }
@@ -116,7 +112,7 @@ export const minimax3 = (
     bitboards,
     player,
     castlingRights,
-    enPassantSquare,
+    enPassantSquare
   ).map((move) => {
     let score = 0;
     const from = move.from;
@@ -168,9 +164,10 @@ export const minimax3 = (
 
     for (const move of orderedMoves) {
       makeMove(bitboards, move);
-      
+      updateAttackMasks(bitboards, move);
+
       const from = move.from;
-      
+
       // New game states
       const newEnPassant = getNewEnPassant(move);
       const newCastling = updateCastlingRights(from, move.to, castlingRights);
@@ -198,9 +195,6 @@ export const minimax3 = (
       );
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
-      updateAttackMasks(bitboards, move);
-      const whiteAttackMask = getAttackMask(WHITE);
-
       const { score: moveEval } = minimax3(
         bitboards,
         BLACK,
@@ -208,7 +202,6 @@ export const minimax3 = (
         newEnPassant,
         newPositions,
         hash,
-        whiteAttackMask,
         currentDepth + 1,
         maxDepth,
         alpha,
@@ -249,9 +242,10 @@ export const minimax3 = (
     bestEval = Infinity;
 
     for (const move of orderedMoves) {
-      const from = move.from;
-
       makeMove(bitboards, move);
+      updateAttackMasks(bitboards, move);
+
+      const from = move.from;
 
       // New game states
       const newEnPassant = getNewEnPassant(move);
@@ -280,9 +274,6 @@ export const minimax3 = (
       );
       newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
-      updateAttackMasks(bitboards, move);
-      const blackAttackMask = getAttackMask(BLACK);
-
       const { score: moveEval } = minimax3(
         bitboards,
         WHITE,
@@ -290,7 +281,6 @@ export const minimax3 = (
         newEnPassant,
         newPositions,
         hash,
-        blackAttackMask,
         currentDepth + 1,
         maxDepth,
         alpha,
@@ -345,10 +335,6 @@ export const minimax3 = (
   });
 
   if (!Number.isFinite(bestEval)) {
-    console.error("SCORE IS INFINITE");
-    console.log("Best Move:", bestMove);
-    console.log("Depth:", currentDepth);
-    console.log("Max Depth:", maxDepth);
     throw new Error("Score is infinite");
   }
 

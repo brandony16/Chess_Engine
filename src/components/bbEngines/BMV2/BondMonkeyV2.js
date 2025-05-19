@@ -2,8 +2,8 @@ import { computeHash } from "../../bitboardUtils/zobristHashing";
 import { clearTT } from "../../bitboardUtils/TranspositionTable/transpositionTable";
 import { CHECKMATE_VALUE } from "../../bitboardUtils/constants";
 import { minimax2 } from "./minimax2";
-import { getAttackMask } from "../../bitboardUtils/PieceMasks/attackMask";
-import { bigIntFullRep } from "../../bitboardUtils/generalHelpers";
+
+import { computeAllAttackMasks } from "../../bitboardUtils/PieceMasks/individualAttackMasks";
 
 /**
  * @typedef {object} CastlingRights
@@ -49,40 +49,37 @@ export function BMV2(
 
   rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {
-    try {
-      const { score, move } = minimax2(
-        bitboards,
-        player,
-        castlingRights,
-        enPassantSquare,
-        prevPositions,
-        rootHash,
-        0,
-        depth,
-        -Infinity,
-        Infinity
-      );
+    computeAllAttackMasks(bitboards);
 
-      if (move != null) {
-        bestMove = move;
-      }
+    const { score, move } = minimax2(
+      bitboards,
+      player,
+      castlingRights,
+      enPassantSquare,
+      prevPositions,
+      rootHash,
+      0,
+      depth,
+      -Infinity,
+      Infinity
+    );
+
+    if (move != null) {
+      bestMove = move;
       bestEval = score;
-
-      if (Math.abs(score) > CHECKMATE_VALUE - depth && move) {
-        console.log("mate break");
-        break;
-      }
-
-      if (performance.now() - start > timeLimit) {
-        console.log("time limit");
-        break;
-      }
-
-      rootId++;
-    } catch (e) {
-      console.log(bigIntFullRep(getAttackMask(player)));
-      throw new Error(e);
     }
+
+    if (Math.abs(score) > CHECKMATE_VALUE - depth && move) {
+      console.log("mate break");
+      break;
+    }
+
+    if (performance.now() - start > timeLimit) {
+      console.log("time limit");
+      break;
+    }
+
+    rootId++;
   }
   return { ...bestMove, bestEval };
 }

@@ -1,8 +1,8 @@
-import { getAttackMask } from "../../bitboardUtils/PieceMasks/attackMask";
 import { computeHash } from "../../bitboardUtils/zobristHashing";
 import { clearTT } from "../../bitboardUtils/TranspositionTable/transpositionTable";
 import { CHECKMATE_VALUE } from "../../bitboardUtils/constants";
 import { minimax3 } from "./minimax3";
+import { computeAllAttackMasks } from "../../bitboardUtils/PieceMasks/individualAttackMasks";
 
 /**
  * @typedef {object} CastlingRights
@@ -45,10 +45,11 @@ export function BMV3(
 
   const epFile = enPassantSquare ? enPassantSquare % 8 : -1;
   const rootHash = computeHash(bitboards, player, epFile, castlingRights);
-  const rootAttackMask = getAttackMask(player);
 
   rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {
+    computeAllAttackMasks(bitboards);
+
     const { score, move } = minimax3(
       bitboards,
       player,
@@ -56,7 +57,6 @@ export function BMV3(
       enPassantSquare,
       prevPositions,
       rootHash,
-      rootAttackMask,
       0,
       depth,
       -Infinity,
