@@ -17,6 +17,7 @@ export let rootId = 0;
 
 /**
  * Gets the best move in a position based purely off of material.
+ * V3: Adds quiesence search to improve tactical capabilities.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
@@ -69,7 +70,6 @@ export function BMV3(
     }
 
     if (Math.abs(score) > CHECKMATE_VALUE - depth && move) {
-      console.log("mate break");
       break;
     }
 

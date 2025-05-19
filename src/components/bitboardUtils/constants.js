@@ -151,7 +151,7 @@ export const EN_PASSANT_ZOBRIST = 0xf3a9b72c85d614e7n;
 
 
 // PIece weights
-export const WEIGHTS = [1, 3, 3, 5, 9, 1000, -1, -3, -3, -5, -9, -1000];
+export const WEIGHTS = [1, 3, 3, 5, 9, 1000, -1, -3, -3, -5, -9, -1000]; 
 
 // Checkmate evaluation constant
 export const CHECKMATE_VALUE = 100_000;
