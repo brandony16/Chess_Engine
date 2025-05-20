@@ -8,10 +8,7 @@ import {
   unMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic";
 import { getPieceAtSquare } from "../../bitboardUtils/pieceGetters";
-import {
-  getAttackMask,
-  updateAttackMasks,
-} from "../../bitboardUtils/PieceMasks/attackMask";
+import { updateAttackMasks } from "../../bitboardUtils/PieceMasks/attackMask";
 import { updateHash } from "../../bitboardUtils/zobristHashing";
 import { evaluate4 } from "./evaluation4";
 
@@ -86,10 +83,14 @@ export const quiesce = (
   const opponent = player === WHITE ? BLACK : WHITE;
   for (const move of captures) {
     makeMove(bitboards, move);
-    const newEnPassant = getNewEnPassant(move);
-    const newCastling = updateCastlingRights(move.from, move.to, castlingRights);
     updateAttackMasks(bitboards, move);
-    const newAttackMask = getAttackMask(player);
+
+    const newEnPassant = getNewEnPassant(move);
+    const newCastling = updateCastlingRights(
+      move.from,
+      move.to,
+      castlingRights
+    );
 
     const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
     const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
@@ -119,8 +120,7 @@ export const quiesce = (
       newEnPassant,
       newCastling,
       newPositions,
-      newHash,
-      newAttackMask
+      newHash
     );
 
     unMakeMove(move, bitboards);
