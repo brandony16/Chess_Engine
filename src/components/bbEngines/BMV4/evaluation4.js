@@ -1,4 +1,3 @@
-import { BLACK } from "chess.js";
 import { bitScanForward } from "../../bitboardUtils/bbUtils";
 import {
   CHECKMATE_VALUE,
@@ -33,13 +32,9 @@ export const evaluate4 = (bitboards, player, result, depth) => {
       const sq = bitScanForward(bb);
       bb &= bb - 1n;
 
-      if (piece >= 6) {
-        // If black, need to inverse which row its on to get correct index
-        const rank = Math.floor(sq / 8);
-        const index = (7 - rank) * 8 + (sq % 8);
-        evaluation += weights[piece] - PIECE_SQUARE_TABLES[piece % 6][index];
-      } else {
-        evaluation += weights[piece] + PIECE_SQUARE_TABLES[piece][sq];
+      evaluation += weights[piece] + PIECE_SQUARE_TABLES[piece][sq];
+      if (!Number.isFinite(evaluation)) {
+        console.log(weights[piece], PIECE_SQUARE_TABLES[piece][sq], piece, sq);
       }
     }
   }

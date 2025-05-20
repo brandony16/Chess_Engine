@@ -335,6 +335,10 @@ export const minimax4 = (
   });
 
   if (!Number.isFinite(bestEval)) {
+    console.log(orderedMoves);
+    console.log(currentDepth)
+    console.log(maxDepth);
+    console.log(evaluate4(bitboards, player, null, currentDepth));
     throw new Error("Score is infinite");
   }
 

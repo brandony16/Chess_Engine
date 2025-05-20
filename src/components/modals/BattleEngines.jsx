@@ -3,13 +3,15 @@ import { BMV1 } from "../bbEngines/BondMonkeyV1";
 import "./BattleEngines.css";
 import { BMV2 } from "../bbEngines/BMV2/BondMonkeyV2";
 import { BMV3 } from "../bbEngines/BMV3/BondMonkeyV3";
+import { BMV4 } from "../bbEngines/BMV4/BondMonkeyV4";
 
 const BattleEngines = ({ battleEngines }) => {
-  const engines = ["BondMonkeyV1", "BondMonkeyV2", "BondMonkeyV3"];
+  const engines = ["BondMonkeyV1", "BondMonkeyV2", "BondMonkeyV3", "BondMonkeyV4"];
   const nameToEngine = {
     BondMonkeyV1: BMV1,
     BondMonkeyV2: BMV2,
     BondMonkeyV3: BMV3,
+    BondMonkeyV4: BMV4,
   };
 
   const startBattle = (e) => {
