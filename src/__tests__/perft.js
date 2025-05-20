@@ -5,10 +5,7 @@ import {
   makeMove,
   unMakeMove,
 } from "../components/bitboardUtils/moveMaking/makeMoveLogic";
-import {
-  getAttackMask,
-  updateAttackMasks,
-} from "../components/bitboardUtils/PieceMasks/attackMask";
+import { updateAttackMasks } from "../components/bitboardUtils/PieceMasks/attackMask";
 import { moveToUCI } from "../components/bitboardUtils/FENandUCIHelpers";
 import { BLACK, WHITE } from "../components/bitboardUtils/constants";
 
@@ -18,7 +15,7 @@ import { BLACK, WHITE } from "../components/bitboardUtils/constants";
  * @param {number} depth  How many plies to search
  * @returns {number}      Number of leaf nodes at exactly `depth` plies
  */
-export function perft(board, player, castling, ep, prevAttackMask, depth) {
+export function perft(board, player, castling, ep, depth) {
   if (depth === 0) return 1;
 
   let nodes = 0;
@@ -27,15 +24,13 @@ export function perft(board, player, castling, ep, prevAttackMask, depth) {
   const moves = getAllLegalMoves(board, player, castling, ep);
   for (const move of moves) {
     makeMove(board, move);
+    updateAttackMasks(board, move);
 
     // New game states
     const newEp = getNewEnPassant(move);
     const newCastling = updateCastlingRights(move.from, move.to, castling);
 
-    updateAttackMasks(board, move);
-    const attackMask = getAttackMask(player);
-
-    nodes += perft(board, opp, newCastling, newEp, attackMask, depth - 1);
+    nodes += perft(board, opp, newCastling, newEp, depth - 1);
 
     unMakeMove(move, board);
   }
@@ -43,13 +38,7 @@ export function perft(board, player, castling, ep, prevAttackMask, depth) {
   return nodes;
 }
 
-export function perftDivide(
-  board,
-  player,
-  castling,
-  ep,
-  depth
-) {
+export function perftDivide(board, player, castling, ep, depth) {
   const divide = {};
 
   const opp = player === WHITE ? BLACK : WHITE;
@@ -58,15 +47,13 @@ export function perftDivide(
   for (const move of moves) {
     const uci = moveToUCI(move);
     makeMove(board, move);
+    updateAttackMasks(board, move);
 
     // New game states
     const newEp = getNewEnPassant(move);
     const newCastling = updateCastlingRights(move.from, move.to, castling);
 
-    updateAttackMasks(board, move);
-    const attackMask = getAttackMask(player);
-
-    divide[uci] = perft(board, opp, newCastling, newEp, attackMask, depth - 1);
+    divide[uci] = perft(board, opp, newCastling, newEp, depth - 1);
 
     unMakeMove(move, board);
   }

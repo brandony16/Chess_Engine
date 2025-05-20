@@ -27,7 +27,7 @@ import { getPieceAtSquare } from "./pieceGetters";
  * @param {bigint} allPieces - a bitboard of all the pieces.
  * @returns {bigint} moves along the given ray
  */
-export const slide = (pieceBitboard, shift, mask, allPieces) => {
+export function slide(pieceBitboard, shift, mask, allPieces) {
   let attack = 0n;
   let pos = pieceBitboard;
 
@@ -46,7 +46,7 @@ export const slide = (pieceBitboard, shift, mask, allPieces) => {
   }
 
   return attack;
-};
+}
 
 /**
  * Converts a big int to an 8x8 grid of 1s and 0s.

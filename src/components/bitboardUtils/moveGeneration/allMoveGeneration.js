@@ -7,12 +7,12 @@ import { getCheckers, getRayBetween } from "./checkersMask";
 import { computePinned, makePinRayMaskGenerator } from "./computePinned";
 import {
   getKingMovesForSquare,
-  getQueenMovesForSquare,
-  getRookMovesForSquare,
+  getMagicQueenMovesForSquare,
+  getMagicRookMovesForSquare,
 } from "./majorPieceMoveGeneration";
 import {
-  getBishopMovesForSquare,
   getKnightMovesForSquare,
+  getMagicBishopMovesForSquare,
   getPawnMovesForSquare,
 } from "./minorPieceMoveGeneration";
 
@@ -66,7 +66,7 @@ export const getPieceMoves = (
       break;
     case C.WHITE_BISHOP:
     case C.BLACK_BISHOP:
-      moves = getBishopMovesForSquare(
+      moves = getMagicBishopMovesForSquare(
         bitboards,
         player,
         from,
@@ -76,7 +76,7 @@ export const getPieceMoves = (
       break;
     case C.WHITE_ROOK:
     case C.BLACK_ROOK:
-      moves = getRookMovesForSquare(
+      moves = getMagicRookMovesForSquare(
         bitboards,
         player,
         from,
@@ -86,7 +86,7 @@ export const getPieceMoves = (
       break;
     case C.WHITE_QUEEN:
     case C.BLACK_QUEEN:
-      moves = getQueenMovesForSquare(
+      moves = getMagicQueenMovesForSquare(
         bitboards,
         player,
         from,
@@ -124,7 +124,7 @@ export const getAllLegalMoves = (
   bitboards,
   player,
   castlingRights,
-  enPassantSquare,
+  enPassantSquare
 ) => {
   let allMoves = [];
 

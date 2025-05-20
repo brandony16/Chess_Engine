@@ -60,16 +60,8 @@ describe("rookAttacks vs brute force", () => {
     for (let blocker = 0; blocker < 64; blocker++) {
       const occ = 1n << BigInt(blocker);
       for (let sq = 0; sq < 64; sq++) {
-        try {
-          const m = rookAttacks(sq, occ);
-          expect(m).toBe(getRookAttacksForSquare(occ, sq));
-        } catch (e) {
-          console.log(findRookCollision(sq));
-          console.log(64 - popcount(rookMagics[sq]), rookShifts[sq]);
-          console.log(sq);
-          // console.log(findNewRookMagic(sq, 100000));
-          throw e;
-        }
+        const m = rookAttacks(sq, occ);
+        expect(m).toBe(getRookAttacksForSquare(occ, sq));
       }
     }
   });

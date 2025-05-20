@@ -22,9 +22,8 @@ import {
 } from "../pieceGetters";
 import { knightMasks } from "../PieceMasks/knightMask";
 import { blackPawnMasks, whitePawnMasks } from "../PieceMasks/pawnMask";
-import {
-  getRookAttacksForSquare,
-} from "./slidingPieceAttacks";
+import { bishopAttacks } from "./magicBitboards/attackTable";
+import { getRookAttacksForSquare } from "./slidingPieceAttacks";
 
 /**
  * Gets the move bitboard for a pawn.
@@ -104,7 +103,6 @@ export const getPawnMovesForSquare = (
     const kingRow = (kingSq - kingFile) / 8;
     const dr = kingRow - Math.floor(from / 8);
 
-
     if (dr === 0) {
       const to = enPassantSquare;
       const capSq = isWhite ? to - 8 : to + 8;
@@ -181,6 +179,28 @@ export const getBishopMovesForSquare = (
   moves |= slide(bishop, -7n, FILE_H_MASK & RANK_1_MASK, allPieces); // Down-right
   moves |= slide(bishop, -9n, FILE_A_MASK & RANK_1_MASK, allPieces); // Down-left
 
+  if (bishop & pinnedMask) {
+    const pinRay = getRayMask(from);
+    moves &= pinRay;
+  }
+
+  return moves & ~friendlyPieces;
+};
+
+export const getMagicBishopMovesForSquare = (
+  bitboards,
+  player,
+  from,
+  pinnedMask,
+  getRayMask
+) => {
+  // Get occupied squares
+  const allPieces = getAllPieces(bitboards);
+  const friendlyPieces = getPlayerBoard(player, bitboards);
+
+  let moves = bishopAttacks(from, allPieces);
+
+  let bishop = 1n << BigInt(from);
   if (bishop & pinnedMask) {
     const pinRay = getRayMask(from);
     moves &= pinRay;

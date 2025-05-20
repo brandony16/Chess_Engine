@@ -1,8 +1,5 @@
 import { bitScanForward } from "../../bbUtils";
-import {
-  getBishopAttacksForSquare,
-  getRookAttacksForSquare,
-} from "../slidingPieceAttacks";
+import { getBishopAttacksForSquare, getRookAttacksForSquare } from "../slidingPieceAttacks";
 import { bishopMasks, rookMasks } from "./generateMasks";
 import {
   bishopMagics,

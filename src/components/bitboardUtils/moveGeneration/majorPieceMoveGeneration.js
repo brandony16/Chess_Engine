@@ -20,6 +20,7 @@ import {
 } from "../moveMaking/castleMoveLogic";
 import { getAllPieces, getPlayerBoard } from "../pieceGetters";
 import { kingMasks } from "../PieceMasks/kingMask";
+import { bishopAttacks, rookAttacks } from "./magicBitboards/attackTable";
 import {
   getBishopAttacksForSquare,
   getRookAttacksForSquare,
@@ -52,6 +53,27 @@ export const getRookMovesForSquare = (
   moves |= slide(rook, 8n, RANK_8_MASK, allPieces);
   moves |= slide(rook, -8n, RANK_1_MASK, allPieces);
 
+  if (rook & pinnedMask) {
+    const mask = getRayMask(from);
+    moves &= mask;
+  }
+
+  return moves & ~friendlyPieces;
+};
+
+export const getMagicRookMovesForSquare = (
+  bitboards,
+  player,
+  from,
+  pinnedMask,
+  getRayMask
+) => {
+  const allPieces = getAllPieces(bitboards);
+  const friendlyPieces = getPlayerBoard(player, bitboards);
+
+  let moves = rookAttacks(from, allPieces);
+
+  let rook = 1n << BigInt(from);
   if (rook & pinnedMask) {
     const mask = getRayMask(from);
     moves &= mask;
@@ -94,6 +116,27 @@ export const getQueenMovesForSquare = (
   moves |= slide(queen, -7n, FILE_H_MASK & RANK_1_MASK, allPieces); // Down-right
   moves |= slide(queen, -9n, FILE_A_MASK & RANK_1_MASK, allPieces); // Down-left
 
+  if (queen & pinnedMask) {
+    const mask = getRayMask(from);
+    moves &= mask;
+  }
+
+  return moves & ~friendlyPieces;
+};
+
+export const getMagicQueenMovesForSquare = (
+  bitboards,
+  player,
+  from,
+  pinnedMask,
+  getRayMask
+) => {
+  const allPieces = getAllPieces(bitboards);
+  const friendlyPieces = getPlayerBoard(player, bitboards);
+  
+  let moves = bishopAttacks(from, allPieces) | rookAttacks(from, allPieces);
+  
+  let queen = 1n << BigInt(from);
   if (queen & pinnedMask) {
     const mask = getRayMask(from);
     moves &= mask;

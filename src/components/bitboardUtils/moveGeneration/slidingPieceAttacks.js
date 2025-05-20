@@ -12,7 +12,7 @@ import { slide } from "../generalHelpers";
  * @param {number} from - the square its moving from
  * @returns {bigint} the move bitboard for the bishop
  */
-export const getBishopAttacksForSquare = (occupancy, from) => {
+export function getBishopAttacksForSquare(occupancy, from) {
   let bishopBitboard = 1n << BigInt(from);
   let attacks = 0n;
 
@@ -22,7 +22,7 @@ export const getBishopAttacksForSquare = (occupancy, from) => {
   attacks |= slide(bishopBitboard, -9n, FILE_A_MASK & RANK_1_MASK, occupancy); // Down-left
 
   return attacks;
-};
+}
 
 /**
  * Gets the attack bitboard for a rook.
@@ -30,7 +30,7 @@ export const getBishopAttacksForSquare = (occupancy, from) => {
  * @param {number} from - the square its moving from
  * @returns {bigint} the move bitboard for the rook
  */
-export const getRookAttacksForSquare = (occupancy, from) => {
+export function getRookAttacksForSquare(occupancy, from) {
   let rookBitboard = 1n << BigInt(from);
   let attacks = 0n;
 
@@ -40,7 +40,7 @@ export const getRookAttacksForSquare = (occupancy, from) => {
   attacks |= slide(rookBitboard, -8n, RANK_1_MASK, occupancy);
 
   return attacks;
-};
+}
 
 /**
  * Gets the attack bitboard for a queen.
@@ -48,7 +48,7 @@ export const getRookAttacksForSquare = (occupancy, from) => {
  * @param {number} from - the square its moving from
  * @returns {bigint} the move bitboard for the queen
  */
-export const getQueenAttacksForSquare = (occupancy, from) => {
+export function getQueenAttacksForSquare(occupancy, from) {
   let queenBitboard = 1n << BigInt(from);
   let attacks = 0n;
 
@@ -65,4 +65,4 @@ export const getQueenAttacksForSquare = (occupancy, from) => {
   attacks |= slide(queenBitboard, -9n, FILE_A_MASK & RANK_1_MASK, occupancy); // Down-left
 
   return attacks;
-};
+}

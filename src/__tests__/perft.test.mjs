@@ -22,18 +22,18 @@ const cases = [
     8902,
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   ],
-  // [
-  //   "Start pos",
-  //   4,
-  //   197_281,
-  //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-  // ],
-  // [
-  //   "Start pos",
-  //   5,
-  //   4_865_609,
-  //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-  // ],
+  [
+    "Start pos",
+    4,
+    197_281,
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  ],
+  [
+    "Start pos",
+    5,
+    4_865_609,
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  ],
   [
     "“Kiwipete” pos",
     1,
