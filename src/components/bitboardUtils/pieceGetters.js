@@ -1,3 +1,4 @@
+import { bitScanForward } from "./bbUtils";
 import {
   BLACK_BISHOP,
   BLACK_KING,
@@ -5,6 +6,7 @@ import {
   BLACK_PAWN,
   BLACK_QUEEN,
   BLACK_ROOK,
+  INITIAL_BITBOARDS,
   NUM_PIECES,
   WHITE,
   WHITE_BISHOP,
@@ -119,21 +121,37 @@ export const getEmptySquares = (bitboards) => {
 };
 
 /**
- * Gets a piece at a specific square
- *
- * @param {number} square - the square to find the piece at
- * @param {BigUint64Array} bitboards - the bitboards of the current position
- * @returns {number} the index of the piece at the square
+ * Array that stores piece locations
  */
-export const getPieceAtSquare = (square, bitboards) => {
-  const mask = 1n << BigInt(square);
-  for (let p = 0; p < NUM_PIECES; p++) {
-    if ((bitboards[p] & mask) !== 0n) {
-      return p;
+export const pieceAt = new Array(64).fill(null);
+
+/**
+ * Sets the pieceAt array to have all correct peices for given bitboards
+ * @param {BigUint64Array} bitboards - the bitboards of the position
+ */
+export function initializePieceAtArray(bitboards) {
+  clearPieceAtArray();
+  for (let piece = 0; piece < NUM_PIECES; piece++) {
+    let bb = bitboards[piece];
+    while (bb) {
+      const sq = bitScanForward(bb);
+      pieceAt[sq] = piece;
+      
+      bb &= bb - 1n;
     }
   }
-  return null; // empty square
-};
+}
+
+/**
+ * Clears the pieceAt array.
+ */
+export function clearPieceAtArray() {
+  for (let i = 0; i < 64; i++) {
+    pieceAt[i] = null;
+  }
+}
+initializePieceAtArray(INITIAL_BITBOARDS);
+
 
 /**
  * Determines if a given player has a piece at the given square.

@@ -9,8 +9,9 @@ import {
 import { updateCastlingRights } from "./bitboardUtils/moveMaking/castleMoveLogic";
 import { getNewEnPassant } from "./bitboardUtils/bbChessLogic";
 import { computeAllAttackMasks } from "./bitboardUtils/PieceMasks/individualAttackMasks";
+import { initializePieceAtArray } from "./bitboardUtils/pieceGetters";
 
-export const useGameStore = create((set, get) => ({
+export const useGameStore = create((set) => ({
   // STATE
   bitboards: INITIAL_BITBOARDS.slice(),
   selectedSquare: null,
@@ -92,6 +93,7 @@ export const useGameStore = create((set, get) => ({
           ]
         : state.gameHistory;
       computeAllAttackMasks(INITIAL_BITBOARDS);
+      initializePieceAtArray(INITIAL_BITBOARDS);
 
       return {
         bitboards: INITIAL_BITBOARDS.slice(),

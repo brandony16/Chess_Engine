@@ -12,7 +12,7 @@ import {
   WHITE_QUEENSIDE,
 } from "./constants";
 import { getAllLegalMoves } from "./moveGeneration/allMoveGeneration";
-import { getPieceAtSquare } from "./pieceGetters";
+import { pieceAt } from "./pieceGetters";
 
 /**
  * Converts bitboards to a FEN string
@@ -36,7 +36,7 @@ export function bitboardsToFEN(
 
     for (let file = 0; file < 8; file++) {
       const square = rank * 8 + file;
-      const piece = getPieceAtSquare(square, bitboards);
+      const piece = pieceAt[square];
 
       if (piece === null) {
         emptyCount += 1;

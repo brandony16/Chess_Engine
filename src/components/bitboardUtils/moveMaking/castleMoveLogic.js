@@ -9,6 +9,7 @@ import {
   WHITE_QUEENSIDE,
   WHITE_ROOK,
 } from "../constants";
+import { pieceAt } from "../pieceGetters";
 
 /**
  * Updates castling rights given the square moved from.
@@ -118,24 +119,40 @@ export const makeCastleMove = (bitboards, from, to) => {
     bitboards[WHITE_KING] |= 1n << 6n;
     bitboards[WHITE_ROOK] &= ~(1n << 7n);
     bitboards[WHITE_ROOK] |= 1n << 5n;
+    pieceAt[to] = WHITE_KING;
+    pieceAt[from] = null;
+    pieceAt[7] = null;
+    pieceAt[5] = WHITE_ROOK;
   } else if (from === 4 && to === 2) {
     // White queenside castling
     bitboards[WHITE_KING] &= ~(1n << 4n);
     bitboards[WHITE_KING] |= 1n << 2n;
     bitboards[WHITE_ROOK] &= ~(1n << 0n);
     bitboards[WHITE_ROOK] |= 1n << 3n;
+    pieceAt[to] = WHITE_KING;
+    pieceAt[from] = null;
+    pieceAt[0] = null;
+    pieceAt[3] = WHITE_ROOK;
   } else if (from === 60 && to === 62) {
     // Black kingside castling
     bitboards[BLACK_KING] &= ~(1n << 60n);
     bitboards[BLACK_KING] |= 1n << 62n;
     bitboards[BLACK_ROOK] &= ~(1n << 63n);
     bitboards[BLACK_ROOK] |= 1n << 61n;
+    pieceAt[to] = BLACK_KING;
+    pieceAt[from] = null;
+    pieceAt[63] = null;
+    pieceAt[61] = BLACK_ROOK;
   } else if (from === 60 && to === 58) {
     // Black queenside castling
     bitboards[BLACK_KING] &= ~(1n << 60n);
     bitboards[BLACK_KING] |= 1n << 58n;
     bitboards[BLACK_ROOK] &= ~(1n << 56n);
     bitboards[BLACK_ROOK] |= 1n << 59n;
+    pieceAt[to] = BLACK_KING;
+    pieceAt[from] = null;
+    pieceAt[56] = null;
+    pieceAt[59] = BLACK_ROOK;
   }
 };
 
@@ -153,23 +170,39 @@ export const unMakeCastleMove = (bitboards, from, to) => {
     bitboards[WHITE_KING] |= 1n << 4n;
     bitboards[WHITE_ROOK] &= ~(1n << 5n);
     bitboards[WHITE_ROOK] |= 1n << 7n;
+    pieceAt[from] = WHITE_KING;
+    pieceAt[to] = null;
+    pieceAt[5] = null;
+    pieceAt[7] = WHITE_ROOK;
   } else if (from === 4 && to === 2) {
     // White queenside castling
     bitboards[WHITE_KING] &= ~(1n << 2n);
     bitboards[WHITE_KING] |= 1n << 4n;
     bitboards[WHITE_ROOK] &= ~(1n << 3n);
     bitboards[WHITE_ROOK] |= 1n << 0n;
+    pieceAt[from] = WHITE_KING;
+    pieceAt[to] = null;
+    pieceAt[3] = null;
+    pieceAt[0] = WHITE_ROOK;
   } else if (from === 60 && to === 62) {
     // Black kingside castling
     bitboards[BLACK_KING] &= ~(1n << 62n);
     bitboards[BLACK_KING] |= 1n << 60n;
     bitboards[BLACK_ROOK] &= ~(1n << 61n);
     bitboards[BLACK_ROOK] |= 1n << 63n;
+    pieceAt[from] = BLACK_KING;
+    pieceAt[to] = null;
+    pieceAt[61] = null;
+    pieceAt[63] = BLACK_ROOK;
   } else if (from === 60 && to === 58) {
     // Black queenside castling
     bitboards[BLACK_KING] &= ~(1n << 58n);
     bitboards[BLACK_KING] |= 1n << 60n;
     bitboards[BLACK_ROOK] &= ~(1n << 59n);
     bitboards[BLACK_ROOK] |= 1n << 56n;
+    pieceAt[from] = BLACK_KING;
+    pieceAt[to] = null;
+    pieceAt[59] = null;
+    pieceAt[56] = BLACK_ROOK;
   }
 };

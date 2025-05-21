@@ -11,12 +11,12 @@ import {
   setTT,
   TT_FLAG,
 } from "../../bitboardUtils/TranspositionTable/transpositionTable";
-import { getPieceAtSquare } from "../../bitboardUtils/pieceGetters";
 import { BLACK, MAX_PLY, WEIGHTS, WHITE } from "../../bitboardUtils/constants";
 import { rootId } from "./BondMonkeyV2";
 import { evaluate2 } from "./evaluation2";
 import { getAllLegalMoves } from "../../bitboardUtils/moveGeneration/allMoveGeneration";
 import { updateAttackMasks } from "../../bitboardUtils/PieceMasks/attackMask";
+import { pieceAt } from "../../bitboardUtils/pieceGetters";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -119,9 +119,7 @@ export const minimax2 = (
     // 2) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
       score +=
-        100_000 +
-        (WEIGHTS[getPieceAtSquare(to, bitboards)] || 0) -
-        (WEIGHTS[getPieceAtSquare(from, bitboards)] || 0);
+        100_000 + (WEIGHTS[pieceAt[to]] || 0) - (WEIGHTS[pieceAt[from]] || 0);
     }
 
     // 3) Killer moves at this ply

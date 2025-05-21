@@ -1,5 +1,5 @@
 import { bitScanForward, isKing, popcount } from "./bbUtils";
-import { getPieceAtSquare, getPlayerBoard } from "./pieceGetters";
+import { getPlayerBoard, pieceAt } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
 import {
   BLACK,
@@ -101,7 +101,7 @@ export const hasLegalMove = (
     const oppSq = bitScanForward(checkers);
 
     // If a knight check, need to catpure it (or move king)
-    if (getPieceAtSquare(oppSq, bitboards) % 6 === WHITE_KNIGHT) {
+    if (pieceAt[oppSq] % 6 === WHITE_KNIGHT) {
       kingCheckMask = checkers;
     } else {
       const rayMask = getRayBetween(kingSq, oppSq);
@@ -114,7 +114,7 @@ export const hasLegalMove = (
     const square = bitScanForward(pieces);
     pieces &= pieces - 1n;
 
-    const piece = getPieceAtSquare(square, bitboards);
+    const piece = pieceAt[square];
 
     const pieceMoves = getPieceMoves(
       bitboards,

@@ -8,8 +8,8 @@ import { computeHash } from "./bitboardUtils/zobristHashing";
 import { checkGameOver } from "./bitboardUtils/gameOverLogic";
 import { movesToBB, moveToReadable } from "./bitboardUtils/generalHelpers";
 import {
-  getPieceAtSquare,
   isPlayersPieceAtSquare,
+  pieceAt,
 } from "./bitboardUtils/pieceGetters";
 import { getAllLegalMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration";
 import { getNewEnPassant } from "./bitboardUtils/bbChessLogic";
@@ -107,11 +107,11 @@ const BitboardGame = () => {
     } = useGameStore.getState();
 
     // Get variables for Move object
-    const piece = getPieceAtSquare(from, bitboards);
+    const piece = pieceAt[from];
     const castling = isKing(piece) && Math.abs(from - to) === 2;
     const enPassant =
       to === enPassantSquare && (piece === WHITE_PAWN || piece === BLACK_PAWN);
-    let captured = getPieceAtSquare(to, bitboards);
+    let captured = pieceAt[to];
     if (enPassant) {
       captured = piece === WHITE_PAWN ? BLACK_PAWN : WHITE_PAWN;
     }
@@ -203,7 +203,7 @@ const BitboardGame = () => {
       const mask = 1n << BigInt(square);
 
       if (moveBitboard & mask) {
-        const piece = getPieceAtSquare(selectedSquare, bitboards);
+        const piece = pieceAt[selectedSquare];
 
         // Promotion
         if (
@@ -371,6 +371,7 @@ const BitboardGame = () => {
   useEffect(() => {
     worker.onmessage = (e) => {
       const { move } = e.data;
+      console.log(move);
       processMove(move.from, move.to, move.promotion);
     };
   }, []);
@@ -378,7 +379,7 @@ const BitboardGame = () => {
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
-      getEngineMove(4, 5000);
+      getEngineMove(5, 5000);
     }
   }, [currPlayer, userSide]);
 

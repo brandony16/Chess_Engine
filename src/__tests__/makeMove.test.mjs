@@ -8,6 +8,7 @@ import {
   unMakeMove,
 } from "../components/bitboardUtils/moveMaking/makeMoveLogic";
 import * as C from "../components/bitboardUtils/constants";
+import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters";
 
 // [ description, FEN, UCI move ]
 const cases = [
@@ -16,13 +17,13 @@ const cases = [
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
     "e2e4",
   ],
-  ["Simple capture", "8/8/8/3p4/4P3/8/8/4K3 w - - 0 1", "e4d5"],
+  ["Simple capture", "k7/8/8/3p4/4P3/8/8/4K3 w - - 0 1", "e4d5"],
   ["Kingside castle", "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1", "e1g1"],
   ["Queenside castle", "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1", "e1c1"],
   ["En passant", "k7/8/8/3pP3/8/8/8/4K3 w - d6 0 1", "e5d6"],
   ["Promotion Queen", "4k3/1pP5/8/8/8/8/8/4K3 w - - 0 1", "c7c8q"],
   ["Promotion Knight", "4k3/1pP5/8/8/8/8/8/4K3 w - - 0 1", "c7c8n"],
-  ["Knight hop", "8/8/8/8/8/8/N7/4K3 w - - 0 1", "a2b4"],
+  ["Knight hop", "k7/8/8/8/8/8/N7/4K3 w - - 0 1", "a2b4"],
 ];
 
 describe("makeMove + unMakeMove", () => {
@@ -36,6 +37,7 @@ describe("makeMove + unMakeMove", () => {
       const ep = fenData.ep;
 
       const move = uciToMove(uci, bitboards, player, castling, ep);
+      initializePieceAtArray(bitboards);
 
       makeMove(bitboards, move);
       unMakeMove(move, bitboards);
@@ -61,6 +63,7 @@ describe("makeMove bitboard updates", () => {
       enPassant: false,
       castling: false,
     };
+    initializePieceAtArray(bitboards);
 
     makeMove(bitboards, move);
 

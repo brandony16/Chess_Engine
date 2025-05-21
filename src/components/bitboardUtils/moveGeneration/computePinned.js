@@ -1,6 +1,6 @@
 import { bitScanForward } from "../bbUtils";
 import * as C from "../constants";
-import { getAllPieces, getPieceAtSquare } from "../pieceGetters";
+import { getAllPieces, pieceAt } from "../pieceGetters";
 
 /**
  * Computes a bitboard of all of a players pinned pieces.
@@ -31,7 +31,7 @@ export function computePinned(bitboards, player) {
       const mask = 1n << BigInt(square);
 
       if (occupancy & mask) {
-        const piece = getPieceAtSquare(square, bitboards);
+        const piece = pieceAt[square];
         const isOwn = isWhite ? piece < 6 : piece >= 6;
 
         if (ownPieceSq === null) {
@@ -128,6 +128,7 @@ export function makePinRayMaskGenerator(kingSq) {
     while (curFile >= 0 && curFile < 8 && curRank >= 0 && curRank < 8) {
       const sq = curRank * 8 + curFile;
       mask |= 1n << BigInt(sq);
+
       curFile += normFile;
       curRank += normRow;
     }

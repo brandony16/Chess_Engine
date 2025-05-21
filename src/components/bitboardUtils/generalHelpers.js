@@ -1,7 +1,7 @@
 import { isInCheck } from "./bbChessLogic";
 import { BLACK, COLUMN_SYMBOLS, GENERAL_SYMBOLS, WHITE } from "./constants";
 import { getAllLegalMoves } from "./moveGeneration/allMoveGeneration";
-import { getPieceAtSquare } from "./pieceGetters";
+import { pieceAt } from "./pieceGetters";
 
 /**
  * Slides a specified direction until it hits a piece.
@@ -56,7 +56,7 @@ export const moveToReadable = (
   const col = to % 8;
   const letterCol = COLUMN_SYMBOLS[col];
   const row = (to - col) / 8;
-  const piece = getPieceAtSquare(to, bitboards);
+  const piece = pieceAt[to];
   const formattedPiece = GENERAL_SYMBOLS[piece];
 
   // indexes 0-5 are white pieces, 6-11 are black pieces

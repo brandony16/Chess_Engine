@@ -7,7 +7,7 @@ import {
   makeMove,
   unMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic";
-import { getPieceAtSquare } from "../../bitboardUtils/pieceGetters";
+import { pieceAt } from "../../bitboardUtils/pieceGetters";
 import { updateAttackMasks } from "../../bitboardUtils/PieceMasks/attackMask";
 import { updateHash } from "../../bitboardUtils/zobristHashing";
 import { evaluate4 } from "./evaluation4";
@@ -71,12 +71,8 @@ export const quiesce = (
 
   // Sort by MVV/LVA
   captures.sort((a, b) => {
-    const vA =
-      (WEIGHTS[getPieceAtSquare(a.to, bitboards)] || 0) -
-      (WEIGHTS[a.captured] || 0);
-    const vB =
-      (WEIGHTS[getPieceAtSquare(b.to, bitboards)] || 0) -
-      (WEIGHTS[b.captured] || 0);
+    const vA = (WEIGHTS[pieceAt[a.to]] || 0) - (WEIGHTS[a.captured] || 0);
+    const vB = (WEIGHTS[pieceAt[b.to]] || 0) - (WEIGHTS[b.captured] || 0);
     return vB - vA;
   });
 

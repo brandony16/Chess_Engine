@@ -1,5 +1,5 @@
 import { blackPawnMasks, whitePawnMasks } from "../PieceMasks/pawnMask";
-import { getAllPieces, getPieceAtSquare } from "../pieceGetters";
+import { getAllPieces, pieceAt } from "../pieceGetters";
 import * as C from "../constants";
 import { knightMasks } from "../PieceMasks/knightMask";
 import { slide } from "../generalHelpers";
@@ -52,7 +52,7 @@ function slidingCheckMask(bitboards, kingSq, occupancy, isWhite) {
   let orthBlockers = orthBB & occupancy;
   while (orthBlockers !== 0n) {
     const blockerSq = bitScanForward(orthBlockers);
-    const piece = getPieceAtSquare(blockerSq, bitboards);
+    const piece = pieceAt[blockerSq];
 
     if (
       (isWhite && (piece === C.BLACK_ROOK || piece === C.BLACK_QUEEN)) ||
@@ -69,7 +69,7 @@ function slidingCheckMask(bitboards, kingSq, occupancy, isWhite) {
   let diagBlockers = diagBB & occupancy;
   while (diagBlockers !== 0n) {
     const blockerSq = bitScanForward(diagBlockers);
-    const piece = getPieceAtSquare(blockerSq, bitboards);
+    const piece = pieceAt[blockerSq];
 
     if (
       (isWhite && (piece === C.BLACK_BISHOP || piece === C.BLACK_QUEEN)) ||
@@ -95,8 +95,8 @@ export function getRayBetween(sq1, sq2) {
 
   const dr = r2 - r1;
   const df = f2 - f1;
-  const normDr = dr / Math.abs(dr);
-  const normDf = df / Math.abs(df);
+  const normDr = dr === 0 ? 0 : dr / Math.abs(dr);
+  const normDf = df === 0 ? 0 : df / Math.abs(df);
 
   const bb1 = 1n << BigInt(sq1);
   const bb2 = 1n << BigInt(sq2);

@@ -1,5 +1,6 @@
 import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
 import { getAllLegalMoves } from "../components/bitboardUtils/moveGeneration/allMoveGeneration";
+import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters";
 import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
 
 const cases = [
@@ -38,6 +39,7 @@ describe("GetAllLegalMoves", () => {
       const ep = state.ep;
 
       computeAllAttackMasks(bitboards);
+      initializePieceAtArray(bitboards);
 
       const moves = getAllLegalMoves(bitboards, player, castling, ep);
 

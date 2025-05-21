@@ -6,7 +6,7 @@ import {
   WHITE_PAWN,
   WHITE_PROMO_PIECES,
 } from "../constants";
-import { getPieceAtSquare } from "../pieceGetters";
+import { pieceAt } from "../pieceGetters";
 import {
   computeMaskForPiece,
   individualAttackMasks,
@@ -30,31 +30,38 @@ export const makeMove = (bitboards, move) => {
   const promotion = move.promotion;
   const enPassant = move.enPassant;
 
+  
   // Handle castle case
   if (move.castling) {
     makeCastleMove(bitboards, move.from, move.to);
     return;
   }
-
+  
   // Remove moving piece
   bitboards[piece] &= ~maskFrom;
-
+  
   // Remove captured piece
   if (move.captured !== null && !enPassant) {
     bitboards[captured] &= ~maskTo;
   }
 
+  pieceAt[move.from] = null;
+
   // Handles promotions
   if (promotion) {
     bitboards[promotion] |= maskTo; // Add promoted piece
+    pieceAt[move.to] = promotion;
   } else {
     bitboards[piece] |= maskTo;
+    pieceAt[move.to] = piece;
   }
 
   if (enPassant) {
     const dir = piece === WHITE_PAWN ? -8 : 8;
     // Remove the captured pawn from the opposing pawn bitboard
     bitboards[captured] &= ~(one << BigInt(move.to + dir));
+
+    pieceAt[move.to + dir] = null;
   }
 };
 
@@ -83,6 +90,9 @@ export const unMakeMove = (move, bitboards) => {
     return;
   }
 
+  pieceAt[to] = null;
+  pieceAt[from] = piece;
+
   // Undo promotion
   if (promotion) {
     bitboards[promotion] &= ~maskTo;
@@ -95,6 +105,7 @@ export const unMakeMove = (move, bitboards) => {
   // Restore captured piece
   if (captured !== null && !enPassant) {
     bitboards[captured] |= one << BigInt(to);
+    pieceAt[to] = captured;
   }
 
   // Undo en passant capture
@@ -102,6 +113,7 @@ export const unMakeMove = (move, bitboards) => {
     const dir = piece === WHITE_PAWN ? -8 : 8;
     const capturedPawnSquare = to + dir;
     bitboards[captured] |= one << BigInt(capturedPawnSquare);
+    pieceAt[capturedPawnSquare] = captured;
   }
 
   // Update attack masks
@@ -113,19 +125,18 @@ export const unMakeMove = (move, bitboards) => {
 /**
  * Function that turns move info into a move object.
  *
- * @param {BigUint64Array} bitboards - the bitboards of the position
  * @param {number} from - the square moving from
  * @param {number} to - the square moving to
  * @param {number} piece - the index of the piece
  * @param {number} enPassantSquare - the square where en passant is legal
  * @returns {Move} - the move object
  */
-export const getMove = (bitboards, from, to, piece, enPassantSquare) => {
+export const getMove = (from, to, piece, enPassantSquare) => {
   const isWhite = piece <= 5;
   const castling = isKing(piece) && Math.abs(from - to) === 2;
   const enPassant =
     to === enPassantSquare && (piece === WHITE_PAWN || piece === BLACK_PAWN);
-  let captured = getPieceAtSquare(to, bitboards);
+  let captured = pieceAt[to];
   if (enPassant) {
     captured = isWhite ? BLACK_PAWN : WHITE_PAWN;
   }
@@ -164,7 +175,7 @@ export const getMovesFromBB = (
     const to = bitScanForward(moves);
     moves &= moves - 1n;
 
-    const move = getMove(bitboards, from, to, piece, enPassantSquare);
+    const move = getMove(from, to, piece, enPassantSquare);
 
     // If a promotion is possible, can promote to knight, bishop, rook, or queen
     if (isPromotion) {

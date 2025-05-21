@@ -11,7 +11,7 @@ import {
   WHITE_PROMO_PIECES,
 } from "../../constants";
 import Move from "../../moveMaking/move";
-import { getPieceAtSquare } from "../../pieceGetters";
+import { pieceAt } from "../../pieceGetters";
 
 /**
  * Gets the captures and promotions for the pawns
@@ -61,7 +61,7 @@ export const pawnQuiescence = (
         ? to - (isLeft ? 7 : 9)
         : to + (isLeft ? 9 : 7);
       const piece = isPlayerWhite ? WHITE_PAWN : BLACK_PAWN;
-      const captured = getPieceAtSquare(to, bitboards);
+      const captured = pieceAt[to];
       const move = new Move(from, to, piece, captured, null, false, false);
       moves.push(move);
     }
@@ -78,7 +78,7 @@ export const pawnQuiescence = (
       const from = isPlayerWhite
         ? to - (isLeft ? 7 : 9)
         : to + (isLeft ? 9 : 7);
-      const captured = getPieceAtSquare(to, bitboards);
+      const captured = pieceAt[to];
 
       for (const promoPiece of promoPieces) {
         const move = new Move(
@@ -104,7 +104,7 @@ export const pawnQuiescence = (
     const to = bitScanForward(promoSquares);
     promoSquares &= promoSquares - 1n;
     const from = isPlayerWhite ? to - 8 : to + 8;
-    const captured = getPieceAtSquare(to, bitboards);
+    const captured = pieceAt[to];
 
     for (const promoPiece of promoPieces) {
       const move = new Move(
