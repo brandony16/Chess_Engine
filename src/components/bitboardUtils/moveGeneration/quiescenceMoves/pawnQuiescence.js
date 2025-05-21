@@ -29,7 +29,7 @@ export const pawnQuiescence = (
   enPassantSquare
 ) => {
   const moves = [];
-  
+
   const isPlayerWhite = player === WHITE;
   const piece = isPlayerWhite ? WHITE_PAWN : BLACK_PAWN;
   const pawns = isPlayerWhite ? bitboards[WHITE_PAWN] : bitboards[BLACK_PAWN];

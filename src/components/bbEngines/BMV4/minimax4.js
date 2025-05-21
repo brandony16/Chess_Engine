@@ -28,12 +28,11 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
 /**
  * A minimax function that recursively finds the evaluation of the function.
  * @param {Bitboards} bitboards - the bitboards of the current position
- * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {CastlingRights} castlingRights - the castling rights
+ * @param {0 | 1} player - the player whose move it is (0 for w, 1 for b)
+ * @param {Array<boolean>} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {Map} prevPositions - a map of the previous positions
  * @param {bigint} prevHash - the hash of the current position before moves are simulated.
- * @param {bigint} prevAttackMask - the attack hash of the current position before moves are simulated.
  * @param {depth} currentDepth - the current depth of the search
  * @param {depth} maxDepth - the maximum depth of the search
  * @param {number} alpha - the alpha value for alpha-beta pruning
@@ -176,16 +175,14 @@ export const minimax4 = (
       // Update Hash
       const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
       const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
-      const castlingChanged = {
-        whiteKingside:
-          castlingRights.whiteKingside !== newCastling.whiteKingside,
-        whiteQueenside:
-          castlingRights.whiteQueenside !== newCastling.whiteQueenside,
-        blackKingside:
-          castlingRights.blackKingside !== newCastling.blackKingside,
-        blackQueenside:
-          castlingRights.blackQueenside !== newCastling.blackQueenside,
-      };
+      const castlingChanged = new Array(newCastling.length);
+      for (let i = 0; i < newCastling.length; i++) {
+        if (castlingRights[i] !== newCastling[i]) {
+          castlingChanged[i] = true;
+        } else {
+          castlingChanged[i] = false;
+        }
+      }
       const hash = updateHash(
         prevHash,
         move,
@@ -255,16 +252,14 @@ export const minimax4 = (
       // Update Hash
       const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
       const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
-      const castlingChanged = {
-        whiteKingside:
-          castlingRights.whiteKingside !== newCastling.whiteKingside,
-        whiteQueenside:
-          castlingRights.whiteQueenside !== newCastling.whiteQueenside,
-        blackKingside:
-          castlingRights.blackKingside !== newCastling.blackKingside,
-        blackQueenside:
-          castlingRights.blackQueenside !== newCastling.blackQueenside,
-      };
+      const castlingChanged = new Array(newCastling.length);
+      for (let i = 0; i < newCastling.length; i++) {
+        if (castlingRights[i] !== newCastling[i]) {
+          castlingChanged[i] = true;
+        } else {
+          castlingChanged[i] = false;
+        }
+      }
       const hash = updateHash(
         prevHash,
         move,
@@ -336,7 +331,7 @@ export const minimax4 = (
 
   if (!Number.isFinite(bestEval)) {
     console.log(orderedMoves);
-    console.log(currentDepth)
+    console.log(currentDepth);
     console.log(maxDepth);
     console.log(evaluate4(bitboards, player, null, currentDepth));
     throw new Error("Score is infinite");

@@ -17,14 +17,6 @@ import {
 } from "./minorPieceMoveGeneration";
 
 /**
- * @typedef {object} CastlingRights
- * @property {boolean} whiteKingside - Whether castling kingside is legal for white
- * @property {boolean} whiteQueenside - Whether castling queenside is legal for white
- * @property {boolean} blackKingside - Whether castling kingside is legal for black
- * @property {boolean} blackQueenside - Whether castling queenside is legal for black
- */
-
-/**
  * Gets the moves for a specific piece. Returns a bitboard of the moves for that piece.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
@@ -32,7 +24,7 @@ import {
  * @param {number} from - the square to move from
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {number} enPassantSquare - the square where en passant is legal
- * @param {CastlingRights} castlingRights - the castling rights
+ * @param {Array<boolean>} castlingRights - the castling rights
  * @param {boolean} onlyCaptures - whether the moves should only be captures
  * @returns {bigint} a bitboard of the moves of the piece
  */
@@ -116,7 +108,7 @@ export const getPieceMoves = (
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {CastlingRights} castlingRights - the castling rights
+ * @param {Array<boolean>} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @returns {Array<Move>} a bitboard of all the legal moves a player has
  */

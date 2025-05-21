@@ -8,8 +8,8 @@ import {
 } from "../../constants";
 import { getMovesFromBB } from "../../moveMaking/makeMoveLogic";
 import {
-  getBishopMovesForSquare,
   getKnightMovesForSquare,
+  getMagicBishopMovesForSquare,
 } from "../minorPieceMoveGeneration";
 
 /**
@@ -17,7 +17,6 @@ import {
  * @param {BigUint64Array} bitboards - the bitboards in the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {bigint} opponentPieces - a bitboard of the opponents pieces
-
  * @param {bigint} pinnedMask - the mask of pinned pieces for the player
  * @returns {Array<Move>} the move bitboard for the knight
  */
@@ -85,8 +84,13 @@ export const bishopQuiescence = (
     bishopBB &= bishopBB - 1n;
 
     let moveBB =
-      getBishopMovesForSquare(bitboards, player, from, pinnedMask, getRayMask) &
-      opponentPieces;
+      getMagicBishopMovesForSquare(
+        bitboards,
+        player,
+        from,
+        pinnedMask,
+        getRayMask
+      ) & opponentPieces;
 
     const bishopMoves = getMovesFromBB(
       bitboards,

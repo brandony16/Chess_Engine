@@ -8,10 +8,7 @@ import {
   unMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic";
 import { getPieceAtSquare } from "../../bitboardUtils/pieceGetters";
-import {
-  getAttackMask,
-  updateAttackMasks,
-} from "../../bitboardUtils/PieceMasks/attackMask";
+import { updateAttackMasks } from "../../bitboardUtils/PieceMasks/attackMask";
 import { updateHash } from "../../bitboardUtils/zobristHashing";
 import { evaluate3 } from "./evaluation3";
 
@@ -25,7 +22,7 @@ import { evaluate3 } from "./evaluation3";
  * @param {number} alpha - the alpha value for alpha-beta pruning
  * @param {number} beta - the beta value for alpha-beta pruning
  * @param {number} enPassantSquare - the square where en passant is legal
- * @param {CastlingRights} castlingRights - the castling rights
+ * @param {Array<boolean>} castlingRights - the castling rights
  * @param {Map} prevPositions - a map of the previous positions
  * @param {bigint} prevHash - the hash of the current position before moves are simulated.
  *
@@ -86,21 +83,25 @@ export const quiesce = (
   const opponent = player === WHITE ? BLACK : WHITE;
   for (const move of captures) {
     makeMove(bitboards, move);
-    const newEnPassant = getNewEnPassant(move);
-    const newCastling = updateCastlingRights(move.from, move.to, castlingRights);
     updateAttackMasks(bitboards, move);
-    const newAttackMask = getAttackMask(player);
+
+    const newEnPassant = getNewEnPassant(move);
+    const newCastling = updateCastlingRights(
+      move.from,
+      move.to,
+      castlingRights
+    );
 
     const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
     const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
-    const castlingChanged = {
-      whiteKingside: castlingRights.whiteKingside !== newCastling.whiteKingside,
-      whiteQueenside:
-        castlingRights.whiteQueenside !== newCastling.whiteQueenside,
-      blackKingside: castlingRights.blackKingside !== newCastling.blackKingside,
-      blackQueenside:
-        castlingRights.blackQueenside !== newCastling.blackQueenside,
-    };
+    const castlingChanged = new Array(newCastling.length);
+    for (let i = 0; i < newCastling.length; i++) {
+      if (castlingRights[i] !== newCastling[i]) {
+        castlingChanged[i] = true;
+      } else {
+        castlingChanged[i] = false;
+      }
+    }
     const newHash = updateHash(
       prevHash,
       move,
@@ -119,8 +120,7 @@ export const quiesce = (
       newEnPassant,
       newCastling,
       newPositions,
-      newHash,
-      newAttackMask
+      newHash
     );
 
     unMakeMove(move, bitboards);

@@ -7,10 +7,14 @@ import {
   WHITE_ROOK,
 } from "./constants";
 
+/**
+ * Generates a random 64 bit integer
+ * @returns {bigint} - a random bigint
+ */
 function rand64() {
   // Create two 32-bit random integers
-  const high = Math.floor(Math.random() * 0x100000000); // Upper 32 bits
-  const low = Math.floor(Math.random() * 0x100000000); // Lower 32 bits
+  const high = Math.floor(Math.random() * 0x100000000);
+  const low = Math.floor(Math.random() * 0x100000000);
 
   // Combine them into a 64-bit BigInt
   return (BigInt(high) << 32n) | BigInt(low);
@@ -31,10 +35,22 @@ for (let p = 0; p < NUM_PIECES; p++) {
   }
 }
 
+/**
+ * Create En Passant keys for hashing. One for each file
+ */
 export const epKeys = Array(8)
   .fill(null)
   .map(() => rand64());
+
+/**
+ * Create castling keys for hashing. One for each type of castling
+ * (White Kingside, White Queenside, Black Kingside, Black Queenside)
+ */
 export const castleKeys = [rand64(), rand64(), rand64(), rand64()];
+
+/**
+ * A player key used for hashing
+ */
 export const playerKey = rand64();
 
 /**
@@ -45,6 +61,7 @@ export const playerKey = rand64();
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} sideToMove - whose move it is (0 for w, 1 for b)
  * @param {number} enPassantFile - The file where enPassant is legal (0-7, -1 if none)
+ * @param {Array<Boolean>} castlingRights - the castling rights of the position.
  * @returns {bigint} hash for the position
  */
 export const computeHash = (
@@ -77,10 +94,11 @@ export const computeHash = (
   }
 
   if (castlingRights) {
-    if (castlingRights.whiteKingside) hash ^= castleKeys[0];
-    if (castlingRights.whiteQueenside) hash ^= castleKeys[1];
-    if (castlingRights.blackKingside) hash ^= castleKeys[2];
-    if (castlingRights.blackQueenside) hash ^= castleKeys[3];
+    for (let i = 0; i < castlingRights.length; i++) {
+      if (castlingRights[i]) {
+        hash ^= castleKeys[i];
+      }
+    }
   }
 
   return hash;
@@ -95,8 +113,8 @@ export const computeHash = (
  * @param {Move} move - the move object
  * @param {number} prevEpFile - the file where en passant was legal before the move (-1 for none)
  * @param {number} newEpFile - the file where en passant is legal after the move (-1 for none)
- * @param {object} castlingChanged - an object with fields for each castling direction and
- * whether they changed.
+ * @param {Array<boolean>} castlingChanged - an array with a boolean for each castling direction and
+ * if it changed with the move.
  * @returns {bigint} the new hash
  */
 export const updateHash = (
@@ -160,10 +178,11 @@ export const updateHash = (
     }
   }
 
-  if (castlingChanged.whiteKingside) newHash ^= CASTLING_ZOBRIST.K;
-  if (castlingChanged.whiteQueenside) newHash ^= CASTLING_ZOBRIST.Q;
-  if (castlingChanged.blackKingside) newHash ^= CASTLING_ZOBRIST.k;
-  if (castlingChanged.blackQueenside) newHash ^= CASTLING_ZOBRIST.q;
+  for (let i = 0; i < castlingChanged.length; i++) {
+    if (castlingChanged[i]) {
+      newHash ^= CASTLING_ZOBRIST[i];
+    }
+  }
 
   return newHash;
 };

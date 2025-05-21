@@ -1,11 +1,15 @@
 import {
   BLACK,
+  BLACK_KINGSIDE,
+  BLACK_QUEENSIDE,
   COLUMN_INDEXES,
   COLUMN_SYMBOLS,
   GENERAL_SYMBOLS,
   PIECE_INDEXES,
   PIECE_SYMBOLS,
   WHITE,
+  WHITE_KINGSIDE,
+  WHITE_QUEENSIDE,
 } from "./constants";
 import { getAllLegalMoves } from "./moveGeneration/allMoveGeneration";
 import { getPieceAtSquare } from "./pieceGetters";
@@ -15,8 +19,9 @@ import { getPieceAtSquare } from "./pieceGetters";
  *
  * @param {BigUint64Array} bitboards - bitboards of the position
  * @param {0|1} player - whose move it is (0 for w, 1 for b)
- * @param {CastlingRights} castlingRights - the castling rights
+ * @param {Array<boolean>} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
+ * @return {string} - the FEN
  */
 export function bitboardsToFEN(
   bitboards,
@@ -53,10 +58,10 @@ export function bitboardsToFEN(
   const active = player === WHITE ? "w" : "b";
 
   const castling = castlingRights
-    ? (castlingRights.whiteKingside ? "K" : "") +
-        (castlingRights.whiteQueenside ? "Q" : "") +
-        (castlingRights.blackKingside ? "k" : "") +
-        (castlingRights.blackQueenside ? "q" : "") || "-"
+    ? (castlingRights[WHITE_KINGSIDE] ? "K" : "") +
+        (castlingRights[WHITE_QUEENSIDE] ? "Q" : "") +
+        (castlingRights[BLACK_KINGSIDE] ? "k" : "") +
+        (castlingRights[BLACK_QUEENSIDE] ? "q" : "") || "-"
     : "-";
 
   const ep = enPassantSquare !== null ? indexToSquare(enPassantSquare) : "-";
@@ -75,35 +80,11 @@ export function bitboardsToFEN(
  * @returns {string} the string representation of the square (a3)
  */
 function indexToSquare(square) {
-  // Rank isnt 0 indexed so add one
+  // Normal rank starts at 1, so add one
   const rank = Math.floor(square / 8) + 1;
   const col = square % 8;
 
   return "" + COLUMN_SYMBOLS[col] + rank;
-}
-
-/**
- * Picks a move from the entries array. The entries should have a move and wieght field.
- * Selects a move using a weighted algorithm, favoring more commonly played moves.
- *
- * @param {Array<Object>} entries - the entries from polyglot
- * @returns {string} the selected move in UCI form
- */
-export function pickBookMove(entries) {
-  // Sum all weights
-  const total = entries.reduce((sum, e) => sum + e.weight, 0);
-
-  let r = Math.random() * total;
-
-  for (const { move, weight } of entries) {
-    if (r < weight) {
-      return move;
-    }
-    r -= weight;
-  }
-
-  // Should return before here if entries has a length
-  throw new Error("No move found in entries.");
 }
 
 /**
@@ -112,7 +93,7 @@ export function pickBookMove(entries) {
  * @param {string} uciMove - the uci move to get the move object for
  * @param {BigUint64Array} bitboards - the bitboards of the position
  * @param {0|1} player - the player whose move it is
- * @param {Object} casRights - the castling rights in the position
+ * @param {Array<boolean>} casRights - the castling rights
  * @param {number} epSquare - where en passant is legal
  * @returns {Move} the move
  */
@@ -140,6 +121,11 @@ export function uciToMove(uciMove, bitboards, player, casRights, epSquare) {
   throw new Error("UCI move not found");
 }
 
+/**
+ * Converts a move object into UCI notation
+ * @param {Move} move - the move
+ * @returns {string} - the move in uci form
+ */
 export function moveToUCI(move) {
   const from = indexToSquare(move.from);
   const to = indexToSquare(move.to);
@@ -215,19 +201,27 @@ function FENToBitboards(bbString) {
   return bitboards;
 }
 
+/**
+ * Converts the castling rights section of a FEN into an array
+ * of 4 booleans, on for each castling direction. In the order
+ * white kingside, white queenside, black kingside, black queenside
+ *
+ * @param {string} rights - the castling rights string
+ * @returns {Array<boolean>}
+ */
 function castlingRightsFromFEN(rights) {
-  const castlingRights = {
-    whiteKingside: false,
-    whiteQueenside: false,
-    blackKingside: false,
-    blackQueenside: false,
-  };
+  const castlingRights = [
+    false, // White kingside
+    false, // White queenside
+    false, // Black kingside
+    false, // Black queenside
+  ];
 
   const charToRights = {
-    K: "whiteKingside",
-    Q: "whiteQueenside",
-    k: "blackKingside",
-    q: "blackQueenside",
+    K: WHITE_KINGSIDE,
+    Q: WHITE_QUEENSIDE,
+    k: BLACK_KINGSIDE,
+    q: BLACK_QUEENSIDE,
   };
 
   if (rights === "-") return castlingRights;
@@ -239,17 +233,35 @@ function castlingRightsFromFEN(rights) {
   return castlingRights;
 }
 
+/**
+ * Converts the en passant section of a FEN into the index of the sqare (0-63).
+ *
+ * @param {string} algebraicEp - the algebraic representation of the square (Ex: a3)
+ * @returns {number} - the index of the square
+ */
 function epFromFEN(algebraicEp) {
   if (algebraicEp === "-") return null;
 
   return squareToIndex(algebraicEp);
 }
 
+/**
+ * Gets the player from the player section of a FEN string
+ * @param {string} player - the player section of the FEN ("w" or "b")
+ * @returns {0 | 1} - the player, with 0 being white and 1 being black
+ */
 function playerFromFEN(player) {
   if (player === "w") return WHITE;
   return BLACK;
 }
 
+/**
+ * Gets all relevant data from a FEN string. Specifically the bitboards,
+ * player, castling rights, and en passant square.
+ * @param {string} fen - the FEN string
+ * @returns {Object} an object with fields bitboards, player,
+ * castling (the castling rights), and ep (for en passant)
+ */
 export function getFENData(fen) {
   const data = fen.split(" ");
   const bbStr = data[0];

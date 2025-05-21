@@ -2,7 +2,9 @@ import { bitScanForward } from "../bbUtils";
 import {
   BLACK,
   BLACK_BISHOP,
+  BLACK_KINGSIDE,
   BLACK_QUEEN,
+  BLACK_QUEENSIDE,
   BLACK_ROOK,
   FILE_A_MASK,
   FILE_H_MASK,
@@ -10,7 +12,9 @@ import {
   RANK_8_MASK,
   WHITE,
   WHITE_BISHOP,
+  WHITE_KINGSIDE,
   WHITE_QUEEN,
+  WHITE_QUEENSIDE,
   WHITE_ROOK,
 } from "../constants";
 import { slide } from "../generalHelpers";
@@ -21,10 +25,6 @@ import {
 import { getAllPieces, getPlayerBoard } from "../pieceGetters";
 import { kingMasks } from "../PieceMasks/kingMask";
 import { bishopAttacks, rookAttacks } from "./magicBitboards/attackTable";
-import {
-  getBishopAttacksForSquare,
-  getRookAttacksForSquare,
-} from "./slidingPieceAttacks";
 
 /**
  * Gets the move bitboard for a rook.
@@ -133,9 +133,9 @@ export const getMagicQueenMovesForSquare = (
 ) => {
   const allPieces = getAllPieces(bitboards);
   const friendlyPieces = getPlayerBoard(player, bitboards);
-  
+
   let moves = bishopAttacks(from, allPieces) | rookAttacks(from, allPieces);
-  
+
   let queen = 1n << BigInt(from);
   if (queen & pinnedMask) {
     const mask = getRayMask(from);
@@ -171,26 +171,26 @@ export const getKingMovesForSquare = (
   if (castlingRights) {
     if (isWhite) {
       if (
-        castlingRights.whiteKingside &&
+        castlingRights[WHITE_KINGSIDE] &&
         isKingsideCastleLegal(WHITE, oppAttackMask, occupancy)
       ) {
         moves |= 1n << 6n;
       }
       if (
-        castlingRights.whiteQueenside &&
+        castlingRights[WHITE_QUEENSIDE] &&
         isQueensideCastleLegal(WHITE, oppAttackMask, occupancy)
       ) {
         moves |= 1n << 2n;
       }
     } else {
       if (
-        castlingRights.blackKingside &&
+        castlingRights[BLACK_KINGSIDE] &&
         isKingsideCastleLegal(BLACK, oppAttackMask, occupancy)
       ) {
         moves |= 1n << 62n;
       }
       if (
-        castlingRights.blackQueenside &&
+        castlingRights[BLACK_QUEENSIDE] &&
         isQueensideCastleLegal(BLACK, oppAttackMask, occupancy)
       ) {
         moves |= 1n << 58n;
@@ -213,12 +213,12 @@ export const getKingMovesForSquare = (
       occ2 |= toMask;
 
       const orthAttacks =
-        getRookAttacksForSquare(occ2, to) &
+        rookAttacks(to, occ2) &
         (isWhite
           ? bitboards[BLACK_ROOK] | bitboards[BLACK_QUEEN]
           : bitboards[WHITE_ROOK] | bitboards[WHITE_QUEEN]);
       const diagAttacks =
-        getBishopAttacksForSquare(occ2, to) &
+        bishopAttacks(to, occ2) &
         (isWhite
           ? bitboards[BLACK_BISHOP] | bitboards[BLACK_QUEEN]
           : bitboards[WHITE_BISHOP] | bitboards[WHITE_QUEEN]);

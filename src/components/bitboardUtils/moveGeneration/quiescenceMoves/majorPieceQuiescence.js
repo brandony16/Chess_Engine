@@ -11,8 +11,8 @@ import {
 import { getMovesFromBB } from "../../moveMaking/makeMoveLogic";
 import {
   getKingMovesForSquare,
-  getQueenMovesForSquare,
-  getRookMovesForSquare,
+  getMagicQueenMovesForSquare,
+  getMagicRookMovesForSquare,
 } from "../majorPieceMoveGeneration";
 /**
  * Gets the quiescence moves for a rook.
@@ -41,8 +41,13 @@ export const rookQuiescence = (
     rookBB &= rookBB - 1n;
 
     let moveBB =
-      getRookMovesForSquare(bitboards, player, from, pinnedMask, getRayMask) &
-      opponentPieces;
+      getMagicRookMovesForSquare(
+        bitboards,
+        player,
+        from,
+        pinnedMask,
+        getRayMask
+      ) & opponentPieces;
 
     const rookMoves = getMovesFromBB(
       bitboards,
@@ -85,8 +90,13 @@ export const queenQuiescence = (
     queenBB &= queenBB - 1n;
 
     let moveBB =
-      getQueenMovesForSquare(bitboards, player, from, pinnedMask, getRayMask) &
-      opponentPieces;
+      getMagicQueenMovesForSquare(
+        bitboards,
+        player,
+        from,
+        pinnedMask,
+        getRayMask
+      ) & opponentPieces;
 
     const queenMoves = getMovesFromBB(
       bitboards,

@@ -1,50 +1,45 @@
 import {
   BLACK_KING,
+  BLACK_KINGSIDE,
+  BLACK_QUEENSIDE,
   BLACK_ROOK,
   WHITE,
   WHITE_KING,
+  WHITE_KINGSIDE,
+  WHITE_QUEENSIDE,
   WHITE_ROOK,
 } from "../constants";
 
 /**
- * @typedef {object} CastlingRights
- * @property {boolean} whiteKingside - Whether castling kingside is legal for white
- * @property {boolean} whiteQueenside - Whether castling queenside is legal for white
- * @property {boolean} blackKingside - Whether castling kingside is legal for black
- * @property {boolean} blackQueenside - Whether castling queenside is legal for black
- */
-
-/**
- * Updates castling rights given the square moved from. If any rook or king moves, castling is updated.
- * Because they always start at squares 0, 4, 7, 56, 60, and 63; any move from these squares means the rights need to be updated.
+ * Updates castling rights given the square moved from.
+ * Does not directly alter the rights array
  *
  * @param {number} from - the square the piece is moving from
  * @param {number} to - the square the piece is moving to
- * @param {CastlingRights} prevRights - the rights to update. Has fields whiteKingside, whiteQueenside, blackKingside, blackQueenside
- * @returns {CastlingRights} the new castling rights
+ * @param {Array<boolean>} prevRights - the castling rights
+ * @returns {Array<boolean>} the new castling rights
  */
 export const updateCastlingRights = (from, to, prevRights) => {
-  const newRights = { ...prevRights };
+  const newRights = [...prevRights];
 
   // If a king moves, it loses castling rights
   if (from === 4) {
-    newRights.whiteKingside = false;
-    newRights.whiteQueenside = false;
+    newRights[WHITE_KINGSIDE] = false;
+    newRights[WHITE_QUEENSIDE] = false;
   } else if (from === 60) {
-    newRights.blackKingside = false;
-    newRights.blackQueenside = false;
+    newRights[BLACK_KINGSIDE] = false;
+    newRights[BLACK_QUEENSIDE] = false;
   }
 
   // If rooks move or are captured, disable their respective castling
-  else if (from === 0 || to === 0) newRights.whiteQueenside = false;
-  else if (from === 7 || to === 7) newRights.whiteKingside = false;
-  else if (from === 56 || to === 56) newRights.blackQueenside = false;
-  else if (from === 63 || to === 63) newRights.blackKingside = false;
+  else if (from === 0 || to === 0) newRights[WHITE_QUEENSIDE] = false;
+  else if (from === 7 || to === 7) newRights[WHITE_KINGSIDE] = false;
+  else if (from === 56 || to === 56) newRights[BLACK_QUEENSIDE] = false;
+  else if (from === 63 || to === 63) newRights[BLACK_KINGSIDE] = false;
 
   return newRights;
 };
 
-/* CASTLING FUNCTIONS */
 /**
  * Determines whether a given player can castle kingside
  *
@@ -110,13 +105,13 @@ export const isQueensideCastleLegal = (player, attackMask, occ) => {
 };
 
 /**
- * Performs a castling move.
+ * Performs a castling move. Directly alters the given bitboards
  *
  * @param {BigUint64Array} bitboards - The current position's bitboards.
  * @param {number} from - The square the king is moving from.
  * @param {number} to - The square the king is moving to.
  */
-export const updatedMakeCastleMove = (bitboards, from, to) => {
+export const makeCastleMove = (bitboards, from, to) => {
   if (from === 4 && to === 6) {
     // White kingside castling
     bitboards[WHITE_KING] &= ~(1n << 4n);
@@ -145,7 +140,7 @@ export const updatedMakeCastleMove = (bitboards, from, to) => {
 };
 
 /**
- * Undoes a castling move.
+ * Undoes a castling move. Directly alters the given bitboards
  *
  * @param {BigUint64Array} bitboards - The current position's bitboards.
  * @param {number} from - The square the king is moving from.

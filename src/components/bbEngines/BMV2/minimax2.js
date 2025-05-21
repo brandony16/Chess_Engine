@@ -169,16 +169,14 @@ export const minimax2 = (
       // Update Hash
       const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
       const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
-      const castlingChanged = {
-        whiteKingside:
-          castlingRights.whiteKingside !== newCastling.whiteKingside,
-        whiteQueenside:
-          castlingRights.whiteQueenside !== newCastling.whiteQueenside,
-        blackKingside:
-          castlingRights.blackKingside !== newCastling.blackKingside,
-        blackQueenside:
-          castlingRights.blackQueenside !== newCastling.blackQueenside,
-      };
+      const castlingChanged = new Array(newCastling.length);
+      for (let i = 0; i < newCastling.length; i++) {
+        if (castlingRights[i] !== newCastling[i]) {
+          castlingChanged[i] = true;
+        } else {
+          castlingChanged[i] = false;
+        }
+      }
       const hash = updateHash(
         prevHash,
         move,
@@ -248,16 +246,14 @@ export const minimax2 = (
       // Update Hash
       const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
       const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
-      const castlingChanged = {
-        whiteKingside:
-          castlingRights.whiteKingside !== newCastling.whiteKingside,
-        whiteQueenside:
-          castlingRights.whiteQueenside !== newCastling.whiteQueenside,
-        blackKingside:
-          castlingRights.blackKingside !== newCastling.blackKingside,
-        blackQueenside:
-          castlingRights.blackQueenside !== newCastling.blackQueenside,
-      };
+      const castlingChanged = new Array(newCastling.length);
+      for (let i = 0; i < newCastling.length; i++) {
+        if (castlingRights[i] !== newCastling[i]) {
+          castlingChanged[i] = true;
+        } else {
+          castlingChanged[i] = false;
+        }
+      }
       const hash = updateHash(
         prevHash,
         move,

@@ -23,6 +23,7 @@ import { getAttackMask } from "./PieceMasks/attackMask";
  * @param {number} player - player who would win if it was mate (0 for w, 1 for b)
  * @param {Map} pastPositions - the map of past positions stored as hashes.
  * @param {number} enPassantSquare - the square where enPassant can occur
+ * @param {number} fiftyMoveCounter - the number of ply (half-moves) since a pawn move or capture
  * @returns {{ isGameOver: boolean, result: string}} An object with fields for isGameOver and result
  */
 export const checkGameOver = (
@@ -78,6 +79,7 @@ export const checkGameOver = (
 /**
  * Determines if the game is a draw because neither side has sufficient checkmating material.
  * Only insufficient if both sides only have 1 or 0 minor pieces (knight and bishop).
+ *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @returns {boolean} if it is a draw by insufficient material
  */

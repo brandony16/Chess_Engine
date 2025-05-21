@@ -138,20 +138,25 @@ export const COLUMN_INDEXES = {
 };
 
 // ZOBRIST CONSTANTS
-export const CASTLING_ZOBRIST = {
-  K: 0xabc123n, // White kingside
-  Q: 0xdef456n, // White queenside
-  k: 0x789abcn, // Black kingside
-  q: 0x123defn, // Black queenside
-};
+export const CASTLING_ZOBRIST = [
+  0xabc123n, // White kingside
+  0xdef456n, // White queenside
+  0x789abcn, // Black kingside
+  0x123defn, // Black queenside
+];
+
+// Indexes for castling rights
+export const WHITE_KINGSIDE = 0;
+export const WHITE_QUEENSIDE = 1;
+export const BLACK_KINGSIDE = 2;
+export const BLACK_QUEENSIDE = 3;
 
 // Random big ints to generate distinct hashes for when it is one players turn and when en passant is legal.
 export const PLAYER_ZOBRIST = 0x9d39247e33776d41n;
 export const EN_PASSANT_ZOBRIST = 0xf3a9b72c85d614e7n;
 
-
 // PIece weights
-export const WEIGHTS = [1, 3, 3, 5, 9, 1000, -1, -3, -3, -5, -9, -1000]; 
+export const WEIGHTS = [1, 3, 3, 5, 9, 1000, -1, -3, -3, -5, -9, -1000];
 
 // Checkmate evaluation constant
 export const CHECKMATE_VALUE = 100_000;

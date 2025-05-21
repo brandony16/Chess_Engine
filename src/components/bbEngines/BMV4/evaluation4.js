@@ -33,9 +33,6 @@ export const evaluate4 = (bitboards, player, result, depth) => {
       bb &= bb - 1n;
 
       evaluation += weights[piece] + PIECE_SQUARE_TABLES[piece][sq];
-      if (!Number.isFinite(evaluation)) {
-        console.log(weights[piece], PIECE_SQUARE_TABLES[piece][sq], piece, sq);
-      }
     }
   }
 

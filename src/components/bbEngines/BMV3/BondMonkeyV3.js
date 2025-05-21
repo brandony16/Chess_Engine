@@ -4,14 +4,6 @@ import { CHECKMATE_VALUE } from "../../bitboardUtils/constants";
 import { minimax3 } from "./minimax3";
 import { computeAllAttackMasks } from "../../bitboardUtils/PieceMasks/individualAttackMasks";
 
-/**
- * @typedef {object} CastlingRights
- * @property {boolean} whiteKingside - Whether castling kingside is legal for white
- * @property {boolean} whiteQueenside - Whether castling queenside is legal for white
- * @property {boolean} blackKingside - Whether castling kingside is legal for black
- * @property {boolean} blackQueenside - Whether castling queenside is legal for black
- */
-
 // Root id for transposition table. Helps avoid stale entries
 export let rootId = 0;
 
@@ -21,10 +13,10 @@ export let rootId = 0;
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {CastlingRights} castlingRights - the castling rights
+ * @param {Array<boolean>} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {Map} prevPositions - a map of the previous positions
- * @param {number} depth - the depth to search in ply. 1 ply is one player moving. 2 ply is one move, where each side gets to play.
+ * @param {number} maxDepth - the depth to search in ply. 1 ply is one player moving. 2 ply is one move, where each side gets to play.
  * @param {number} timeLimit - the max time the engine can search in milliseconds.
  * @returns {{ from: number, to: number, promotion: string}, number} the best move found and the evaluation
  */

@@ -1,5 +1,8 @@
 import { bitScanForward } from "../../bbUtils";
-import { getBishopAttacksForSquare, getRookAttacksForSquare } from "../slidingPieceAttacks";
+import {
+  getBishopAttacksForSquare,
+  getRookAttacksForSquare,
+} from "../slidingPieceAttacks";
 import { bishopMasks, rookMasks } from "./generateMasks";
 import {
   bishopMagics,
@@ -8,6 +11,12 @@ import {
   rookShifts,
 } from "./magicNumbers";
 
+/**
+ * Gets the indexes of all of the set bits in a bitboard.
+ *
+ * @param {bigint} mask - the bitboard
+ * @returns {Array<number>} an array of square indexes
+ */
 export function maskBits(mask) {
   const bits = [];
   let b = mask;
@@ -24,11 +33,20 @@ export function maskBits(mask) {
 export const rookAttackTable = Array(64);
 export const bishopAttackTable = Array(64);
 
+/**
+ * Generates all blocker permutations for a given mask of moves for a peice.
+ * For example, a rook on a1 can see the whole first row and first file. This
+ * function generates all possible blocker permutations on the first row and file.
+ * This will be 2^(N-1), with N being the number of set bits in the initial mask.
+ *
+ * @param {bigint} mask - the mask
+ * @returns {BigUint64Array} the blocker subsets
+ */
 export function generateBlockerSubsets(mask) {
   const bits = maskBits(mask);
   const N = bits.length;
   const subsetCount = 1 << N;
-  const subsets = new Array(subsetCount);
+  const subsets = new BigUint64Array(subsetCount);
 
   for (let subset = 0; subset < subsetCount; subset++) {
     let blockboard = 0n;
@@ -46,6 +64,7 @@ export function generateBlockerSubsets(mask) {
   return subsets;
 }
 
+// For every square, fill in the rook and bishop tables at that square.
 for (let sq = 0; sq < 64; sq++) {
   const rMask = rookMasks[sq];
   const bMask = bishopMasks[sq];
@@ -68,7 +87,7 @@ for (let sq = 0; sq < 64; sq++) {
     }
   }
 
-  // Fill bishop table (analogous)
+  // Fill bishop table
   {
     for (const blockers of generateBlockerSubsets(bMask)) {
       const idx = Number(
@@ -81,6 +100,14 @@ for (let sq = 0; sq < 64; sq++) {
   }
 }
 
+/**
+ * Gets the attack mask for a bishop at a given square using
+ * magic bitboards.
+ *
+ * @param {number} sq - the square where the bishop is
+ * @param {bigint} occ - the occupancy bitboard
+ * @returns {bigint} the attack mask for the bishop
+ */
 export const bishopAttacks = (sq, occ) => {
   const mask = occ & bishopMasks[sq];
   const index = Number(
@@ -90,6 +117,14 @@ export const bishopAttacks = (sq, occ) => {
   return bishopAttackTable[sq][index];
 };
 
+/**
+ * Gets the attack mask for a rook at a given square using
+ * magic bitboards.
+ *
+ * @param {number} sq - the square where the rook is
+ * @param {bigint} occ - the occupancy bitboard
+ * @returns {bigint} the attack mask for the rook
+ */
 export const rookAttacks = (sq, occ) => {
   const mask = occ & rookMasks[sq];
   const index = Number(

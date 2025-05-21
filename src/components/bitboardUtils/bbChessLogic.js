@@ -56,7 +56,7 @@ export const isInCheck = (bitboards, player) => {
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {CastlingRights} castlingRights - the castling rights
+ * @param {Array<boolean>} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @returns {boolean} if the player has a legal move
  */

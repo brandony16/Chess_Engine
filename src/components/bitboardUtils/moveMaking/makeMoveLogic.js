@@ -11,18 +11,11 @@ import {
   computeMaskForPiece,
   individualAttackMasks,
 } from "../PieceMasks/individualAttackMasks";
-import { unMakeCastleMove, updatedMakeCastleMove } from "./castleMoveLogic";
+import { makeCastleMove, unMakeCastleMove } from "./castleMoveLogic";
 import Move from "./move";
 
 /**
- * @typedef {object} CastlingRights
- * @property {boolean} whiteKingside - Whether castling kingside is legal for white
- * @property {boolean} whiteQueenside - Whether castling queenside is legal for white
- * @property {boolean} blackKingside - Whether castling kingside is legal for black
- * @property {boolean} blackQueenside - Whether castling queenside is legal for black
- */
-
-/**
+ * Makes a move. Directly alters the given bitboards.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the position
  * @param {Move} move - a move object
@@ -39,7 +32,7 @@ export const makeMove = (bitboards, move) => {
 
   // Handle castle case
   if (move.castling) {
-    updatedMakeCastleMove(bitboards, move.from, move.to);
+    makeCastleMove(bitboards, move.from, move.to);
     return;
   }
 
@@ -65,6 +58,12 @@ export const makeMove = (bitboards, move) => {
   }
 };
 
+/**
+ * Undoes a move that was made. Directly alters given bitboards.
+ *
+ * @param {Move} move - the move to be undone
+ * @param {BigUint64Array} bitboards - the bitboards of the position
+ */
 export const unMakeMove = (move, bitboards) => {
   const from = move.from;
   const to = move.to;
@@ -136,6 +135,7 @@ export const getMove = (bitboards, from, to, piece, enPassantSquare) => {
 };
 
 /**
+ * Converts a move bitboard into an array of moves.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the position
  * @param {bigint} bitboard - the move bitboard
@@ -166,6 +166,7 @@ export const getMovesFromBB = (
 
     const move = getMove(bitboards, from, to, piece, enPassantSquare);
 
+    // If a promotion is possible, can promote to knight, bishop, rook, or queen
     if (isPromotion) {
       const promoPieces =
         player === WHITE ? WHITE_PROMO_PIECES : BLACK_PROMO_PIECES;

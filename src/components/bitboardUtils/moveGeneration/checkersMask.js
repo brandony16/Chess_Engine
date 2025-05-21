@@ -4,7 +4,17 @@ import * as C from "../constants";
 import { knightMasks } from "../PieceMasks/knightMask";
 import { slide } from "../generalHelpers";
 import { bitScanForward } from "../bbUtils";
+import { bishopAttacks, rookAttacks } from "./magicBitboards/attackTable";
 
+/**
+ * Finds all pieces that put a given player's king in check and returns
+ * them all on a bitboard.
+ *
+ * @param {BigUint64Array} bitboards - the bitboards of the position
+ * @param {0 | 1} player - the player to find the pieces attacking their king
+ * @param {number} kingSq - the square of the player's king (0-63)
+ * @returns {bigint} a bitboard of the checkers
+ */
 export function getCheckers(bitboards, player, kingSq) {
   const isWhite = player === C.WHITE;
 
@@ -25,53 +35,49 @@ export function getCheckers(bitboards, player, kingSq) {
   return pawnCheckMask | knightCheckMask | slidingMask;
 }
 
+/**
+ * Computes the checkers bitboard for sliding pieces (bishop, rook, queen)
+ *
+ * @param {BigUint64Array} bitboards - the bitboards of the position
+ * @param {number} kingSq - the square of the king
+ * @param {bigint} occupancy - the occupancy bitboard
+ * @param {boolean} isWhite - if the player is white
+ * @returns {bigint}
+ */
 function slidingCheckMask(bitboards, kingSq, occupancy, isWhite) {
   let mask = 0n;
 
-  const pieceBB = 1n << BigInt(kingSq);
-
   // Orthogonal Directions
-  const orthArr = [];
-  orthArr[0] = slide(pieceBB, 1n, C.FILE_H_MASK, occupancy); // Right
-  orthArr[1] = slide(pieceBB, -1n, C.FILE_A_MASK, occupancy); // Left
-  orthArr[2] = slide(pieceBB, 8n, C.RANK_8_MASK, occupancy); // Up
-  orthArr[3] = slide(pieceBB, -8n, C.RANK_1_MASK, occupancy); // Down
+  let orthBB = rookAttacks(kingSq, occupancy);
+  let orthBlockers = orthBB & occupancy;
+  while (orthBlockers !== 0n) {
+    const blockerSq = bitScanForward(orthBlockers);
+    const piece = getPieceAtSquare(blockerSq, bitboards);
 
-  for (const bb of orthArr) {
-    const blocker = bb & occupancy;
-    if (blocker !== 0n) {
-      const blockerSq = bitScanForward(blocker);
-      const piece = getPieceAtSquare(blockerSq, bitboards);
-
-      if (
-        (isWhite && (piece === C.BLACK_ROOK || piece === C.BLACK_QUEEN)) ||
-        (!isWhite && (piece === C.WHITE_ROOK || piece === C.WHITE_QUEEN))
-      ) {
-        mask |= 1n << BigInt(blockerSq);
-      }
+    if (
+      (isWhite && (piece === C.BLACK_ROOK || piece === C.BLACK_QUEEN)) ||
+      (!isWhite && (piece === C.WHITE_ROOK || piece === C.WHITE_QUEEN))
+    ) {
+      mask |= 1n << BigInt(blockerSq);
     }
+    orthBlockers &= orthBlockers - 1n;
   }
 
   // Diagonal Directions
-  const diagArr = [];
-  diagArr[0] = slide(pieceBB, 9n, C.FILE_H_MASK & C.RANK_8_MASK, occupancy); // Up-right
-  diagArr[1] = slide(pieceBB, 7n, C.FILE_A_MASK & C.RANK_8_MASK, occupancy); // Up-left
-  diagArr[2] = slide(pieceBB, -7n, C.FILE_H_MASK & C.RANK_1_MASK, occupancy); // Down-right
-  diagArr[3] = slide(pieceBB, -9n, C.FILE_A_MASK & C.RANK_1_MASK, occupancy); // Down-left
+  const diagBB = bishopAttacks(kingSq, occupancy);
 
-  for (const bb of diagArr) {
-    const blocker = bb & occupancy;
-    if (blocker !== 0n) {
-      const blockerSq = bitScanForward(blocker);
-      const piece = getPieceAtSquare(blockerSq, bitboards);
+  let diagBlockers = diagBB & occupancy;
+  while (diagBlockers !== 0n) {
+    const blockerSq = bitScanForward(diagBlockers);
+    const piece = getPieceAtSquare(blockerSq, bitboards);
 
-      if (
-        (isWhite && (piece === C.BLACK_BISHOP || piece === C.BLACK_QUEEN)) ||
-        (!isWhite && (piece === C.WHITE_BISHOP || piece === C.WHITE_QUEEN))
-      ) {
-        mask |= 1n << BigInt(blockerSq);
-      }
+    if (
+      (isWhite && (piece === C.BLACK_BISHOP || piece === C.BLACK_QUEEN)) ||
+      (!isWhite && (piece === C.WHITE_BISHOP || piece === C.WHITE_QUEEN))
+    ) {
+      mask |= 1n << BigInt(blockerSq);
     }
+    diagBlockers &= diagBlockers - 1n;
   }
 
   return mask;

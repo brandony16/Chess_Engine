@@ -28,14 +28,8 @@ export const useGameStore = create((set, get) => ({
   displayedBitboards: INITIAL_BITBOARDS.slice(),
   isCurrPositionShown: true,
   currIndexOfDisplayed: -1,
-  castlingRights: {
-    whiteKingside: true,
-    whiteQueenside: true,
-    blackKingside: true,
-    blackQueenside: true,
-  },
+  castlingRights: [true, true, true, true], // WK, WQ, BK, BQ
   fiftyMoveRuleCounter: 0,
-
   gameHistory: [],
   isModalOpen: false,
   isGameHistoryMenuOpen: false,
@@ -117,12 +111,7 @@ export const useGameStore = create((set, get) => ({
         isCurrPositionShown: true,
         currIndexOfDisplayed: -1,
         gameHistory: newHistory,
-        castlingRights: {
-          whiteKingside: true,
-          whiteQueenside: true,
-          blackKingside: true,
-          blackQueenside: true,
-        },
+        castlingRights: [true, true, true, true], // WK, WQ, BK, BQ
         fiftyMoveRuleCounter: 0,
         isModalOpen: false,
         isGameHistoryMenuOpen: false,

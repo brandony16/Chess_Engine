@@ -39,8 +39,7 @@ const INDEX64 = [
 ];
 
 /**
- * Finds the index of the first square that is a 1 using De Brujin lookup.
- *
+ * Finds the index of the first square that is a 1 (least significant bit) using De Brujin lookup.
  *
  * @param {bigint} bitboard - the bitboard to find the index of the least significant bit
  * @returns {number} index of least signifigant bit

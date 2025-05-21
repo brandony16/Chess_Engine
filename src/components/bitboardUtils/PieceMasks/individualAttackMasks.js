@@ -6,6 +6,7 @@ import {
   BLACK_PAWN,
   BLACK_QUEEN,
   BLACK_ROOK,
+  INITIAL_BITBOARDS,
   NUM_PIECES,
   WHITE_BISHOP,
   WHITE_KING,
@@ -15,16 +16,23 @@ import {
   WHITE_ROOK,
 } from "../constants";
 import {
-  getBishopAttacksForSquare,
-  getQueenAttacksForSquare,
-  getRookAttacksForSquare,
-} from "../moveGeneration/slidingPieceAttacks";
+  bishopAttacks,
+  rookAttacks,
+} from "../moveGeneration/magicBitboards/attackTable";
 import { getAllPieces } from "../pieceGetters";
 import { kingMasks } from "./kingMask";
 import { knightMasks } from "./knightMask";
 import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
 
-export const attacksOf = (occupancy, piece, square) => {
+/**
+ * Generates the attack bitboard of a piece at a square
+ *
+ * @param {bigint} occupancy - the occupancy bitboard
+ * @param {number} piece - the piece to get attacks for
+ * @param {number} square - the square the piece is at
+ * @returns {bigint} - the attack bitboard
+ */
+export function attacksOf(occupancy, piece, square) {
   switch (piece) {
     case WHITE_PAWN:
       return whitePawnMasks[square];
@@ -38,22 +46,29 @@ export const attacksOf = (occupancy, piece, square) => {
       return kingMasks[square];
     case WHITE_BISHOP:
     case BLACK_BISHOP: {
-      return getBishopAttacksForSquare(occupancy, square);
+      return bishopAttacks(square, occupancy);
     }
     case WHITE_ROOK:
     case BLACK_ROOK: {
-      return getRookAttacksForSquare(occupancy, square);
+      return rookAttacks(square, occupancy);
     }
     case WHITE_QUEEN:
     case BLACK_QUEEN: {
-      return getQueenAttacksForSquare(occupancy, square);
+      return bishopAttacks(square, occupancy) | rookAttacks(square, occupancy);
     }
     default:
       return 0n;
   }
-};
+}
 
-export const computeMaskForPiece = (bitboards, piece) => {
+/**
+ * Computes the attack mask for a given piece
+ *
+ * @param {BigUint64Array} bitboards - the bitboard of the position
+ * @param {number} piece - the piece to compute the mask for
+ * @returns {bigint} - the attack mask for the piece
+ */
+export function computeMaskForPiece(bitboards, piece) {
   let mask = 0n;
   let bitboard = bitboards[piece];
   const occupancy = getAllPieces(bitboards);
@@ -65,15 +80,25 @@ export const computeMaskForPiece = (bitboards, piece) => {
   }
 
   return mask;
-};
+}
 
-export const computeAllAttackMasks = (bitboards) => {
+/**
+ * Computes all attack masks and updates individualAttackMasks to avoid
+ * constant recalculation.
+ * @param {BigUint64Array} bitboards - the bitboards of the position
+ * @returns {BigUint64Array} individualAttackMasks
+ */
+export function computeAllAttackMasks(bitboards) {
   for (let p = 0; p < NUM_PIECES; p++) {
     individualAttackMasks[p] = computeMaskForPiece(bitboards, p);
   }
 
   return individualAttackMasks;
-};
+}
 
+/**
+ * An array of attack masks for each peice type. Used for more optimized
+ * updating of attack masks to prevent recalculation every move.
+ */
 export const individualAttackMasks = new BigUint64Array(NUM_PIECES).fill(0n);
-// computeAllAttackMasks(INITIAL_BITBOARDS);
+computeAllAttackMasks(INITIAL_BITBOARDS);

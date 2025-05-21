@@ -12,7 +12,13 @@ import { bishopQuiescence, knightQuiescence } from "./minorPieceQuiescence";
 import { pawnQuiescence } from "./pawnQuiescence";
 
 /**
- * A function that gets the moves for a quiescence search. These are captures and promotions.
+ * Generates quiescence moves for a position. These are captures and promotions.
+ * Helps avoid the horizon effect where engines cant correctly evaluate capture
+ * sequences due to limited depth.
+ * @param {BigUint64Array} bitboards - the bitboard of the position
+ * @param {0 | 1} player - whose moves to get
+ * @param {number} enPassantSquare - the en passant square
+ * @returns {Array<Move>} - the quiescence moves
  */
 export const getQuiescenceMoves = (
   bitboards,

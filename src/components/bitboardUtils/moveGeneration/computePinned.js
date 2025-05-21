@@ -2,6 +2,13 @@ import { bitScanForward } from "../bbUtils";
 import * as C from "../constants";
 import { getAllPieces, getPieceAtSquare } from "../pieceGetters";
 
+/**
+ * Computes a bitboard of all of a players pinned pieces.
+ *
+ * @param {BigUint64Array} bitboards - the bitboards of the position
+ * @param {0 | 1} player - the player to compute the pinned pieces for
+ * @returns {bigint} the bitboard of the pinned pieces
+ */
 export function computePinned(bitboards, player) {
   const isWhite = player === C.WHITE;
   const occupancy = getAllPieces(bitboards);
@@ -84,11 +91,11 @@ function isEnemySlider(piece, dir, isWhite) {
 }
 
 /**
- * makePinRayMaskGenerator — given your king’s square, returns
- * a function that for any piece-square will produce the 64-bit
- * bitboard mask of the ray between that square and the king.
+ * Given a king’s square, returns a function that for any
+ * square will produce a bitboard mask of
+ * the ray between that square and the king.
  *
- * @param {number} kingSq  0–63 index of your king
+ * @param {number} kingSq - 0–63 index of your king
  * @returns {(fromSq:number)=>bigint}
  */
 export function makePinRayMaskGenerator(kingSq) {
