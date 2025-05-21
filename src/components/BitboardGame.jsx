@@ -7,10 +7,7 @@ import { makeMove } from "./bitboardUtils/moveMaking/makeMoveLogic";
 import { computeHash } from "./bitboardUtils/zobristHashing";
 import { checkGameOver } from "./bitboardUtils/gameOverLogic";
 import { movesToBB, moveToReadable } from "./bitboardUtils/generalHelpers";
-import {
-  isPlayersPieceAtSquare,
-  pieceAt,
-} from "./bitboardUtils/pieceGetters";
+import { isPlayersPieceAtSquare, pieceAt } from "./bitboardUtils/pieceGetters";
 import { getAllLegalMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration";
 import { getNewEnPassant } from "./bitboardUtils/bbChessLogic";
 import { useGameStore } from "./gameStore";
@@ -371,7 +368,7 @@ const BitboardGame = () => {
   useEffect(() => {
     worker.onmessage = (e) => {
       const { move } = e.data;
-      console.log(move);
+
       processMove(move.from, move.to, move.promotion);
     };
   }, []);

@@ -9,6 +9,7 @@ import {
 } from "../components/bitboardUtils/moveMaking/makeMoveLogic";
 import * as C from "../components/bitboardUtils/constants";
 import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters";
+import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
 
 // [ description, FEN, UCI move ]
 const cases = [
@@ -35,9 +36,10 @@ describe("makeMove + unMakeMove", () => {
       const player = fenData.player;
       const castling = fenData.castling;
       const ep = fenData.ep;
-
-      const move = uciToMove(uci, bitboards, player, castling, ep);
+      
+      computeAllAttackMasks(bitboards);
       initializePieceAtArray(bitboards);
+      const move = uciToMove(uci, bitboards, player, castling, ep);
 
       makeMove(bitboards, move);
       unMakeMove(move, bitboards);

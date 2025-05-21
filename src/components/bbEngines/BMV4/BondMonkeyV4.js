@@ -3,12 +3,13 @@ import { clearTT } from "../../bitboardUtils/TranspositionTable/transpositionTab
 import { CHECKMATE_VALUE } from "../../bitboardUtils/constants";
 import { minimax4 } from "./minimax4";
 import { computeAllAttackMasks } from "../../bitboardUtils/PieceMasks/individualAttackMasks";
+import { initializePieceAtArray } from "../../bitboardUtils/pieceGetters";
 
 // Root id for transposition table. Helps avoid stale entries
 export let rootId = 0;
 
 /**
- * Gets the best move in a position based purely off of material.
+ * Gets the best move in a position.
  * Adds a better evaluation function using piece sqaure tables (PSQT).
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
@@ -30,7 +31,8 @@ export function BMV4(
   timeLimit = Infinity
 ) {
   clearTT(); // Clears transposition table
-
+  initializePieceAtArray(bitboards);
+  
   const start = performance.now();
 
   let bestMove = null;
@@ -56,7 +58,7 @@ export function BMV4(
       Infinity
     );
 
-    if (move != null) {
+    if (move !== null) {
       bestEval = score;
       bestMove = move;
     }
@@ -72,5 +74,6 @@ export function BMV4(
 
     rootId++;
   }
+
   return { ...bestMove, bestEval };
 }

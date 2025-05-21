@@ -51,6 +51,8 @@ export const minimax4 = (
   alpha,
   beta
 ) => {
+  const side = player === WHITE ? +1 : -1;
+
   const gameOver = checkGameOver(
     bitboards,
     player === WHITE ? BLACK : WHITE,
@@ -61,7 +63,7 @@ export const minimax4 = (
 
   if (gameOver.isGameOver) {
     return {
-      score: evaluate4(bitboards, player, gameOver.result, currentDepth),
+      score: side * evaluate4(bitboards, player, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -69,7 +71,7 @@ export const minimax4 = (
   if (currentDepth >= maxDepth) {
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
-      return quiesce(
+      const q = quiesce(
         bitboards,
         player,
         alpha,
@@ -79,6 +81,7 @@ export const minimax4 = (
         prevPositions,
         prevHash
       );
+      return { score: side * q.score, move: null };
     }
   }
 
@@ -90,16 +93,16 @@ export const minimax4 = (
 
   if (ttEntry && ttEntry.depth >= remaining && ttEntry.rootId === rootId) {
     if (ttEntry.flag === TT_FLAG.EXACT) {
-      return { score: ttEntry.value, move: ttEntry.bestMove };
+      return { score: side * ttEntry.value, move: ttEntry.bestMove };
     }
     if (ttEntry.flag === TT_FLAG.LOWER_BOUND) {
-      alpha = Math.max(alpha, ttEntry.value);
+      alpha = Math.max(alpha, side * ttEntry.value);
     }
     if (ttEntry.flag === TT_FLAG.UPPER_BOUND) {
-      beta = Math.min(beta, ttEntry.value);
+      beta = Math.min(beta, side * ttEntry.value);
     }
     if (alpha >= beta) {
-      return { score: ttEntry.value, move: ttEntry.bestMove };
+      return { score: side * ttEntry.value, move: ttEntry.bestMove };
     }
   }
 
@@ -125,9 +128,7 @@ export const minimax4 = (
     // 2) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
       score +=
-        100_000 +
-        (WEIGHTS[pieceAt[to]] || 0) -
-        (WEIGHTS[pieceAt[from]] || 0);
+        100_000 + (WEIGHTS[pieceAt[to]] || 0) - (WEIGHTS[pieceAt[from]] || 0);
     }
 
     // 3) Killer moves at this ply
@@ -146,9 +147,6 @@ export const minimax4 = (
 
   // If the game is over, it would have been caught by gameOver check at beginning
   if (scored.length === 0) {
-    console.log("Depth:", currentDepth);
-    console.log("Max Depth:", maxDepth);
-    console.log("Player:", player);
     throw new Error("Issue with move generation. No moves generated");
   }
 
@@ -156,186 +154,102 @@ export const minimax4 = (
   scored.sort((a, b) => b.score - a.score);
   const orderedMoves = scored.map((o) => o.move);
 
-  let bestEval, bestMove;
+  let bestEval = -Infinity;
+  let bestMove = null;
+  for (const move of orderedMoves) {
+    makeMove(bitboards, move);
+    updateAttackMasks(bitboards, move);
 
-  if (player === WHITE) {
-    bestEval = -Infinity;
+    const from = move.from;
 
-    for (const move of orderedMoves) {
-      makeMove(bitboards, move);
-      updateAttackMasks(bitboards, move);
+    // New game states
+    const newEnPassant = getNewEnPassant(move);
+    const newCastling = updateCastlingRights(from, move.to, castlingRights);
 
-      const from = move.from;
-
-      // New game states
-      const newEnPassant = getNewEnPassant(move);
-      const newCastling = updateCastlingRights(from, move.to, castlingRights);
-      const newPositions = new Map(prevPositions);
-
-      // Update Hash
-      const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
-      const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
-      const castlingChanged = new Array(newCastling.length);
-      for (let i = 0; i < newCastling.length; i++) {
-        if (castlingRights[i] !== newCastling[i]) {
-          castlingChanged[i] = true;
-        } else {
-          castlingChanged[i] = false;
-        }
-      }
-      const hash = updateHash(
-        prevHash,
-        move,
-        newEpFile,
-        prevEpFile,
-        castlingChanged
-      );
-      newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
-
-      const { score: moveEval } = minimax4(
-        bitboards,
-        BLACK,
-        newCastling,
-        newEnPassant,
-        newPositions,
-        hash,
-        currentDepth + 1,
-        maxDepth,
-        alpha,
-        beta
-      );
-
-      unMakeMove(move, bitboards);
-
-      if (moveEval > bestEval) {
-        bestEval = moveEval;
-        bestMove = move;
-      }
-      if (moveEval > alpha) {
-        alpha = moveEval;
-      }
-
-      if (beta <= alpha) {
-        // Update killer moves and history scores
-        if (move.captured === null) {
-          const killer = killerMoves[currentDepth];
-
-          if (
-            !killer[0] ||
-            move.from !== killer[0].from ||
-            move.to !== killer[0].to
-          ) {
-            killer[1] = killer[0];
-            killer[0] = move;
-          }
-
-          // Weights this move higher in history
-          historyScores[move.from][move.to] += 2 ^ (maxDepth - currentDepth);
-        }
-        break;
+    // Update Hash
+    const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
+    const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
+    const castlingChanged = new Array(newCastling.length);
+    for (let i = 0; i < newCastling.length; i++) {
+      if (castlingRights[i] !== newCastling[i]) {
+        castlingChanged[i] = true;
+      } else {
+        castlingChanged[i] = false;
       }
     }
-  } else {
-    bestEval = Infinity;
+    const hash = updateHash(
+      prevHash,
+      move,
+      newEpFile,
+      prevEpFile,
+      castlingChanged
+    );
+    const oldCount = prevPositions.get(hash) || 0;
+    prevPositions.set(hash, oldCount + 1);
 
-    for (const move of orderedMoves) {
-      makeMove(bitboards, move);
-      updateAttackMasks(bitboards, move);
+    const { score: moveEval } = minimax4(
+      bitboards,
+      player === WHITE ? BLACK : WHITE,
+      newCastling,
+      newEnPassant,
+      prevPositions,
+      hash,
+      currentDepth + 1,
+      maxDepth,
+      -beta,
+      -alpha
+    );
 
-      const from = move.from;
+    unMakeMove(move, bitboards);
+    if (oldCount) prevPositions.set(hash, oldCount);
+    else prevPositions.delete(hash);
 
-      // New game states
-      const newEnPassant = getNewEnPassant(move);
-      const newCastling = updateCastlingRights(from, move.to, castlingRights);
-      const newPositions = new Map(prevPositions);
+    const score = -moveEval;
+    if (score > bestEval) {
+      bestEval = score;
+      bestMove = move;
+    }
 
-      // Update Hash
-      const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
-      const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
-      const castlingChanged = new Array(newCastling.length);
-      for (let i = 0; i < newCastling.length; i++) {
-        if (castlingRights[i] !== newCastling[i]) {
-          castlingChanged[i] = true;
-        } else {
-          castlingChanged[i] = false;
+    if (score > alpha) {
+      alpha = score;
+    }
+
+    if (beta <= alpha) {
+      // Update killer moves and history scores
+      if (move.captured === null) {
+        const killer = killerMoves[currentDepth];
+
+        if (
+          !killer[0] ||
+          move.from !== killer[0].from ||
+          move.to !== killer[0].to
+        ) {
+          killer[1] = killer[0];
+          killer[0] = move;
         }
+
+        // Weights this move higher in history
+        historyScores[move.from][move.to] += 2 ^ (maxDepth - currentDepth);
       }
-      const hash = updateHash(
-        prevHash,
-        move,
-        newEpFile,
-        prevEpFile,
-        castlingChanged
-      );
-      newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
-
-      const { score: moveEval } = minimax4(
-        bitboards,
-        WHITE,
-        newCastling,
-        newEnPassant,
-        newPositions,
-        hash,
-        currentDepth + 1,
-        maxDepth,
-        alpha,
-        beta
-      );
-
-      unMakeMove(move, bitboards);
-
-      if (moveEval < bestEval) {
-        bestEval = moveEval;
-        bestMove = move;
-      }
-      if (moveEval < beta) {
-        beta = moveEval;
-      }
-
-      if (beta <= alpha) {
-        // Update killer moves and history scores
-        if (move.captured === null) {
-          const killer = killerMoves[currentDepth];
-
-          if (
-            !killer[0] ||
-            move.from !== killer[0].from ||
-            move.to !== killer[0].to
-          ) {
-            killer[1] = killer[0];
-            killer[0] = move;
-          }
-
-          // Weights this move higher in history
-          historyScores[move.from][move.to] += 2 ^ (maxDepth - currentDepth);
-        }
-        break;
-      }
+      break;
     }
   }
 
   // Update transposition table
   let flag = TT_FLAG.EXACT;
-  if (bestEval <= origAlpha) {
+  const storedEval = side * bestEval;
+  if (storedEval <= origAlpha) {
     flag = TT_FLAG.UPPER_BOUND;
-  } else if (bestEval >= beta) {
+  } else if (storedEval >= beta) {
     flag = TT_FLAG.LOWER_BOUND;
   }
   setTT(key, {
     rootId: rootId,
     depth: maxDepth - currentDepth,
-    value: bestEval,
+    value: storedEval,
     flag,
     bestMove,
   });
-
-  if (!Number.isFinite(bestEval)) {
-    console.log(orderedMoves);
-    console.log(currentDepth);
-    console.log(maxDepth);
-    console.log(evaluate4(bitboards, player, null, currentDepth));
-    throw new Error("Score is infinite");
-  }
 
   return { score: bestEval, move: bestMove };
 };
