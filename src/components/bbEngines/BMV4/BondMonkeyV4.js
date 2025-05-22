@@ -31,7 +31,6 @@ export function BMV4(
   timeLimit = Infinity
 ) {
   clearTT(); // Clears transposition table
-  initializePieceAtArray(bitboards);
   
   const start = performance.now();
 
