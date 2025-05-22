@@ -45,10 +45,6 @@ Automate with CI: configure your CI (GitHub Actions, Travis CI, etc.) to run you
 
 
 ## FUNCTIONS TO TEST
-- computeAllAttackMasks
-- evaluate4
-- checkGameOver
-- isInCheck
 - getQuiescenceMoves
 - getNewEnPassant
 - updateCastlingRights

@@ -1,16 +1,8 @@
 import { getNewEnPassant } from "../components/bitboardUtils/bbChessLogic";
-import { BLACK, WHITE } from "../components/bitboardUtils/constants";
-import {
-  areBigUint64ArraysEqual,
-  bigIntFullRep,
-  logAllBitboards,
-} from "../components/bitboardUtils/debugFunctions";
+import { areBigUint64ArraysEqual } from "../components/bitboardUtils/debugFunctions";
 import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
 import { getAllLegalMoves } from "../components/bitboardUtils/moveGeneration/allMoveGeneration";
-import {
-  unMakeCastleMove,
-  updateCastlingRights,
-} from "../components/bitboardUtils/moveMaking/castleMoveLogic";
+import { updateCastlingRights } from "../components/bitboardUtils/moveMaking/castleMoveLogic";
 import {
   makeMove,
   unMakeMove,
@@ -24,7 +16,7 @@ import { computeHash } from "../components/bitboardUtils/zobristHashing";
 import { mockEngine } from "./mockEngine";
 
 const fens = [
-  // ["Start pos", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"],
+  ["Start pos", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"],
   [
     "“Kiwipete” pos",
     "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",

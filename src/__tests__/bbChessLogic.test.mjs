@@ -1,8 +1,18 @@
-import { isSquareAttacked } from "../components/bitboardUtils/bbChessLogic";
+import { isInCheck, isSquareAttacked } from "../components/bitboardUtils/bbChessLogic";
 import * as C from "../components/bitboardUtils/constants";
 import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
 import { getAttackMask } from "../components/bitboardUtils/PieceMasks/attackMask";
 import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
+import { jest } from "@jest/globals";
+
+function emptyBitboards() {
+  return new BigUint64Array(12).fill(0n);
+}
+
+// helper: place a piece on a square
+function placePiece(bbArray, pieceIndex, square) {
+  bbArray[pieceIndex] = (bbArray[pieceIndex] || 0n) | (1n << BigInt(square));
+}
 
 describe("isSquareAttacked", () => {
   const kiwipeteFEN =
@@ -61,3 +71,78 @@ describe("isSquareAttacked", () => {
     }
   });
 });
+
+describe("isInCheck", () => {
+  test("white king not in check on empty board", () => {
+    const bbs = emptyBitboards();
+    // place just the white king on e1 (sq=4)
+    placePiece(bbs, C.WHITE_KING, 4);
+    computeAllAttackMasks(bbs);
+
+    expect(isInCheck(bbs, C.WHITE)).toBe(false);
+  });
+
+  test("black king not in check on empty board", () => {
+    const bbs = emptyBitboards();
+    placePiece(bbs, C.BLACK_KING, 60); // e8
+    computeAllAttackMasks(bbs);
+
+    expect(isInCheck(bbs, C.BLACK)).toBe(false);
+  });
+
+  test("white king in check from black rook", () => {
+    const bbs = emptyBitboards();
+    // white king on e1 (4), black rook on e8 (60)
+    placePiece(bbs, C.WHITE_KING, 4);
+    placePiece(bbs, C.BLACK_ROOK, 60);
+    computeAllAttackMasks(bbs);
+
+    // we expect e1 attacked along file
+    expect(isInCheck(bbs, C.WHITE)).toBe(true);
+  });
+
+  test("black king in check from white bishop", () => {
+    const bbs = emptyBitboards();
+    // black king on d5 (sq=27), white bishop on a2 (sq=9) — diagonal attack
+    placePiece(bbs, C.BLACK_KING, 27);
+    placePiece(bbs, C.WHITE_BISHOP, 9);
+    computeAllAttackMasks(bbs);
+
+    expect(isInCheck(bbs, C.BLACK)).toBe(true);
+  });
+
+  test("king not in check when blocked", () => {
+    const bbs = emptyBitboards();
+    // white king on e1 (4), black rook on e8 (60), but pawn blocking on e4 (sq=28)
+    placePiece(bbs, C.WHITE_KING, 4);
+    placePiece(bbs, C.BLACK_ROOK, 60);
+    placePiece(bbs, C.BLACK_PAWN, 28);
+    computeAllAttackMasks(bbs);
+
+    expect(isInCheck(bbs, C.WHITE)).toBe(false);
+  });
+
+  test("double check detection", () => {
+    const bbs = emptyBitboards();
+    // white king on e1 (4)
+    placePiece(bbs, C.WHITE_KING, 4);
+
+    // two attackers: black queen on e8 (60) and black knight on g2 (sq=14)
+    placePiece(bbs, C.BLACK_QUEEN, 60);
+    placePiece(bbs, C.BLACK_KNIGHT, 14);
+    computeAllAttackMasks(bbs);
+
+    expect(isInCheck(bbs, C.WHITE)).toBe(true);
+  });
+
+  test("pawn check detection for Black king", () => {
+    const bbs = emptyBitboards();
+    // black king on e5 (sq=28)
+    placePiece(bbs, C.BLACK_KING, 28);
+    placePiece(bbs, C.WHITE_PAWN, 21);
+    computeAllAttackMasks(bbs);
+
+    expect(isInCheck(bbs, C.BLACK)).toBe(true);
+  });
+});
+
