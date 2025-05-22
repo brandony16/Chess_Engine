@@ -7,6 +7,7 @@ import { makeMove, unMakeMove } from "../components/bitboardUtils/moveMaking/mak
 import { updateHash } from "../components/bitboardUtils/zobristHashing";
 import { updateAttackMasks } from "../components/bitboardUtils/PieceMasks/attackMask";
 import { updateCastlingRights } from "../components/bitboardUtils/moveMaking/castleMoveLogic";
+import { areBigUint64ArraysEqual } from "../components/bitboardUtils/debugFunctions";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -102,7 +103,7 @@ export const mockEngine = (
   // Sort descending by score
   scored.sort((a, b) => b.score - a.score);
   const orderedMoves = scored.map((o) => o.move);
-
+  const bitboardsBefore = structuredClone(bitboards);
   for (const move of orderedMoves) {
     const pieceAtBefore = structuredClone(pieceAt);
     makeMove(bitboards, move);
@@ -154,6 +155,10 @@ export const mockEngine = (
     if (JSON.stringify(pieceAtBefore) !== JSON.stringify(pieceAtAfter)) {
       throw new Error("PieceAt is not the same when making & unmaking move")
     } 
+    if (!areBigUint64ArraysEqual(bitboards, bitboardsBefore)) {
+      console.log(move);
+      throw new Error("Bitboards not the same")
+    }
   }
 
   // // Update transposition table

@@ -105,8 +105,8 @@ export const quiesce = (
       prevEpFile,
       castlingChanged
     );
-    const newPositions = new Map(prevPositions);
-    newPositions.set(newHash, (newPositions.get(newHash) || 0) + 1);
+    const oldCount = prevPositions.get(newHash) || 0;
+    prevPositions.set(newHash, (prevPositions.get(newHash) || 0) + 1);
 
     const { score: scoreAfterCapture } = quiesce(
       bitboards,
@@ -115,11 +115,13 @@ export const quiesce = (
       -alpha,
       newEnPassant,
       newCastling,
-      newPositions,
+      prevPositions,
       newHash
     );
 
     unMakeMove(move, bitboards);
+    if (oldCount) prevPositions.set(newHash, oldCount);
+    else prevPositions.delete(newHash);
 
     const score = -scoreAfterCapture;
     if (score >= beta) {

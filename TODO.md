@@ -8,16 +8,7 @@
 - Make it so clicking on the most recent move allows you to make a move
 
 ## Engine
-- Improve evaluation function using tables that show where pieces "should" go
-- Implement magic bitboards
-- Improve move storing
-- Add quiscince search - IN PROGRESS
-- Optimize filterIllegalMoves
-- Make it so engines play a predetermined opening so they don't play the same
-  game every time against each other.
-- Make move generators use a occupancy mask calculated earlier - maybe
 - Add imcremental attack map updates instead of complete recalculation
-- Make players be 0 for white and 1 for black to reduce string comps
 - Add 50 move rule to engine sim
 
 ## General
@@ -51,3 +42,15 @@ Coverage & Continuous Integration
 Test coverage: integrate Istanbul/nyc to measure statement, branch, and function coverage, aiming for near-100% on critical modules (moveGenerator.js, search.js, board.js). 
 
 Automate with CI: configure your CI (GitHub Actions, Travis CI, etc.) to run your full test suite—including unit, perft, and property-based tests—on every push, blocking merges on coverage or test regressions.
+
+
+## FUNCTIONS TO TEST
+- computeAllAttackMasks
+- evaluate4
+- checkGameOver
+- isInCheck
+- getQuiescenceMoves
+- getNewEnPassant
+- updateCastlingRights
+- updateHash
+- 

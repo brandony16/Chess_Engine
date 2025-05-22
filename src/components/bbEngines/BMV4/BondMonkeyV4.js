@@ -3,7 +3,6 @@ import { clearTT } from "../../bitboardUtils/TranspositionTable/transpositionTab
 import { CHECKMATE_VALUE } from "../../bitboardUtils/constants";
 import { minimax4 } from "./minimax4";
 import { computeAllAttackMasks } from "../../bitboardUtils/PieceMasks/individualAttackMasks";
-import { initializePieceAtArray } from "../../bitboardUtils/pieceGetters";
 
 // Root id for transposition table. Helps avoid stale entries
 export let rootId = 0;
@@ -67,7 +66,6 @@ export function BMV4(
     }
 
     if (performance.now() - start > timeLimit) {
-      console.log("time limit");
       break;
     }
 
