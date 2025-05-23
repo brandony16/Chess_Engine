@@ -143,8 +143,8 @@ export const quiesce = (
 
   const opponent = player === WHITE ? BLACK : WHITE;
   for (const move of orderedCaptures) {
-    const attackerValue = weights[move.piece] || 0;
-    const victimValue = weights[move.captured] || 0;
+    const attackerValue = Math.abs(weights[move.piece]) || 0;
+    const victimValue = Math.abs(weights[move.captured]) || 0;
     const seeGain = victimValue - attackerValue;
     // if even winning the capture can’t push us above alpha, skip it:
     if (standPat + seeGain <= alpha) continue;

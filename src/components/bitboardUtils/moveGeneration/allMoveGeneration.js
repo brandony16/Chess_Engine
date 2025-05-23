@@ -154,6 +154,9 @@ export const getAllLegalMoves = (
         player
       );
     }
+    if (numCheck !== 1) {
+      throw new Error("KING IN CHECK W/O CHECKERS");
+    }
 
     // Single check
     const oppSq = bitScanForward(checkers);

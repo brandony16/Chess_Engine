@@ -7,6 +7,7 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../constants";
+import { getAllPieces } from "../pieceGetters";
 import {
   computeMaskForPiece,
   individualAttackMasks,
@@ -22,42 +23,61 @@ export const updateAttackMasks = (bitboards, move) => {
   const piece = move.piece;
   const captured = move.captured;
   const promotion = move.promotion;
+  const occupancy = getAllPieces(bitboards);
 
   // Remove old attacks of the piece
-  individualAttackMasks[piece] = computeMaskForPiece(bitboards, piece);
+  individualAttackMasks[piece] = computeMaskForPiece(
+    bitboards,
+    piece,
+    occupancy
+  );
 
   if (captured !== null) {
-    individualAttackMasks[captured] = computeMaskForPiece(bitboards, captured);
+    individualAttackMasks[captured] = computeMaskForPiece(
+      bitboards,
+      captured,
+      occupancy
+    );
   }
 
   if (promotion !== null) {
-    individualAttackMasks[promotion] = computeMaskForPiece(bitboards, promotion);
+    individualAttackMasks[promotion] = computeMaskForPiece(
+      bitboards,
+      promotion,
+      occupancy
+    );
   }
 
   // Recompute sliding pieces to account for blockers
   individualAttackMasks[WHITE_BISHOP] = computeMaskForPiece(
     bitboards,
-    WHITE_BISHOP
+    WHITE_BISHOP,
+    occupancy
   );
   individualAttackMasks[WHITE_ROOK] = computeMaskForPiece(
     bitboards,
-    WHITE_ROOK
+    WHITE_ROOK,
+    occupancy
   );
   individualAttackMasks[WHITE_QUEEN] = computeMaskForPiece(
     bitboards,
-    WHITE_QUEEN
+    WHITE_QUEEN,
+    occupancy
   );
   individualAttackMasks[BLACK_BISHOP] = computeMaskForPiece(
     bitboards,
-    BLACK_BISHOP
+    BLACK_BISHOP,
+    occupancy
   );
   individualAttackMasks[BLACK_ROOK] = computeMaskForPiece(
     bitboards,
-    BLACK_ROOK
+    BLACK_ROOK,
+    occupancy
   );
   individualAttackMasks[BLACK_QUEEN] = computeMaskForPiece(
     bitboards,
-    BLACK_QUEEN
+    BLACK_QUEEN,
+    occupancy
   );
 };
 

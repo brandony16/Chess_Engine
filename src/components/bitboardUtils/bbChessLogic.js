@@ -1,5 +1,5 @@
 import { bitScanForward, isKing, popcount } from "./bbUtils";
-import { getPlayerBoard, pieceAt } from "./pieceGetters";
+import { getAllPieces, getPlayerBoard, pieceAt } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
 import {
   BLACK,
@@ -17,6 +17,8 @@ import {
 import { getCheckers, getRayBetween } from "./moveGeneration/checkersMask";
 import { getKingMovesForSquare } from "./moveGeneration/majorPieceMoveGeneration";
 import { getAttackMask } from "./PieceMasks/attackMask";
+import { kingMasks } from "./PieceMasks/kingMask";
+import { bigIntFullRep } from "./debugFunctions";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -69,10 +71,18 @@ export const hasLegalMove = (
   const isWhite = player === WHITE;
   const opponent = isWhite ? BLACK : WHITE;
   const oppAttackMask = getAttackMask(opponent);
-  const pinnedMask = computePinned(bitboards, player);
 
   const kingBB = isWhite ? bitboards[WHITE_KING] : bitboards[BLACK_KING];
   const kingSq = bitScanForward(kingBB);
+
+  // If king is not in check and it has a sliding move then there is a legal move
+  if (
+    kingSq & (oppAttackMask === 0n) &&
+    kingMasks[kingSq] & ~oppAttackMask & (~getAllPieces(bitboards) !== 0n)
+  ) {
+    return true;
+  }
+  const pinnedMask = computePinned(bitboards, player);
   const getRayMask = makePinRayMaskGenerator(kingSq);
   let kingCheckMask = ~0n;
 
@@ -94,6 +104,10 @@ export const hasLegalMove = (
       return kingMoves !== 0n;
     }
     if (numCheck !== 1) {
+      console.log(numCheck);
+      console.log(bigIntFullRep(oppAttackMask));
+      console.log(kingSq);
+      console.log(bigIntFullRep(getPlayerBoard(1 - player, bitboards)));
       throw new Error("KING IN CHECK W/O CHECKERS");
     }
 

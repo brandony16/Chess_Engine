@@ -111,7 +111,7 @@ for (let sq = 0; sq < 64; sq++) {
 export const bishopAttacks = (sq, occ) => {
   const mask = occ & bishopMasks[sq];
   const index = Number(
-    (mask * BigInt(bishopMagics[sq])) >> BigInt(bishopShifts[sq])
+    (mask * bishopMagics[sq]) >> BigInt(bishopShifts[sq])
   );
 
   return bishopAttackTable[sq][index];
@@ -128,7 +128,7 @@ export const bishopAttacks = (sq, occ) => {
 export const rookAttacks = (sq, occ) => {
   const mask = occ & rookMasks[sq];
   const index = Number(
-    (mask * BigInt(rookMagics[sq])) >> BigInt(rookShifts[sq])
+    (mask * rookMagics[sq]) >> BigInt(rookShifts[sq])
   );
 
   return rookAttackTable[sq][index];

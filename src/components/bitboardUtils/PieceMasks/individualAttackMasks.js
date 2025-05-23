@@ -68,10 +68,9 @@ export function attacksOf(occupancy, piece, square) {
  * @param {number} piece - the piece to compute the mask for
  * @returns {bigint} - the attack mask for the piece
  */
-export function computeMaskForPiece(bitboards, piece) {
+export function computeMaskForPiece(bitboards, piece, occupancy) {
   let mask = 0n;
   let bitboard = bitboards[piece];
-  const occupancy = getAllPieces(bitboards);
 
   while (bitboard) {
     const sq = bitScanForward(bitboard);
@@ -89,8 +88,9 @@ export function computeMaskForPiece(bitboards, piece) {
  * @returns {BigUint64Array} individualAttackMasks
  */
 export function computeAllAttackMasks(bitboards) {
+  const occupancy = getAllPieces(bitboards);
   for (let p = 0; p < NUM_PIECES; p++) {
-    individualAttackMasks[p] = computeMaskForPiece(bitboards, p);
+    individualAttackMasks[p] = computeMaskForPiece(bitboards, p, occupancy);
   }
 
   return individualAttackMasks;

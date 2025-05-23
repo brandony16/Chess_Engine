@@ -6,7 +6,7 @@ import {
   WHITE_PAWN,
   WHITE_PROMO_PIECES,
 } from "../constants";
-import { pieceAt } from "../pieceGetters";
+import { getAllPieces, pieceAt } from "../pieceGetters";
 import {
   computeMaskForPiece,
   individualAttackMasks,
@@ -117,9 +117,10 @@ export const unMakeMove = (move, bitboards) => {
   }
 
   // Update attack masks
-  individualAttackMasks[piece] = computeMaskForPiece(bitboards, piece);
-  individualAttackMasks[captured] = computeMaskForPiece(bitboards, captured);
-  individualAttackMasks[promotion] = computeMaskForPiece(bitboards, promotion);
+  const occ = getAllPieces(bitboards);
+  individualAttackMasks[piece] = computeMaskForPiece(bitboards, piece, occ);
+  individualAttackMasks[captured] = computeMaskForPiece(bitboards, captured, occ);
+  individualAttackMasks[promotion] = computeMaskForPiece(bitboards, promotion, occ);
 };
 
 /**
