@@ -1,5 +1,5 @@
 import { getNewEnPassant } from "../../bitboardUtils/bbChessLogic";
-import { BLACK, WEIGHTS, WHITE } from "../../bitboardUtils/constants";
+import { BLACK, WHITE } from "../../bitboardUtils/constants";
 import { checkGameOver } from "../../bitboardUtils/gameOverLogic";
 import { getQuiescenceMoves } from "../../bitboardUtils/moveGeneration/quiescenceMoves/quiescenceMoves";
 import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic";
@@ -7,10 +7,16 @@ import {
   makeMove,
   unMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic";
-import { pieceAt } from "../../bitboardUtils/pieceGetters";
 import { updateAttackMasks } from "../../bitboardUtils/PieceMasks/attackMask";
+import {
+  getQTT,
+  setQTT,
+  TT_FLAG,
+} from "../../bitboardUtils/TranspositionTable/transpositionTable";
 import { updateHash } from "../../bitboardUtils/zobristHashing";
-import { evaluate4 } from "./evaluation4";
+import { evaluate4, weights } from "./evaluation4";
+
+const maxQDepth = 6;
 
 /**
  * Performs a quiescence search, which calculates lines of captures. Only evaluates moves
@@ -36,7 +42,8 @@ export const quiesce = (
   enPassantSquare,
   castlingRights,
   prevPositions,
-  prevHash
+  prevHash,
+  depth = 0
 ) => {
   const gameOver = checkGameOver(
     bitboards,
@@ -60,24 +67,50 @@ export const quiesce = (
     /* depth */ 0
   );
 
+  if (depth + 1 > maxQDepth) {
+    return { score: standPat, move: null };
+  }
+
   // Beta cutoff
   if (standPat >= beta) {
     return { score: beta, move: null };
   }
+  const origAlpha = alpha;
   alpha = Math.max(alpha, standPat);
+
+  const ttEntry = getQTT(prevHash);
+  const remaining = maxQDepth - depth;
+  if (ttEntry && ttEntry.depth >= remaining && ttEntry.isQuiescence) {
+    if (ttEntry.flag === TT_FLAG.EXACT) {
+      return { score: ttEntry.value, move: null };
+    } else if (ttEntry.flag === TT_FLAG.LOWER_BOUND && ttEntry.value > alpha) {
+      alpha = ttEntry.value;
+    } else if (ttEntry.flag === TT_FLAG.UPPER_BOUND && ttEntry.value < beta) {
+      beta = ttEntry.value;
+    }
+    if (alpha >= beta) {
+      return { score: ttEntry.value, move: null };
+    }
+  }
 
   // Generates only capture and promotion moves
   const captures = getQuiescenceMoves(bitboards, player, enPassantSquare);
 
   // Sort by MVV/LVA
   captures.sort((a, b) => {
-    const vA = (WEIGHTS[pieceAt[a.to]] || 0) - (WEIGHTS[a.captured] || 0);
-    const vB = (WEIGHTS[pieceAt[b.to]] || 0) - (WEIGHTS[b.captured] || 0);
+    const vA = (weights[a.captured] || 0) - (weights[a.piece] || 0);
+    const vB = (weights[b.captured] || 0) - (weights[b.piece] || 0);
     return vB - vA;
   });
 
   const opponent = player === WHITE ? BLACK : WHITE;
   for (const move of captures) {
+    const attackerValue = weights[move.piece] || 0;
+    const victimValue = weights[move.captured] || 0;
+    const seeGain = victimValue - attackerValue;
+    // if even winning the capture can’t push us above alpha, skip it:
+    if (standPat + seeGain <= alpha) continue;
+
     makeMove(bitboards, move);
     updateAttackMasks(bitboards, move);
 
@@ -116,10 +149,12 @@ export const quiesce = (
       newEnPassant,
       newCastling,
       prevPositions,
-      newHash
+      newHash,
+      depth + 1
     );
 
     unMakeMove(move, bitboards);
+    updateAttackMasks(bitboards, move);
     if (oldCount) prevPositions.set(newHash, oldCount);
     else prevPositions.delete(newHash);
 
@@ -131,6 +166,19 @@ export const quiesce = (
       alpha = score;
     }
   }
+
+  let flag = TT_FLAG.EXACT;
+  if (alpha <= origAlpha) {
+    flag = TT_FLAG.UPPER_BOUND;
+  } else if (alpha >= beta) {
+    flag = TT_FLAG.LOWER_BOUND;
+  }
+  setQTT(prevHash, {
+    value: alpha,
+    depth: remaining,
+    flag: flag,
+    isQuiescence: true,
+  });
 
   return { score: alpha, move: null };
 };

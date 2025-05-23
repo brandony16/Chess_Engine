@@ -12,12 +12,11 @@ import {
   setTT,
   TT_FLAG,
 } from "../../bitboardUtils/TranspositionTable/transpositionTable";
-import { BLACK, MAX_PLY, WEIGHTS, WHITE } from "../../bitboardUtils/constants";
+import { BLACK, MAX_PLY, WHITE } from "../../bitboardUtils/constants";
 import { rootId } from "./BondMonkeyV4";
-import { evaluate4 } from "./evaluation4";
+import { evaluate4, weights } from "./evaluation4";
 import { quiesce } from "./quiesce";
 import { getAllLegalMoves } from "../../bitboardUtils/moveGeneration/allMoveGeneration";
-import { pieceAt } from "../../bitboardUtils/pieceGetters";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -39,6 +38,7 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  * @param {number} beta - the beta value for alpha-beta pruning
  * @returns {{score: number, move: object}} evaluation of the move and the move
  */
+
 export const minimax4 = (
   bitboards,
   player,
@@ -128,7 +128,7 @@ export const minimax4 = (
     // 2) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
       score +=
-        100_000 + (WEIGHTS[pieceAt[to]] || 0) - (WEIGHTS[pieceAt[from]] || 0);
+        100_000 + (weights[move.captured] || 0) - (weights[move.piece] || 0);
     }
 
     // 3) Killer moves at this ply
@@ -202,6 +202,7 @@ export const minimax4 = (
     );
 
     unMakeMove(move, bitboards);
+    updateAttackMasks(bitboards, move);
     if (oldCount) prevPositions.set(hash, oldCount);
     else prevPositions.delete(hash);
 

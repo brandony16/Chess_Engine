@@ -41,6 +41,6 @@ export const evaluate4 = (bitboards, player, result, depth) => {
 
 // Weights from Chess Programming Wiki Simplified Evaluation Function Page.
 // https://www.chessprogramming.org/Simplified_Evaluation_Function
-const weights = [
+export const weights = [
   100, 320, 330, 500, 900, 20_000, -100, -320, -330, -500, -900, -20_000,
 ];

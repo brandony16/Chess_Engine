@@ -84,15 +84,15 @@ export const isKingsideCastleLegal = (player, attackMask, occ) => {
 export const isQueensideCastleLegal = (player, attackMask, occ) => {
   let squares;
   if (player === WHITE) {
-    squares = [2, 3, 4];
+    squares = [1, 2, 3, 4];
   } else {
-    squares = [58, 59, 60];
+    squares = [57, 58, 59, 60];
   }
 
   for (const square of squares) {
     const mask = 1n << BigInt(square);
     // Square isnt attacked
-    if (attackMask & mask) {
+    if (attackMask & mask && square !== 1 && square !== 57) {
       return false;
     }
 

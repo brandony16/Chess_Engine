@@ -125,9 +125,7 @@ export const minimax3 = (
     // 2) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
       score +=
-        100_000 +
-        (WEIGHTS[pieceAt[to]] || 0) -
-        (WEIGHTS[pieceAt[from]] || 0);
+        100_000 + (WEIGHTS[pieceAt[to]] || 0) - (WEIGHTS[pieceAt[from]] || 0);
     }
 
     // 3) Killer moves at this ply
@@ -206,6 +204,7 @@ export const minimax3 = (
       );
 
       unMakeMove(move, bitboards);
+      updateAttackMasks(bitboards, move);
 
       if (moveEval > bestEval) {
         bestEval = moveEval;
@@ -283,7 +282,8 @@ export const minimax3 = (
       );
 
       unMakeMove(move, bitboards);
-
+      updateAttackMasks(bitboards, move);
+      
       if (moveEval < bestEval) {
         bestEval = moveEval;
         bestMove = move;

@@ -198,6 +198,7 @@ export const minimax2 = (
       );
 
       unMakeMove(move, bitboards);
+      updateAttackMasks(bitboards, move);
 
       if (moveEval > bestEval) {
         bestEval = moveEval;

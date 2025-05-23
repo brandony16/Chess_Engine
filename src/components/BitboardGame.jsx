@@ -379,7 +379,7 @@ const BitboardGame = () => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
       getEngineMove(5, 5000);
     }
-  }, [currPlayer, userSide]);
+  }, [currPlayer, userSide]); 
 
   return (
     <div className="body">

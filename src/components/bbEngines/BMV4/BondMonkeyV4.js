@@ -1,5 +1,5 @@
 import { computeHash } from "../../bitboardUtils/zobristHashing";
-import { clearTT } from "../../bitboardUtils/TranspositionTable/transpositionTable";
+import { clearQTT, clearTT } from "../../bitboardUtils/TranspositionTable/transpositionTable";
 import { CHECKMATE_VALUE } from "../../bitboardUtils/constants";
 import { minimax4 } from "./minimax4";
 import { computeAllAttackMasks } from "../../bitboardUtils/PieceMasks/individualAttackMasks";
@@ -30,6 +30,7 @@ export function BMV4(
   timeLimit = Infinity
 ) {
   clearTT(); // Clears transposition table
+  clearQTT();
 
   const start = performance.now();
 

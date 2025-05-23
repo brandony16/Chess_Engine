@@ -21,3 +21,17 @@ export const getTT = (key) => {
 export const setTT = (key, entry) => {
   table.set(key, entry);
 };
+
+const quiesceTable = new LRUMap(TABLE_SIZE);
+
+export const clearQTT = () => {
+  quiesceTable.clear();
+};
+
+export const getQTT = (key) => {
+  return quiesceTable.get(key);
+};
+
+export const setQTT = (key, entry) => {
+  quiesceTable.set(key, entry);
+};
