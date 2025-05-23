@@ -8,7 +8,7 @@ import {
   unMakeMove,
 } from "../components/bitboardUtils/moveMaking/makeMoveLogic";
 import * as C from "../components/bitboardUtils/constants";
-import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters";
+import { initializePieceAtArray, pieceAt } from "../components/bitboardUtils/pieceGetters";
 import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
 
 // [ description, FEN, UCI move ]
@@ -41,8 +41,17 @@ describe("makeMove + unMakeMove", () => {
       initializePieceAtArray(bitboards);
       const move = uciToMove(uci, bitboards, player, castling, ep);
 
+      const beforeMovePieceAt = structuredClone(pieceAt);
       makeMove(bitboards, move);
+
+      // Check that pieceAt is updated correctly
+      const afterMovePieceAt = structuredClone(pieceAt);
+      initializePieceAtArray(bitboards);
+      expect(afterMovePieceAt).toEqual(pieceAt);
+      expect(beforeMovePieceAt).not.toEqual(pieceAt);
+
       unMakeMove(move, bitboards);
+      expect(beforeMovePieceAt).toEqual(pieceAt);
 
       const fenAfter = bitboardsToFEN(bitboards, player, castling, ep);
       expect(fenAfter).toBe(fen);

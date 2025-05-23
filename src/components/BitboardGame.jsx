@@ -353,6 +353,7 @@ const BitboardGame = () => {
   const getEngineMove = (depth, timeLimit) => {
     if (!worker) return;
     const state = useGameStore.getState();
+
     worker.postMessage({
       bitboards: state.bitboards,
       player: state.currPlayer,

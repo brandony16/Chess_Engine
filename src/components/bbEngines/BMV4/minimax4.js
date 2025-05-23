@@ -156,6 +156,7 @@ export const minimax4 = (
 
   let bestEval = -Infinity;
   let bestMove = null;
+
   for (const move of orderedMoves) {
     makeMove(bitboards, move);
     updateAttackMasks(bitboards, move);

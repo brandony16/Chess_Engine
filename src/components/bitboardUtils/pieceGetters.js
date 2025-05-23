@@ -120,6 +120,16 @@ export const getEmptySquares = (bitboards) => {
   return ~(getWhitePieces(bitboards) | getBlackPieces(bitboards));
 };
 
+export function getPieceAtSquare(square, bitboards) {
+  const mask = 1n << BigInt(square);
+  for (let piece = 0; piece < NUM_PIECES; piece++) {
+    if (bitboards[piece] & mask) {
+      return piece;
+    }
+  }
+  return null;
+}
+
 /**
  * Array that stores piece locations
  */

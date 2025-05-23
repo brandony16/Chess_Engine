@@ -30,7 +30,7 @@ export function BMV4(
   timeLimit = Infinity
 ) {
   clearTT(); // Clears transposition table
-  
+
   const start = performance.now();
 
   let bestMove = null;
