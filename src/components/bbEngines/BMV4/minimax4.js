@@ -128,7 +128,9 @@ export const minimax4 = (
     // 2) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
       score +=
-        100_000 + (weights[move.captured] || 0) - (weights[move.piece] || 0);
+        100_000 +
+        (Math.abs(weights[move.captured]) || 0) -
+        (Math.abs(weights[move.piece]) || 0);
     }
 
     // 3) Killer moves at this ply

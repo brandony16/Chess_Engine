@@ -16,7 +16,14 @@ import {
 import { updateHash } from "../../bitboardUtils/zobristHashing";
 import { evaluate4, weights } from "./evaluation4";
 
+// Max depth that quiescence search can go to.
 const maxQDepth = 6;
+
+// killerMoves[ply] = [firstKillerMove, secondKillerMove]
+const killerMoves = Array.from({ length: maxQDepth }, () => [null, null]);
+
+// historyScores[fromSquare][toSquare] = integer score
+const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
 
 /**
  * Performs a quiescence search, which calculates lines of captures. Only evaluates moves
@@ -93,18 +100,49 @@ export const quiesce = (
     }
   }
 
+  const ttMove = ttEntry?.bestMove || null;
+
   // Generates only capture and promotion moves
-  const captures = getQuiescenceMoves(bitboards, player, enPassantSquare);
+  const captures = getQuiescenceMoves(bitboards, player, enPassantSquare).map(
+    (move) => {
+      let score = 0;
+      const from = move.from;
+      const to = move.to;
+
+      // 1) Transposition-table move is highest priority
+      if (ttMove && from === ttMove.from && to === ttMove.to) {
+        score += 1_000_000;
+      }
+
+      // 2) MVV/LVA: victim value minus your piece value
+      if (move.captured) {
+        score +=
+          100_000 +
+          (Math.abs(weights[move.captured]) || 0) -
+          (Math.abs(weights[move.piece]) || 0);
+      }
+
+      // 3) Killer moves at this ply
+      const [k0, k1] = killerMoves[depth];
+      if (k0 && from === k0.from && to === k0.to) {
+        score += 90_000;
+      } else if (k1 && from === k1.from && to === k1.to) {
+        score += 80_000;
+      }
+
+      // 4) History heuristic
+      score += historyScores[from][to];
+
+      return { move, score };
+    }
+  );
 
   // Sort by MVV/LVA
-  captures.sort((a, b) => {
-    const vA = (weights[a.captured] || 0) - (weights[a.piece] || 0);
-    const vB = (weights[b.captured] || 0) - (weights[b.piece] || 0);
-    return vB - vA;
-  });
+  captures.sort((a, b) => b.score - a.score);
+  const orderedCaptures = captures.map((m) => m.move);
 
   const opponent = player === WHITE ? BLACK : WHITE;
-  for (const move of captures) {
+  for (const move of orderedCaptures) {
     const attackerValue = weights[move.piece] || 0;
     const victimValue = weights[move.captured] || 0;
     const seeGain = victimValue - attackerValue;
@@ -164,6 +202,25 @@ export const quiesce = (
     }
     if (score > alpha) {
       alpha = score;
+    }
+
+    if (beta <= alpha) {
+      if (move.captured === null) {
+        const killer = killerMoves[depth];
+
+        if (
+          !killer[0] ||
+          move.from !== killer[0].from ||
+          move.to !== killer[0].to
+        ) {
+          killer[1] = killer[0];
+          killer[0] = move;
+        }
+
+        // Weights this move higher in history
+        historyScores[move.from][move.to] += 2 ^ remaining;
+      }
+      break;
     }
   }
 
