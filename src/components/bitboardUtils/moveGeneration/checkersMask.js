@@ -1,10 +1,11 @@
 import { blackPawnMasks, whitePawnMasks } from "../PieceMasks/pawnMask";
-import { getAllPieces, pieceAt } from "../pieceGetters";
+import { getAllPieces } from "../pieceGetters";
 import * as C from "../constants";
 import { knightMasks } from "../PieceMasks/knightMask";
 import { slide } from "../generalHelpers";
-import { bitScanForward } from "../bbUtils";
 import { bishopAttacks, rookAttacks } from "./magicBitboards/attackTable";
+import { bigIntFullRep } from "../debugFunctions";
+import { rookMasks } from "./magicBitboards/generateMasks";
 
 /**
  * Finds all pieces that put a given player's king in check and returns
@@ -15,7 +16,7 @@ import { bishopAttacks, rookAttacks } from "./magicBitboards/attackTable";
  * @param {number} kingSq - the square of the player's king (0-63)
  * @returns {bigint} a bitboard of the checkers
  */
-export function getCheckers(bitboards, player, kingSq) {
+export function getCheckers(bitboards, player, kingSq, log = false) {
   const isWhite = player === C.WHITE;
 
   const pawnBB = bitboards[isWhite ? C.BLACK_PAWN : C.WHITE_PAWN];
@@ -29,7 +30,8 @@ export function getCheckers(bitboards, player, kingSq) {
     bitboards,
     kingSq,
     getAllPieces(bitboards),
-    isWhite
+    isWhite,
+    log
   );
 
   return pawnCheckMask | knightCheckMask | slidingMask;
@@ -44,41 +46,30 @@ export function getCheckers(bitboards, player, kingSq) {
  * @param {boolean} isWhite - if the player is white
  * @returns {bigint}
  */
-function slidingCheckMask(bitboards, kingSq, occupancy, isWhite) {
+function slidingCheckMask(bitboards, kingSq, occupancy, isWhite, log = false) {
   let mask = 0n;
 
   // Orthogonal Directions
   let orthBB = rookAttacks(kingSq, occupancy);
-  let orthBlockers = orthBB & occupancy;
-  while (orthBlockers !== 0n) {
-    const blockerSq = bitScanForward(orthBlockers);
-    const piece = pieceAt[blockerSq];
-
-    if (
-      (isWhite && (piece === C.BLACK_ROOK || piece === C.BLACK_QUEEN)) ||
-      (!isWhite && (piece === C.WHITE_ROOK || piece === C.WHITE_QUEEN))
-    ) {
-      mask |= 1n << BigInt(blockerSq);
-    }
-    orthBlockers &= orthBlockers - 1n;
+  if (log) {
+    console.log(bigIntFullRep(orthBB));
+    console.log(bigIntFullRep(occupancy));
+    console.log(bigIntFullRep(rookMasks[kingSq]));
   }
+  let orthBlockers = orthBB & occupancy;
+  const orthAttackers = isWhite
+    ? bitboards[C.BLACK_ROOK] | bitboards[C.BLACK_QUEEN]
+    : bitboards[C.WHITE_ROOK] | bitboards[C.WHITE_QUEEN];
+  mask |= (orthBlockers & orthAttackers);
 
   // Diagonal Directions
   const diagBB = bishopAttacks(kingSq, occupancy);
 
   let diagBlockers = diagBB & occupancy;
-  while (diagBlockers !== 0n) {
-    const blockerSq = bitScanForward(diagBlockers);
-    const piece = pieceAt[blockerSq];
-
-    if (
-      (isWhite && (piece === C.BLACK_BISHOP || piece === C.BLACK_QUEEN)) ||
-      (!isWhite && (piece === C.WHITE_BISHOP || piece === C.WHITE_QUEEN))
-    ) {
-      mask |= 1n << BigInt(blockerSq);
-    }
-    diagBlockers &= diagBlockers - 1n;
-  }
+  const diagAttackers = isWhite
+    ? bitboards[C.BLACK_BISHOP] | bitboards[C.BLACK_QUEEN]
+    : bitboards[C.WHITE_BISHOP] | bitboards[C.WHITE_QUEEN];
+  mask |= (diagAttackers & diagBlockers);
 
   return mask;
 }

@@ -38,7 +38,7 @@ export const useGameStore = create((set) => ({
 
   // ACTIONS / UPDATER FUNCTIONS
 
-  updateStates: (moveNotation, move, hash, gameOverObj) => {
+  updateStates: (moveNotation, move, gameOverObj) => {
     set((state) => {
       let newFiftyRuleNum = state.fiftyMoveRuleCounter + 1;
       const pieceMoved = move.piece;
@@ -62,11 +62,7 @@ export const useGameStore = create((set) => ({
         ),
         selectedSquare: null,
         moveBitboard: null,
-        pastPositions: (() => {
-          const newPositions = new Map(state.pastPositions);
-          newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
-          return newPositions;
-        })(),
+        pastPositions: state.pastPositions,
         pastBitboards: [...state.pastBitboards, state.bitboards.slice()],
         displayedBitboards: state.bitboards.slice(),
         currIndexOfDisplayed: state.currIndexOfDisplayed + 1,

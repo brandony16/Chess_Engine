@@ -19,7 +19,6 @@ import {
   getOpeningMoves,
   squareToIndex,
 } from "./bitboardUtils/FENandUCIHelpers";
-import { updateAttackMasks } from "./bitboardUtils/PieceMasks/attackMask";
 
 // Runs the game
 const BitboardGame = () => {
@@ -124,20 +123,18 @@ const BitboardGame = () => {
     );
 
     makeMove(bitboards, move);
-    updateAttackMasks(bitboards, move);
 
     const newEnPassant = getNewEnPassant(move);
     const epFile = newEnPassant ? newEnPassant % 8 : -1;
 
     const hash = computeHash(bitboards, currPlayer, epFile, castlingRights);
 
-    const newPositions = new Map(pastPositions);
-    newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
+    pastPositions.set(hash, (pastPositions.get(hash) || 0) + 1);
 
     const gameOverObj = checkGameOver(
       bitboards,
       currPlayer,
-      newPositions,
+      pastPositions,
       newEnPassant,
       fiftyMoveRuleCounter
     );
@@ -149,7 +146,7 @@ const BitboardGame = () => {
       move.captured !== null
     );
 
-    updateStates(readableMove, move, hash, gameOverObj);
+    updateStates(readableMove, move, gameOverObj);
   };
 
   /**

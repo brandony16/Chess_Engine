@@ -20,15 +20,13 @@ function generateRookMask(sq) {
     let f = file + df;
     let r = rank + dr;
 
-    while (f >= 0 && f < 8 && r >= 0 && r < 8) {
-      const nextF = f + df;
-      const nextR = r + dr;
-      // Break if next move is off of the board.
-      if (nextF >= 8 || nextF < 0 || nextR >= 8 || nextR < 0) break;
-
+    while (f >= 0 && f < 8 && r >= 0 && r < 8) {     
       mask |= 1n << BigInt(toIndex(f, r));
       f += df;
       r += dr;
+
+      // Break if next move is off of the board.
+      if (f >= 8 || f < 0 || r >= 8 || r < 0) break;
     }
   }
   return mask;

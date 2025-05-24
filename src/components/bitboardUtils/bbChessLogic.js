@@ -3,12 +3,18 @@ import { getAllPieces, getPlayerBoard, pieceAt } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
 import {
   BLACK,
+  BLACK_BISHOP,
   BLACK_KING,
   BLACK_PAWN,
+  BLACK_QUEEN,
+  BLACK_ROOK,
   WHITE,
+  WHITE_BISHOP,
   WHITE_KING,
   WHITE_KNIGHT,
   WHITE_PAWN,
+  WHITE_QUEEN,
+  WHITE_ROOK,
 } from "./constants";
 import {
   computePinned,
@@ -75,7 +81,7 @@ export const hasLegalMove = (
   const kingBB = isWhite ? bitboards[WHITE_KING] : bitboards[BLACK_KING];
   const kingSq = bitScanForward(kingBB);
 
-  // If king is not in check and it has a sliding move then there is a legal move
+  // If king is not in check and it has a move then there is a legal move
   if (
     kingSq & (oppAttackMask === 0n) &&
     kingMasks[kingSq] & ~oppAttackMask & (~getAllPieces(bitboards) !== 0n)
@@ -104,10 +110,21 @@ export const hasLegalMove = (
       return kingMoves !== 0n;
     }
     if (numCheck !== 1) {
+      console.log(player);
       console.log(numCheck);
       console.log(bigIntFullRep(oppAttackMask));
+      console.log(bigIntFullRep(kingBB));
+      console.log(bigIntFullRep(getCheckers(bitboards, player, kingSq ,true)))
       console.log(kingSq);
-      console.log(bigIntFullRep(getPlayerBoard(1 - player, bitboards)));
+      console.log("Queen ");
+      console.log(bigIntFullRep(bitboards[WHITE_QUEEN]));
+      console.log(bigIntFullRep(bitboards[BLACK_QUEEN]));
+      console.log("Bishop ");
+      console.log(bigIntFullRep(bitboards[WHITE_BISHOP]));
+      console.log(bigIntFullRep(bitboards[BLACK_BISHOP]));
+      console.log("Rook ");
+      console.log(bigIntFullRep(bitboards[WHITE_ROOK]));
+      console.log(bigIntFullRep(bitboards[BLACK_ROOK]));
       throw new Error("KING IN CHECK W/O CHECKERS");
     }
 

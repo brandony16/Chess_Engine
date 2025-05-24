@@ -6,11 +6,8 @@ import {
   WHITE_PAWN,
   WHITE_PROMO_PIECES,
 } from "../constants";
-import { getAllPieces, pieceAt } from "../pieceGetters";
-import {
-  computeMaskForPiece,
-  individualAttackMasks,
-} from "../PieceMasks/individualAttackMasks";
+import { pieceAt } from "../pieceGetters";
+import { updateAttackMasks } from "../PieceMasks/attackMask";
 import { makeCastleMove, unMakeCastleMove } from "./castleMoveLogic";
 import Move from "./move";
 
@@ -63,6 +60,8 @@ export const makeMove = (bitboards, move) => {
 
     pieceAt[move.to + dir] = null;
   }
+
+  updateAttackMasks(bitboards, move);
 };
 
 /**
@@ -116,11 +115,7 @@ export const unMakeMove = (move, bitboards) => {
     pieceAt[capturedPawnSquare] = captured;
   }
 
-  // Update attack masks
-  const occ = getAllPieces(bitboards);
-  individualAttackMasks[piece] = computeMaskForPiece(bitboards, piece, occ);
-  individualAttackMasks[captured] = computeMaskForPiece(bitboards, captured, occ);
-  individualAttackMasks[promotion] = computeMaskForPiece(bitboards, promotion, occ);
+  updateAttackMasks(bitboards, move);
 };
 
 /**
@@ -149,7 +144,6 @@ export const getMove = (from, to, piece, enPassantSquare) => {
 /**
  * Converts a move bitboard into an array of moves.
  *
- * @param {BigUint64Array} bitboards - the bitboards of the position
  * @param {bigint} bitboard - the move bitboard
  * @param {number} from - the square moving from
  * @param {number} piece - the index of the piece
@@ -158,7 +152,6 @@ export const getMove = (from, to, piece, enPassantSquare) => {
  * @returns {Array<Move>} - an array of move objects
  */
 export const getMovesFromBB = (
-  bitboards,
   bitboard,
   from,
   piece,

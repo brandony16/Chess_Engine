@@ -3,7 +3,6 @@ import {
   makeMove,
   unMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic";
-import { updateAttackMasks } from "../../bitboardUtils/PieceMasks/attackMask";
 import { updateHash } from "../../bitboardUtils/zobristHashing";
 import { checkGameOver } from "../../bitboardUtils/gameOverLogic";
 import { getNewEnPassant, isInCheck } from "../../bitboardUtils/bbChessLogic";
@@ -161,7 +160,6 @@ export const minimax3 = (
 
     for (const move of orderedMoves) {
       makeMove(bitboards, move);
-      updateAttackMasks(bitboards, move);
 
       const from = move.from;
 
@@ -204,7 +202,6 @@ export const minimax3 = (
       );
 
       unMakeMove(move, bitboards);
-      updateAttackMasks(bitboards, move);
 
       if (moveEval > bestEval) {
         bestEval = moveEval;
@@ -239,7 +236,6 @@ export const minimax3 = (
 
     for (const move of orderedMoves) {
       makeMove(bitboards, move);
-      updateAttackMasks(bitboards, move);
 
       const from = move.from;
 
@@ -282,7 +278,6 @@ export const minimax3 = (
       );
 
       unMakeMove(move, bitboards);
-      updateAttackMasks(bitboards, move);
       
       if (moveEval < bestEval) {
         bestEval = moveEval;

@@ -146,7 +146,6 @@ export const getAllLegalMoves = (
       );
 
       return getMovesFromBB(
-        bitboards,
         kingMoves,
         kingSq,
         isWhite ? C.WHITE_KING : C.BLACK_KING,
@@ -192,7 +191,6 @@ export const getAllLegalMoves = (
     const legalMoves = isKing(piece) ? pieceMoves : pieceMoves & kingCheckMask;
 
     const legalMoveArr = getMovesFromBB(
-      bitboards,
       legalMoves,
       square,
       piece,

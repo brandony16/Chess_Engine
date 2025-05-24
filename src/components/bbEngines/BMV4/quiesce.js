@@ -7,7 +7,6 @@ import {
   makeMove,
   unMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic";
-import { updateAttackMasks } from "../../bitboardUtils/PieceMasks/attackMask";
 import {
   getQTT,
   setQTT,
@@ -150,7 +149,6 @@ export const quiesce = (
     if (standPat + seeGain <= alpha) continue;
 
     makeMove(bitboards, move);
-    updateAttackMasks(bitboards, move);
 
     const newEnPassant = getNewEnPassant(move);
     const newCastling = updateCastlingRights(
@@ -192,7 +190,6 @@ export const quiesce = (
     );
 
     unMakeMove(move, bitboards);
-    updateAttackMasks(bitboards, move);
     if (oldCount) prevPositions.set(newHash, oldCount);
     else prevPositions.delete(newHash);
 

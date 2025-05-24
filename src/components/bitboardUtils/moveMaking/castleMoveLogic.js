@@ -10,6 +10,7 @@ import {
   WHITE_ROOK,
 } from "../constants";
 import { pieceAt } from "../pieceGetters";
+import { updateAttackMasks } from "../PieceMasks/attackMask";
 
 /**
  * Updates castling rights given the square moved from.
@@ -109,10 +110,12 @@ export const isQueensideCastleLegal = (player, attackMask, occ) => {
  * Performs a castling move. Directly alters the given bitboards
  *
  * @param {BigUint64Array} bitboards - The current position's bitboards.
- * @param {number} from - The square the king is moving from.
- * @param {number} to - The square the king is moving to.
+ * @param {Move} move - the move to make
  */
-export const makeCastleMove = (bitboards, from, to) => {
+export const makeCastleMove = (bitboards, move) => {
+  const from = move.from;
+  const to = move.to;
+
   if (from === 4 && to === 6) {
     // White kingside castling
     bitboards[WHITE_KING] &= ~(1n << 4n);
@@ -154,16 +157,21 @@ export const makeCastleMove = (bitboards, from, to) => {
     pieceAt[56] = null;
     pieceAt[59] = BLACK_ROOK;
   }
+
+  updateAttackMasks(bitboards, move);
+
 };
 
 /**
  * Undoes a castling move. Directly alters the given bitboards
  *
  * @param {BigUint64Array} bitboards - The current position's bitboards.
- * @param {number} from - The square the king is moving from.
- * @param {number} to - The square the king is moving to.
+ * @param {Move} move - the move to undo
  */
-export const unMakeCastleMove = (bitboards, from, to) => {
+export const unMakeCastleMove = (bitboards, move) => {
+  const from = move.from;
+  const to = move.to;
+
   if (from === 4 && to === 6) {
     // White kingside castling
     bitboards[WHITE_KING] &= ~(1n << 6n);
@@ -205,4 +213,6 @@ export const unMakeCastleMove = (bitboards, from, to) => {
     pieceAt[59] = null;
     pieceAt[56] = BLACK_ROOK;
   }
+
+  updateAttackMasks(bitboards, move);
 };
