@@ -1,4 +1,5 @@
 import { popcount } from "../../bbUtils";
+import { bigIntFullRep } from "../../debugFunctions";
 import { generateBlockerSubsets } from "./attackTable";
 import { rookMasks } from "./generateMasks";
 import { rookMagics, rookShifts } from "./magicNumbers";
@@ -72,16 +73,18 @@ export function findRookCollision(sq) {
   const subsetCt = 1 << bits;
   const seen = new Map();
 
+  const subsets = generateBlockerSubsets(mask);
   for (let i = 0; i < subsetCt; i++) {
-    // build blocker bitboard from i (reuse your maskBits/generateBlockerSubsets logic)
-    const blockers = generateBlockerSubsets(mask)[i];
+    const blockers = subsets[i];
     const idx = Number(
-      ((blockers & mask) * rookMagics[sq]) >> BigInt(rookShifts[sq])
+      BigInt.asUintN(64, (blockers & mask) * rookMagics[sq]) >> BigInt(rookShifts[sq])
     );
     if (seen.has(idx)) {
       console.error(
         `Collision on sq ${sq}: subsets ${seen.get(idx)} and ${i} → idx ${idx}`
       );
+      console.log(bigIntFullRep(subsets[seen.get(idx)]));
+      console.log(bigIntFullRep(subsets[i]));
       return { collision: true, first: seen.get(idx), second: i };
     }
     seen.set(idx, i);

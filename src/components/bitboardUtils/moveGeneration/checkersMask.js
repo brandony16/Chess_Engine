@@ -16,7 +16,7 @@ import { rookMasks } from "./magicBitboards/generateMasks";
  * @param {number} kingSq - the square of the player's king (0-63)
  * @returns {bigint} a bitboard of the checkers
  */
-export function getCheckers(bitboards, player, kingSq, log = false) {
+export function getCheckers(bitboards, player, kingSq) {
   const isWhite = player === C.WHITE;
 
   const pawnBB = bitboards[isWhite ? C.BLACK_PAWN : C.WHITE_PAWN];
@@ -30,8 +30,7 @@ export function getCheckers(bitboards, player, kingSq, log = false) {
     bitboards,
     kingSq,
     getAllPieces(bitboards),
-    isWhite,
-    log
+    isWhite
   );
 
   return pawnCheckMask | knightCheckMask | slidingMask;
@@ -46,21 +45,21 @@ export function getCheckers(bitboards, player, kingSq, log = false) {
  * @param {boolean} isWhite - if the player is white
  * @returns {bigint}
  */
-function slidingCheckMask(bitboards, kingSq, occupancy, isWhite, log = false) {
+function slidingCheckMask(bitboards, kingSq, occupancy, isWhite) {
   let mask = 0n;
 
   // Orthogonal Directions
   let orthBB = rookAttacks(kingSq, occupancy);
-  if (log) {
-    console.log(bigIntFullRep(orthBB));
-    console.log(bigIntFullRep(occupancy));
-    console.log(bigIntFullRep(rookMasks[kingSq]));
-  }
+
+  console.log(bigIntFullRep(orthBB));
+  console.log(bigIntFullRep(occupancy));
+  console.log(bigIntFullRep(rookMasks[kingSq]));
+
   let orthBlockers = orthBB & occupancy;
   const orthAttackers = isWhite
     ? bitboards[C.BLACK_ROOK] | bitboards[C.BLACK_QUEEN]
     : bitboards[C.WHITE_ROOK] | bitboards[C.WHITE_QUEEN];
-  mask |= (orthBlockers & orthAttackers);
+  mask |= orthBlockers & orthAttackers;
 
   // Diagonal Directions
   const diagBB = bishopAttacks(kingSq, occupancy);
@@ -69,7 +68,7 @@ function slidingCheckMask(bitboards, kingSq, occupancy, isWhite, log = false) {
   const diagAttackers = isWhite
     ? bitboards[C.BLACK_BISHOP] | bitboards[C.BLACK_QUEEN]
     : bitboards[C.WHITE_BISHOP] | bitboards[C.WHITE_QUEEN];
-  mask |= (diagAttackers & diagBlockers);
+  mask |= diagAttackers & diagBlockers;
 
   return mask;
 }

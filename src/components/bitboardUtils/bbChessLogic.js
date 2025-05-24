@@ -25,6 +25,7 @@ import { getKingMovesForSquare } from "./moveGeneration/majorPieceMoveGeneration
 import { getAttackMask } from "./PieceMasks/attackMask";
 import { kingMasks } from "./PieceMasks/kingMask";
 import { bigIntFullRep } from "./debugFunctions";
+import { bitboardsToFEN } from "./FENandUCIHelpers";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -114,7 +115,7 @@ export const hasLegalMove = (
       console.log(numCheck);
       console.log(bigIntFullRep(oppAttackMask));
       console.log(bigIntFullRep(kingBB));
-      console.log(bigIntFullRep(getCheckers(bitboards, player, kingSq ,true)))
+      console.log(bigIntFullRep(getCheckers(bitboards, player, kingSq)))
       console.log(kingSq);
       console.log("Queen ");
       console.log(bigIntFullRep(bitboards[WHITE_QUEEN]));
@@ -125,6 +126,7 @@ export const hasLegalMove = (
       console.log("Rook ");
       console.log(bigIntFullRep(bitboards[WHITE_ROOK]));
       console.log(bigIntFullRep(bitboards[BLACK_ROOK]));
+      console.log(bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare));
       throw new Error("KING IN CHECK W/O CHECKERS");
     }
 

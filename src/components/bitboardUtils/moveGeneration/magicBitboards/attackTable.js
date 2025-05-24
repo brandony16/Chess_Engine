@@ -1,9 +1,11 @@
-import { bitScanForward } from "../../bbUtils";
+import { bitScanForward, popcount } from "../../bbUtils";
+import { bigIntFullRep } from "../../debugFunctions";
 import {
   getBishopAttacksForSquare,
   getRookAttacksForSquare,
 } from "../slidingPieceAttacks";
 import { bishopMasks, rookMasks } from "./generateMasks";
+import { findRookCollision } from "./magicNumberRegen";
 import {
   bishopMagics,
   bishopShifts,
@@ -75,28 +77,51 @@ for (let sq = 0; sq < 64; sq++) {
   rookAttackTable[sq] = new Array(rSize);
   bishopAttackTable[sq] = new Array(bSize);
 
-  // Fill rook table
-  {
-    for (const blockers of generateBlockerSubsets(rMask)) {
-      const idx = Number(
-        ((blockers & rMask) * BigInt(rookMagics[sq])) >> BigInt(rookShifts[sq])
-      );
-      // Compute real rook attacks by scanning rays until blocker
-      const attacks = getRookAttacksForSquare(blockers, sq);
-      rookAttackTable[sq][idx] = attacks;
-    }
+  const seenR = new Array(rSize).fill(false);
+  const seenB = new Array(bSize).fill(false);
+
+  for (const blockers of generateBlockerSubsets(rMask)) {
+    // step 1: mask out relevant bits
+    const occMasked = blockers & rMask;
+
+    // step 2: multiply by magic
+    const product = BigInt.asUintN(64, occMasked * BigInt(rookMagics[sq]));
+
+    // step 3: shift down
+    const idxBig = product >> BigInt(rookShifts[sq]);
+    const idx = Number(idxBig);
+
+    // console.assert(
+    //   idxBig < BigInt(rSize),
+    //   `ROOK index out of range on sq ${sq}: idx=${idxBig}, max=${rSize - 1}`
+    // );
+    // console.assert(
+    //   !seenR[idx],
+    //   `ROOK collision on sq ${sq}, idx ${idx}: existing entry will be overwritten`
+    // );
+    seenR[idx] = true;
+    // Compute real rook attacks by scanning rays until blocker
+    const attacks = getRookAttacksForSquare(blockers, sq);
+
+    rookAttackTable[sq][idx] = attacks;
+  }
+
+  for (let i = 0; i < rSize; i++) {
+    console.assert(
+      seenR[i],
+      `ROOK table gap on sq ${sq}: slot ${i} was never filled`
+    );
   }
 
   // Fill bishop table
-  {
-    for (const blockers of generateBlockerSubsets(bMask)) {
-      const idx = Number(
-        ((blockers & bMask) * BigInt(bishopMagics[sq])) >>
-          BigInt(bishopShifts[sq])
-      );
-      const attacks = getBishopAttacksForSquare(blockers, sq);
-      bishopAttackTable[sq][idx] = attacks;
-    }
+
+  for (const blockers of generateBlockerSubsets(bMask)) {
+    const idx = Number(
+      BigInt.asUintN(64, (blockers & bMask) * BigInt(bishopMagics[sq])) >>
+        BigInt(bishopShifts[sq])
+    );
+    const attacks = getBishopAttacksForSquare(blockers, sq);
+    bishopAttackTable[sq][idx] = attacks;
   }
 }
 
@@ -108,10 +133,10 @@ for (let sq = 0; sq < 64; sq++) {
  * @param {bigint} occ - the occupancy bitboard
  * @returns {bigint} the attack mask for the bishop
  */
-export const bishopAttacks = (sq, occ) => {
+export function bishopAttacks(sq, occ) {
   const mask = occ & bishopMasks[sq];
   const index = Number(
-    (mask * bishopMagics[sq]) >> BigInt(bishopShifts[sq])
+    BigInt.asUintN(64, mask * bishopMagics[sq]) >> BigInt(bishopShifts[sq])
   );
 
   return bishopAttackTable[sq][index];
@@ -125,11 +150,48 @@ export const bishopAttacks = (sq, occ) => {
  * @param {bigint} occ - the occupancy bitboard
  * @returns {bigint} the attack mask for the rook
  */
-export const rookAttacks = (sq, occ) => {
+export function rookAttacks(sq, occ) {
   const mask = occ & rookMasks[sq];
+
   const index = Number(
-    (mask * rookMagics[sq]) >> BigInt(rookShifts[sq])
+    BigInt.asUintN(64, mask * rookMagics[sq]) >> BigInt(rookShifts[sq])
   );
 
   return rookAttackTable[sq][index];
 };
+
+// function debugMagicForSquare(sq, isRook = true) {
+//   const mask      = isRook ? rookMasks[sq] : bishopMasks[sq];
+//   const magic     = isRook ? rookMagics[sq] : bishopMagics[sq];
+//   const shift     = BigInt(isRook ? rookShifts[sq] : bishopShifts[sq]);
+//   const bits      = popcount(mask);
+//   const tableSize = 1 << bits;
+
+//   // Map from index → array of blocker‐masks that hashed there:
+//   const idxMap = new Map();
+//   for (const blockers of generateBlockerSubsets(mask)) {
+//     const occMasked = blockers & mask;
+//     const product   = BigInt.asUintN(64, occMasked * BigInt(magic));
+//     const idx       = Number(product >> shift);
+
+//     if (!idxMap.has(idx)) idxMap.set(idx, []);
+//     idxMap.get(idx).push(blockers);
+//   }
+
+//   // Report collisions
+//   for (const [idx, arr] of idxMap.entries()) {
+//     if (arr.length > 1) {
+//       console.log(`sq ${sq} ${isRook ? 'rook' : 'bishop'}: COLLISION at idx ${idx}`);
+//       arr.forEach((blk, i) =>
+//         console.log(`  blocker #${i}:`, bigIntFullRep(blk))
+//       );
+//     }
+//   }
+
+//   // Report gaps
+//   for (let i = 0; i < tableSize; i++) {
+//     if (!idxMap.has(i)) {
+//       console.log(`sq ${sq} ${isRook ? 'rook' : 'bishop'}: MISSING entry at idx ${i}`);
+//     }
+//   }
+// }

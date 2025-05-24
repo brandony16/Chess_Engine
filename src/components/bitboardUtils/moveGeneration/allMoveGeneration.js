@@ -1,5 +1,6 @@
 import { bitScanForward, isKing, popcount } from "../bbUtils";
 import * as C from "../constants";
+import { bigIntFullRep } from "../debugFunctions";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic";
 import { getPlayerBoard, pieceAt } from "../pieceGetters";
 import { getAttackMask } from "../PieceMasks/attackMask";
