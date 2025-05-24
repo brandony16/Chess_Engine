@@ -5,7 +5,6 @@ import {
   makeMove,
   unMakeMove,
 } from "../components/bitboardUtils/moveMaking/makeMoveLogic";
-import { updateAttackMasks } from "../components/bitboardUtils/PieceMasks/attackMask";
 import { moveToUCI } from "../components/bitboardUtils/FENandUCIHelpers";
 import { BLACK, WHITE } from "../components/bitboardUtils/constants";
 import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";

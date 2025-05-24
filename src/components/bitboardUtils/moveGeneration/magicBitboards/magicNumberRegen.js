@@ -1,7 +1,7 @@
 import { popcount } from "../../bbUtils";
 import { bigIntFullRep } from "../../debugFunctions";
 import { generateBlockerSubsets } from "./attackTable";
-import { rookMasks } from "./generateMasks";
+import { bishopMasks, rookMasks } from "./generateMasks";
 import { rookMagics, rookShifts } from "./magicNumbers";
 
 /**
@@ -52,11 +52,61 @@ export function findNewRookMagic(sq, maxTries = 1e6) {
       return magic;
     }
 
-    if (t % 1000 === 0) {
+    if (t % 10000 === 0) {
       console.log("Magic Number " + t + " processed");
     }
   }
   throw new Error(`No magic found after ${maxTries} tries for sq ${sq}`);
+}
+
+/**
+ * Generates a new magic number for a bishop using brute-force guess and check. Checks
+ * the candidate magic number with every permutation of blockers, ensuring that no
+ * collisions occur.
+ *
+ * @param {number} sq - the square
+ * @param {number} maxTries - the maximum number of candidate magics to search through
+ * @returns {bigint} a new magic number for a bishop at the given square
+ * @throws An Error after it reaches maxTries and hasnt found a working magic number
+ */
+export function findNewBishopMagic(sq, maxTries = 1e6) {
+  const mask = bishopMasks[sq];
+  const bits = popcount(mask);
+  const shift = 64 - bits;
+
+  for (let t = 0; t < maxTries; t++) {
+    const magic = randomMagicCandidate();
+    const seen = new Set();
+    let ok = true;
+
+    for (const blocker of generateBlockerSubsets(mask)) {
+      const idx = Number(BigInt.asUintN(64, (blocker & mask) * magic) >> BigInt(shift));
+      if (seen.has(idx)) {
+        ok = false;
+        break;
+      }
+      seen.add(idx);
+    }
+
+    if (ok) {
+      console.log(`Found new bishopMagic for sq ${sq}: 0x${magic.toString(16)}`);
+      return magic;
+    }
+
+    if (t % 10000 === 0) {
+      console.log("Magic Number " + t + " processed");
+    }
+  }
+  throw new Error(`No magic found after ${maxTries} tries for sq ${sq}`);
+}
+
+export function recalculateAllBishopMagics(maxTries = 1e6) {
+  const newMagics = new Array(64);
+  for (let i = 0; i < 64; i++) {
+    const magic = findNewBishopMagic(i, maxTries);
+    newMagics[i] = `0x${magic.toString(16)}`
+  }
+  return newMagics;
 }
 
 /**
