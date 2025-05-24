@@ -11,10 +11,10 @@ const cases = [
   // [ description, depth, expected node count, FEN ]
   [
     "s",
-    1,
-    1,
-    "rnb1k2r/p6p/p4p2/8/2P3p1/8/P5P1/1q5K w - - 0 1"
-  ]
+    2,
+    2_059,
+    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R4RK1 b kq - 0 1"
+  ],
   // [
   //   "Start pos",
   //   1,
@@ -33,18 +33,18 @@ const cases = [
   //   8902,
   //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   // ],
-  // // [
-  // //   "Start pos",
-  // //   4,
-  // //   197_281,
-  // //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-  // // ],
-  // // [
-  // //   "Start pos",
-  // //   5,
-  // //   4_865_609,
-  // //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-  // // ],
+  // [
+  //   "Start pos",
+  //   4,
+  //   197_281,
+  //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  // ],
+  // [
+  //   "Start pos",
+  //   5,
+  //   4_865_609,
+  //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  // ],
   // [
   //   "“Kiwipete” pos",
   //   1,
@@ -57,23 +57,22 @@ const cases = [
   //   2039,
   //   "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
   // ],
+  [
+    "Kiwipete” pos",
+    3,
+    97_862,
+    "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+  ],
   // [
   //   "Kiwipete” pos",
-  //   3,
-  //   97_862,
+  //   4,
+  //   4_085_603,
   //   "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
   // ],
-  // // [
-  // //   "Kiwipete” pos",
-  // //   4,
-  // //   4_085_603,
-  // //   "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
-  // // ],
   // ["Pinned Pieces pos", 1, 14, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"],
   // ["Pinned Pieces pos", 2, 191, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"],
   // ["Pinned Pieces pos", 3, 2812, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"],
   // ["Pinned Pieces pos", 4, 43_238, "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1"],
-
   // [
   //   "Complex pos",
   //   2,
@@ -114,9 +113,54 @@ describe("perft node counts", () => {
     const div = perftDivide(bitboards, player, castling, ep, depth);
     console.table(div);
 
-    console.log(findNewRookMagic(6, 1_000_000));
-
     const nodes = Object.values(div).reduce((a, b) => a + b, 0);
     expect(nodes).toBe(expected);
   });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+

@@ -8,6 +8,7 @@ import {
 import { updateAttackMasks } from "../components/bitboardUtils/PieceMasks/attackMask";
 import { moveToUCI } from "../components/bitboardUtils/FENandUCIHelpers";
 import { BLACK, WHITE } from "../components/bitboardUtils/constants";
+import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
 
 /**
  * Count leaf nodes to `depth` by recursively generating, making, and unmaking moves.
@@ -24,7 +25,7 @@ export function perft(board, player, castling, ep, depth) {
   const moves = getAllLegalMoves(board, player, castling, ep);
   for (const move of moves) {
     makeMove(board, move);
-    updateAttackMasks(board, move);
+    computeAllAttackMasks(board);
 
     // New game states
     const newEp = getNewEnPassant(move);
@@ -33,6 +34,7 @@ export function perft(board, player, castling, ep, depth) {
     nodes += perft(board, opp, newCastling, newEp, depth - 1);
 
     unMakeMove(move, board);
+    computeAllAttackMasks(board);
   }
 
   return nodes;
@@ -47,7 +49,6 @@ export function perftDivide(board, player, castling, ep, depth) {
   for (const move of moves) {
     const uci = moveToUCI(move);
     makeMove(board, move);
-    updateAttackMasks(board, move);
 
     // New game states
     const newEp = getNewEnPassant(move);

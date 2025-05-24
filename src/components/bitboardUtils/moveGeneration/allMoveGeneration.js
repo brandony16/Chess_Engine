@@ -1,6 +1,7 @@
 import { bitScanForward, isKing, popcount } from "../bbUtils";
 import * as C from "../constants";
 import { bigIntFullRep } from "../debugFunctions";
+import { bitboardsToFEN } from "../FENandUCIHelpers";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic";
 import { getPlayerBoard, pieceAt } from "../pieceGetters";
 import { getAttackMask } from "../PieceMasks/attackMask";
@@ -155,6 +156,8 @@ export const getAllLegalMoves = (
       );
     }
     if (numCheck !== 1) {
+      console.log(bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare));
+      console.log(bigIntFullRep(oppAttackMask))
       throw new Error("KING IN CHECK W/O CHECKERS");
     }
 

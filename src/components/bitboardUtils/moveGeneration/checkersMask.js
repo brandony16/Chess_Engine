@@ -4,8 +4,6 @@ import * as C from "../constants";
 import { knightMasks } from "../PieceMasks/knightMask";
 import { slide } from "../generalHelpers";
 import { bishopAttacks, rookAttacks } from "./magicBitboards/attackTable";
-import { bigIntFullRep } from "../debugFunctions";
-import { rookMasks } from "./magicBitboards/generateMasks";
 
 /**
  * Finds all pieces that put a given player's king in check and returns
@@ -50,10 +48,6 @@ function slidingCheckMask(bitboards, kingSq, occupancy, isWhite) {
 
   // Orthogonal Directions
   let orthBB = rookAttacks(kingSq, occupancy);
-
-  console.log(bigIntFullRep(orthBB));
-  console.log(bigIntFullRep(occupancy));
-  console.log(bigIntFullRep(rookMasks[kingSq]));
 
   let orthBlockers = orthBB & occupancy;
   const orthAttackers = isWhite

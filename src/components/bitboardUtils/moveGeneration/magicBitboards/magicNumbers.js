@@ -91,7 +91,7 @@ export const bishopMagics = [
  * The shifts for each rook magic number
  */
 export const rookShifts = [
-  52, 53, 53, 53, 53, 53, 53, 52, 
+  52, 53, 53, 53, 53, 53, 52, 52, 
   53, 54, 54, 54, 54, 54, 54, 53, 
   53, 54, 54, 54, 54, 54, 54, 53,
   53, 54, 54, 54, 54, 54, 54, 53, 
@@ -111,8 +111,8 @@ export const rookMagics = [
   0x0080040800100080n,
   0x0080020400080080n,
   0x0080010200040080n,
-  0x3f00004000000212n,
-  0x48fffe99fecfaa00n, // CHANGE
+  0xa00241800a20001n,
+  0x2200009200410024n,
 
   0x0000800020400080n,
   0x0000400020005000n,
@@ -168,8 +168,8 @@ export const rookMagics = [
   0x0000800100020080n, 
   0x0000800041000080n, 
 
-  0x00fffcddfced714an, // CHANGE
-  0x007ffcddfced714an, // CHANGE
+  0x2000110040660082n, // CHANGE
+  0x4000210040098011n, // CHANGE
   0x0000081020004101n,
   0x0000040810002101n,
   0x0001000204080011n,

@@ -31,7 +31,6 @@ function randomMagicCandidate() {
 export function findNewRookMagic(sq, maxTries = 1e6) {
   const mask = rookMasks[sq];
   const bits = popcount(mask);
-  const subsetCt = 1 << bits;
   const shift = 64 - bits;
 
   for (let t = 0; t < maxTries; t++) {
@@ -39,10 +38,8 @@ export function findNewRookMagic(sq, maxTries = 1e6) {
     const seen = new Set();
     let ok = true;
 
-    const blockers = generateBlockerSubsets(mask);
-    for (let i = 0; i < subsetCt; i++) {
-      const blocker = blockers[i];
-      const idx = Number(((blocker & mask) * magic) >> BigInt(shift));
+    for (const blocker of generateBlockerSubsets(mask)) {
+      const idx = Number(BigInt.asUintN(64, (blocker & mask) * magic) >> BigInt(shift));
       if (seen.has(idx)) {
         ok = false;
         break;

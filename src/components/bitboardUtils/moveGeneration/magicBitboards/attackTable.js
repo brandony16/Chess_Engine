@@ -1,11 +1,10 @@
-import { bitScanForward, popcount } from "../../bbUtils";
+import { bitScanForward } from "../../bbUtils";
 import { bigIntFullRep } from "../../debugFunctions";
 import {
   getBishopAttacksForSquare,
   getRookAttacksForSquare,
 } from "../slidingPieceAttacks";
 import { bishopMasks, rookMasks } from "./generateMasks";
-import { findRookCollision } from "./magicNumberRegen";
 import {
   bishopMagics,
   bishopShifts,
@@ -44,26 +43,12 @@ export const bishopAttackTable = Array(64);
  * @param {bigint} mask - the mask
  * @returns {BigUint64Array} the blocker subsets
  */
-export function generateBlockerSubsets(mask) {
-  const bits = maskBits(mask);
-  const N = bits.length;
-  const subsetCount = 1 << N;
-  const subsets = new BigUint64Array(subsetCount);
-
-  for (let subset = 0; subset < subsetCount; subset++) {
-    let blockboard = 0n;
-
-    for (let i = 0; i < N; i++) {
-      // If the i-th bit of 'subset' is set, include that blocker
-      if (subset & (1 << i)) {
-        const sq = bits[i];
-        blockboard |= 1n << BigInt(sq);
-      }
-    }
-    subsets[subset] = blockboard;
+export function* generateBlockerSubsets(mask) {
+  // Iterate submasks of mask: from mask, then (mask−1)&mask, ... down to 0
+  for (let sub = mask; ; sub = (sub - 1n) & mask) {
+    yield sub;
+    if (sub === 0n) break;
   }
-
-  return subsets;
 }
 
 // For every square, fill in the rook and bishop tables at that square.
@@ -77,9 +62,6 @@ for (let sq = 0; sq < 64; sq++) {
   rookAttackTable[sq] = new Array(rSize);
   bishopAttackTable[sq] = new Array(bSize);
 
-  const seenR = new Array(rSize).fill(false);
-  const seenB = new Array(bSize).fill(false);
-
   for (const blockers of generateBlockerSubsets(rMask)) {
     // step 1: mask out relevant bits
     const occMasked = blockers & rMask;
@@ -91,26 +73,10 @@ for (let sq = 0; sq < 64; sq++) {
     const idxBig = product >> BigInt(rookShifts[sq]);
     const idx = Number(idxBig);
 
-    // console.assert(
-    //   idxBig < BigInt(rSize),
-    //   `ROOK index out of range on sq ${sq}: idx=${idxBig}, max=${rSize - 1}`
-    // );
-    // console.assert(
-    //   !seenR[idx],
-    //   `ROOK collision on sq ${sq}, idx ${idx}: existing entry will be overwritten`
-    // );
-    seenR[idx] = true;
     // Compute real rook attacks by scanning rays until blocker
     const attacks = getRookAttacksForSquare(blockers, sq);
 
     rookAttackTable[sq][idx] = attacks;
-  }
-
-  for (let i = 0; i < rSize; i++) {
-    console.assert(
-      seenR[i],
-      `ROOK table gap on sq ${sq}: slot ${i} was never filled`
-    );
   }
 
   // Fill bishop table
@@ -140,7 +106,7 @@ export function bishopAttacks(sq, occ) {
   );
 
   return bishopAttackTable[sq][index];
-};
+}
 
 /**
  * Gets the attack mask for a rook at a given square using
@@ -158,7 +124,7 @@ export function rookAttacks(sq, occ) {
   );
 
   return rookAttackTable[sq][index];
-};
+}
 
 // function debugMagicForSquare(sq, isRook = true) {
 //   const mask      = isRook ? rookMasks[sq] : bishopMasks[sq];
