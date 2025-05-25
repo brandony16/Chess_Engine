@@ -26,6 +26,7 @@ import { getAttackMask } from "./PieceMasks/attackMask";
 import { kingMasks } from "./PieceMasks/kingMask";
 import { bigIntFullRep } from "./debugFunctions";
 import { bitboardsToFEN } from "./FENandUCIHelpers";
+import { findNewRookMagic } from "./moveGeneration/magicBitboards/magicNumberRegen";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -111,21 +112,21 @@ export const hasLegalMove = (
       return kingMoves !== 0n;
     }
     if (numCheck !== 1) {
-      console.log(player);
-      console.log(numCheck);
-      console.log(bigIntFullRep(oppAttackMask));
-      console.log(bigIntFullRep(kingBB));
-      console.log(bigIntFullRep(getCheckers(bitboards, player, kingSq)))
-      console.log(kingSq);
-      console.log("Queen ");
-      console.log(bigIntFullRep(bitboards[WHITE_QUEEN]));
-      console.log(bigIntFullRep(bitboards[BLACK_QUEEN]));
-      console.log("Bishop ");
-      console.log(bigIntFullRep(bitboards[WHITE_BISHOP]));
-      console.log(bigIntFullRep(bitboards[BLACK_BISHOP]));
-      console.log("Rook ");
-      console.log(bigIntFullRep(bitboards[WHITE_ROOK]));
-      console.log(bigIntFullRep(bitboards[BLACK_ROOK]));
+      // console.log(player);
+      // console.log(numCheck);
+      // console.log(bigIntFullRep(oppAttackMask));
+      // console.log(bigIntFullRep(kingBB));
+      // console.log(bigIntFullRep(getCheckers(bitboards, player, kingSq)))
+      // console.log(kingSq);
+      // console.log("Queen ");
+      // console.log(bigIntFullRep(bitboards[WHITE_QUEEN]));
+      // console.log(bigIntFullRep(bitboards[BLACK_QUEEN]));
+      // console.log("Bishop ");
+      // console.log(bigIntFullRep(bitboards[WHITE_BISHOP]));
+      // console.log(bigIntFullRep(bitboards[BLACK_BISHOP]));
+      // console.log("Rook ");
+      // console.log(bigIntFullRep(bitboards[WHITE_ROOK]));
+      // console.log(bigIntFullRep(bitboards[BLACK_ROOK]));
       console.log(bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare));
       throw new Error("KING IN CHECK W/O CHECKERS");
     }

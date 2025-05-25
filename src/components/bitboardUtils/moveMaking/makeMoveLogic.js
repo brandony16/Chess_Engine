@@ -30,7 +30,7 @@ export const makeMove = (bitboards, move) => {
   
   // Handle castle case
   if (move.castling) {
-    makeCastleMove(bitboards, move.from, move.to);
+    makeCastleMove(bitboards, move);
     return;
   }
   
@@ -85,7 +85,7 @@ export const unMakeMove = (move, bitboards) => {
 
   // Undo castle
   if (move.castling) {
-    unMakeCastleMove(bitboards, from, to);
+    unMakeCastleMove(bitboards, move);
     return;
   }
 
