@@ -1,6 +1,14 @@
 import { bitScanForward } from "../bbUtils";
 import * as C from "../constants";
-import { getAllPieces, pieceAt } from "../pieceGetters";
+import {
+  getAllPieces,
+  getDiagAttackersBitboard,
+  getOrthAttackersBitboard,
+  getPlayerBoard,
+  pieceAt,
+} from "../pieceGetters";
+import { BETWEEN } from "./checkersMask";
+import { bishopAttacks, rookAttacks } from "./magicBitboards/attackTable";
 
 /**
  * Computes a bitboard of all of a players pinned pieces.
@@ -11,52 +19,46 @@ import { getAllPieces, pieceAt } from "../pieceGetters";
  */
 export function computePinned(bitboards, player) {
   const isWhite = player === C.WHITE;
-  const occupancy = getAllPieces(bitboards);
 
   const kingBB = isWhite ? bitboards[C.WHITE_KING] : bitboards[C.BLACK_KING];
   const kingSq = bitScanForward(kingBB);
 
-  let pinnedMask = 0n;
+  const playerPieces = getPlayerBoard(player, bitboards);
+  const oppPieces = getPlayerBoard(isWhite ? C.BLACK : C.WHITE, bitboards);
 
-  const kingFile = kingSq % 8;
-  const kingRow = Math.floor(kingSq / 8);
+  // Pinner candidates are pieces that are on the same diagonal or row/file as the king
+  // and can move along that diagonal or row/file.
+  const opponent = isWhite ? C.BLACK : C.WHITE;
+  const orthPinnerCandidates =
+    rookAttacks(kingSq, oppPieces) &
+    getOrthAttackersBitboard(bitboards, opponent);
+  const diagPinnerCandidates =
+    bishopAttacks(kingSq, oppPieces) &
+    getDiagAttackersBitboard(bitboards, opponent);
 
-  for (let dir of C.DIRECTIONS) {
-    let ownPieceSq = null;
-    let file = kingFile + dir.df;
-    let row = kingRow + dir.dr;
+  let pinnedBB = 0n;
 
-    while (file >= 0 && file < 8 && row >= 0 && row < 8) {
-      const square = row * 8 + file;
-      const mask = 1n << BigInt(square);
+  // Helper to test pinners of one type
+  function scanPinners(pinners) {
+    let mask = pinners;
+    while (mask) {
+      const pinnerSq = bitScanForward(mask);
+      mask &= mask - 1n; 
 
-      if (occupancy & mask) {
-        const piece = pieceAt[square];
-        const isOwn = isWhite ? piece < 6 : piece >= 6;
+      const betweenMask = BETWEEN[kingSq][pinnerSq];
+      const inter = betweenMask & playerPieces;
 
-        if (ownPieceSq === null) {
-          // First blocker: if its our piece, set it
-          // if not, theres no pin along the ray
-          if (isOwn) {
-            ownPieceSq = square;
-          } else {
-            break;
-          }
-        } else {
-          // Second blocker: if an enemy slider, our piece is pinned
-          if (isEnemySlider(piece, dir, isWhite)) {
-            pinnedMask |= 1n << BigInt(ownPieceSq);
-          }
-
-          break;
-        }
+      // If exactly one blocker in between, its a pinned piece
+      if (inter !== 0n && (inter & (inter - 1n)) === 0n) {
+        pinnedBB |= inter;
       }
-      file += dir.df;
-      row += dir.dr;
     }
   }
 
-  return pinnedMask;
+  scanPinners(orthPinnerCandidates);
+  scanPinners(diagPinnerCandidates);
+
+  return pinnedBB;
 }
 
 /**

@@ -82,6 +82,11 @@ export function findNewBishopMagic(sq, maxTries = 1e6) {
   throw new Error(`No magic found after ${maxTries} tries for sq ${sq}`);
 }
 
+/**
+ * Recalculates new magic numbers for each square for bishops.
+ * @param {number} maxTries - the number of magic candidates to search for each magic
+ * @returns {Array<bigint>} - an array of 64 magic numbers for each square
+ */
 export function recalculateAllBishopMagics(maxTries = 1e6) {
   const newMagics = new Array(64);
   for (let i = 0; i < 64; i++) {
@@ -108,12 +113,6 @@ export function findRookCollision(sq, magic = null) {
         BigInt(rookShifts[sq])
     );
     if (seen.has(idx)) {
-      // console.error(
-      //   `Collision on sq ${sq}: subsets ${seen.get(idx)} and ${blockers} → idx ${idx}`
-      // );
-      // console.log(bigIntFullRep(seen.get(idx)));
-      // console.log(bigIntFullRep(blockers));
-
       return { collision: true, first: seen.get(idx), second: blockers };
     }
     seen.set(idx, blockers);
@@ -138,12 +137,6 @@ export function findBishopCollision(sq, magic = null) {
         BigInt(bishopShifts[sq])
     );
     if (seen.has(idx)) {
-      // console.error(
-      //   `Collision on sq ${sq}: subsets ${seen.get(idx)} and ${blockers} → idx ${idx}`
-      // );
-      // console.log(bigIntFullRep(seen.get(idx)));
-      // console.log(bigIntFullRep(blockers));
-
       return { collision: true, first: seen.get(idx), second: blockers };
     }
     seen.set(idx, blockers);

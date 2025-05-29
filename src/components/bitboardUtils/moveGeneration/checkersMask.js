@@ -110,3 +110,29 @@ export function getRayBetween(sq1, sq2) {
 
   return diagMask & ~bb2;
 }
+
+/**
+ * Precompute BETWEEN masks for all pairs of squares.
+ * BETWEEN[a][b] is a BigInt bitboard of squares strictly between a and b
+ * if they lie on the same ray, else 0n.
+ */
+export const BETWEEN = Array.from({ length: 64 }, () => Array(64).fill(0n));
+
+for (let a = 0; a < 64; a++) {
+  const fileA = a % 8;
+  const rowA = a / 8;
+
+  for (const { df, dr } of C.DIRECTIONS) {
+    let newFile = fileA + df;
+    let newRow = rowA + dr;
+    let mask = 0n;
+    while (newFile >= 0 && newFile < 8 && newRow >= 0 && newRow < 8) {
+      const sq = newRow * 8 + newFile;
+      BETWEEN[a][sq] = mask;
+
+      mask |= 1n << BigInt(sq);
+      newFile += df;
+      newRow += dr;
+    }
+  }
+}

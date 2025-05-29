@@ -1,5 +1,4 @@
 import { bitScanForward } from "../../bbUtils";
-import { bigIntFullRep } from "../../debugFunctions";
 import {
   getBishopAttacksForSquare,
   getRookAttacksForSquare,

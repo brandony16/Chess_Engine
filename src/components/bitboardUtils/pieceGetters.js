@@ -146,7 +146,7 @@ export function initializePieceAtArray(bitboards) {
     while (bb) {
       const sq = bitScanForward(bb);
       pieceAt[sq] = piece;
-      
+
       bb &= bb - 1n;
     }
   }
@@ -162,7 +162,6 @@ export function clearPieceAtArray() {
 }
 initializePieceAtArray(INITIAL_BITBOARDS);
 
-
 /**
  * Determines if a given player has a piece at the given square.
  *
@@ -177,3 +176,33 @@ export const isPlayersPieceAtSquare = (player, square, bitboards) => {
   // Move square to first bit and check if it is one
   return Boolean((playerBoard >> BigInt(square)) & BigInt(1));
 };
+
+/**
+ * Gets the orthogonal attackers for a player. These are the rook and queen.
+ *
+ * @param {BigUint64Array} bitboards - the bitboards of the position
+ * @param {0 | 1} player - the player to get the orthogonal attackers for
+ * @returns {bigint} - the bitboard with the orthogonal attackers
+ */
+export function getOrthAttackersBitboard(bitboards, player) {
+  if (player === WHITE) {
+    return bitboards[WHITE_ROOK] | bitboards[WHITE_QUEEN];
+  }
+
+  return bitboards[BLACK_ROOK] | bitboards[BLACK_QUEEN];
+}
+
+/**
+ * Gets the diagonal attackers for a player. These are the bishop and queen.
+ *
+ * @param {BigUint64Array} bitboards - the bitboards of the position
+ * @param {0 | 1} player - the player to get the diagonal attackers for
+ * @returns {bigint} - the bitboard with the diagonal attackers
+ */
+export function getDiagAttackersBitboard(bitboards, player) {
+  if (player === WHITE) {
+    return bitboards[WHITE_BISHOP] | bitboards[WHITE_QUEEN];
+  }
+
+  return bitboards[BLACK_BISHOP] | bitboards[BLACK_QUEEN];
+}
