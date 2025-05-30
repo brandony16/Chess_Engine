@@ -1,11 +1,9 @@
 import { bitScanForward } from "../bbUtils";
 import * as C from "../constants";
 import {
-  getAllPieces,
   getDiagAttackersBitboard,
   getOrthAttackersBitboard,
   getPlayerBoard,
-  pieceAt,
 } from "../pieceGetters";
 import { BETWEEN } from "./checkersMask";
 import { bishopAttacks, rookAttacks } from "./magicBitboards/attackTable";
@@ -43,7 +41,7 @@ export function computePinned(bitboards, player) {
     let mask = pinners;
     while (mask) {
       const pinnerSq = bitScanForward(mask);
-      mask &= mask - 1n; 
+      mask &= mask - 1n;
 
       const betweenMask = BETWEEN[kingSq][pinnerSq];
       const inter = betweenMask & playerPieces;
@@ -59,37 +57,6 @@ export function computePinned(bitboards, player) {
   scanPinners(diagPinnerCandidates);
 
   return pinnedBB;
-}
-
-/**
- * Determines if a piece on a given direction is an enemy piece that can move along the ray
- *
- * @param {number} piece - the index of the piece
- * @param {{ df: number, dr: number}} dir - the direction
- * @param {boolean} isWhite - if the player is white
- * @returns {boolean} if the piece is an enemy slider on the dir
- */
-function isEnemySlider(piece, dir, isWhite) {
-  const isEnemy = isWhite ? piece >= 6 : piece < 6;
-  if (!isEnemy) return false;
-
-  const type = piece % 6;
-  // Straight rays
-  if (
-    (dir.df === 0 || dir.dr === 0) &&
-    (type === C.WHITE_ROOK || type === C.WHITE_QUEEN)
-  ) {
-    return true;
-  }
-  // Diagonal Rays
-  if (
-    dir.df !== 0 &&
-    dir.dr !== 0 &&
-    (type === C.WHITE_BISHOP || type === C.WHITE_QUEEN)
-  ) {
-    return true;
-  }
-  return false;
 }
 
 /**

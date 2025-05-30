@@ -120,7 +120,7 @@ export const BETWEEN = Array.from({ length: 64 }, () => Array(64).fill(0n));
 
 for (let a = 0; a < 64; a++) {
   const fileA = a % 8;
-  const rowA = a / 8;
+  const rowA = Math.floor(a / 8);
 
   for (const { df, dr } of C.DIRECTIONS) {
     let newFile = fileA + df;
