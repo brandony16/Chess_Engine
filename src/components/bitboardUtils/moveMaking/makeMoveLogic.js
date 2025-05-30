@@ -7,6 +7,7 @@ import {
   WHITE_PROMO_PIECES,
 } from "../constants";
 import { pieceAt } from "../pieceGetters";
+import { undoIndexArrayUpdate, updateIndexArrays } from "../pieceIndicies";
 import { updateAttackMasks } from "../PieceMasks/attackMask";
 import { makeCastleMove, unMakeCastleMove } from "./castleMoveLogic";
 import Move from "./move";
@@ -27,16 +28,15 @@ export const makeMove = (bitboards, move) => {
   const promotion = move.promotion;
   const enPassant = move.enPassant;
 
-  
   // Handle castle case
   if (move.castling) {
     makeCastleMove(bitboards, move);
     return;
   }
-  
+
   // Remove moving piece
   bitboards[piece] &= ~maskFrom;
-  
+
   // Remove captured piece
   if (move.captured !== null && !enPassant) {
     bitboards[captured] &= ~maskTo;
@@ -61,7 +61,7 @@ export const makeMove = (bitboards, move) => {
     pieceAt[move.to + dir] = null;
   }
 
-  
+  updateIndexArrays(move);
   updateAttackMasks(bitboards, move);
 };
 
@@ -116,6 +116,7 @@ export const unMakeMove = (move, bitboards) => {
     pieceAt[capturedPawnSquare] = captured;
   }
 
+  undoIndexArrayUpdate(move);
   updateAttackMasks(bitboards, move);
 };
 

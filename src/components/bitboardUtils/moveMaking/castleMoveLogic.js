@@ -10,6 +10,7 @@ import {
   WHITE_ROOK,
 } from "../constants";
 import { pieceAt } from "../pieceGetters";
+import { undoIndexArrayUpdate, updateIndexArrays } from "../pieceIndicies";
 import { updateAttackMasks } from "../PieceMasks/attackMask";
 
 /**
@@ -158,8 +159,8 @@ export const makeCastleMove = (bitboards, move) => {
     pieceAt[59] = BLACK_ROOK;
   }
 
+  updateIndexArrays(move);
   updateAttackMasks(bitboards, move);
-
 };
 
 /**
@@ -214,5 +215,6 @@ export const unMakeCastleMove = (bitboards, move) => {
     pieceAt[56] = BLACK_ROOK;
   }
 
+  undoIndexArrayUpdate(move);
   updateAttackMasks(bitboards, move);
 };

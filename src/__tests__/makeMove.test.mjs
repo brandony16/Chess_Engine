@@ -8,8 +8,16 @@ import {
   unMakeMove,
 } from "../components/bitboardUtils/moveMaking/makeMoveLogic";
 import * as C from "../components/bitboardUtils/constants";
-import { initializePieceAtArray, pieceAt } from "../components/bitboardUtils/pieceGetters";
+import {
+  initializePieceAtArray,
+  pieceAt,
+} from "../components/bitboardUtils/pieceGetters";
 import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
+import {
+  indexArrays,
+  initializePieceIndicies,
+} from "../components/bitboardUtils/pieceIndicies";
+import { jest } from "@jest/globals";
 
 // [ description, FEN, UCI move ]
 const cases = [
@@ -29,19 +37,21 @@ const cases = [
 
 describe("makeMove + unMakeMove", () => {
   test.each(cases)(
-    "%s should return to the original FEN",
+    "%s should return to the original FEN, pieceAt, and pieceIndicies",
     (_desc, fen, uci) => {
       const fenData = getFENData(fen);
       const bitboards = fenData.bitboards;
       const player = fenData.player;
       const castling = fenData.castling;
       const ep = fenData.ep;
-      
+
       computeAllAttackMasks(bitboards);
       initializePieceAtArray(bitboards);
+      initializePieceIndicies(bitboards);
       const move = uciToMove(uci, bitboards, player, castling, ep);
 
       const beforeMovePieceAt = structuredClone(pieceAt);
+      const beforeMoveIndicies = structuredClone(indexArrays);
       makeMove(bitboards, move);
 
       // Check that pieceAt is updated correctly
@@ -50,8 +60,15 @@ describe("makeMove + unMakeMove", () => {
       expect(afterMovePieceAt).toEqual(pieceAt);
       expect(beforeMovePieceAt).not.toEqual(pieceAt);
 
+      // Check that indexArrays are updated correctly
+      const afterMoveIndicies = structuredClone(indexArrays);
+      initializePieceIndicies(bitboards);
+      expect(areIndexArraysEqual(afterMoveIndicies, indexArrays)).toBe(true);
+      expect(areIndexArraysEqual(beforeMoveIndicies, indexArrays)).toBe(false);
+
       unMakeMove(move, bitboards);
       expect(beforeMovePieceAt).toEqual(pieceAt);
+      expect(areIndexArraysEqual(beforeMoveIndicies, indexArrays)).toBe(true);
 
       const fenAfter = bitboardsToFEN(bitboards, player, castling, ep);
       expect(fenAfter).toBe(fen);
@@ -170,3 +187,19 @@ describe("makeMove bitboard updates", () => {
     expect(bitboards[C.BLACK_PAWN]).toBe(0n);
   });
 });
+
+function areIndexArraysEqual(arr1, arr2) {
+  if (arr1.length !== arr2.length) return false;
+  for (let i = 0; i < arr1.length; i++) {
+    const indexes1 = arr1[i].sort();
+    const indexes2 = arr2[i].sort();
+    if (indexes1.length !== indexes2.length) return false;
+
+    for (let j = 0; j < indexes1.length; j++) {
+      if (indexes1[j] !== indexes2[j]) {
+        return false;
+      }
+    }
+  }
+  return true;
+}

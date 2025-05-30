@@ -67,7 +67,7 @@ export function updateIndexArrays(move) {
   }
 
   // Remove captured piece
-  if (captured >= 0) {
+  if (captured !== null) {
     const capturedArr = indexArrays[captured];
     if (enPassant) {
       const captureSquare = to > from ? to - 8 : to + 8;
@@ -86,12 +86,65 @@ export function updateIndexArrays(move) {
       } else {
         rookArr[rookArr.indexOf(0)] = 3;
       }
-    } else { // Black
+    } else {
+      // Black
       const rookArr = indexArrays[BLACK_ROOK];
       if (to === 62) {
         rookArr[rookArr.indexOf(63)] = 61;
       } else {
         rookArr[rookArr.indexOf(56)] = 59;
+      }
+    }
+  }
+}
+
+export function undoIndexArrayUpdate(move) {
+  const piece = move.piece;
+  const from = move.from;
+  const to = move.to;
+  const captured = move.captured;
+  const promotion = move.promotion;
+  const enPassant = move.enPassant;
+  const castling = move.castling;
+
+  const pieceArr = indexArrays[piece];
+  if (promotion) {
+    const promoPieceArr = indexArrays[promotion];
+    // Remove promotion piece and add piece that promoted
+    promoPieceArr.splice(promoPieceArr.indexOf(to), 1);
+    pieceArr.push(from);
+  } else {
+    // Move piece
+    pieceArr[pieceArr.indexOf(to)] = from;
+  }
+
+  // Add captured piece
+  if (captured !== null) {
+    const capturedArr = indexArrays[captured];
+    if (enPassant) {
+      const captureSquare = to > from ? to - 8 : to + 8;
+      capturedArr.push(captureSquare);
+    } else {
+      capturedArr.push(to);
+    }
+  }
+
+  if (castling) {
+    // White
+    if (from === 4) {
+      const rookArr = indexArrays[WHITE_ROOK];
+      if (to === 6) {
+        rookArr[rookArr.indexOf(5)] = 7;
+      } else {
+        rookArr[rookArr.indexOf(3)] = 0;
+      }
+    } else {
+      // Black
+      const rookArr = indexArrays[BLACK_ROOK];
+      if (to === 62) {
+        rookArr[rookArr.indexOf(61)] = 63;
+      } else {
+        rookArr[rookArr.indexOf(59)] = 56;
       }
     }
   }
@@ -113,7 +166,7 @@ function initKingIndicies(bitboards) {
   let whiteKingBB = bitboards[WHITE_KING];
   while (whiteKingBB) {
     const sq = bitScanForward(whiteKingBB);
-    whiteQueenIndicies.push(sq);
+    whiteKingIndicies.push(sq);
 
     whiteKingBB &= whiteKingBB - 1n;
   }
@@ -121,7 +174,7 @@ function initKingIndicies(bitboards) {
   let blackKingBB = bitboards[BLACK_KING];
   while (blackKingBB) {
     const sq = bitScanForward(blackKingBB);
-    blackQueenIndicies.push(sq);
+    blackKingIndicies.push(sq);
 
     blackKingBB &= blackKingBB - 1n;
   }
@@ -176,7 +229,7 @@ function initBishopIndicies(bitboards) {
   let whiteBishopBB = bitboards[WHITE_BISHOP];
   while (whiteBishopBB) {
     const sq = bitScanForward(whiteBishopBB);
-    whiteQueenIndicies.push(sq);
+    whiteBishopIndicies.push(sq);
 
     whiteBishopBB &= whiteBishopBB - 1n;
   }
@@ -184,7 +237,7 @@ function initBishopIndicies(bitboards) {
   let blackBishopBB = bitboards[BLACK_BISHOP];
   while (blackBishopBB) {
     const sq = bitScanForward(blackBishopBB);
-    blackQueenIndicies.push(sq);
+    blackBishopIndicies.push(sq);
 
     blackBishopBB &= blackBishopBB - 1n;
   }
@@ -197,7 +250,7 @@ function initKnightIndicies(bitboards) {
   let whitePawnBB = bitboards[WHITE_KNIGHT];
   while (whitePawnBB) {
     const sq = bitScanForward(whitePawnBB);
-    whiteQueenIndicies.push(sq);
+    whiteKnightIndicies.push(sq);
 
     whitePawnBB &= whitePawnBB - 1n;
   }
@@ -205,7 +258,7 @@ function initKnightIndicies(bitboards) {
   let blackPawnBB = bitboards[BLACK_KNIGHT];
   while (blackPawnBB) {
     const sq = bitScanForward(blackPawnBB);
-    blackQueenIndicies.push(sq);
+    blackKnightIndicies.push(sq);
 
     blackPawnBB &= blackPawnBB - 1n;
   }
@@ -218,7 +271,7 @@ function initPawnIndicies(bitboards) {
   let whitePawnBB = bitboards[WHITE_PAWN];
   while (whitePawnBB) {
     const sq = bitScanForward(whitePawnBB);
-    whiteQueenIndicies.push(sq);
+    whitePawnIndicies.push(sq);
 
     whitePawnBB &= whitePawnBB - 1n;
   }
@@ -226,7 +279,7 @@ function initPawnIndicies(bitboards) {
   let blackPawnBB = bitboards[BLACK_PAWN];
   while (blackPawnBB) {
     const sq = bitScanForward(blackPawnBB);
-    blackQueenIndicies.push(sq);
+    blackPawnIndicies.push(sq);
 
     blackPawnBB &= blackPawnBB - 1n;
   }
