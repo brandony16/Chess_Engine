@@ -1,7 +1,8 @@
 import { bitScanForward, isKing, popcount } from "../bbUtils";
 import * as C from "../constants";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic";
-import { getPlayerBoard, pieceAt } from "../pieceGetters";
+import { pieceAt } from "../pieceGetters";
+import { getPlayerIndicies, indexArrays } from "../pieceIndicies";
 import { getAttackMask } from "../PieceMasks/attackMask";
 import { getCheckers, getRayBetween } from "./checkersMask";
 import { computePinned, makePinRayMaskGenerator } from "./computePinned";
@@ -123,9 +124,9 @@ export const getAllLegalMoves = (
   const isWhite = player === C.WHITE;
   const opponent = isWhite ? C.BLACK : C.WHITE;
   const oppAttackMask = getAttackMask(opponent);
-  
-  const kingBB = isWhite ? bitboards[C.WHITE_KING] : bitboards[C.BLACK_KING];
-  const kingSq = bitScanForward(kingBB);
+
+  const kingIndex = isWhite ? C.WHITE_KING : C.BLACK_KING;
+  const kingSq = indexArrays[kingIndex][0];
 
   const pinnedMask = computePinned(bitboards, player, kingSq);
   const getRayMask = makePinRayMaskGenerator(kingSq);
@@ -170,11 +171,8 @@ export const getAllLegalMoves = (
     }
   }
 
-  let pieces = getPlayerBoard(player, bitboards);
-  while (pieces !== 0n) {
-    const square = bitScanForward(pieces);
-    pieces &= pieces - 1n;
-
+  const playerIndicies = getPlayerIndicies(player);
+  for (const square of playerIndicies) {
     const piece = pieceAt[square];
 
     const pieceMoves = getPieceMoves(

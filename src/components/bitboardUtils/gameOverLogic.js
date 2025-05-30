@@ -1,5 +1,5 @@
 import { hasLegalMove, isSquareAttacked } from "./bbChessLogic";
-import { bitScanForward, getNumPieces } from "./bbUtils";
+import { getNumPieces } from "./bbUtils";
 import {
   BLACK,
   BLACK_KING,
@@ -13,6 +13,7 @@ import {
   WHITE_ROOK,
 } from "./constants";
 import { getBlackPieces, getWhitePieces } from "./pieceGetters";
+import { indexArrays } from "./pieceIndicies";
 import { getAttackMask } from "./PieceMasks/attackMask";
 
 /**
@@ -36,8 +37,8 @@ export const checkGameOver = (
   const isPlayerWhite = player === WHITE;
   const opponent = isPlayerWhite ? BLACK : WHITE;
 
-  const kingBB = bitboards[isPlayerWhite ? BLACK_KING : WHITE_KING];
-  const kingSquare = bitScanForward(kingBB);
+  const kingIndex = isPlayerWhite ? WHITE_KING : BLACK_KING;
+  const kingSquare = indexArrays[kingIndex][0];
   const attackMask = getAttackMask(player);
 
   const result = { isGameOver: false, result: null };

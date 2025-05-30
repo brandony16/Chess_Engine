@@ -1,5 +1,6 @@
 import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
 import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters";
+import { initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies";
 import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
 import { perft, perftDivide } from "./perft";
 
@@ -99,6 +100,7 @@ describe("perft node counts", () => {
 
     computeAllAttackMasks(bitboards);
     initializePieceAtArray(bitboards);
+    initializePieceIndicies(bitboards);
 
     const div = perftDivide(bitboards, player, castling, ep, depth);
     console.table(div);

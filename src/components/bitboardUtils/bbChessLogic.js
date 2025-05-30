@@ -1,5 +1,5 @@
 import { bitScanForward, isKing, popcount } from "./bbUtils";
-import { getAllPieces, getPlayerBoard, pieceAt } from "./pieceGetters";
+import { getAllPieces, pieceAt } from "./pieceGetters";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration";
 import {
   BLACK,
@@ -18,7 +18,7 @@ import { getCheckers, getRayBetween } from "./moveGeneration/checkersMask";
 import { getKingMovesForSquare } from "./moveGeneration/majorPieceMoveGeneration";
 import { getAttackMask } from "./PieceMasks/attackMask";
 import { kingMasks } from "./PieceMasks/kingMask";
-import { bitboardsToFEN } from "./FENandUCIHelpers";
+import { getPlayerIndicies, indexArrays } from "./pieceIndicies";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -39,14 +39,14 @@ export const isSquareAttacked = (square, opponentAttackMap) => {
  * @returns {boolean} whether the player is in check
  */
 export const isInCheck = (bitboards, player) => {
-  let kingBB = bitboards[WHITE_KING];
+  let kingIndex = WHITE_KING;
   let opponent = BLACK;
   if (player === BLACK) {
-    kingBB = bitboards[BLACK_KING];
+    kingIndex = BLACK_KING;
     opponent = WHITE;
   }
 
-  const kingSquare = bitScanForward(kingBB);
+  const kingSquare = indexArrays[kingIndex][0];
   const opponentAttackMask = getAttackMask(opponent);
 
   return isSquareAttacked(kingSquare, opponentAttackMask);
@@ -72,8 +72,8 @@ export const hasLegalMove = (
   const opponent = isWhite ? BLACK : WHITE;
   const oppAttackMask = getAttackMask(opponent);
 
-  const kingBB = isWhite ? bitboards[WHITE_KING] : bitboards[BLACK_KING];
-  const kingSq = bitScanForward(kingBB);
+  const kingIndex = isWhite ? WHITE_KING : BLACK_KING;
+  const kingSq = indexArrays[kingIndex][0];
 
   // If king is not in check and it has a move then there is a legal move
   if (
@@ -104,9 +104,6 @@ export const hasLegalMove = (
       return kingMoves !== 0n;
     }
     if (numCheck !== 1) {
-      console.log(
-        bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare)
-      );
       throw new Error("KING IN CHECK W/O CHECKERS");
     }
 
@@ -122,11 +119,8 @@ export const hasLegalMove = (
     }
   }
 
-  let pieces = getPlayerBoard(player, bitboards);
-  while (pieces !== 0n) {
-    const square = bitScanForward(pieces);
-    pieces &= pieces - 1n;
-
+  let playerIndicies = getPlayerIndicies(player);
+  for (const square of playerIndicies) {
     const piece = pieceAt[square];
 
     const pieceMoves = getPieceMoves(

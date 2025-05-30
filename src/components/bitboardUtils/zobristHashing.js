@@ -1,4 +1,3 @@
-import { bitScanForward } from "./bbUtils";
 import {
   BLACK,
   BLACK_ROOK,
@@ -6,6 +5,8 @@ import {
   NUM_PIECES,
   WHITE_ROOK,
 } from "./constants";
+import { getAllIndicies } from "./pieceIndicies";
+import { pieceAt } from "./pieceGetters";
 
 /**
  * Generates a random 64 bit integer
@@ -73,14 +74,10 @@ export const computeHash = (
   let hash = 0n;
 
   // XOR each piece
-  for (let piece = 0; piece < NUM_PIECES; piece++) {
-    let bitboard = bitboards[piece];
-    while (bitboard) {
-      const lsBit = bitboard & -bitboard;
-      const sq = bitScanForward(lsBit);
-      hash ^= zobristTable[piece * 64 + sq];
-      bitboard &= bitboard - 1n;
-    }
+  const pieceSquares = getAllIndicies();
+  for (const square of pieceSquares) {
+    const piece = pieceAt[square];
+    hash ^= zobristTable[piece * 64 + square];
   }
 
   // XOR a value for the side to move

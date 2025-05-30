@@ -1,4 +1,3 @@
-import { bitScanForward } from "../bbUtils";
 import {
   BLACK_BISHOP,
   BLACK_KING,
@@ -20,6 +19,7 @@ import {
   rookAttacks,
 } from "../moveGeneration/magicBitboards/attackTable";
 import { getAllPieces } from "../pieceGetters";
+import { indexArrays } from "../pieceIndicies";
 import { kingMasks } from "./kingMask";
 import { knightMasks } from "./knightMask";
 import { blackPawnMasks, whitePawnMasks } from "./pawnMask";
@@ -70,12 +70,9 @@ export function attacksOf(occupancy, piece, square) {
  */
 export function computeMaskForPiece(bitboards, piece, occupancy) {
   let mask = 0n;
-  let bitboard = bitboards[piece];
-
-  while (bitboard) {
-    const sq = bitScanForward(bitboard);
-    mask |= attacksOf(occupancy, piece, sq);
-    bitboard &= bitboard - 1n;
+  const indicies = indexArrays[piece];
+  for (const square of indicies) {
+    mask |= attacksOf(occupancy, piece, square);
   }
 
   return mask;

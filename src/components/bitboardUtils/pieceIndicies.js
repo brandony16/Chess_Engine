@@ -7,6 +7,8 @@ import {
   BLACK_QUEEN,
   BLACK_ROOK,
   INITIAL_BITBOARDS,
+  NUM_PIECES,
+  WHITE,
   WHITE_BISHOP,
   WHITE_KING,
   WHITE_KNIGHT,
@@ -148,6 +150,29 @@ export function undoIndexArrayUpdate(move) {
       }
     }
   }
+}
+
+export function getPlayerIndicies(player) {
+  if (player === WHITE) {
+    let whiteArr = indexArrays[0];
+    for (let i = 1; i < 6; i++) {
+      whiteArr = whiteArr.concat(indexArrays[i]);
+    }
+    return whiteArr;
+  }
+  let blackArr = indexArrays[6];
+  for (let i = 7; i <= 11; i++) {
+    blackArr = blackArr.concat(indexArrays[i]);
+  }
+  return blackArr;
+}
+
+export function getAllIndicies() {
+  const indicies = new Array();
+  for (let i = 0; i < NUM_PIECES; i++) {
+    indicies.concat(indexArrays[i])
+  }
+  return indicies;
 }
 
 export function initializePieceIndicies(bitboards) {

@@ -1,9 +1,9 @@
-import { bitScanForward } from "../../bitboardUtils/bbUtils";
 import {
   CHECKMATE_VALUE,
-  NUM_PIECES,
   WHITE,
 } from "../../bitboardUtils/constants";
+import { pieceAt } from "../../bitboardUtils/pieceGetters";
+import { getAllIndicies } from "../../bitboardUtils/pieceIndicies";
 import { PIECE_SQUARE_TABLES } from "./PieceSquareTables";
 
 /**
@@ -26,14 +26,10 @@ export const evaluate5 = (bitboards, player, result, depth) => {
 
   let evaluation = 0;
 
-  for (let piece = 0; piece < NUM_PIECES; piece++) {
-    let bb = bitboards[piece];
-    while (bb) {
-      const sq = bitScanForward(bb);
-      bb &= bb - 1n;
-
-      evaluation += weights[piece] + PIECE_SQUARE_TABLES[piece][sq];
-    }
+  const allIndicies = getAllIndicies();
+  for (const square of allIndicies) {
+    const piece = pieceAt[square];
+    evaluation += weights[piece] + PIECE_SQUARE_TABLES[piece][square];
   }
 
   return evaluation;
