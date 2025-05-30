@@ -10,6 +10,7 @@ import { updateCastlingRights } from "./bitboardUtils/moveMaking/castleMoveLogic
 import { getNewEnPassant } from "./bitboardUtils/bbChessLogic";
 import { computeAllAttackMasks } from "./bitboardUtils/PieceMasks/individualAttackMasks";
 import { initializePieceAtArray } from "./bitboardUtils/pieceGetters";
+import { initializePieceIndicies } from "./bitboardUtils/pieceIndicies";
 
 export const useGameStore = create((set) => ({
   // STATE
@@ -88,6 +89,7 @@ export const useGameStore = create((set) => ({
             },
           ]
         : state.gameHistory;
+      initializePieceIndicies(INITIAL_BITBOARDS);
       computeAllAttackMasks(INITIAL_BITBOARDS);
       initializePieceAtArray(INITIAL_BITBOARDS);
 

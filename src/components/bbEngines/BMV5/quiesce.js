@@ -13,7 +13,7 @@ import {
   TT_FLAG,
 } from "../../bitboardUtils/TranspositionTable/transpositionTable";
 import { updateHash } from "../../bitboardUtils/zobristHashing";
-import { evaluate4, weights } from "./evaluation5";
+import { evaluate5, weights } from "./evaluation5";
 
 // Max depth that quiescence search can go to.
 const maxQDepth = 6;
@@ -60,13 +60,13 @@ export const quiesce = (
   );
   if (gameOver.isGameOver) {
     return {
-      score: evaluate4(bitboards, player, gameOver.result, 0),
+      score: evaluate5(bitboards, player, gameOver.result, 0),
       move: null,
     };
   }
 
   // Static evaluation of the position
-  const standPat = evaluate4(
+  const standPat = evaluate5(
     bitboards,
     player,
     /* result */ null,

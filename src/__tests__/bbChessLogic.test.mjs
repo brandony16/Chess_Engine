@@ -1,6 +1,7 @@
 import { isInCheck, isSquareAttacked } from "../components/bitboardUtils/bbChessLogic";
 import * as C from "../components/bitboardUtils/constants";
 import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
+import { initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies";
 import { getAttackMask } from "../components/bitboardUtils/PieceMasks/attackMask";
 import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
 import { jest } from "@jest/globals";
@@ -20,6 +21,7 @@ describe("isSquareAttacked", () => {
   const fenData = getFENData(kiwipeteFEN);
   const bitboards = fenData.bitboards;
 
+  initializePieceIndicies(bitboards);
   computeAllAttackMasks(bitboards);
   const whiteAttackMask = getAttackMask(C.WHITE);
   const blackAttackMask = getAttackMask(C.BLACK);
@@ -77,6 +79,7 @@ describe("isInCheck", () => {
     const bbs = emptyBitboards();
     // place just the white king on e1 (sq=4)
     placePiece(bbs, C.WHITE_KING, 4);
+    initializePieceIndicies(bbs);
     computeAllAttackMasks(bbs);
 
     expect(isInCheck(bbs, C.WHITE)).toBe(false);
@@ -85,6 +88,7 @@ describe("isInCheck", () => {
   test("black king not in check on empty board", () => {
     const bbs = emptyBitboards();
     placePiece(bbs, C.BLACK_KING, 60); // e8
+    initializePieceIndicies(bbs);
     computeAllAttackMasks(bbs);
 
     expect(isInCheck(bbs, C.BLACK)).toBe(false);
@@ -95,6 +99,7 @@ describe("isInCheck", () => {
     // white king on e1 (4), black rook on e8 (60)
     placePiece(bbs, C.WHITE_KING, 4);
     placePiece(bbs, C.BLACK_ROOK, 60);
+    initializePieceIndicies(bbs);
     computeAllAttackMasks(bbs);
 
     // we expect e1 attacked along file
@@ -106,6 +111,7 @@ describe("isInCheck", () => {
     // black king on d5 (sq=27), white bishop on a2 (sq=9) — diagonal attack
     placePiece(bbs, C.BLACK_KING, 27);
     placePiece(bbs, C.WHITE_BISHOP, 9);
+    initializePieceIndicies(bbs);
     computeAllAttackMasks(bbs);
 
     expect(isInCheck(bbs, C.BLACK)).toBe(true);
@@ -117,6 +123,7 @@ describe("isInCheck", () => {
     placePiece(bbs, C.WHITE_KING, 4);
     placePiece(bbs, C.BLACK_ROOK, 60);
     placePiece(bbs, C.BLACK_PAWN, 28);
+    initializePieceIndicies(bbs);
     computeAllAttackMasks(bbs);
 
     expect(isInCheck(bbs, C.WHITE)).toBe(false);
@@ -130,6 +137,7 @@ describe("isInCheck", () => {
     // two attackers: black queen on e8 (60) and black knight on g2 (sq=14)
     placePiece(bbs, C.BLACK_QUEEN, 60);
     placePiece(bbs, C.BLACK_KNIGHT, 14);
+    initializePieceIndicies(bbs);
     computeAllAttackMasks(bbs);
 
     expect(isInCheck(bbs, C.WHITE)).toBe(true);
@@ -140,6 +148,7 @@ describe("isInCheck", () => {
     // black king on e5 (sq=28)
     placePiece(bbs, C.BLACK_KING, 28);
     placePiece(bbs, C.WHITE_PAWN, 21);
+    initializePieceIndicies(bbs);
     computeAllAttackMasks(bbs);
 
     expect(isInCheck(bbs, C.BLACK)).toBe(true);

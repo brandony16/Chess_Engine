@@ -2,7 +2,6 @@ import { computeHash } from "../../bitboardUtils/zobristHashing";
 import { clearQTT, clearTT } from "../../bitboardUtils/TranspositionTable/transpositionTable";
 import { CHECKMATE_VALUE } from "../../bitboardUtils/constants";
 import { minimax5 } from "./minimax5";
-import { computeAllAttackMasks } from "../../bitboardUtils/PieceMasks/individualAttackMasks";
 
 // Root id for transposition table. Helps avoid stale entries
 export let rootId = 0;
@@ -42,8 +41,6 @@ export function BMV5(
 
   rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {
-    computeAllAttackMasks(bitboards);
-
     const { score, move } = minimax5(
       bitboards,
       player,

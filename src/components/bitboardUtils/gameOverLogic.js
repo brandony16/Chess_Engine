@@ -37,7 +37,7 @@ export const checkGameOver = (
   const isPlayerWhite = player === WHITE;
   const opponent = isPlayerWhite ? BLACK : WHITE;
 
-  const kingIndex = isPlayerWhite ? WHITE_KING : BLACK_KING;
+  const kingIndex = isPlayerWhite ? BLACK_KING : WHITE_KING;
   const kingSquare = indexArrays[kingIndex][0];
   const attackMask = getAttackMask(player);
 

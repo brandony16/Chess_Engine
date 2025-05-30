@@ -29,6 +29,7 @@ export const evaluate5 = (bitboards, player, result, depth) => {
   const allIndicies = getAllIndicies();
   for (const square of allIndicies) {
     const piece = pieceAt[square];
+
     evaluation += weights[piece] + PIECE_SQUARE_TABLES[piece][square];
   }
 

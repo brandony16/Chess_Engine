@@ -168,9 +168,9 @@ export function getPlayerIndicies(player) {
 }
 
 export function getAllIndicies() {
-  const indicies = new Array();
+  let indicies = new Array();
   for (let i = 0; i < NUM_PIECES; i++) {
-    indicies.concat(indexArrays[i])
+    indicies = indicies.concat(indexArrays[i])
   }
   return indicies;
 }

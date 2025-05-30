@@ -48,6 +48,7 @@ export function perftDivide(board, player, castling, ep, depth) {
   for (const move of moves) {
     const uci = moveToUCI(move);
     makeMove(board, move);
+
     // New game states
     const newEp = getNewEnPassant(move);
     const newCastling = updateCastlingRights(move.from, move.to, castling);

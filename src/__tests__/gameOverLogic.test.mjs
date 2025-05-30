@@ -10,6 +10,7 @@ import {
 } from "../components/bitboardUtils/constants";
 import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
 import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters";
+import { initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies";
 
 // helper: empty bitboards array of length N (adjust N to your piece-count)
 function emptyBitboards() {
@@ -27,6 +28,7 @@ describe("checkGameOver", () => {
     // white king on e1, black king on e8
     placePiece(bbs, WHITE_KING, 4);
     placePiece(bbs, BLACK_KING, 60);
+    initializePieceIndicies(bbs);
     computeAllAttackMasks(bbs);
     initializePieceAtArray(bbs);
 
@@ -41,6 +43,7 @@ describe("checkGameOver", () => {
     placePiece(bbs, WHITE_KING, 4);
     placePiece(bbs, WHITE_QUEEN, 5);
     placePiece(bbs, BLACK_KING, 60);
+    initializePieceIndicies(bbs);
     computeAllAttackMasks(bbs);
     initializePieceAtArray(bbs);
 
@@ -55,6 +58,7 @@ describe("checkGameOver", () => {
     placePiece(bbs, WHITE_KING, 4);
     placePiece(bbs, WHITE_QUEEN, 5);
     placePiece(bbs, BLACK_KING, 60);
+    initializePieceIndicies(bbs);
     computeAllAttackMasks(bbs);
     initializePieceAtArray(bbs);
 
@@ -70,6 +74,7 @@ describe("checkGameOver", () => {
     placePiece(bbs, BLACK_KING, 0);
     placePiece(bbs, WHITE_KING, 7);
     placePiece(bbs, WHITE_QUEEN, 10);
+    initializePieceIndicies(bbs);
     computeAllAttackMasks(bbs);
     initializePieceAtArray(bbs);
 
@@ -86,6 +91,7 @@ describe("checkGameOver", () => {
     placePiece(bbs, WHITE_KING, 4);
     placePiece(bbs, WHITE_ROOK, 56);
     placePiece(bbs, WHITE_ROOK, 48);
+    initializePieceIndicies(bbs);
     computeAllAttackMasks(bbs);
     initializePieceAtArray(bbs);
 
@@ -100,6 +106,7 @@ describe("checkGameOver", () => {
     placePiece(bbs, WHITE_KING, 4);
     placePiece(bbs, BLACK_KING, 60);
     placePiece(bbs, WHITE_ROOK, 0);
+    initializePieceIndicies(bbs);
     computeAllAttackMasks(bbs);
     initializePieceAtArray(bbs);
 

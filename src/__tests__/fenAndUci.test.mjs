@@ -2,6 +2,7 @@ import {
   bitboardsToFEN,
   getFENData,
 } from "../components/bitboardUtils/FENandUCIHelpers";
+import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters";
 
 describe("FEN - Board Conversions", () => {
   const fens = [
@@ -23,6 +24,7 @@ describe("FEN - Board Conversions", () => {
     "%s round-trips through fenToBoard to boardToFEN",
     (_desc, fen) => {
       const fenData = getFENData(fen);
+      initializePieceAtArray(fenData.bitboards);
       const fen2 = bitboardsToFEN(
         fenData.bitboards,
         fenData.player,
@@ -37,6 +39,7 @@ describe("FEN - Board Conversions", () => {
     "%s round-trips through boardToFEN to fenToBoard",
     (_desc, fen) => {
       const fenData = getFENData(fen);
+      initializePieceAtArray(fenData.bitboards);
       const fenData2 = getFENData(
         bitboardsToFEN(
           fenData.bitboards,

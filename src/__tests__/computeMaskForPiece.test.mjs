@@ -1,4 +1,5 @@
 import { getAllPieces } from "../components/bitboardUtils/pieceGetters";
+import { initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies";
 import {
   attacksOf,
   computeMaskForPiece,
@@ -22,7 +23,8 @@ describe("computeMaskForPiece", () => {
     // 0x0101010101010101 + 0xFF = 0x01010101010101FF
     const expected = 0x01010101010101ffn - 1n;
 
-    const mask = computeMaskForPiece(bitboards, ROOK);
+    initializePieceIndicies(bitboards);
+    const mask = computeMaskForPiece(bitboards, ROOK, getAllPieces(bitboards));
 
     expect(mask).toBe(expected);
   });
@@ -37,7 +39,8 @@ describe("computeMaskForPiece", () => {
     // Mask = (1<<16) + (1<<18) + (1<<11) = 0x10000 + 0x40000 + 0x800 = 0x50800
     const expected = 0x50800n;
 
-    const mask = computeMaskForPiece(bitboards, KNIGHT);
+    initializePieceIndicies(bitboards);
+    const mask = computeMaskForPiece(bitboards, KNIGHT, getAllPieces(bitboards));
     expect(mask).toBe(expected);
   });
 
@@ -53,9 +56,10 @@ describe("computeMaskForPiece", () => {
     const occ = getAllPieces(bitboards);
     let expected = 0n;
 
+    initializePieceIndicies(bitboards);
     expected |= attacksOf(occ, QUEEN, 27);
 
-    const mask = computeMaskForPiece(bitboards, QUEEN);
+    const mask = computeMaskForPiece(bitboards, QUEEN, getAllPieces(bitboards));
     expect(mask).toBe(expected);
   });
 
@@ -64,6 +68,7 @@ describe("computeMaskForPiece", () => {
     const BISHOP = 3;
     // bishops on c1 (2) and f4 (29)
     bitboards[BISHOP] = (1n << 2n) | (1n << 29n);
+    initializePieceIndicies(bitboards);
 
     // no other pieces → occupancy = those two
     const occ = getAllPieces(bitboards);
@@ -73,7 +78,7 @@ describe("computeMaskForPiece", () => {
     expected |= attacksOf(occ, BISHOP, 2);
     expected |= attacksOf(occ, BISHOP, 29);
 
-    const mask = computeMaskForPiece(bitboards, BISHOP);
+    const mask = computeMaskForPiece(bitboards, BISHOP, getAllPieces(bitboards));
     expect(mask).toBe(expected);
   });
 });
