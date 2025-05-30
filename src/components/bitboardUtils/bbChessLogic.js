@@ -82,7 +82,7 @@ export const hasLegalMove = (
   ) {
     return true;
   }
-  const pinnedMask = computePinned(bitboards, player);
+  const pinnedMask = computePinned(bitboards, player, kingSq);
   const getRayMask = makePinRayMaskGenerator(kingSq);
   let kingCheckMask = ~0n;
 

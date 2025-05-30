@@ -13,13 +13,11 @@ import { bishopAttacks, rookAttacks } from "./magicBitboards/attackTable";
  *
  * @param {BigUint64Array} bitboards - the bitboards of the position
  * @param {0 | 1} player - the player to compute the pinned pieces for
+ * @param {number} - the index of the square where the player's king is
  * @returns {bigint} the bitboard of the pinned pieces
  */
-export function computePinned(bitboards, player) {
+export function computePinned(bitboards, player, kingSq) {
   const isWhite = player === C.WHITE;
-
-  const kingBB = isWhite ? bitboards[C.WHITE_KING] : bitboards[C.BLACK_KING];
-  const kingSq = bitScanForward(kingBB);
 
   const playerPieces = getPlayerBoard(player, bitboards);
   const oppPieces = getPlayerBoard(isWhite ? C.BLACK : C.WHITE, bitboards);

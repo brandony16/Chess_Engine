@@ -1,6 +1,5 @@
-import { initializePieceAtArray } from "../bitboardUtils/pieceGetters";
 import { clearTT } from "../bitboardUtils/TranspositionTable/transpositionTable";
-import { BMV4 } from "./BMV4/BondMonkeyV4";
+import { BMV5 } from "./BMV5/BondMonkeyV5";
 
 onmessage = (e) => {
   const {
@@ -14,9 +13,8 @@ onmessage = (e) => {
   } = e.data;
 
   clearTT();
-  initializePieceAtArray(bitboards);
 
-  const move = BMV4(
+  const move = BMV5(
     bitboards,
     player,
     castlingRights,

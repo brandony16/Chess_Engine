@@ -1,13 +1,10 @@
 import { bitScanForward, isKing, popcount } from "../bbUtils";
 import * as C from "../constants";
-import { bigIntFullRep } from "../debugFunctions";
-import { bitboardsToFEN } from "../FENandUCIHelpers";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic";
-import { getAllPieces, getPlayerBoard, pieceAt } from "../pieceGetters";
+import { getPlayerBoard, pieceAt } from "../pieceGetters";
 import { getAttackMask } from "../PieceMasks/attackMask";
 import { getCheckers, getRayBetween } from "./checkersMask";
 import { computePinned, makePinRayMaskGenerator } from "./computePinned";
-import { rookAttacks } from "./magicBitboards/attackTable";
 import {
   getKingMovesForSquare,
   getMagicQueenMovesForSquare,
@@ -126,10 +123,11 @@ export const getAllLegalMoves = (
   const isWhite = player === C.WHITE;
   const opponent = isWhite ? C.BLACK : C.WHITE;
   const oppAttackMask = getAttackMask(opponent);
-  const pinnedMask = computePinned(bitboards, player);
-
+  
   const kingBB = isWhite ? bitboards[C.WHITE_KING] : bitboards[C.BLACK_KING];
   const kingSq = bitScanForward(kingBB);
+
+  const pinnedMask = computePinned(bitboards, player, kingSq);
   const getRayMask = makePinRayMaskGenerator(kingSq);
   let kingCheckMask = ~0n;
 
@@ -157,9 +155,6 @@ export const getAllLegalMoves = (
       );
     }
     if (numCheck !== 1) {
-      console.log(bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare));
-      console.log(bigIntFullRep(oppAttackMask))
-      console.log(bigIntFullRep(rookAttacks(54, getAllPieces(bitboards))))
       throw new Error("KING IN CHECK W/O CHECKERS");
     }
 

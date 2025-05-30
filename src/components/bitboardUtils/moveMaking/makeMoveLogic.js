@@ -61,6 +61,7 @@ export const makeMove = (bitboards, move) => {
     pieceAt[move.to + dir] = null;
   }
 
+  
   updateAttackMasks(bitboards, move);
 };
 
@@ -103,7 +104,7 @@ export const unMakeMove = (move, bitboards) => {
 
   // Restore captured piece
   if (captured !== null && !enPassant) {
-    bitboards[captured] |= one << BigInt(to);
+    bitboards[captured] |= maskTo;
     pieceAt[to] = captured;
   }
 
