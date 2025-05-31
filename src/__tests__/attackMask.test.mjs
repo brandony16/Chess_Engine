@@ -188,7 +188,6 @@ describe("updateAttackMasks vs full recompute", () => {
     expect(afterMoveAttackMasks).not.toEqual(oldMasks);
 
     unMakeMove(move, bitboards);
-
     expect(oldMasks).toEqual(individualAttackMasks);
   });
 
@@ -288,7 +287,7 @@ describe("updateAttackMasks vs full recompute", () => {
     expect(oldMasks).toEqual(individualAttackMasks);
   });
 
-  test("castle quuenside white", () => {
+  test("castle queenside white", () => {
     // Snapshot old masks & bitboards
     const oldMasks = individualAttackMasks.slice();
 
@@ -335,9 +334,9 @@ describe("updateAttackMasks vs full recompute", () => {
     unMakeMove(move, bitboards);
     expect(oldMasks).toEqual(individualAttackMasks);
   });
-  test.only("debug position", () => {
-    const fen =
-      "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
+
+  test("debug position", () => {
+    const fen = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBPPP3/q4N2/Pp4PP/R2Q1RK1 b - - 0 1";
     const fenData = getFENData(fen);
     bitboards = fenData.bitboards;
 
@@ -347,7 +346,7 @@ describe("updateAttackMasks vs full recompute", () => {
     // Snapshot old masks & bitboards
     const oldMasks = individualAttackMasks.slice();
 
-    const move = new Move(26, 34, WHITE_PAWN, null, null, false, false);
+    const move = new Move(60, 58, 11, null, null, true, false);
     makeMove(bitboards, move);
 
     const afterMoveAttackMasks = individualAttackMasks.slice();

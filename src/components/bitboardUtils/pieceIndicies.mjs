@@ -104,7 +104,7 @@ export function undoIndexArrayUpdate(move) {
 }
 
 export function getPlayerIndicies(player) {
-  const base = (player === WHITE) ? 0 : 6;
+  const base = player === WHITE ? 0 : 6;
 
   const result = [];
   for (let p = base; p < base + 6; p++) {
@@ -114,9 +114,9 @@ export function getPlayerIndicies(player) {
 }
 
 export function getAllIndicies() {
-  let indicies = new Array();
+  let indicies = [];
   for (let i = 0; i < NUM_PIECES; i++) {
-    indicies = indicies.concat(indexArrays[i]);
+    indicies.push(...indexArrays[i]);
   }
   return indicies;
 }

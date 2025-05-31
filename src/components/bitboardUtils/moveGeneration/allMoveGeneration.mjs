@@ -157,7 +157,6 @@ export const getAllLegalMoves = (
       );
     }
     if (numCheck !== 1) {
-      console.log(bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare))
       throw new Error("KING IN CHECK W/O CHECKERS");
     }
 

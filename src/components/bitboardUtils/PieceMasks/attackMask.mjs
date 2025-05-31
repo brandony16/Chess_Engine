@@ -119,13 +119,7 @@ function updateOneSlidingType(piece, move, oldOccupancy, newOccupancy) {
   const from = move.from;
   const to = move.to;
 
-  const didSlidingMove = piece === move.piece;
-  const wasCaptured = piece === move.captured;
-  const oldSquares = didSlidingMove
-    ? [from]
-    : wasCaptured
-    ? [...indexArray, to]
-    : indexArray.slice();
+  const oldSquares = getOldSquares(piece, move);
   for (const sq of oldSquares) {
     if (onSameRay(sq, from) || onSameRay(sq, to)) {
       const oldAttack = attacksOf(oldOccupancy, piece, sq);
@@ -155,16 +149,12 @@ function updateOneSlidingType(piece, move, oldOccupancy, newOccupancy) {
 function undoOneSlidingTypeUpdate(piece, move, oldOccupancy, newOccupancy) {
   let aggMask = individualAttackMasks[piece];
   const indexArray = indexArrays[piece];
+
+  // Swap from an to squares as we are undoing the move
   const from = move.to;
   const to = move.from;
 
-  const didSlidingMove = piece === move.piece;
-  const wasCaptured = piece === move.captured;
-  const oldSquares = didSlidingMove
-    ? [from]
-    : wasCaptured
-    ? [...indexArray, from]
-    : indexArray.slice();
+  const oldSquares = getUndoOldSquares(piece, move);
   for (const sq of oldSquares) {
     if (onSameRay(sq, from) || onSameRay(sq, to)) {
       const oldAttack = attacksOf(oldOccupancy, piece, sq);
@@ -220,3 +210,57 @@ export const getAttackMask = (player) => {
 
   return mask;
 };
+
+function getOldSquares(piece, move) {
+  const didSlidingMove = piece === move.piece;
+  const wasCaptured = piece === move.captured;
+  const indexArray = indexArrays[piece];
+
+  if (didSlidingMove) return [move.from];
+  if (wasCaptured) return [...indexArray, move.to];
+  if (rookMovedInCastle(piece, move)) return getOldRookSquares(move);
+
+  return indexArray.slice();
+}
+
+function getUndoOldSquares(piece, move) {
+  const didSlidingMove = piece === move.piece;
+  const wasCaptured = piece === move.captured;
+  const wasPromotion = piece === move.promotion;
+  const indexArray = indexArrays[piece];
+
+  if (didSlidingMove) return [move.to];
+  if (wasCaptured || wasPromotion) return [...indexArray, move.to];
+  if (rookMovedInCastle(piece, move)) return getOldUndoRookSquares(move);
+
+  return indexArray.slice();
+}
+
+function rookMovedInCastle(piece, move) {
+  if (!move.castling) return false;
+
+  if (move.from === 4 && piece === WHITE_ROOK) {
+    return true;
+  }
+  return move.from === 60 && piece === BLACK_ROOK;
+}
+
+function getOldRookSquares(move) {
+  if (!move.castling) throw new Error("Not a castling move");
+
+  // Kingside castling
+  if (move.from < move.to) {
+    return [move.to + 1];
+  }
+  return [move.to - 2];
+}
+
+function getOldUndoRookSquares(move) {
+  if (!move.castling) throw new Error("Not a castling move");
+
+  // Kingside castling
+  if (move.from < move.to) {
+    return [move.from + 1];
+  }
+  return [move.from - 1];
+}
