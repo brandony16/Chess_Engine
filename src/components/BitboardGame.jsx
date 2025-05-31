@@ -3,22 +3,30 @@ import PromotionModal from "./modals/PromotionModal";
 import Sidebar from "./sidebar/Sidebar";
 import "./UI.css";
 import BitboardBoard from "./boardComponents/BitboardBoard";
-import { makeMove } from "./bitboardUtils/moveMaking/makeMoveLogic";
-import { computeHash } from "./bitboardUtils/zobristHashing";
-import { checkGameOver } from "./bitboardUtils/gameOverLogic";
-import { movesToBB, moveToReadable } from "./bitboardUtils/generalHelpers";
-import { isPlayersPieceAtSquare, pieceAt } from "./bitboardUtils/pieceGetters";
-import { getAllLegalMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration";
-import { getNewEnPassant } from "./bitboardUtils/bbChessLogic";
-import { useGameStore } from "./gameStore";
-import Modal from "./modals/Modal";
-import { BLACK_PAWN, WHITE_PAWN } from "./bitboardUtils/constants";
-import Move from "./bitboardUtils/moveMaking/move";
-import { isKing } from "./bitboardUtils/bbUtils";
+import { makeMove } from "./bitboardUtils/moveMaking/makeMoveLogic.mjs";
+import { computeHash } from "./bitboardUtils/zobristHashing.mjs";
+import { checkGameOver } from "./bitboardUtils/gameOverLogic.mjs";
+import { movesToBB, moveToReadable } from "./bitboardUtils/generalHelpers.mjs";
 import {
+  initializePieceAtArray,
+  isPlayersPieceAtSquare,
+  pieceAt,
+} from "./bitboardUtils/pieceGetters.mjs";
+import { getAllLegalMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration.mjs";
+import { getNewEnPassant } from "./bitboardUtils/bbChessLogic.mjs";
+import { useGameStore } from "./gameStore.mjs";
+import Modal from "./modals/Modal";
+import { BLACK_PAWN, WHITE_PAWN } from "./bitboardUtils/constants.mjs";
+import Move from "./bitboardUtils/moveMaking/move.mjs";
+import { isKing } from "./bitboardUtils/bbUtils.mjs";
+import {
+  getFENData,
   getOpeningMoves,
   squareToIndex,
-} from "./bitboardUtils/FENandUCIHelpers";
+} from "./bitboardUtils/FENandUCIHelpers.mjs";
+import { initializePieceIndicies } from "./bitboardUtils/pieceIndicies.mjs";
+import { computeAllAttackMasks } from "./bitboardUtils/PieceMasks/individualAttackMasks.mjs";
+import { perftDivide } from "../__tests__/perft.mjs";
 
 // Runs the game
 const BitboardGame = () => {
@@ -376,7 +384,7 @@ const BitboardGame = () => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
       getEngineMove(5, 5000);
     }
-  }, [currPlayer, userSide]); 
+  }, [currPlayer, userSide]);
 
   return (
     <div className="body">

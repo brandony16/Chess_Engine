@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import { useEffect, useRef } from "react";
-import { useGameStore } from "../gameStore";
+import { useGameStore } from "../gameStore.mjs";
 
 const MoveList = ({ pastMoves, indexOfViewed }) => {
   const goToMove = useGameStore((state) => state.goToMove);

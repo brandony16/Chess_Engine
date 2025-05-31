@@ -1,8 +1,8 @@
 import PropTypes from "prop-types";
 import MoveArrows from "./MoveArrows";
 import MoveList from "./MoveList";
-import { useGameStore } from "../gameStore";
-import { BLACK, WHITE } from "../bitboardUtils/constants";
+import { useGameStore } from "../gameStore.mjs";
+import { BLACK, WHITE } from "../bitboardUtils/constants.mjs";
 
 const Sidebar = ({
   currPlayer,

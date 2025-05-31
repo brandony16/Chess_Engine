@@ -2,8 +2,8 @@ import Cell from "./Cell";
 import "./Board.css";
 
 import PropTypes from "prop-types";
-import { BLACK, PIECE_SYMBOLS, WHITE } from "../bitboardUtils/constants";
-import { getPieceAtSquare } from "../bitboardUtils/pieceGetters";
+import { BLACK, PIECE_SYMBOLS, WHITE } from "../bitboardUtils/constants.mjs";
+import { getPieceAtSquare } from "../bitboardUtils/pieceGetters.mjs";
 
 // Creates the board out of Cells
 const BitboardBoard = ({

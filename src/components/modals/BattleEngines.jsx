@@ -1,10 +1,10 @@
 import PropTypes from "prop-types";
-import { BMV1 } from "../bbEngines/BondMonkeyV1";
+import { BMV1 } from "../bbEngines/BondMonkeyV1.mjs";
 import "./BattleEngines.css";
-import { BMV2 } from "../bbEngines/BMV2/BondMonkeyV2";
-import { BMV3 } from "../bbEngines/BMV3/BondMonkeyV3";
-import { BMV4 } from "../bbEngines/BMV4/BondMonkeyV4";
-import { BMV5 } from "../bbEngines/BMV5/BondMonkeyV5";
+import { BMV2 } from "../bbEngines/BMV2/BondMonkeyV2.mjs";
+import { BMV3 } from "../bbEngines/BMV3/BondMonkeyV3.mjs";
+import { BMV4 } from "../bbEngines/BMV4/BondMonkeyV4.mjs";
+import { BMV5 } from "../bbEngines/BMV5/BondMonkeyV5.mjs";
 
 const BattleEngines = ({ battleEngines }) => {
   const engines = ["BondMonkeyV1", "BondMonkeyV2", "BondMonkeyV3", "BondMonkeyV4", "BondMonkeyV5"];

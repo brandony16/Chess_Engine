@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { BLACK, COLUMN_SYMBOLS, WHITE } from "../bitboardUtils/constants";
+import { BLACK, COLUMN_SYMBOLS, WHITE } from "../bitboardUtils/constants.mjs";
 import Piece from "./Piece";
 
 // A board cell

@@ -1,4 +1,4 @@
-import { useGameStore } from "../gameStore";
+import { useGameStore } from "../gameStore.mjs";
 import "./GameHistory.css";
 
 // Game history menu to select past games.

@@ -1,8 +1,8 @@
-import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
-import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters";
-import { indexArrays, initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies";
-import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
-import { perft, perftDivide } from "./perft";
+import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers.mjs";
+import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters.mjs";
+import { indexArrays, initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies.mjs";
+import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks.mjs";
+import { perft, perftDivide } from "./perft.mjs";
 
 const cases = [
   // [ description, depth, expected node count, FEN ]
@@ -21,21 +21,22 @@ const cases = [
   [
     "Start pos",
     3,
+  
     8902,
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   ],
-  // [
-  //   "Start pos",
-  //   4,
-  //   197_281,
-  //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-  // ],
-  // [
-  //   "Start pos",
-  //   5,
-  //   4_865_609,
-  //   "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-  // ],
+  [
+    "Start pos",
+    4,
+    197_281,
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  ],
+  [
+    "Start pos",
+    5,
+    4_865_609,
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  ],
   [
     "“Kiwipete” pos",
     1,
