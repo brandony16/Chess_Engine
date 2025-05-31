@@ -1,21 +1,25 @@
 import {
   BLACK_BISHOP,
   BLACK_KING,
+  BLACK_KNIGHT,
   BLACK_PAWN,
+  BLACK_QUEEN,
   BLACK_ROOK,
-  NUM_PIECES,
   WHITE_BISHOP,
   WHITE_KING,
   WHITE_PAWN,
+  WHITE_QUEEN,
   WHITE_ROOK,
 } from "../components/bitboardUtils/constants.mjs";
-import { makeMove, unMakeMove } from "../components/bitboardUtils/moveMaking/makeMoveLogic.mjs";
+import { bigIntFullRep } from "../components/bitboardUtils/debugFunctions.mjs";
+import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers.mjs";
+import {
+  makeMove,
+  unMakeMove,
+} from "../components/bitboardUtils/moveMaking/makeMoveLogic.mjs";
 import Move from "../components/bitboardUtils/moveMaking/move.mjs";
 import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters.mjs";
-import {
-  indexArrays,
-  initializePieceIndicies,
-} from "../components/bitboardUtils/pieceIndicies.mjs";
+import { initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies.mjs";
 import {
   computeAllAttackMasks,
   individualAttackMasks,
@@ -26,16 +30,10 @@ describe("updateAttackMasks vs full recompute", () => {
 
   // Set up a base position for the tests
   beforeEach(() => {
-    bitboards = new BigUint64Array(NUM_PIECES).fill(0n);
-
-    // White pieces:
-    bitboards[WHITE_KING] = 1n << 4n;
-    bitboards[WHITE_ROOK] = 1n << 7n;
-    bitboards[WHITE_BISHOP] = 1n << 2n;
-    // Black pieces:
-    bitboards[BLACK_KING] = 1n << 60n;
-    bitboards[BLACK_ROOK] = 1n << 56n;
-    bitboards[BLACK_BISHOP] = 1n << 61n;
+    const fen =
+      "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+    const fenData = getFENData(fen);
+    bitboards = fenData.bitboards;
 
     initializePieceIndicies(bitboards);
     initializePieceAtArray(bitboards);
@@ -74,11 +72,11 @@ describe("updateAttackMasks vs full recompute", () => {
     expect(oldMasks).toEqual(individualAttackMasks);
   });
 
-  test("sliding move white", () => {
+  test("non-sliding capture white", () => {
     // Snapshot old masks & bitboards
     const oldMasks = individualAttackMasks.slice();
 
-    const move = new Move(7, 15, WHITE_ROOK, null, null, false, false);
+    const move = new Move(35, 44, WHITE_PAWN, BLACK_PAWN, null, false, false);
     makeMove(bitboards, move);
 
     const afterMoveAttackMasks = individualAttackMasks.slice();
@@ -89,8 +87,39 @@ describe("updateAttackMasks vs full recompute", () => {
     unMakeMove(move, bitboards);
     expect(oldMasks).toEqual(individualAttackMasks);
   });
-  
-  test("sliding move black", () => {
+
+  test("non-sliding capture black", () => {
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
+
+    const move = new Move(45, 28, BLACK_KNIGHT, WHITE_PAWN, null, false, false);
+    makeMove(bitboards, move);
+
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
+
+    unMakeMove(move, bitboards);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
+
+  test("sliding rook move white", () => {
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
+    const move = new Move(7, 5, WHITE_ROOK, null, null, false, false);
+    makeMove(bitboards, move);
+
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
+
+    unMakeMove(move, bitboards);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
+
+  test("sliding rook move black", () => {
     // Snapshot old masks & bitboards
     const oldMasks = individualAttackMasks.slice();
 
@@ -106,101 +135,227 @@ describe("updateAttackMasks vs full recompute", () => {
     expect(oldMasks).toEqual(individualAttackMasks);
   });
 
-  // test("sliding move updates attack masks correctly (rook moves)", () => {
-  //   // Move White Rook from h1 (7) → h3 (23). That changes the white rook’s attacks,
-  //   // and may also affect black rook’s masking if they align (they don’t here).
-  //   const move = {
-  //     piece: WHITE_ROOK,
-  //     from: 7,
-  //     to: 23,
-  //     captured: null,
-  //     promotion: null,
-  //     enPassant: false,
-  //     castling: false,
-  //   };
+  test("sliding bishop move white", () => {
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
 
-  //   const oldOcc = getAllPieces(bitboards);
-  //   const oldMasks = individualAttackMasks.slice();
-  //   const oldLists = indexArrays.map((arr) => arr.slice());
-  //   const oldBB = cloneBitboards(bitboards);
+    const move = new Move(12, 33, WHITE_BISHOP, null, null, false, false);
+    makeMove(bitboards, move);
 
-  //   // Make the move
-  //   makeMoveOnBitboards(bitboards, move);
-  //   updatePieceLists(move);
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
 
-  //   // Incremental update
-  //   updateAttackMasks(bitboards, move, oldOcc);
+    unMakeMove(move, bitboards);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
 
-  //   // Full recompute
-  //   const freshMasks = fullRecomputeAllMasks(bitboards);
+  test("sliding bishop move black", () => {
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
 
-  //   // Verify only rook‐related sliding masks changed as expected
-  //   // White rook mask:
-  //   expect(individualAttackMasks[WHITE_ROOK]).toBe(freshMasks[WHITE_ROOK]);
-  //   // White queen mask includes rook directions; recompute must match
-  //   expect(individualAttackMasks[WHITE_QUEEN]).toBe(freshMasks[WHITE_QUEEN]);
-  //   // Black rook mask should be unchanged in this scenario
-  //   expect(individualAttackMasks[BLACK_ROOK]).toBe(freshMasks[BLACK_ROOK]);
-  //   // Other sliding types:
-  //   expect(individualAttackMasks[WHITE_BISHOP]).toBe(freshMasks[WHITE_BISHOP]);
-  //   expect(individualAttackMasks[BLACK_BISHOP]).toBe(freshMasks[BLACK_BISHOP]);
-  //   expect(individualAttackMasks[BLACK_QUEEN]).toBe(freshMasks[BLACK_QUEEN]);
+    const move = new Move(40, 19, BLACK_BISHOP, null, null, false, false);
+    makeMove(bitboards, move);
 
-  //   // Restore
-  //   restoreBitboards(bitboards, oldBB);
-  //   individualAttackMasks = oldMasks;
-  //   indexArrays.forEach((arr, i) => arr.splice(0, arr.length, ...oldLists[i]));
-  // });
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
 
-  // test("capture move updates attack masks correctly (bishop captures)", () => {
-  //   // Place an extra white pawn on c7 (sq=50) so black bishop on f8 can capture it
-  //   bitboards[WHITE_PAWN] |= 1n << 50n;
-  //   indexArrays[WHITE_PAWN].push(50);
+    unMakeMove(move, bitboards);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
 
-  //   bitboards[WHITE_PAWN] &= ~(1n << 50n); // remove from c7
-  //   indexArrays[WHITE_PAWN].splice(indexArrays[WHITE_PAWN].indexOf(50), 1);
-  //   bitboards[WHITE_PAWN] |= 1n << 16n;
-  //   indexArrays[WHITE_PAWN].push(16);
+  test("sliding bishop capture white", () => {
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
 
-  //   const move = {
-  //     piece: BLACK_BISHOP,
-  //     from: 61, // f8
-  //     to: 16, // a3
-  //     captured: WHITE_PAWN,
-  //     promotion: null,
-  //     enPassant: false,
-  //     castling: false,
-  //   };
+    const move = new Move(
+      12,
+      40,
+      WHITE_BISHOP,
+      BLACK_BISHOP,
+      null,
+      false,
+      false
+    );
+    makeMove(bitboards, move);
 
-  //   const oldOcc = getAllPieces(bitboards);
-  //   const oldMasks = individualAttackMasks.slice();
-  //   const oldLists = indexArrays.map((arr) => arr.slice());
-  //   const oldBB = cloneBitboards(bitboards);
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
 
-  //   // Make the capture
-  //   makeMoveOnBitboards(bitboards, move);
-  //   updatePieceLists(move);
+    unMakeMove(move, bitboards);
 
-  //   // Incremental update
-  //   updateAttackMasks(bitboards, move, oldOcc);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
 
-  //   // Full recompute
-  //   const freshMasks = fullRecomputeAllMasks(bitboards);
+  test("sliding bishop capture black", () => {
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
 
-  //   // Verify updated masks:
-  //   expect(individualAttackMasks[BLACK_BISHOP]).toBe(freshMasks[BLACK_BISHOP]);
-  //   expect(individualAttackMasks[BLACK_QUEEN]).toBe(freshMasks[BLACK_QUEEN]);
-  //   // White pawn mask should be removed entirely
-  //   expect(individualAttackMasks[WHITE_PAWN]).toBe(0n);
-  //   // Other sliding masks should match
-  //   expect(individualAttackMasks[WHITE_ROOK]).toBe(freshMasks[WHITE_ROOK]);
-  //   expect(individualAttackMasks[WHITE_BISHOP]).toBe(freshMasks[WHITE_BISHOP]);
-  //   expect(individualAttackMasks[BLACK_ROOK]).toBe(freshMasks[BLACK_ROOK]);
-  //   expect(individualAttackMasks[WHITE_QUEEN]).toBe(freshMasks[WHITE_QUEEN]);
+    const move = new Move(
+      40,
+      12,
+      BLACK_BISHOP,
+      WHITE_BISHOP,
+      null,
+      false,
+      false
+    );
+    makeMove(bitboards, move);
 
-  //   // Restore
-  //   restoreBitboards(bitboards, oldBB);
-  //   individualAttackMasks = oldMasks;
-  //   indexArrays.forEach((arr, i) => arr.splice(0, arr.length, ...oldLists[i]));
-  // });
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
+
+    unMakeMove(move, bitboards);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
+
+  test("sliding queen move white", () => {
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
+
+    const move = new Move(21, 39, WHITE_QUEEN, null, null, false, false);
+    makeMove(bitboards, move);
+
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
+
+    unMakeMove(move, bitboards);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
+
+  test("sliding queen move black", () => {
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
+
+    const move = new Move(52, 59, BLACK_QUEEN, null, null, false, false);
+    makeMove(bitboards, move);
+
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
+
+    unMakeMove(move, bitboards);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
+
+  test("sliding queen capture white", () => {
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
+
+    const move = new Move(
+      21,
+      45,
+      WHITE_QUEEN,
+      BLACK_KNIGHT,
+      null,
+      false,
+      false
+    );
+    makeMove(bitboards, move);
+
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
+
+    unMakeMove(move, bitboards);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
+
+  test("castle kingside white", () => {
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
+
+    const move = new Move(4, 6, WHITE_KING, null, null, false, false);
+    makeMove(bitboards, move);
+
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
+
+    unMakeMove(move, bitboards);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
+
+  test("castle quuenside white", () => {
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
+
+    const move = new Move(4, 2, WHITE_KING, null, null, false, false);
+    makeMove(bitboards, move);
+
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
+
+    unMakeMove(move, bitboards);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
+
+  test("castle kingside black", () => {
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
+
+    const move = new Move(60, 62, BLACK_KING, null, null, false, false);
+    makeMove(bitboards, move);
+
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
+
+    unMakeMove(move, bitboards);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
+
+  test("castle queenside black", () => {
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
+
+    const move = new Move(60, 58, BLACK_KING, null, null, false, false);
+    makeMove(bitboards, move);
+
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
+
+    unMakeMove(move, bitboards);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
+  test.only("debug position", () => {
+    const fen =
+      "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
+    const fenData = getFENData(fen);
+    bitboards = fenData.bitboards;
+
+    initializePieceIndicies(bitboards);
+    initializePieceAtArray(bitboards);
+    computeAllAttackMasks(bitboards);
+    // Snapshot old masks & bitboards
+    const oldMasks = individualAttackMasks.slice();
+
+    const move = new Move(26, 34, WHITE_PAWN, null, null, false, false);
+    makeMove(bitboards, move);
+
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(bitboards);
+    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
+    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
+
+    unMakeMove(move, bitboards);
+    expect(oldMasks).toEqual(individualAttackMasks);
+  });
 });

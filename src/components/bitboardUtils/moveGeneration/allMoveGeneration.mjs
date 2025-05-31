@@ -1,5 +1,6 @@
 import { bitScanForward, isKing, popcount } from "../bbUtils.mjs";
 import * as C from "../constants.mjs";
+import { bitboardsToFEN } from "../FENandUCIHelpers.mjs";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic.mjs";
 import { pieceAt } from "../pieceGetters.mjs";
 import { getPlayerIndicies, indexArrays } from "../pieceIndicies.mjs";
@@ -156,6 +157,7 @@ export const getAllLegalMoves = (
       );
     }
     if (numCheck !== 1) {
+      console.log(bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare))
       throw new Error("KING IN CHECK W/O CHECKERS");
     }
 

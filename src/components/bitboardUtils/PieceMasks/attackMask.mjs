@@ -62,7 +62,50 @@ export const updateAttackMasks = (bitboards, move, oldOccupancy) => {
 };
 
 /**
- * Update a single sliding‐piece type by only adjusting the sliders whose attack rays 
+ * Updates the individualAttackMasks array with new values based off of the
+ * move made.
+ * @param {BigUint64Array} bitboards - the new bitboards of the position
+ * @param {Move} move - the move that was made.
+ */
+export const undoAttackMaskUpdate = (bitboards, move, oldOccupancy) => {
+  const piece = move.piece;
+  const captured = move.captured;
+  const promotion = move.promotion;
+  const occupancy = getAllPieces(bitboards);
+
+  // Remove old attacks of the piece
+  if (!isSliding(piece)) {
+    individualAttackMasks[piece] = computeMaskForPiece(piece, occupancy);
+  }
+
+  if (captured !== null && !isSliding(captured)) {
+    individualAttackMasks[captured] = computeMaskForPiece(captured, occupancy);
+  }
+
+  if (promotion === WHITE_KNIGHT || promotion === BLACK_KNIGHT) {
+    individualAttackMasks[promotion] = computeMaskForPiece(
+      promotion,
+      occupancy
+    );
+  }
+
+  // Recompute sliding pieces to account for blockers
+  const sliders = [
+    WHITE_BISHOP,
+    WHITE_ROOK,
+    WHITE_QUEEN,
+    BLACK_BISHOP,
+    BLACK_ROOK,
+    BLACK_QUEEN,
+  ];
+
+  for (const slider of sliders) {
+    undoOneSlidingTypeUpdate(slider, move, oldOccupancy, occupancy);
+  }
+};
+
+/**
+ * Update a single sliding‐piece type by only adjusting the sliders whose attack rays
  * cross move.from or move.to.
  *
  * @param {number} piece - the piece to update. Not necessarily the same as move.piece
@@ -76,7 +119,53 @@ function updateOneSlidingType(piece, move, oldOccupancy, newOccupancy) {
   const from = move.from;
   const to = move.to;
 
+  const didSlidingMove = piece === move.piece;
+  const wasCaptured = piece === move.captured;
+  const oldSquares = didSlidingMove
+    ? [from]
+    : wasCaptured
+    ? [...indexArray, to]
+    : indexArray.slice();
+  for (const sq of oldSquares) {
+    if (onSameRay(sq, from) || onSameRay(sq, to)) {
+      const oldAttack = attacksOf(oldOccupancy, piece, sq);
+      aggMask ^= oldAttack;
+    }
+  }
+
   for (const sq of indexArray) {
+    if (onSameRay(sq, from) || onSameRay(sq, to)) {
+      const newAttack = attacksOf(newOccupancy, piece, sq);
+      aggMask |= newAttack;
+    }
+  }
+
+  individualAttackMasks[piece] = aggMask;
+}
+
+/**
+ * Update a single sliding‐piece type by only adjusting the sliders whose attack rays
+ * cross move.from or move.to.
+ *
+ * @param {number} piece - the piece to update. Not necessarily the same as move.piece
+ * @param {Move} move - the move made
+ * @param {bigint} oldOccupancy - occupancy bitboard before the move
+ * @param {bigint} newOccupancy - occupancy bitboard after the move
+ */
+function undoOneSlidingTypeUpdate(piece, move, oldOccupancy, newOccupancy) {
+  let aggMask = individualAttackMasks[piece];
+  const indexArray = indexArrays[piece];
+  const from = move.to;
+  const to = move.from;
+
+  const didSlidingMove = piece === move.piece;
+  const wasCaptured = piece === move.captured;
+  const oldSquares = didSlidingMove
+    ? [from]
+    : wasCaptured
+    ? [...indexArray, from]
+    : indexArray.slice();
+  for (const sq of oldSquares) {
     if (onSameRay(sq, from) || onSameRay(sq, to)) {
       const oldAttack = attacksOf(oldOccupancy, piece, sq);
       aggMask ^= oldAttack;

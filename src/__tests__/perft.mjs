@@ -7,6 +7,9 @@ import {
 } from "../components/bitboardUtils/moveMaking/makeMoveLogic.mjs";
 import { moveToUCI } from "../components/bitboardUtils/FENandUCIHelpers.mjs";
 import { BLACK, WHITE } from "../components/bitboardUtils/constants.mjs";
+import { getAttackMask } from "../components/bitboardUtils/PieceMasks/attackMask.mjs";
+import { bigIntFullRep } from "../components/bitboardUtils/debugFunctions.mjs";
+import { computeAllAttackMasks, individualAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks.mjs";
 
 /**
  * Count leaf nodes to `depth` by recursively generating, making, and unmaking moves.
@@ -19,10 +22,22 @@ export function perft(board, player, castling, ep, depth) {
 
   let nodes = 0;
   const opp = player === WHITE ? BLACK : WHITE;
+  const oldMasks = individualAttackMasks.slice();
 
   const moves = getAllLegalMoves(board, player, castling, ep);
   for (const move of moves) {
     makeMove(board, move);
+
+    const afterMoveAttackMasks = individualAttackMasks.slice();
+    computeAllAttackMasks(board);
+
+    try {
+      equal(afterMoveAttackMasks, individualAttackMasks);
+    } catch (e) {
+      console.log(bigIntFullRep(board[10]));
+      throw e;
+    }
+    
 
     // New game states
     const newEp = getNewEnPassant(move);
@@ -56,4 +71,16 @@ export function perftDivide(board, player, castling, ep, depth) {
   }
 
   return divide;
+}
+
+function equal(masks1, masks2) {
+  for (let i = 0; i < masks1.length; i++) {
+    if (masks1[i] !== masks2[i]) {
+      console.log(i);
+      console.log(bigIntFullRep(masks1[i]));
+      console.log(bigIntFullRep(masks2[i]));
+      throw new Error("nuh uh")
+    }
+  }
+  return true;
 }
