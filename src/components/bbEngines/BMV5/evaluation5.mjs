@@ -1,7 +1,4 @@
-import {
-  CHECKMATE_VALUE,
-  WHITE,
-} from "../../bitboardUtils/constants.mjs";
+import { CHECKMATE_VALUE, WHITE } from "../../bitboardUtils/constants.mjs";
 import { pieceAt } from "../../bitboardUtils/pieceGetters.mjs";
 import { getAllIndicies } from "../../bitboardUtils/pieceIndicies.mjs";
 import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
@@ -29,8 +26,9 @@ export const evaluate5 = (bitboards, player, result, depth) => {
   const allIndicies = getAllIndicies();
   for (const square of allIndicies) {
     const piece = pieceAt[square];
+    const playerMultiplier = piece < 6 ? 1 : -1;
 
-    evaluation += weights[piece] + PIECE_SQUARE_TABLES[piece][square];
+    evaluation += playerMultiplier * (weights[piece % 6] + PIECE_SQUARE_TABLES[piece][square]);
   }
 
   return evaluation;
@@ -38,6 +36,4 @@ export const evaluate5 = (bitboards, player, result, depth) => {
 
 // Weights from Chess Programming Wiki Simplified Evaluation Function Page.
 // https://www.chessprogramming.org/Simplified_Evaluation_Function
-export const weights = [
-  100, 320, 330, 500, 900, 20_000, -100, -320, -330, -500, -900, -20_000,
-];
+export const weights = [100, 320, 330, 500, 900, 20_000];
