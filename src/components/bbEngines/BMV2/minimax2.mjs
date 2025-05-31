@@ -157,7 +157,6 @@ export const minimax2 = (
       const from = move.from;
 
       makeMove(bitboards, move);
-      updateAttackMasks(bitboards, move);
 
       // New game states
       const newEnPassant = getNewEnPassant(move);
@@ -198,7 +197,6 @@ export const minimax2 = (
       );
 
       unMakeMove(move, bitboards);
-      updateAttackMasks(bitboards, move);
 
       if (moveEval > bestEval) {
         bestEval = moveEval;
@@ -233,7 +231,6 @@ export const minimax2 = (
 
     for (const move of orderedMoves) {
       makeMove(bitboards, move);
-      updateAttackMasks(bitboards, move);
 
       const from = move.from;
 

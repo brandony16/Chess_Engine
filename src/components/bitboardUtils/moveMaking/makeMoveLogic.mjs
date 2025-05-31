@@ -6,7 +6,7 @@ import {
   WHITE_PAWN,
   WHITE_PROMO_PIECES,
 } from "../constants.mjs";
-import { pieceAt } from "../pieceGetters.mjs";
+import { getAllPieces, pieceAt } from "../pieceGetters.mjs";
 import { undoIndexArrayUpdate, updateIndexArrays } from "../pieceIndicies.mjs";
 import { updateAttackMasks } from "../PieceMasks/attackMask.mjs";
 import { makeCastleMove, unMakeCastleMove } from "./castleMoveLogic.mjs";
@@ -27,6 +27,7 @@ export const makeMove = (bitboards, move) => {
   const captured = move.captured;
   const promotion = move.promotion;
   const enPassant = move.enPassant;
+  const oldOccupancy = getAllPieces(bitboards);
 
   // Handle castle case
   if (move.castling) {
@@ -62,7 +63,7 @@ export const makeMove = (bitboards, move) => {
   }
 
   updateIndexArrays(move);
-  updateAttackMasks(bitboards, move);
+  updateAttackMasks(bitboards, move, oldOccupancy);
 };
 
 /**
@@ -83,6 +84,7 @@ export const unMakeMove = (move, bitboards) => {
   const captured = move.captured;
   const promotion = move.promotion;
   const enPassant = move.enPassant;
+  const oldOccupancy = getAllPieces(bitboards);
 
   // Undo castle
   if (move.castling) {
@@ -117,7 +119,7 @@ export const unMakeMove = (move, bitboards) => {
   }
 
   undoIndexArrayUpdate(move);
-  updateAttackMasks(bitboards, move);
+  updateAttackMasks(bitboards, move, oldOccupancy);
 };
 
 /**

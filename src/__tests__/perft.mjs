@@ -5,11 +5,8 @@ import {
   makeMove,
   unMakeMove,
 } from "../components/bitboardUtils/moveMaking/makeMoveLogic.mjs";
-import { getFENData, moveToUCI } from "../components/bitboardUtils/FENandUCIHelpers.mjs";
+import { moveToUCI } from "../components/bitboardUtils/FENandUCIHelpers.mjs";
 import { BLACK, WHITE } from "../components/bitboardUtils/constants.mjs";
-import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters.mjs";
-import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks.mjs";
-import { initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies.mjs";
 
 /**
  * Count leaf nodes to `depth` by recursively generating, making, and unmaking moves.

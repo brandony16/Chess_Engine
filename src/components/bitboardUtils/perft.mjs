@@ -58,17 +58,21 @@ export function perftDivide(board, player, castling, ep, depth) {
   return divide;
 }
 
-const fenData = getFENData(
-  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-);
-const bitboards = fenData.bitboards;
-const player = fenData.player;
-const castling = fenData.castling;
-const ep = fenData.ep;
+function go() {
+  const fenData = getFENData(
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+  );
+  const bitboards = fenData.bitboards;
+  const player = fenData.player;
+  const castling = fenData.castling;
+  const ep = fenData.ep;
 
-initializePieceIndicies(bitboards);
-computeAllAttackMasks(bitboards);
-initializePieceAtArray(bitboards);
+  initializePieceIndicies(bitboards);
+  computeAllAttackMasks(bitboards);
+  initializePieceAtArray(bitboards);
 
-const div = perftDivide(bitboards, player, castling, ep, 5);
-console.table(div);
+  const div = perftDivide(bitboards, player, castling, ep, 5);
+  console.table(div);
+}
+
+go();

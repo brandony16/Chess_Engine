@@ -64,11 +64,11 @@ export function attacksOf(occupancy, piece, square) {
 /**
  * Computes the attack mask for a given piece
  *
- * @param {BigUint64Array} bitboards - the bitboard of the position
  * @param {number} piece - the piece to compute the mask for
+ * @param {bigint} occupancy - the occupancy bitboard of the position
  * @returns {bigint} - the attack mask for the piece
  */
-export function computeMaskForPiece(bitboards, piece, occupancy) {
+export function computeMaskForPiece(piece, occupancy) {
   let mask = 0n;
   const indicies = indexArrays[piece];
   for (const square of indicies) {
@@ -87,7 +87,7 @@ export function computeMaskForPiece(bitboards, piece, occupancy) {
 export function computeAllAttackMasks(bitboards) {
   const occupancy = getAllPieces(bitboards);
   for (let p = 0; p < NUM_PIECES; p++) {
-    individualAttackMasks[p] = computeMaskForPiece(bitboards, p, occupancy);
+    individualAttackMasks[p] = computeMaskForPiece(p, occupancy);
   }
 
   return individualAttackMasks;

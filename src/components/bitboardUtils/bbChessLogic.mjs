@@ -19,6 +19,8 @@ import { getKingMovesForSquare } from "./moveGeneration/majorPieceMoveGeneration
 import { getAttackMask } from "./PieceMasks/attackMask.mjs";
 import { kingMasks } from "./PieceMasks/kingMask.mjs";
 import { getPlayerIndicies, indexArrays } from "./pieceIndicies.mjs";
+import { bitboardsToFEN } from "./FENandUCIHelpers.mjs";
+import { bigIntFullRep } from "./debugFunctions.mjs";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -74,11 +76,12 @@ export const hasLegalMove = (
 
   const kingIndex = isWhite ? WHITE_KING : BLACK_KING;
   const kingSq = indexArrays[kingIndex][0];
+  const kingMask = 1n << BigInt(kingSq);
 
   // If king is not in check and it has a move then there is a legal move
   if (
-    kingSq & (oppAttackMask === 0n) &&
-    kingMasks[kingSq] & ~oppAttackMask & (~getAllPieces(bitboards) !== 0n)
+    (kingMask & oppAttackMask) === 0n &&
+    (kingMasks[kingSq] & ~oppAttackMask & ~getAllPieces(bitboards)) !== 0n
   ) {
     return true;
   }
@@ -87,7 +90,7 @@ export const hasLegalMove = (
   let kingCheckMask = ~0n;
 
   // If king is in check
-  if (oppAttackMask & (1n << BigInt(kingSq))) {
+  if (oppAttackMask & kingMask) {
     const checkers = getCheckers(bitboards, player, kingSq);
     const numCheck = popcount(checkers);
 
@@ -104,6 +107,10 @@ export const hasLegalMove = (
       return kingMoves !== 0n;
     }
     if (numCheck !== 1) {
+      console.log(
+        bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare)
+      );
+      console.log(bigIntFullRep(oppAttackMask));
       throw new Error("KING IN CHECK W/O CHECKERS");
     }
 
@@ -119,7 +126,7 @@ export const hasLegalMove = (
     }
   }
 
-  let playerIndicies = getPlayerIndicies(player);
+  const playerIndicies = getPlayerIndicies(player);
   for (const square of playerIndicies) {
     const piece = pieceAt[square];
 

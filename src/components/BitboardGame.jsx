@@ -8,7 +8,6 @@ import { computeHash } from "./bitboardUtils/zobristHashing.mjs";
 import { checkGameOver } from "./bitboardUtils/gameOverLogic.mjs";
 import { movesToBB, moveToReadable } from "./bitboardUtils/generalHelpers.mjs";
 import {
-  initializePieceAtArray,
   isPlayersPieceAtSquare,
   pieceAt,
 } from "./bitboardUtils/pieceGetters.mjs";
@@ -20,13 +19,9 @@ import { BLACK_PAWN, WHITE_PAWN } from "./bitboardUtils/constants.mjs";
 import Move from "./bitboardUtils/moveMaking/move.mjs";
 import { isKing } from "./bitboardUtils/bbUtils.mjs";
 import {
-  getFENData,
   getOpeningMoves,
   squareToIndex,
 } from "./bitboardUtils/FENandUCIHelpers.mjs";
-import { initializePieceIndicies } from "./bitboardUtils/pieceIndicies.mjs";
-import { computeAllAttackMasks } from "./bitboardUtils/PieceMasks/individualAttackMasks.mjs";
-import { perftDivide } from "../__tests__/perft.mjs";
 
 // Runs the game
 const BitboardGame = () => {
@@ -50,7 +45,7 @@ const BitboardGame = () => {
 
   // Creates a new worker
   const worker = useMemo(() => {
-    return new Worker(new URL("./bbEngines/engineWorker.js", import.meta.url), {
+    return new Worker(new URL("./bbEngines/engineWorker.mjs", import.meta.url), {
       type: "module",
     });
   }, []);
@@ -382,7 +377,7 @@ const BitboardGame = () => {
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
-      getEngineMove(5, 5000);
+      getEngineMove(6, 5000);
     }
   }, [currPlayer, userSide]);
 

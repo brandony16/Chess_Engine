@@ -24,7 +24,7 @@ describe("computeMaskForPiece", () => {
     const expected = 0x01010101010101ffn - 1n;
 
     initializePieceIndicies(bitboards);
-    const mask = computeMaskForPiece(bitboards, ROOK, getAllPieces(bitboards));
+    const mask = computeMaskForPiece(ROOK, getAllPieces(bitboards));
 
     expect(mask).toBe(expected);
   });
@@ -40,7 +40,7 @@ describe("computeMaskForPiece", () => {
     const expected = 0x50800n;
 
     initializePieceIndicies(bitboards);
-    const mask = computeMaskForPiece(bitboards, KNIGHT, getAllPieces(bitboards));
+    const mask = computeMaskForPiece(KNIGHT, getAllPieces(bitboards));
     expect(mask).toBe(expected);
   });
 
@@ -59,7 +59,7 @@ describe("computeMaskForPiece", () => {
     initializePieceIndicies(bitboards);
     expected |= attacksOf(occ, QUEEN, 27);
 
-    const mask = computeMaskForPiece(bitboards, QUEEN, getAllPieces(bitboards));
+    const mask = computeMaskForPiece(QUEEN, getAllPieces(bitboards));
     expect(mask).toBe(expected);
   });
 
@@ -78,7 +78,7 @@ describe("computeMaskForPiece", () => {
     expected |= attacksOf(occ, BISHOP, 2);
     expected |= attacksOf(occ, BISHOP, 29);
 
-    const mask = computeMaskForPiece(bitboards, BISHOP, getAllPieces(bitboards));
+    const mask = computeMaskForPiece(BISHOP, getAllPieces(bitboards));
     expect(mask).toBe(expected);
   });
 });

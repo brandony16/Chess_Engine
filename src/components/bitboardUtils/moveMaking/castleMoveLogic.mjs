@@ -9,7 +9,7 @@ import {
   WHITE_QUEENSIDE,
   WHITE_ROOK,
 } from "../constants.mjs";
-import { pieceAt } from "../pieceGetters.mjs";
+import { getAllPieces, pieceAt } from "../pieceGetters.mjs";
 import { undoIndexArrayUpdate, updateIndexArrays } from "../pieceIndicies.mjs";
 import { updateAttackMasks } from "../PieceMasks/attackMask.mjs";
 
@@ -116,6 +116,7 @@ export const isQueensideCastleLegal = (player, attackMask, occ) => {
 export const makeCastleMove = (bitboards, move) => {
   const from = move.from;
   const to = move.to;
+  const oldOccupancy = getAllPieces(bitboards);
 
   if (from === 4 && to === 6) {
     // White kingside castling
@@ -160,7 +161,7 @@ export const makeCastleMove = (bitboards, move) => {
   }
 
   updateIndexArrays(move);
-  updateAttackMasks(bitboards, move);
+  updateAttackMasks(bitboards, move, oldOccupancy);
 };
 
 /**
@@ -172,6 +173,7 @@ export const makeCastleMove = (bitboards, move) => {
 export const unMakeCastleMove = (bitboards, move) => {
   const from = move.from;
   const to = move.to;
+  const oldOccupancy = getAllPieces(bitboards);
 
   if (from === 4 && to === 6) {
     // White kingside castling
@@ -216,5 +218,5 @@ export const unMakeCastleMove = (bitboards, move) => {
   }
 
   undoIndexArrayUpdate(move);
-  updateAttackMasks(bitboards, move);
+  updateAttackMasks(bitboards, move, oldOccupancy);
 };

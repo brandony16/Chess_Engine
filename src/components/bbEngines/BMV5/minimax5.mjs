@@ -5,7 +5,10 @@ import {
 } from "../../bitboardUtils/moveMaking/makeMoveLogic.mjs";
 import { updateHash } from "../../bitboardUtils/zobristHashing.mjs";
 import { checkGameOver } from "../../bitboardUtils/gameOverLogic.mjs";
-import { getNewEnPassant, isInCheck } from "../../bitboardUtils/bbChessLogic.mjs";
+import {
+  getNewEnPassant,
+  isInCheck,
+} from "../../bitboardUtils/bbChessLogic.mjs";
 import {
   getTT,
   setTT,
