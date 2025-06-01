@@ -53,11 +53,10 @@ export const minimax5 = (
   alpha,
   beta
 ) => {
-  // const side = player === WHITE ? +1 : -1;
-
+  const opponent = player === WHITE ? BLACK : WHITE;
   const gameOver = checkGameOver(
     bitboards,
-    player === WHITE ? BLACK : WHITE,
+    opponent,
     prevPositions,
     enPassantSquare,
     0
@@ -65,7 +64,7 @@ export const minimax5 = (
 
   if (gameOver.isGameOver) {
     return {
-      score: evaluate5(bitboards, player, gameOver.result, currentDepth),
+      score: evaluate5(bitboards, opponent, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -123,9 +122,9 @@ export const minimax5 = (
     const to = move.to;
 
     // 1) Transposition-table move is highest priority
-    // if (ttMove && from === ttMove.from && to === ttMove.to) {
-    //   score += 1_000_000;
-    // }
+    if (ttMove && from === ttMove.from && to === ttMove.to) {
+      score += 1_000_000;
+    }
 
     // 2) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
@@ -204,10 +203,18 @@ export const minimax5 = (
       -alpha
     );
 
+    if (move.from === 40 && move.to === 0) {
+      console.log(player);
+      console.log(evaluate5(bitboards, player, "Checkmate", 0));
+      console.log(moveEval);
+      console.log(bestEval);
+    }
+
     unMakeMove(move, bitboards);
     if (oldCount) prevPositions.set(hash, oldCount);
     else prevPositions.delete(hash);
 
+    // Invert moveEval to get eval from this players perspective
     const score = -moveEval;
     if (score > bestEval) {
       bestEval = score;

@@ -14,9 +14,7 @@ export const evaluate5 = (bitboards, player, result, depth) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
     if (result.includes("Checkmate")) {
-      return player === WHITE
-        ? -CHECKMATE_VALUE + depth
-        : CHECKMATE_VALUE - depth;
+        return -CHECKMATE_VALUE + depth;
     }
     return 0; // Draw
   }
