@@ -31,7 +31,7 @@ export const evaluate5 = (bitboards, player, result, depth) => {
     evaluation += playerMultiplier * (weights[piece % 6] + PIECE_SQUARE_TABLES[piece][square]);
   }
 
-  return evaluation;
+  return player === WHITE ? evaluation : -evaluation;
 };
 
 // Weights from Chess Programming Wiki Simplified Evaluation Function Page.

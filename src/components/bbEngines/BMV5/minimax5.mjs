@@ -53,7 +53,7 @@ export const minimax5 = (
   alpha,
   beta
 ) => {
-  const side = player === WHITE ? +1 : -1;
+  // const side = player === WHITE ? +1 : -1;
 
   const gameOver = checkGameOver(
     bitboards,
@@ -65,7 +65,7 @@ export const minimax5 = (
 
   if (gameOver.isGameOver) {
     return {
-      score: side * evaluate5(bitboards, player, gameOver.result, currentDepth),
+      score: evaluate5(bitboards, player, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -83,7 +83,7 @@ export const minimax5 = (
         prevPositions,
         prevHash
       );
-      return { score: side * q.score, move: null };
+      return { score: q.score, move: null };
     }
   }
 
@@ -95,16 +95,16 @@ export const minimax5 = (
 
   if (ttEntry && ttEntry.depth >= remaining && ttEntry.rootId === rootId) {
     if (ttEntry.flag === TT_FLAG.EXACT) {
-      return { score: side * ttEntry.value, move: ttEntry.bestMove };
+      return { score: ttEntry.value, move: ttEntry.bestMove };
     }
     if (ttEntry.flag === TT_FLAG.LOWER_BOUND) {
-      alpha = Math.max(alpha, side * ttEntry.value);
+      alpha = Math.max(alpha, ttEntry.value);
     }
     if (ttEntry.flag === TT_FLAG.UPPER_BOUND) {
-      beta = Math.min(beta, side * ttEntry.value);
+      beta = Math.min(beta, ttEntry.value);
     }
     if (alpha >= beta) {
-      return { score: side * ttEntry.value, move: ttEntry.bestMove };
+      return { score: ttEntry.value, move: ttEntry.bestMove };
     }
   }
 
@@ -123,9 +123,9 @@ export const minimax5 = (
     const to = move.to;
 
     // 1) Transposition-table move is highest priority
-    if (ttMove && from === ttMove.from && to === ttMove.to) {
-      score += 1_000_000;
-    }
+    // if (ttMove && from === ttMove.from && to === ttMove.to) {
+    //   score += 1_000_000;
+    // }
 
     // 2) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
@@ -241,7 +241,7 @@ export const minimax5 = (
 
   // Update transposition table
   let flag = TT_FLAG.EXACT;
-  const storedEval = side * bestEval;
+  const storedEval = bestEval;
   if (storedEval <= origAlpha) {
     flag = TT_FLAG.UPPER_BOUND;
   } else if (storedEval >= beta) {

@@ -83,7 +83,7 @@ const BitboardGame = () => {
     const from = bestMove.from;
     const to = bestMove.to;
     const promotion = bestMove.promotion;
-
+    
     processMove(from, to, promotion);
   };
 
@@ -369,6 +369,7 @@ const BitboardGame = () => {
   useEffect(() => {
     worker.onmessage = (e) => {
       const { move } = e.data;
+      console.log(move.bestEval);
 
       processMove(move.from, move.to, move.promotion);
     };
@@ -377,7 +378,7 @@ const BitboardGame = () => {
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
-      getEngineMove(6, 5000);
+      getEngineMove(4, 5000);
     }
   }, [currPlayer, userSide]);
 
