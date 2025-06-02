@@ -1,5 +1,6 @@
 import { getNewEnPassant } from "../../bitboardUtils/bbChessLogic.mjs";
 import { BLACK, NUM_PIECES, WHITE } from "../../bitboardUtils/constants.mjs";
+import { bitboardsToFEN } from "../../bitboardUtils/FENandUCIHelpers.mjs";
 import { checkGameOver } from "../../bitboardUtils/gameOverLogic.mjs";
 import { getQuiescenceMoves } from "../../bitboardUtils/moveGeneration/quiescenceMoves/quiescenceMoves.mjs";
 import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic.mjs";
@@ -164,6 +165,7 @@ export const quiesce = (
       throw new Error("Attack Mask Mismatch");
     }
   }
+  const savedBitboards = bitboards.slice();
   for (const move of orderedCaptures) {
     try {
       const victimValue = weights[move.captured % 6] || 0;
@@ -258,6 +260,7 @@ export const quiesce = (
     } catch (e) {
       console.log("Quiescence Move Depth: " + depth);
       console.log(move);
+      console.log(bitboardsToFEN(savedBitboards, player, castlingRights, enPassantSquare));
       throw e;
     }
   }

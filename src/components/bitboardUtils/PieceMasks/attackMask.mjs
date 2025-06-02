@@ -10,11 +10,9 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../constants.mjs";
-import { bigIntFullRep } from "../debugFunctions.mjs";
 import { getAllPieces } from "../pieceGetters.mjs";
 import { indexArrays } from "../pieceIndicies.mjs";
 import {
-  attacksOf,
   computeMaskForPiece,
   individualAttackMasks,
 } from "./individualAttackMasks.mjs";
@@ -25,7 +23,7 @@ import {
  * @param {BigUint64Array} bitboards - the new bitboards of the position
  * @param {Move} - the move that was made.
  */
-export const updateAttackMasks = (bitboards, move, oldOccupancy) => {
+export const updateAttackMasks = (bitboards, move) => {
   const piece = move.piece;
   const captured = move.captured;
   const promotion = move.promotion;
@@ -58,7 +56,9 @@ export const updateAttackMasks = (bitboards, move, oldOccupancy) => {
   ];
 
   for (const slider of sliders) {
-    updateOneSlidingType(slider, move, oldOccupancy, occupancy);
+    individualAttackMasks[slider] = computeMaskForPiece(slider, occupancy);
+
+    // updateOneSlidingType(slider, move, occupancy);
   }
 };
 
@@ -68,7 +68,7 @@ export const updateAttackMasks = (bitboards, move, oldOccupancy) => {
  * @param {BigUint64Array} bitboards - the new bitboards of the position
  * @param {Move} move - the move that was made.
  */
-export const undoAttackMaskUpdate = (bitboards, move, oldOccupancy) => {
+export const undoAttackMaskUpdate = (bitboards, move) => {
   const piece = move.piece;
   const captured = move.captured;
   const promotion = move.promotion;
@@ -101,7 +101,9 @@ export const undoAttackMaskUpdate = (bitboards, move, oldOccupancy) => {
   ];
 
   for (const slider of sliders) {
-    undoOneSlidingTypeUpdate(slider, move, oldOccupancy, occupancy);
+    individualAttackMasks[slider] = computeMaskForPiece(slider, occupancy);
+
+    // undoOneSlidingTypeUpdate(slider, move, occupancy);
   }
 };
 
@@ -111,31 +113,33 @@ export const undoAttackMaskUpdate = (bitboards, move, oldOccupancy) => {
  *
  * @param {number} piece - the piece to update. Not necessarily the same as move.piece
  * @param {Move} move - the move made
- * @param {bigint} oldOccupancy - occupancy bitboard before the move
- * @param {bigint} newOccupancy - occupancy bitboard after the move
+ * @param {bigint} occupancy - occupancy bitboard after the move
  */
-function updateOneSlidingType(piece, move, oldOccupancy, newOccupancy) {
-  let aggMask = individualAttackMasks[piece];
-  const indexArray = indexArrays[piece];
-  const from = move.from;
-  const to = move.to;
-
-  const oldSquares = getOldSquares(piece, move);
-  for (const sq of oldSquares) {
-    if (onSameRay(sq, from) || onSameRay(sq, to)) {
-      const oldAttack = attacksOf(oldOccupancy, piece, sq);
-      aggMask ^= oldAttack;
-    }
+function updateOneSlidingType(piece, move, occupancy) {
+  let pieceAttackMask = individualAttackMasks[piece];
+  if (move.captured === piece) {
+    individualAttackMasks[piece] = computeMaskForPiece(piece, occupancy);
   }
 
-  for (const sq of indexArray) {
-    if (onSameRay(sq, from) || onSameRay(sq, to)) {
-      const newAttack = attacksOf(newOccupancy, piece, sq);
-      aggMask |= newAttack;
-    }
-  }
+  const relevantBitMask = getRelevantBitMask(move);
 
-  individualAttackMasks[piece] = aggMask;
+  if ((pieceAttackMask & relevantBitMask) === 0n) return;
+
+  individualAttackMasks[piece] = computeMaskForPiece(piece, occupancy);
+}
+
+function getRelevantBitMask(move) {
+  let mask = 0n;
+
+  mask |= 1n << BigInt(move.from);
+  mask |= 1n << BigInt(move.to);
+
+  if (move.enPassant) {
+    const dir = move.piece > 6 ? +8 : -8;
+    const epCapturedPawnSquare = move.to + dir;
+    mask |= 1n << BigInt(epCapturedPawnSquare);
+  }
+  return mask;
 }
 
 /**
@@ -147,33 +151,30 @@ function updateOneSlidingType(piece, move, oldOccupancy, newOccupancy) {
  * @param {bigint} oldOccupancy - occupancy bitboard before the move
  * @param {bigint} newOccupancy - occupancy bitboard after the move
  */
-function undoOneSlidingTypeUpdate(piece, move, oldOccupancy, newOccupancy) {
-  let aggMask = individualAttackMasks[piece];
-  const indexArray = indexArrays[piece];
+function undoOneSlidingTypeUpdate(piece, move, occupancy) {
+  let pieceAttackMask = individualAttackMasks[piece];
+  if (move.captured === piece) {
+    individualAttackMasks[piece] = computeMaskForPiece(piece, occupancy);
+  }
 
-  // Swap from an to squares as we are undoing the move
-  const from = move.to;
-  const to = move.from;
+  const relevantBitMask = getRelevantBitMask(move);
 
-  const oldSquares = getUndoOldSquares(piece, move);
+  if ((pieceAttackMask & relevantBitMask) === 0n) return;
 
-  for (const sq of oldSquares) {
-    if (onSameRay(sq, from) || onSameRay(sq, to)) {
-      const oldAttack = attacksOf(oldOccupancy, piece, sq);
-      aggMask ^= oldAttack;
+  individualAttackMasks[piece] = computeMaskForPiece(piece, occupancy);
+}
+
+function isOnEnPassantRay(piece, move) {
+  if (!move.enPassant) return false;
+
+  const dir = move.piece > 6 ? +8 : -8;
+  const enPassantCapturedPieceSquare = move.to + dir;
+  for (const sq of indexArrays[piece]) {
+    if (onSameRay(enPassantCapturedPieceSquare, sq)) {
+      return true;
     }
   }
-  if (piece === 4) {
-    console.log(bigIntFullRep(aggMask));
-  }
-  for (const sq of indexArray) {
-    if (onSameRay(sq, from) || onSameRay(sq, to)) {
-      const newAttack = attacksOf(newOccupancy, piece, sq);
-      aggMask |= newAttack;
-    }
-  }
-
-  individualAttackMasks[piece] = aggMask;
+  return false;
 }
 
 /**

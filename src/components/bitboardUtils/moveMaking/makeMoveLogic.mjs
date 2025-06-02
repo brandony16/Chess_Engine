@@ -63,7 +63,7 @@ export const makeMove = (bitboards, move) => {
   }
 
   updateIndexArrays(move);
-  updateAttackMasks(bitboards, move, oldOccupancy);
+  updateAttackMasks(bitboards, move);
 };
 
 /**
@@ -84,7 +84,6 @@ export const unMakeMove = (move, bitboards) => {
   const captured = move.captured;
   const promotion = move.promotion;
   const enPassant = move.enPassant;
-  const oldOccupancy = getAllPieces(bitboards);
 
   // Undo castle
   if (move.castling) {
@@ -119,7 +118,7 @@ export const unMakeMove = (move, bitboards) => {
   }
 
   undoIndexArrayUpdate(move);
-  undoAttackMaskUpdate(bitboards, move, oldOccupancy);
+  undoAttackMaskUpdate(bitboards, move);
 };
 
 /**

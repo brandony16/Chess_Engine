@@ -14,12 +14,21 @@ import {
   setTT,
   TT_FLAG,
 } from "../../bitboardUtils/TranspositionTable/transpositionTable.mjs";
-import { BLACK, MAX_PLY, NUM_PIECES, WHITE } from "../../bitboardUtils/constants.mjs";
+import {
+  BLACK,
+  MAX_PLY,
+  NUM_PIECES,
+  WHITE,
+} from "../../bitboardUtils/constants.mjs";
 import { rootId } from "./BondMonkeyV5.mjs";
 import { evaluate5, weights } from "./evaluation5.mjs";
 import { quiesce } from "./quiesce.mjs";
 import { getAllLegalMoves } from "../../bitboardUtils/moveGeneration/allMoveGeneration.mjs";
-import { computeAllAttackMasks, individualAttackMasks } from "../../bitboardUtils/PieceMasks/individualAttackMasks.mjs";
+import {
+  computeAllAttackMasks,
+  individualAttackMasks,
+} from "../../bitboardUtils/PieceMasks/individualAttackMasks.mjs";
+import { bitboardsToFEN } from "../../bitboardUtils/FENandUCIHelpers.mjs";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -161,8 +170,20 @@ export const minimax5 = (
   let bestEval = -Infinity;
   let bestMove = null;
 
+  const savedBitboards = bitboards.slice();
   for (const move of orderedMoves) {
     try {
+      const prevMasks = individualAttackMasks.slice();
+      computeAllAttackMasks(bitboards);
+      for (let i = 0; i < NUM_PIECES; i++) {
+        if (prevMasks[i] !== individualAttackMasks[i]) {
+          console.log(
+            bitboardsToFEN(bitboards, player, newCastling, newEnPassant)
+          );
+          console.log("Mismatch with index " + i);
+          throw new Error("Attack Mask Mismatch");
+        }
+      }
       makeMove(bitboards, move);
 
       const from = move.from;
@@ -192,6 +213,17 @@ export const minimax5 = (
       const oldCount = prevPositions.get(hash) || 0;
       prevPositions.set(hash, oldCount + 1);
 
+      const masks = individualAttackMasks.slice();
+      computeAllAttackMasks(bitboards);
+      for (let i = 0; i < NUM_PIECES; i++) {
+        if (masks[i] !== individualAttackMasks[i]) {
+          console.log(
+            bitboardsToFEN(bitboards, player, newCastling, newEnPassant)
+          );
+          console.log("Mismatch with index " + i);
+          throw new Error("Attack Mask Mismatch");
+        }
+      }
       const { score: moveEval } = minimax5(
         bitboards,
         opponent,
@@ -206,6 +238,15 @@ export const minimax5 = (
       );
 
       unMakeMove(move, bitboards);
+      for (let i = 0; i < NUM_PIECES; i++) {
+        if (prevMasks[i] !== individualAttackMasks[i]) {
+          console.log(
+            bitboardsToFEN(bitboards, player, newCastling, newEnPassant)
+          );
+          console.log("Mismatch with index " + i);
+          throw new Error("Attack Mask Mismatch");
+        }
+      }
       if (oldCount) prevPositions.set(hash, oldCount);
       else prevPositions.delete(hash);
 
@@ -242,6 +283,7 @@ export const minimax5 = (
     } catch (e) {
       console.log("Minimax Move Depth: " + currentDepth);
       console.log(move);
+      console.log(bitboardsToFEN(savedBitboards, player, castlingRights, enPassantSquare))
       throw e;
     }
   }

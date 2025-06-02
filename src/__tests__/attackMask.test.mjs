@@ -335,8 +335,8 @@ describe("updateAttackMasks vs full recompute", () => {
     expect(oldMasks).toEqual(individualAttackMasks);
   });
 
-  test.only("debug position", () => {
-    const fen = "r2qkb1r/pp2Pppp/2n5/8/2p2P2/3P1P2/PpP1Q2P/R1B1KB1R w - - 0 1";
+  test("debug position", () => {
+    const fen = "4r1k1/1p1r1p2/3p1b1p/1p1P1Pp1/4n3/P3B2P/1PP3P1/1R1R2K1 w - g6 0 1";
     const fenData = getFENData(fen);
     bitboards = fenData.bitboards;
 
@@ -346,7 +346,7 @@ describe("updateAttackMasks vs full recompute", () => {
     // Snapshot old masks & bitboards
     const oldMasks = individualAttackMasks.slice();
 
-    const move = new Move(52, 59, 0, 10, 4, false, false);
+    const move = new Move(37, 46, 0, 6, null, false, true);
     makeMove(bitboards, move);
 
     const afterMoveAttackMasks = individualAttackMasks.slice();
