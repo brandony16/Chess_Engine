@@ -203,13 +203,6 @@ export const minimax5 = (
       -alpha
     );
 
-    if (move.from === 40 && move.to === 0) {
-      console.log(player);
-      console.log(evaluate5(bitboards, player, "Checkmate", 0));
-      console.log(moveEval);
-      console.log(bestEval);
-    }
-
     unMakeMove(move, bitboards);
     if (oldCount) prevPositions.set(hash, oldCount);
     else prevPositions.delete(hash);

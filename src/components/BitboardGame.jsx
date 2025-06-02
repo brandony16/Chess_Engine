@@ -369,7 +369,6 @@ const BitboardGame = () => {
   useEffect(() => {
     worker.onmessage = (e) => {
       const { move } = e.data;
-      console.log(move.bestEval);
 
       processMove(move.from, move.to, move.promotion);
     };

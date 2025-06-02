@@ -1,5 +1,6 @@
 import { BMV5 } from "../components/bbEngines/BMV5/BondMonkeyV5.mjs";
 import { getNewEnPassant } from "../components/bitboardUtils/bbChessLogic";
+import { BLACK_KNIGHT, WHITE_KNIGHT } from "../components/bitboardUtils/constants.mjs";
 import { areBigUint64ArraysEqual } from "../components/bitboardUtils/debugFunctions";
 import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
 import { getAllLegalMoves } from "../components/bitboardUtils/moveGeneration/allMoveGeneration";
@@ -132,7 +133,7 @@ describe.only("Engine finds obvious best moves", () => {
     expect(engineObj.to).toBe(26);
   });
 
-  test("engine plays mate for white", () => {
+  test("engine plays mate in 1 for white", () => {
     const fen = "5k2/2Q5/5K2/8/8/8/8/8 w - - 0 1";
     const fenData = getFENData(fen);
     const bitboards = fenData.bitboards;
@@ -149,7 +150,7 @@ describe.only("Engine finds obvious best moves", () => {
     expect(engineObj.to).toBe(53);
   });
 
-  test("engine plays mate for black", () => {
+  test("engine plays mate in 1 for black", () => {
     const fen = "8/8/r7/6k1/8/8/1r6/5K2 b - - 0 1";
     const fenData = getFENData(fen);
     const bitboards = fenData.bitboards;
@@ -164,5 +165,103 @@ describe.only("Engine finds obvious best moves", () => {
     const engineObj = BMV5(bitboards, player, castling, ep, new Map(), 4);
     expect(engineObj.from).toBe(40);
     expect(engineObj.to).toBe(0);
+  });
+
+  test("engine plays mate in 2 for white", () => {
+    const fen = "b5k1/1Q4p1/7p/8/8/8/8/3BR1K1 w - - 0 1";
+    const fenData = getFENData(fen);
+    const bitboards = fenData.bitboards;
+    const player = fenData.player;
+    const castling = fenData.castling;
+    const ep = fenData.ep;
+
+    initializePieceIndicies(bitboards);
+    computeAllAttackMasks(bitboards);
+    initializePieceAtArray(bitboards);
+
+    const engineObj = BMV5(bitboards, player, castling, ep, new Map(), 4);
+    expect(engineObj.from).toBe(4);
+    expect(engineObj.to).toBe(60);
+  });
+
+  test("engine plays mate in 2 for black", () => {
+    const fen = "3br1k1/8/8/8/8/7P/1q4P1/B5K1 b - - 0 1";
+    const fenData = getFENData(fen);
+    const bitboards = fenData.bitboards;
+    const player = fenData.player;
+    const castling = fenData.castling;
+    const ep = fenData.ep;
+
+    initializePieceIndicies(bitboards);
+    computeAllAttackMasks(bitboards);
+    initializePieceAtArray(bitboards);
+
+    const engineObj = BMV5(bitboards, player, castling, ep, new Map(), 4);
+    expect(engineObj.from).toBe(60);
+    expect(engineObj.to).toBe(4);
+  });
+
+  test("engine correctly calculates capture sequence for white", () => {
+    const fen = "3q2k1/pp1r1ppp/3r4/3n4/8/1B1R4/PP1R1PPP/3Q2K1 w - - 0 1";
+    const fenData = getFENData(fen);
+    const bitboards = fenData.bitboards;
+    const player = fenData.player;
+    const castling = fenData.castling;
+    const ep = fenData.ep;
+
+    initializePieceIndicies(bitboards);
+    computeAllAttackMasks(bitboards);
+    initializePieceAtArray(bitboards);
+
+    const engineObj = BMV5(bitboards, player, castling, ep, new Map(), 4);
+    expect(engineObj.captured).toBe(BLACK_KNIGHT);
+  });
+
+  test("engine correctly calculates good capture sequence for black", () => {
+    const fen = "3q2k1/pp1r1ppp/1b1r4/8/3N4/3R4/PP1R1PPP/3Q2K1 b - - 0 1";
+    const fenData = getFENData(fen);
+    const bitboards = fenData.bitboards;
+    const player = fenData.player;
+    const castling = fenData.castling;
+    const ep = fenData.ep;
+
+    initializePieceIndicies(bitboards);
+    computeAllAttackMasks(bitboards);
+    initializePieceAtArray(bitboards);
+
+    const engineObj = BMV5(bitboards, player, castling, ep, new Map(), 4);
+    expect(engineObj.captured).toBe(WHITE_KNIGHT);
+  });
+
+  test("engine correctly calculates bad capture sequence for white", () => {
+    const fen = "3q2k1/pp1r1ppp/3r4/3n4/8/3R4/PP1R1PPP/3Q2K1 w - - 0 1";
+    const fenData = getFENData(fen);
+    const bitboards = fenData.bitboards;
+    const player = fenData.player;
+    const castling = fenData.castling;
+    const ep = fenData.ep;
+
+    initializePieceIndicies(bitboards);
+    computeAllAttackMasks(bitboards);
+    initializePieceAtArray(bitboards);
+
+    const engineObj = BMV5(bitboards, player, castling, ep, new Map(), 4);
+    expect(engineObj.captured).toBe(null);
+  });
+
+  test("engine correctly calculates bad capture sequence for black", () => {
+    const fen = "3q2k1/pp1r1ppp/3r4/8/3N4/3R4/PP1R1PPP/3Q2K1 b - - 0 1";
+    const fenData = getFENData(fen);
+    const bitboards = fenData.bitboards;
+    const player = fenData.player;
+    const castling = fenData.castling;
+    const ep = fenData.ep;
+
+    initializePieceIndicies(bitboards);
+    computeAllAttackMasks(bitboards);
+    initializePieceAtArray(bitboards);
+
+    const engineObj = BMV5(bitboards, player, castling, ep, new Map(), 1);
+    expect(engineObj.captured).toBe(null);
   });
 });
