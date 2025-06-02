@@ -21,6 +21,7 @@ import { kingMasks } from "./PieceMasks/kingMask.mjs";
 import { getPlayerIndicies, indexArrays } from "./pieceIndicies.mjs";
 import { bitboardsToFEN } from "./FENandUCIHelpers.mjs";
 import { bigIntFullRep } from "./debugFunctions.mjs";
+import { computeAllAttackMasks } from "./PieceMasks/individualAttackMasks.mjs";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -76,6 +77,10 @@ export const hasLegalMove = (
 
   const kingIndex = isWhite ? WHITE_KING : BLACK_KING;
   const kingSq = indexArrays[kingIndex][0];
+  if (kingSq === undefined) {
+    console.log(indexArrays[kingIndex], kingIndex);
+    console.log(bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare))
+  }
   const kingMask = 1n << BigInt(kingSq);
 
   // If king is not in check and it has a move then there is a legal move
@@ -111,6 +116,8 @@ export const hasLegalMove = (
         bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare)
       );
       console.log(bigIntFullRep(oppAttackMask));
+      computeAllAttackMasks(bitboards);
+      console.log(bigIntFullRep(getAttackMask(opponent)));
       throw new Error("KING IN CHECK W/O CHECKERS");
     }
 

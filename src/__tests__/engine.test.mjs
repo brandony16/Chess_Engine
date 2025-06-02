@@ -1,6 +1,9 @@
 import { BMV5 } from "../components/bbEngines/BMV5/BondMonkeyV5.mjs";
 import { getNewEnPassant } from "../components/bitboardUtils/bbChessLogic";
-import { BLACK_KNIGHT, WHITE_KNIGHT } from "../components/bitboardUtils/constants.mjs";
+import {
+  BLACK_KNIGHT,
+  WHITE_KNIGHT,
+} from "../components/bitboardUtils/constants.mjs";
 import { areBigUint64ArraysEqual } from "../components/bitboardUtils/debugFunctions";
 import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
 import { getAllLegalMoves } from "../components/bitboardUtils/moveGeneration/allMoveGeneration";
@@ -263,5 +266,21 @@ describe.only("Engine finds obvious best moves", () => {
 
     const engineObj = BMV5(bitboards, player, castling, ep, new Map(), 1);
     expect(engineObj.captured).toBe(null);
+  });
+
+  test.only("debug", () => {
+    const fen = "r2qkb1r/pp2pppp/2n2P2/8/2p2P2/2pP1P2/PPP1Q2P/R1B1KB1R w - - 0 1";
+    const fenData = getFENData(fen);
+    const bitboards = fenData.bitboards;
+    const player = fenData.player;
+    const castling = fenData.castling;
+    const ep = fenData.ep;
+
+    initializePieceIndicies(bitboards);
+    computeAllAttackMasks(bitboards);
+    initializePieceAtArray(bitboards);
+
+    const engineObj = BMV5(bitboards, player, castling, ep, new Map(), 1);
+    expect(engineObj).not.toBe(null);
   });
 });

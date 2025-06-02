@@ -10,6 +10,7 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../constants.mjs";
+import { bigIntFullRep } from "../debugFunctions.mjs";
 import { getAllPieces } from "../pieceGetters.mjs";
 import { indexArrays } from "../pieceIndicies.mjs";
 import {
@@ -155,13 +156,16 @@ function undoOneSlidingTypeUpdate(piece, move, oldOccupancy, newOccupancy) {
   const to = move.from;
 
   const oldSquares = getUndoOldSquares(piece, move);
+
   for (const sq of oldSquares) {
     if (onSameRay(sq, from) || onSameRay(sq, to)) {
       const oldAttack = attacksOf(oldOccupancy, piece, sq);
       aggMask ^= oldAttack;
     }
   }
-
+  if (piece === 4) {
+    console.log(bigIntFullRep(aggMask));
+  }
   for (const sq of indexArray) {
     if (onSameRay(sq, from) || onSameRay(sq, to)) {
       const newAttack = attacksOf(newOccupancy, piece, sq);

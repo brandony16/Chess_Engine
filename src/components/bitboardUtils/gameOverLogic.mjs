@@ -36,9 +36,6 @@ export const checkGameOver = (
 ) => {
   const isPlayerWhite = player === WHITE;
   const opponent = isPlayerWhite ? BLACK : WHITE;
-
-  const kingIndex = isPlayerWhite ? BLACK_KING : WHITE_KING;
-  const kingSquare = indexArrays[kingIndex][0];
   const attackMask = getAttackMask(player);
 
   const result = { isGameOver: false, result: null };
@@ -63,6 +60,8 @@ export const checkGameOver = (
   if (!hasLegalMove(bitboards, opponent, null, enPassantSquare)) {
     result.isGameOver = true;
 
+    const kingIndex = isPlayerWhite ? BLACK_KING : WHITE_KING;
+    const kingSquare = indexArrays[kingIndex][0];
     if (isSquareAttacked(kingSquare, attackMask)) {
       const fullPlayer = isPlayerWhite ? "White" : "Black";
 

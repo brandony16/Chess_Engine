@@ -91,6 +91,15 @@ const cases = [
   ],
 ];
 
+const debug = [
+  [
+    "s",
+    1,
+    1,
+    "5rk1/5pP1/7p/3b3P/8/8/2pr1Q2/2R1R1K1 b - - 0 1"
+  ]
+]
+
 describe("perft node counts", () => {
   test.each(cases)("%s depth %i → %i nodes", (_desc, depth, expected, fen) => {
     const fenData = getFENData(fen);
