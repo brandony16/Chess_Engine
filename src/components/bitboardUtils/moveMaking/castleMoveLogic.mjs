@@ -11,7 +11,7 @@ import {
 } from "../constants.mjs";
 import { getAllPieces, pieceAt } from "../pieceGetters.mjs";
 import { undoIndexArrayUpdate, updateIndexArrays } from "../pieceIndicies.mjs";
-import { undoAttackMaskUpdate, updateAttackMasks } from "../PieceMasks/attackMask.mjs";
+import { updateAttackMasks } from "../PieceMasks/attackMask.mjs";
 
 /**
  * Updates castling rights given the square moved from.
@@ -218,5 +218,5 @@ export const unMakeCastleMove = (bitboards, move) => {
   }
 
   undoIndexArrayUpdate(move);
-  undoAttackMaskUpdate(bitboards, move, oldOccupancy);
+  updateAttackMasks(bitboards, move, oldOccupancy);
 };

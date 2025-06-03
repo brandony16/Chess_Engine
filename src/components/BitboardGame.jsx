@@ -302,10 +302,12 @@ const BitboardGame = () => {
     let whiteSide = engine1;
     let blackSide = engine2;
     while (gameNum <= games) {
+      // Set up game and play opening
       resetGame(true);
       console.log("Game " + gameNum + " started");
       await playRandomOpening();
 
+      // Sim games
       while (!useGameStore.getState().isGameOver) {
         makeEngineMove(whiteSide, depth, 5000);
         if (useGameStore.getState().isGameOver) break;
@@ -313,6 +315,7 @@ const BitboardGame = () => {
         makeEngineMove(blackSide, depth, 5000);
         if (useGameStore.getState().isGameOver) break;
       }
+
       const result = useGameStore.getState().result;
       console.log("Game " + gameNum + " Over");
       console.log(result);
@@ -329,6 +332,7 @@ const BitboardGame = () => {
         losses++;
       }
 
+      // Flip sides
       resetGame(true);
       const temp = whiteSide;
       whiteSide = blackSide;
@@ -340,7 +344,8 @@ const BitboardGame = () => {
     console.log("\n Wins: " + wins);
     console.log("\n Draws: " + draws);
     console.log("\n Losses: " + losses);
-    const winRate = (wins / games) * 100;
+    // 1 decimal place
+    const winRate = Number(((wins / games) * 100).toFixed(1));
     console.log("Win Rate: " + winRate + "%");
   };
 
@@ -377,7 +382,7 @@ const BitboardGame = () => {
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
-      getEngineMove(4, 5000);
+      getEngineMove(5, 5000);
     }
   }, [currPlayer, userSide]);
 

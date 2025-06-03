@@ -8,7 +8,7 @@ import {
 } from "../constants.mjs";
 import { getAllPieces, pieceAt } from "../pieceGetters.mjs";
 import { undoIndexArrayUpdate, updateIndexArrays } from "../pieceIndicies.mjs";
-import { undoAttackMaskUpdate, updateAttackMasks } from "../PieceMasks/attackMask.mjs";
+import { updateAttackMasks } from "../PieceMasks/attackMask.mjs";
 import { makeCastleMove, unMakeCastleMove } from "./castleMoveLogic.mjs";
 import Move from "./move.mjs";
 
@@ -118,7 +118,7 @@ export const unMakeMove = (move, bitboards) => {
   }
 
   undoIndexArrayUpdate(move);
-  undoAttackMaskUpdate(bitboards, move);
+  updateAttackMasks(bitboards, move);
 };
 
 /**
