@@ -7,7 +7,6 @@ import {
   makeMove,
   unMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic.mjs";
-import { updateAttackMasks } from "../../bitboardUtils/PieceMasks/attackMask.mjs";
 import {
   getQTT,
   setQTT,
@@ -52,27 +51,23 @@ export const quiesce = (
   prevHash,
   depth = 0
 ) => {
+  const opponent = player === WHITE ? BLACK : WHITE;
   const gameOver = checkGameOver(
     bitboards,
-    player,
+    opponent,
     prevPositions,
     enPassantSquare,
     0
   );
   if (gameOver.isGameOver) {
     return {
-      score: evaluate3(bitboards, player, gameOver.result, 0),
+      score: evaluate3(opponent, gameOver.result, 0),
       move: null,
     };
   }
 
   // Static evaluation of the position
-  const standPat = evaluate3(
-    bitboards,
-    player,
-    /* result */ null,
-    /* depth */ 0
-  );
+  const standPat = evaluate3(player, null, 0);
 
   if (depth + 1 > maxQDepth) {
     return { score: standPat, move: null };
@@ -85,6 +80,7 @@ export const quiesce = (
   const origAlpha = alpha;
   alpha = Math.max(alpha, standPat);
 
+  // Use transposition values
   const ttEntry = getQTT(prevHash);
   const remaining = maxQDepth - depth;
   if (ttEntry && ttEntry.depth >= remaining && ttEntry.isQuiescence) {
@@ -118,8 +114,8 @@ export const quiesce = (
       if (move.captured) {
         score +=
           100_000 +
-          (Math.abs(WEIGHTS[move.captured]) || 0) -
-          (Math.abs(WEIGHTS[move.piece]) || 0);
+          (WEIGHTS[move.captured % 6] || 0) -
+          (WEIGHTS[move.piece % 6] || 0);
       }
 
       // 3) Killer moves at this ply
@@ -141,14 +137,7 @@ export const quiesce = (
   captures.sort((a, b) => b.score - a.score);
   const orderedCaptures = captures.map((m) => m.move);
 
-  const opponent = player === WHITE ? BLACK : WHITE;
   for (const move of orderedCaptures) {
-    const attackerValue = Math.abs(WEIGHTS[move.piece]) || 0;
-    const victimValue = Math.abs(WEIGHTS[move.captured]) || 0;
-    const seeGain = victimValue - attackerValue;
-    // if even winning the capture can’t push us above alpha, skip it:
-    if (standPat + seeGain <= alpha) continue;
-
     makeMove(bitboards, move);
 
     const newEnPassant = getNewEnPassant(move);
@@ -176,7 +165,7 @@ export const quiesce = (
       castlingChanged
     );
     const oldCount = prevPositions.get(newHash) || 0;
-    prevPositions.set(newHash, (prevPositions.get(newHash) || 0) + 1);
+    prevPositions.set(newHash, oldCount + 1);
 
     const { score: scoreAfterCapture } = quiesce(
       bitboards,

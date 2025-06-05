@@ -5,16 +5,15 @@ import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
 
 /**
  * Gets the evaluation of the given position based purely off of the material in the position.
- * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} player - the opposite player. If black plays checkmate, this is white.
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation
  */
-export const evaluate5 = (bitboards, player, result, depth) => {
+export const evaluate5 = (player, result, depth) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
     if (result.includes("Checkmate")) {
-        return -CHECKMATE_VALUE + depth;
+      return -CHECKMATE_VALUE + depth;
     }
     return 0; // Draw
   }
@@ -26,7 +25,9 @@ export const evaluate5 = (bitboards, player, result, depth) => {
     const piece = pieceAt[square];
     const playerMultiplier = piece < 6 ? 1 : -1;
 
-    evaluation += playerMultiplier * (weights[piece % 6] + PIECE_SQUARE_TABLES[piece][square]);
+    evaluation +=
+      playerMultiplier *
+      (weights[piece % 6] + PIECE_SQUARE_TABLES[piece][square]);
   }
 
   return player === WHITE ? evaluation : -evaluation;

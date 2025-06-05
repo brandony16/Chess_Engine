@@ -155,7 +155,7 @@ export const BLACK_QUEENSIDE = 3;
 export const PLAYER_ZOBRIST = 0x9d39247e33776d41n;
 export const EN_PASSANT_ZOBRIST = 0xf3a9b72c85d614e7n;
 
-// PIece weights
+// Basic Piece Weights based off of literal material values
 export const WEIGHTS = [1, 3, 3, 5, 9, 1000, -1, -3, -3, -5, -9, -1000];
 
 // Checkmate evaluation constant

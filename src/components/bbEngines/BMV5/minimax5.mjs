@@ -14,21 +14,11 @@ import {
   setTT,
   TT_FLAG,
 } from "../../bitboardUtils/TranspositionTable/transpositionTable.mjs";
-import {
-  BLACK,
-  MAX_PLY,
-  NUM_PIECES,
-  WHITE,
-} from "../../bitboardUtils/constants.mjs";
+import { BLACK, MAX_PLY, WHITE } from "../../bitboardUtils/constants.mjs";
 import { rootId } from "./BondMonkeyV5.mjs";
 import { evaluate5, weights } from "./evaluation5.mjs";
-import { quiesce } from "./quiesce.mjs";
+import { quiesce3 } from "./quiesce.mjs";
 import { getAllLegalMoves } from "../../bitboardUtils/moveGeneration/allMoveGeneration.mjs";
-import {
-  computeAllAttackMasks,
-  individualAttackMasks,
-} from "../../bitboardUtils/PieceMasks/individualAttackMasks.mjs";
-import { bitboardsToFEN } from "../../bitboardUtils/FENandUCIHelpers.mjs";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -74,7 +64,7 @@ export const minimax5 = (
 
   if (gameOver.isGameOver) {
     return {
-      score: evaluate5(bitboards, opponent, gameOver.result, currentDepth),
+      score: evaluate5(opponent, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -82,7 +72,7 @@ export const minimax5 = (
   if (currentDepth >= maxDepth) {
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
-      const q = quiesce(
+      const q = quiesce3(
         bitboards,
         player,
         alpha,
@@ -140,8 +130,8 @@ export const minimax5 = (
     if (move.captured) {
       score +=
         100_000 +
-        (Math.abs(weights[move.captured]) || 0) -
-        (Math.abs(weights[move.piece]) || 0);
+        (weights[move.captured % 6] || 0) -
+        (weights[move.piece % 6] || 0);
     }
 
     // 3) Killer moves at this ply
@@ -158,7 +148,7 @@ export const minimax5 = (
     return { move, score };
   });
 
-  // If the game is over, it would have been caught by gameOver check at beginning
+  // If the game is over, it would have been caught by terminal check
   if (scored.length === 0) {
     throw new Error("Issue with move generation. No moves generated");
   }
@@ -170,121 +160,82 @@ export const minimax5 = (
   let bestEval = -Infinity;
   let bestMove = null;
 
-  const savedBitboards = bitboards.slice();
   for (const move of orderedMoves) {
-    try {
-      const prevMasks = individualAttackMasks.slice();
-      computeAllAttackMasks(bitboards);
-      for (let i = 0; i < NUM_PIECES; i++) {
-        if (prevMasks[i] !== individualAttackMasks[i]) {
-          console.log(
-            bitboardsToFEN(bitboards, player, newCastling, newEnPassant)
-          );
-          console.log("Mismatch with index " + i);
-          throw new Error("Attack Mask Mismatch");
+    makeMove(bitboards, move);
+
+    const from = move.from;
+
+    // New game states
+    const newEnPassant = getNewEnPassant(move);
+    const newCastling = updateCastlingRights(from, move.to, castlingRights);
+
+    // Update Hash
+    const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
+    const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
+    const castlingChanged = new Array(newCastling.length);
+    for (let i = 0; i < newCastling.length; i++) {
+      if (castlingRights[i] !== newCastling[i]) {
+        castlingChanged[i] = true;
+      } else {
+        castlingChanged[i] = false;
+      }
+    }
+    const hash = updateHash(
+      prevHash,
+      move,
+      newEpFile,
+      prevEpFile,
+      castlingChanged
+    );
+    const oldCount = prevPositions.get(hash) || 0;
+    prevPositions.set(hash, oldCount + 1);
+
+    const { score: moveEval } = minimax5(
+      bitboards,
+      opponent,
+      newCastling,
+      newEnPassant,
+      prevPositions,
+      hash,
+      currentDepth + 1,
+      maxDepth,
+      -beta,
+      -alpha
+    );
+
+    unMakeMove(move, bitboards);
+    if (oldCount) prevPositions.set(hash, oldCount);
+    else prevPositions.delete(hash);
+
+    // Invert moveEval to get eval from this players perspective
+    const score = -moveEval;
+    if (score > bestEval) {
+      bestEval = score;
+      bestMove = move;
+    }
+
+    if (score > alpha) {
+      alpha = score;
+    }
+
+    if (beta <= alpha) {
+      // Update killer moves and history scores
+      if (move.captured === null) {
+        const killer = killerMoves[currentDepth];
+
+        if (
+          !killer[0] ||
+          move.from !== killer[0].from ||
+          move.to !== killer[0].to
+        ) {
+          killer[1] = killer[0];
+          killer[0] = move;
         }
+
+        // Weights this move higher in history
+        historyScores[move.from][move.to] += 2 ^ (maxDepth - currentDepth);
       }
-      makeMove(bitboards, move);
-
-      const from = move.from;
-
-      // New game states
-      const newEnPassant = getNewEnPassant(move);
-      const newCastling = updateCastlingRights(from, move.to, castlingRights);
-
-      // Update Hash
-      const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
-      const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
-      const castlingChanged = new Array(newCastling.length);
-      for (let i = 0; i < newCastling.length; i++) {
-        if (castlingRights[i] !== newCastling[i]) {
-          castlingChanged[i] = true;
-        } else {
-          castlingChanged[i] = false;
-        }
-      }
-      const hash = updateHash(
-        prevHash,
-        move,
-        newEpFile,
-        prevEpFile,
-        castlingChanged
-      );
-      const oldCount = prevPositions.get(hash) || 0;
-      prevPositions.set(hash, oldCount + 1);
-
-      const masks = individualAttackMasks.slice();
-      computeAllAttackMasks(bitboards);
-      for (let i = 0; i < NUM_PIECES; i++) {
-        if (masks[i] !== individualAttackMasks[i]) {
-          console.log(
-            bitboardsToFEN(bitboards, player, newCastling, newEnPassant)
-          );
-          console.log("Mismatch with index " + i);
-          throw new Error("Attack Mask Mismatch");
-        }
-      }
-      const { score: moveEval } = minimax5(
-        bitboards,
-        opponent,
-        newCastling,
-        newEnPassant,
-        prevPositions,
-        hash,
-        currentDepth + 1,
-        maxDepth,
-        -beta,
-        -alpha
-      );
-
-      unMakeMove(move, bitboards);
-      for (let i = 0; i < NUM_PIECES; i++) {
-        if (prevMasks[i] !== individualAttackMasks[i]) {
-          console.log(
-            bitboardsToFEN(bitboards, player, newCastling, newEnPassant)
-          );
-          console.log("Mismatch with index " + i);
-          throw new Error("Attack Mask Mismatch");
-        }
-      }
-      if (oldCount) prevPositions.set(hash, oldCount);
-      else prevPositions.delete(hash);
-
-      // Invert moveEval to get eval from this players perspective
-      const score = -moveEval;
-      if (score > bestEval) {
-        bestEval = score;
-        bestMove = move;
-      }
-
-      if (score > alpha) {
-        alpha = score;
-      }
-
-      if (beta <= alpha) {
-        // Update killer moves and history scores
-        if (move.captured === null) {
-          const killer = killerMoves[currentDepth];
-
-          if (
-            !killer[0] ||
-            move.from !== killer[0].from ||
-            move.to !== killer[0].to
-          ) {
-            killer[1] = killer[0];
-            killer[0] = move;
-          }
-
-          // Weights this move higher in history
-          historyScores[move.from][move.to] += 2 ^ (maxDepth - currentDepth);
-        }
-        break;
-      }
-    } catch (e) {
-      console.log("Minimax Move Depth: " + currentDepth);
-      console.log(move);
-      console.log(bitboardsToFEN(savedBitboards, player, castlingRights, enPassantSquare))
-      throw e;
+      break;
     }
   }
 

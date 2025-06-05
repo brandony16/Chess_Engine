@@ -5,7 +5,10 @@ import {
 } from "../../bitboardUtils/moveMaking/makeMoveLogic.mjs";
 import { updateHash } from "../../bitboardUtils/zobristHashing.mjs";
 import { checkGameOver } from "../../bitboardUtils/gameOverLogic.mjs";
-import { getNewEnPassant, isInCheck } from "../../bitboardUtils/bbChessLogic.mjs";
+import {
+  getNewEnPassant,
+  isInCheck,
+} from "../../bitboardUtils/bbChessLogic.mjs";
 import {
   getTT,
   setTT,
@@ -14,7 +17,7 @@ import {
 import { BLACK, MAX_PLY, WHITE } from "../../bitboardUtils/constants.mjs";
 import { rootId } from "./BondMonkeyV4.mjs";
 import { evaluate4, weights } from "./evaluation4.mjs";
-import { quiesce } from "./quiesce.mjs";
+import { quiesce2 } from "./quiesce.mjs";
 import { getAllLegalMoves } from "../../bitboardUtils/moveGeneration/allMoveGeneration.mjs";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
@@ -50,11 +53,10 @@ export const minimax4 = (
   alpha,
   beta
 ) => {
-  const side = player === WHITE ? +1 : -1;
-
+  const opponent = player === WHITE ? BLACK : WHITE;
   const gameOver = checkGameOver(
     bitboards,
-    player === WHITE ? BLACK : WHITE,
+    opponent,
     prevPositions,
     enPassantSquare,
     0
@@ -62,7 +64,7 @@ export const minimax4 = (
 
   if (gameOver.isGameOver) {
     return {
-      score: side * evaluate4(bitboards, player, gameOver.result, currentDepth),
+      score: evaluate4(opponent, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -70,7 +72,7 @@ export const minimax4 = (
   if (currentDepth >= maxDepth) {
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
-      const q = quiesce(
+      const q = quiesce2(
         bitboards,
         player,
         alpha,
@@ -80,7 +82,7 @@ export const minimax4 = (
         prevPositions,
         prevHash
       );
-      return { score: side * q.score, move: null };
+      return { score: q.score, move: null };
     }
   }
 
@@ -92,16 +94,16 @@ export const minimax4 = (
 
   if (ttEntry && ttEntry.depth >= remaining && ttEntry.rootId === rootId) {
     if (ttEntry.flag === TT_FLAG.EXACT) {
-      return { score: side * ttEntry.value, move: ttEntry.bestMove };
+      return { score: ttEntry.value, move: ttEntry.bestMove };
     }
     if (ttEntry.flag === TT_FLAG.LOWER_BOUND) {
-      alpha = Math.max(alpha, side * ttEntry.value);
+      alpha = Math.max(alpha, ttEntry.value);
     }
     if (ttEntry.flag === TT_FLAG.UPPER_BOUND) {
-      beta = Math.min(beta, side * ttEntry.value);
+      beta = Math.min(beta, ttEntry.value);
     }
     if (alpha >= beta) {
-      return { score: side * ttEntry.value, move: ttEntry.bestMove };
+      return { score: ttEntry.value, move: ttEntry.bestMove };
     }
   }
 
@@ -128,8 +130,8 @@ export const minimax4 = (
     if (move.captured) {
       score +=
         100_000 +
-        (Math.abs(weights[move.captured]) || 0) -
-        (Math.abs(weights[move.piece]) || 0);
+        (weights[move.captured % 6] || 0) -
+        (weights[move.piece % 6] || 0);
     }
 
     // 3) Killer moves at this ply
@@ -238,7 +240,7 @@ export const minimax4 = (
 
   // Update transposition table
   let flag = TT_FLAG.EXACT;
-  const storedEval = side * bestEval;
+  const storedEval = bestEval;
   if (storedEval <= origAlpha) {
     flag = TT_FLAG.UPPER_BOUND;
   } else if (storedEval >= beta) {

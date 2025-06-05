@@ -1,6 +1,5 @@
 import { getNewEnPassant } from "../../bitboardUtils/bbChessLogic.mjs";
-import { BLACK, NUM_PIECES, WHITE } from "../../bitboardUtils/constants.mjs";
-import { bitboardsToFEN } from "../../bitboardUtils/FENandUCIHelpers.mjs";
+import { BLACK, WHITE } from "../../bitboardUtils/constants.mjs";
 import { checkGameOver } from "../../bitboardUtils/gameOverLogic.mjs";
 import { getQuiescenceMoves } from "../../bitboardUtils/moveGeneration/quiescenceMoves/quiescenceMoves.mjs";
 import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic.mjs";
@@ -8,10 +7,6 @@ import {
   makeMove,
   unMakeMove,
 } from "../../bitboardUtils/moveMaking/makeMoveLogic.mjs";
-import {
-  computeAllAttackMasks,
-  individualAttackMasks,
-} from "../../bitboardUtils/PieceMasks/individualAttackMasks.mjs";
 import {
   getQTT,
   setQTT,
@@ -45,7 +40,7 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  *
  * @returns {{ score: number, move: null }} - an object with the score and move number
  */
-export const quiesce = (
+export const quiesce3 = (
   bitboards,
   player,
   alpha,
@@ -56,15 +51,8 @@ export const quiesce = (
   prevHash,
   depth = 0
 ) => {
+  // Terminal check for if game is over
   const opponent = player === WHITE ? BLACK : WHITE;
-  const masks = individualAttackMasks.slice();
-  computeAllAttackMasks(bitboards);
-  for (let i = 0; i < NUM_PIECES; i++) {
-    if (masks[i] !== individualAttackMasks[i]) {
-      console.log(depth);
-      throw new Error("Attack Mask Mismatch");
-    }
-  }
   const gameOver = checkGameOver(
     bitboards,
     opponent,
@@ -72,26 +60,15 @@ export const quiesce = (
     enPassantSquare,
     0
   );
-  for (let i = 0; i < NUM_PIECES; i++) {
-    if (masks[i] !== individualAttackMasks[i]) {
-      console.log(depth);
-      throw new Error("Attack Mask Mismatch");
-    }
-  }
   if (gameOver.isGameOver) {
     return {
-      score: evaluate5(bitboards, opponent, gameOver.result, 0),
+      score: evaluate5(opponent, gameOver.result, 0),
       move: null,
     };
   }
 
   // Static evaluation of the position
-  const standPat = evaluate5(
-    bitboards,
-    player,
-    /* result */ null,
-    /* depth */ 0
-  );
+  const standPat = evaluate5(player, null, 0);
 
   if (depth + 1 > maxQDepth) {
     return { score: standPat, move: null };
@@ -104,6 +81,7 @@ export const quiesce = (
   const origAlpha = alpha;
   alpha = Math.max(alpha, standPat);
 
+  // Use transposition table values
   const ttEntry = getQTT(prevHash);
   const remaining = maxQDepth - depth;
   if (ttEntry && ttEntry.depth >= remaining && ttEntry.isQuiescence) {
@@ -159,109 +137,82 @@ export const quiesce = (
   // Sort by MVV/LVA
   captures.sort((a, b) => b.score - a.score);
   const orderedCaptures = captures.map((m) => m.move);
-  for (let i = 0; i < NUM_PIECES; i++) {
-    if (masks[i] !== individualAttackMasks[i]) {
-      console.log(depth);
-      throw new Error("Attack Mask Mismatch");
-    }
-  }
-  const savedBitboards = bitboards.slice();
+
   for (const move of orderedCaptures) {
-    try {
-      const victimValue = weights[move.captured % 6] || 0;
-      // if even winning the capture can’t push us above alpha, skip it:
-      if (standPat + victimValue <= alpha) continue;
+    const victimValue = weights[move.captured % 6] || 0;
+    // if even winning the capture can’t push us above alpha, skip it:
+    if (standPat + victimValue <= alpha) continue;
 
-      makeMove(bitboards, move);
+    makeMove(bitboards, move);
 
-      const newEnPassant = getNewEnPassant(move);
-      const newCastling = updateCastlingRights(
-        move.from,
-        move.to,
-        castlingRights
-      );
+    const newEnPassant = getNewEnPassant(move);
+    const newCastling = updateCastlingRights(
+      move.from,
+      move.to,
+      castlingRights
+    );
 
-      const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
-      const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
-      const castlingChanged = new Array(newCastling.length);
-      for (let i = 0; i < newCastling.length; i++) {
-        if (castlingRights[i] !== newCastling[i]) {
-          castlingChanged[i] = true;
-        } else {
-          castlingChanged[i] = false;
+    const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
+    const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
+    const castlingChanged = new Array(newCastling.length);
+    for (let i = 0; i < newCastling.length; i++) {
+      if (castlingRights[i] !== newCastling[i]) {
+        castlingChanged[i] = true;
+      } else {
+        castlingChanged[i] = false;
+      }
+    }
+    const newHash = updateHash(
+      prevHash,
+      move,
+      newEpFile,
+      prevEpFile,
+      castlingChanged
+    );
+    const oldCount = prevPositions.get(newHash) || 0;
+    prevPositions.set(newHash, oldCount + 1);
+
+    const { score: scoreAfterCapture } = quiesce3(
+      bitboards,
+      opponent,
+      -beta,
+      -alpha,
+      newEnPassant,
+      newCastling,
+      prevPositions,
+      newHash,
+      depth + 1
+    );
+
+    unMakeMove(move, bitboards);
+    if (oldCount) prevPositions.set(newHash, oldCount);
+    else prevPositions.delete(newHash);
+
+    const score = -scoreAfterCapture;
+    if (score >= beta) {
+      return { score: beta, move: null };
+    }
+    if (score > alpha) {
+      alpha = score;
+    }
+
+    if (beta <= alpha) {
+      if (move.captured === null) {
+        const killer = killerMoves[depth];
+
+        if (
+          !killer[0] ||
+          move.from !== killer[0].from ||
+          move.to !== killer[0].to
+        ) {
+          killer[1] = killer[0];
+          killer[0] = move;
         }
-      }
-      const newHash = updateHash(
-        prevHash,
-        move,
-        newEpFile,
-        prevEpFile,
-        castlingChanged
-      );
-      const oldCount = prevPositions.get(newHash) || 0;
-      prevPositions.set(newHash, oldCount + 1);
 
-      const newMasks = individualAttackMasks.slice();
-      computeAllAttackMasks(bitboards);
-      for (let i = 0; i < NUM_PIECES; i++) {
-        if (newMasks[i] !== individualAttackMasks[i]) {
-          console.log(depth, move);
-          throw new Error("Attack Mask Mismatch");
-        }
+        // Weights this move higher in history
+        historyScores[move.from][move.to] += 2 ^ remaining;
       }
-      const { score: scoreAfterCapture } = quiesce(
-        bitboards,
-        opponent,
-        -beta,
-        -alpha,
-        newEnPassant,
-        newCastling,
-        prevPositions,
-        newHash,
-        depth + 1
-      );
-
-      unMakeMove(move, bitboards);
-      for (let i = 0; i < NUM_PIECES; i++) {
-        if (masks[i] !== individualAttackMasks[i]) {
-          console.log(depth, move);
-          throw new Error("Attack Mask Mismatch");
-        }
-      }
-      if (oldCount) prevPositions.set(newHash, oldCount);
-      else prevPositions.delete(newHash);
-
-      const score = -scoreAfterCapture;
-      if (score >= beta) {
-        return { score: beta, move: null };
-      }
-      if (score > alpha) {
-        alpha = score;
-      }
-
-      if (beta <= alpha) {
-        if (move.captured === null) {
-          const killer = killerMoves[depth];
-
-          if (
-            !killer[0] ||
-            move.from !== killer[0].from ||
-            move.to !== killer[0].to
-          ) {
-            killer[1] = killer[0];
-            killer[0] = move;
-          }
-
-          // Weights this move higher in history
-          historyScores[move.from][move.to] += 2 ^ remaining;
-        }
-        break;
-      }
-    } catch (e) {
-      console.log("Quiescence Move Depth: " + depth);
-      console.log(move);
-      console.log(bitboardsToFEN(savedBitboards, player, castlingRights, enPassantSquare));
-      throw e;
+      break;
     }
   }
 

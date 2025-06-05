@@ -40,7 +40,7 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  *
  * @returns {{ score: number, move: null }} - an object with the score and move number
  */
-export const quiesce = (
+export const quiesce2 = (
   bitboards,
   player,
   alpha,
@@ -51,27 +51,23 @@ export const quiesce = (
   prevHash,
   depth = 0
 ) => {
+  const opponent = player === WHITE ? BLACK : WHITE;
   const gameOver = checkGameOver(
     bitboards,
-    player,
+    opponent,
     prevPositions,
     enPassantSquare,
     0
   );
   if (gameOver.isGameOver) {
     return {
-      score: evaluate4(bitboards, player, gameOver.result, 0),
+      score: evaluate4(opponent, gameOver.result, 0),
       move: null,
     };
   }
 
   // Static evaluation of the position
-  const standPat = evaluate4(
-    bitboards,
-    player,
-    /* result */ null,
-    /* depth */ 0
-  );
+  const standPat = evaluate4(player, null, 0);
 
   if (depth + 1 > maxQDepth) {
     return { score: standPat, move: null };
@@ -117,8 +113,8 @@ export const quiesce = (
       if (move.captured) {
         score +=
           100_000 +
-          (Math.abs(weights[move.captured]) || 0) -
-          (Math.abs(weights[move.piece]) || 0);
+          (weights[move.captured % 6] || 0) -
+          (weights[move.piece % 6] || 0);
       }
 
       // 3) Killer moves at this ply
@@ -140,13 +136,10 @@ export const quiesce = (
   captures.sort((a, b) => b.score - a.score);
   const orderedCaptures = captures.map((m) => m.move);
 
-  const opponent = player === WHITE ? BLACK : WHITE;
   for (const move of orderedCaptures) {
-    const attackerValue = Math.abs(weights[move.piece]) || 0;
-    const victimValue = Math.abs(weights[move.captured]) || 0;
-    const seeGain = victimValue - attackerValue;
+    const victimValue = weights[move.captured % 6] || 0;
     // if even winning the capture can’t push us above alpha, skip it:
-    if (standPat + seeGain <= alpha) continue;
+    if (standPat + victimValue <= alpha) continue;
 
     makeMove(bitboards, move);
 
@@ -175,9 +168,9 @@ export const quiesce = (
       castlingChanged
     );
     const oldCount = prevPositions.get(newHash) || 0;
-    prevPositions.set(newHash, (prevPositions.get(newHash) || 0) + 1);
+    prevPositions.set(newHash, oldCount + 1);
 
-    const { score: scoreAfterCapture } = quiesce(
+    const { score: scoreAfterCapture } = quiesce2(
       bitboards,
       opponent,
       -beta,
