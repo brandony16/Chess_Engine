@@ -65,3 +65,23 @@
 .moveArrows {
   align-self: center;
 }
+
+.iconBtnWrap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  column-gap: 4px;
+}
+
+.sidebarIconBtn {
+  padding: 0;
+  aspect-ratio: 1/1;
+  border: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.sidebarIcon {
+  width: 60%;
+  aspect-ratio: 1/1;
+}

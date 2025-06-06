@@ -2,47 +2,75 @@ import PropTypes from "prop-types";
 import MoveArrows from "./MoveArrows";
 import MoveList from "./MoveList";
 import { useGameStore } from "../gameStore.mjs";
-import { BLACK, WHITE } from "../bitboardUtils/constants.mjs";
+import { WHITE } from "../bitboardUtils/constants.mjs";
 
-const Sidebar = ({
-  currPlayer,
-  resetGame,
-  isGameOver,
-  result,
-  pastMoves,
-  changeBoardView,
-  indexOfViewedMove,
-}) => {
+const Sidebar = ({ changeBoardView }) => {
+  const {
+    currPlayer,
+    resetGame,
+    isGameOver,
+    result,
+    pastMoves,
+    currIndexOfDisplayed,
+    openGameHistory,
+    openBattleMenu,
+    flipBoardView,
+  } = useGameStore.getState();
   const turnText = currPlayer === WHITE ? "White's Turn" : "Black's Turn";
-  const openGameHistory = useGameStore((state) => state.openGameHistory);
-  const openBattleMenu = useGameStore((state) => state.openBattleMenu);
 
   return (
     <div className="sidebar">
       <div className="turnText">{isGameOver ? result : turnText}</div>
-      <MoveList pastMoves={pastMoves} indexOfViewed={indexOfViewedMove} />
-      <button className="newGame" onClick={() => resetGame()}>
-        New Game
-      </button>
+      <MoveList pastMoves={pastMoves} indexOfViewed={currIndexOfDisplayed} />
       <MoveArrows changeBoardView={changeBoardView} />
-      <button className="engineBattle" onClick={() => openBattleMenu()}>
-        Battle Engines
-      </button>
-      <button className="prevGames" onClick={() => openGameHistory()}>
-        View previous games
-      </button>
+      <div className="iconBtnWrap">
+        <button
+          title="New game"
+          className="newGame sidebarIconBtn"
+          onClick={() => resetGame()}
+        >
+          <img className="sidebarIcon" src="./images/new.svg" alt="new game" />
+        </button>
+        <button
+          title="Battle engines"
+          className="engineBattle sidebarIconBtn"
+          onClick={() => openBattleMenu()}
+        >
+          <img
+            className="sidebarIcon"
+            src="./images/battle.svg"
+            alt="battle engines"
+          />
+        </button>
+        <button
+          title="View previous games"
+          className="prevGames sidebarIconBtn"
+          onClick={() => openGameHistory()}
+        >
+          <img
+            className="sidebarIcon"
+            src="./images/history.svg"
+            alt="view past games"
+          />
+        </button>
+        <button
+          title="Flip board orientation"
+          className="flipBoard sidebarIconBtn"
+          onClick={() => flipBoardView()}
+        >
+          <img
+            className="sidebarIcon"
+            src="./images/flip.svg"
+            alt="flip board"
+          />
+        </button>
+      </div>
     </div>
   );
 };
 
 Sidebar.propTypes = {
-  currPlayer: PropTypes.oneOf([WHITE, BLACK]).isRequired,
-  resetGame: PropTypes.func.isRequired,
-  isGameOver: PropTypes.bool.isRequired,
-  result: PropTypes.string,
-  pastMoves: PropTypes.arrayOf(PropTypes.string).isRequired,
   changeBoardView: PropTypes.func.isRequired,
-  indexOfViewedMove: PropTypes.number.isRequired,
 };
 
 export default Sidebar;

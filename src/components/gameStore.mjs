@@ -36,6 +36,7 @@ export const useGameStore = create((set) => ({
   isModalOpen: false,
   isGameHistoryMenuOpen: false,
   isBattleEnginesOpen: false,
+  boardViewSide: WHITE,
 
   // ACTIONS / UPDATER FUNCTIONS
 
@@ -116,6 +117,7 @@ export const useGameStore = create((set) => ({
         isModalOpen: false,
         isGameHistoryMenuOpen: false,
         isBattleEnginesOpen: false,
+        boardViewSide: state.userSide === WHITE ? BLACK : WHITE,
       };
     });
   },
@@ -136,9 +138,12 @@ export const useGameStore = create((set) => ({
   goToMove: (moveNumber, moveID) => {
     set((state) => {
       let index = moveNumber * 2 + moveID;
+      const isCurrPos = index === state.pastBitboards.length - 1;
       return {
-        displayedBitboards: state.pastBitboards[index],
-        isCurrPositionShown: false,
+        displayedBitboards: isCurrPos
+          ? state.bitboards.slice()
+          : state.pastBitboards[index],
+        isCurrPositionShown: isCurrPos,
         currIndexOfDisplayed: index,
       };
     });
@@ -165,6 +170,12 @@ export const useGameStore = create((set) => ({
       isModalOpen: false,
       isGameHistoryMenuOpen: false,
       isBattleEnginesOpen: false,
+    }));
+  },
+
+  flipBoardView: () => {
+    set((state) => ({
+      boardViewSide: 1 - state.boardViewSide,
     }));
   },
 }));

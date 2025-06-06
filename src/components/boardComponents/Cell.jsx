@@ -10,7 +10,7 @@ const Cell = ({
   onSquareClick,
   isSelected,
   isMove,
-  userSide,
+  boardViewSide,
 }) => {
   const style = {
     backgroundColor: isSelected
@@ -21,7 +21,7 @@ const Cell = ({
   };
 
   const squareColor = (row + col) % 2 === 0 ? "dark" : "light";
-  const isWhite = userSide === WHITE;
+  const isWhite = boardViewSide === WHITE;
 
   return (
     <div
@@ -67,7 +67,7 @@ Cell.propTypes = {
   onSquareClick: PropTypes.func.isRequired,
   isSelected: PropTypes.bool.isRequired,
   isMove: PropTypes.bool.isRequired,
-  userSide: PropTypes.oneOf([WHITE, BLACK]).isRequired,
+  boardViewSide: PropTypes.oneOf([WHITE, BLACK]).isRequired,
 };
 
 export default Cell;

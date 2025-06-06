@@ -26,17 +26,11 @@ import {
 // Runs the game
 const BitboardGame = () => {
   const {
-    selectedSquare,
-    moveBitboard,
     currPlayer,
     userSide,
     promotion,
     promotionMove,
     isGameOver,
-    result,
-    pastMoves,
-    displayedBitboards,
-    currIndexOfDisplayed,
     resetGame,
     isModalOpen,
     isGameHistoryMenuOpen,
@@ -45,9 +39,12 @@ const BitboardGame = () => {
 
   // Creates a new worker
   const worker = useMemo(() => {
-    return new Worker(new URL("./bbEngines/engineWorker.mjs", import.meta.url), {
-      type: "module",
-    });
+    return new Worker(
+      new URL("./bbEngines/engineWorker.mjs", import.meta.url),
+      {
+        type: "module",
+      }
+    );
   }, []);
 
   // FUNCTIONS ----------------------------------------------------------------
@@ -83,7 +80,7 @@ const BitboardGame = () => {
     const from = bestMove.from;
     const to = bestMove.to;
     const promotion = bestMove.promotion;
-    
+
     processMove(from, to, promotion);
   };
 
@@ -239,6 +236,9 @@ const BitboardGame = () => {
     processMove(from, to, piece);
   };
 
+  /**
+   * Plays a random 4 move (8 ply) opening
+   */
   const playRandomOpening = async () => {
     // Fetches an 8ply opening from openings.json
     const moves = await getOpeningMoves();
@@ -389,13 +389,7 @@ const BitboardGame = () => {
   return (
     <div className="body">
       <div className="gameWrap">
-        <BitboardBoard
-          bitboards={displayedBitboards}
-          onSquareClick={handleSquareClick}
-          selectedSquare={selectedSquare}
-          userSide={userSide}
-          moveBitboard={moveBitboard}
-        />
+        <BitboardBoard onSquareClick={handleSquareClick} />
         {promotion && (
           <PromotionModal
             onPromote={handlePromotion}
@@ -403,15 +397,7 @@ const BitboardGame = () => {
             userPlayer={userSide}
           />
         )}
-        <Sidebar
-          currPlayer={currPlayer}
-          resetGame={resetGame}
-          isGameOver={isGameOver}
-          result={result}
-          pastMoves={pastMoves}
-          changeBoardView={changeBoardView}
-          indexOfViewedMove={currIndexOfDisplayed}
-        />
+        <Sidebar changeBoardView={changeBoardView} />
       </div>
       {isModalOpen && (
         <Modal
