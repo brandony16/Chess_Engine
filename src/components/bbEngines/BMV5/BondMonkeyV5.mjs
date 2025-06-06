@@ -14,7 +14,7 @@ export let rootId = 0;
 
 /**
  * Gets the best move in a position.
- * Adds a better evaluation function using piece sqaure tables (PSQT).
+ * V5: Adds a better evaluation function using piece sqaure tables (PSQT).
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)

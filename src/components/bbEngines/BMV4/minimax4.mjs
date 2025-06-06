@@ -17,7 +17,7 @@ import {
 import { BLACK, MAX_PLY, WHITE } from "../../bitboardUtils/constants.mjs";
 import { rootId } from "./BondMonkeyV4.mjs";
 import { evaluate4, weights } from "./evaluation4.mjs";
-import { quiesce2 } from "./quiesce.mjs";
+import { quiesce1 } from "./quiesce.mjs";
 import { getAllLegalMoves } from "../../bitboardUtils/moveGeneration/allMoveGeneration.mjs";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
@@ -28,6 +28,8 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
 
 /**
  * A minimax function that recursively finds the evaluation of the function.
+ * V4: Adds quiescence search after depth is reached.
+ * 
  * @param {Bitboards} bitboards - the bitboards of the current position
  * @param {0 | 1} player - the player whose move it is (0 for w, 1 for b)
  * @param {Array<boolean>} castlingRights - the castling rights
@@ -72,7 +74,7 @@ export const minimax4 = (
   if (currentDepth >= maxDepth) {
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
-      const q = quiesce2(
+      const q = quiesce1(
         bitboards,
         player,
         alpha,
@@ -192,7 +194,7 @@ export const minimax4 = (
 
     const { score: moveEval } = minimax4(
       bitboards,
-      player === WHITE ? BLACK : WHITE,
+      opponent,
       newCastling,
       newEnPassant,
       prevPositions,

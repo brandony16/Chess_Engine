@@ -4,7 +4,9 @@ import { getAllIndicies } from "../../bitboardUtils/pieceIndicies.mjs";
 import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
 
 /**
- * Gets the evaluation of the given position based purely off of the material in the position.
+ * Gets the evaluation of the given position.
+ * V5: Adds piece sqaure tables (PSQT) for improved evaluation and positioning.
+ * 
  * @param {number} player - the opposite player. If black plays checkmate, this is white.
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation

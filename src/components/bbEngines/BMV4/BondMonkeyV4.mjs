@@ -8,8 +8,8 @@ import { computeAllAttackMasks } from "../../bitboardUtils/PieceMasks/individual
 export let rootId = 0;
 
 /**
- * Gets the best move in a position.
- * Adds a better evaluation function using piece sqaure tables (PSQT).
+ * Gets the best move in a position. Adds a quiescence search to prevent the horizon effect
+ * where the engine will miscalculate capture sequences.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)

@@ -1,11 +1,11 @@
 import { CHECKMATE_VALUE, WHITE } from "../../bitboardUtils/constants.mjs";
 import { pieceAt } from "../../bitboardUtils/pieceGetters.mjs";
 import { getAllIndicies } from "../../bitboardUtils/pieceIndicies.mjs";
-import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
 
 /**
- * Gets the evaluation of the given position. Determines the eval using material and
- * piece square tables, which is the positioning of the pieces.
+ * Gets the evaluation of the given position. Determines the eval using pure material.
+ * Weights are slightly tweaked to be better in this version.
+ * 
  * @param {number} player - the opposite player. If black plays checkmate, this is white.
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation
@@ -26,9 +26,7 @@ export const evaluate4 = (player, result, depth) => {
     const piece = pieceAt[square];
     const playerMultiplier = piece < 6 ? 1 : -1;
 
-    evaluation +=
-      playerMultiplier *
-      (weights[piece % 6] + PIECE_SQUARE_TABLES[piece][square]);
+    evaluation += playerMultiplier * weights[piece % 6];
   }
 
   // Return eval relative to the player

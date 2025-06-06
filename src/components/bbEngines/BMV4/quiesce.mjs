@@ -26,8 +26,9 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
 
 /**
  * Performs a quiescence search, which calculates lines of captures. Only evaluates moves
- * that are captures or promotions to increase tactical capabilities. Uses negamax, a
- * variation of minimax that serves the same purpose.
+ * that are captures or promotions to increase tactical capabilities. Implements many of 
+ * the same features of the minimax search, such as transposition tables, and advanced move 
+ * sorting.
  *
  * @param {Bitboards} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
@@ -40,7 +41,7 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  *
  * @returns {{ score: number, move: null }} - an object with the score and move number
  */
-export const quiesce2 = (
+export const quiesce1 = (
   bitboards,
   player,
   alpha,
@@ -170,7 +171,7 @@ export const quiesce2 = (
     const oldCount = prevPositions.get(newHash) || 0;
     prevPositions.set(newHash, oldCount + 1);
 
-    const { score: scoreAfterCapture } = quiesce2(
+    const { score: scoreAfterCapture } = quiesce1(
       bitboards,
       opponent,
       -beta,

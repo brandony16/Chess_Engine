@@ -17,7 +17,7 @@ import {
 import { BLACK, MAX_PLY, WHITE } from "../../bitboardUtils/constants.mjs";
 import { rootId } from "./BondMonkeyV5.mjs";
 import { evaluate5, weights } from "./evaluation5.mjs";
-import { quiesce3 } from "./quiesce.mjs";
+import { quiesce2 } from "./quiesce.mjs";
 import { getAllLegalMoves } from "../../bitboardUtils/moveGeneration/allMoveGeneration.mjs";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
@@ -72,7 +72,7 @@ export const minimax5 = (
   if (currentDepth >= maxDepth) {
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
-      const q = quiesce3(
+      const q = quiesce2(
         bitboards,
         player,
         alpha,

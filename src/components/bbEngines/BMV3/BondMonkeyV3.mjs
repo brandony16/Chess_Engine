@@ -8,8 +8,7 @@ import { computeAllAttackMasks } from "../../bitboardUtils/PieceMasks/individual
 export let rootId = 0;
 
 /**
- * Gets the best move in a position based purely off of material.
- * V3: Adds quiesence search to improve tactical capabilities.
+ * Gets the best move in the position. Look at minimax3 for more detailed additions. 
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)

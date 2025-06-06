@@ -9,8 +9,7 @@ export let rootId = 0;
 
 /**
  * Gets the best move in a position based purely off of material.
- * V2: Adds minimax function with alpha-beta pruning, transposition tables,
- * history heuristic, and killer moves.
+ * V2: Adds minimax function with alpha-beta pruning and basic move sorting
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)

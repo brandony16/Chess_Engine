@@ -9,36 +9,20 @@ import {
   getNewEnPassant,
   isInCheck,
 } from "../../bitboardUtils/bbChessLogic.mjs";
-import {
-  getTT,
-  setTT,
-  TT_FLAG,
-} from "../../bitboardUtils/TranspositionTable/transpositionTable.mjs";
-import {
-  BLACK,
-  MAX_PLY,
-  WEIGHTS,
-  WHITE,
-} from "../../bitboardUtils/constants.mjs";
-import { rootId } from "./BondMonkeyV2.mjs";
+import { BLACK, WEIGHTS, WHITE } from "../../bitboardUtils/constants.mjs";
 import { evaluate2 } from "./evaluation2.mjs";
 import { getAllLegalMoves } from "../../bitboardUtils/moveGeneration/allMoveGeneration.mjs";
 
-// killerMoves[ply] = [firstKillerMove, secondKillerMove]
-const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
-
-// historyScores[fromSquare][toSquare] = integer score
-const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
-
 /**
  * A minimax function that recursively finds the evaluation of the function.
+ * This version implements minimax with alpha beta pruning and basic move sorting.
+ * 
  * @param {Bitboards} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {CastlingRights} castlingRights - the castling rights
+ * @param {boolean[4]} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {Map} prevPositions - a map of the previous positions
  * @param {bigint} prevHash - the hash of the position before moves are simulated.
- * @param {bigint} prevAttackMask - the attack mask of the position before moves are simulated.
  * @param {depth} currentDepth - the current depth of the search
  * @param {depth} maxDepth - the maximum depth of the search
  * @param {number} alpha - the alpha value for alpha-beta pruning
@@ -83,31 +67,7 @@ export const minimax2 = (
     }
   }
 
-  // Transpositition table logic
-  const key = prevHash;
-  const origAlpha = alpha;
-  const remaining = maxDepth - currentDepth;
-  const ttEntry = getTT(key);
-
-  if (ttEntry && ttEntry.depth >= remaining && ttEntry.rootId === rootId) {
-    if (ttEntry.flag === TT_FLAG.EXACT) {
-      return { score: ttEntry.value, move: ttEntry.bestMove };
-    }
-    if (ttEntry.flag === TT_FLAG.LOWER_BOUND) {
-      alpha = Math.max(alpha, ttEntry.value);
-    }
-    if (ttEntry.flag === TT_FLAG.UPPER_BOUND) {
-      beta = Math.min(beta, ttEntry.value);
-    }
-    if (alpha >= beta) {
-      return { score: ttEntry.value, move: ttEntry.bestMove };
-    }
-  }
-
-  const ttMove = ttEntry?.bestMove || null;
-
-  // Gets the legal moves then assigns them scores based on the transposition table,
-  // if the move is a capture, if its a killer move, and if its in history.
+  // Gets the legal moves then assigns them scored
   const scored = getAllLegalMoves(
     bitboards,
     player,
@@ -115,31 +75,11 @@ export const minimax2 = (
     enPassantSquare
   ).map((move) => {
     let score = 0;
-    const from = move.from;
-    const to = move.to;
 
-    // 1) Transposition-table move is highest priority
-    if (ttMove && from === ttMove.from && to === ttMove.to) {
-      score += 1_000_000;
-    }
-
-    // 2) Captures (MVV/LVA: victim value minus your piece value)
+    // 1) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
-      100_000 +
-        (WEIGHTS[move.captured % 6] || 0) -
-        (WEIGHTS[move.piece % 6] || 0);
+      score += (WEIGHTS[move.captured % 6] || 0) - (WEIGHTS[move.piece % 6] || 0);
     }
-
-    // 3) Killer moves at this ply
-    const [k0, k1] = killerMoves[currentDepth];
-    if (k0 && from === k0.from && to === k0.to) {
-      score += 90_000;
-    } else if (k1 && from === k1.from && to === k1.to) {
-      score += 80_000;
-    }
-
-    // 4) History heuristic
-    score += historyScores[from][to];
 
     return { move, score };
   });
@@ -188,7 +128,7 @@ export const minimax2 = (
 
     const { score: moveEval } = minimax2(
       bitboards,
-      BLACK,
+      opponent,
       newCastling,
       newEnPassant,
       newPositions,
@@ -211,43 +151,8 @@ export const minimax2 = (
     }
 
     if (beta <= alpha) {
-      // Update killer moves and history scores
-      if (move.captured === null) {
-        const killer = killerMoves[currentDepth];
-
-        if (
-          !killer[0] ||
-          move.from !== killer[0].from ||
-          move.to !== killer[0].to
-        ) {
-          killer[1] = killer[0];
-          killer[0] = move;
-        }
-
-        // Weights this move higher in history
-        historyScores[move.from][move.to] += 2 ^ (maxDepth - currentDepth);
-      }
       break;
     }
-  }
-
-  // Update transposition table
-  let flag = TT_FLAG.EXACT;
-  if (bestEval <= origAlpha) {
-    flag = TT_FLAG.UPPER_BOUND;
-  } else if (bestEval >= beta) {
-    flag = TT_FLAG.LOWER_BOUND;
-  }
-  setTT(key, {
-    rootId: rootId,
-    depth: maxDepth - currentDepth,
-    value: bestEval,
-    flag,
-    bestMove,
-  });
-
-  if (!Number.isFinite(bestEval)) {
-    throw new Error("Score is infinite");
   }
 
   return { score: bestEval, move: bestMove };

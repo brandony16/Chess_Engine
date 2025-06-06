@@ -27,7 +27,7 @@ export const evaluate3 = (player, result, depth) => {
   for (const square of allIndicies) {
     const piece = pieceAt[square];
 
-    evaluation +=  WEIGHTS[piece % 6];
+    evaluation += WEIGHTS[piece];
   }
   
   return player === WHITE ? evaluation : -evaluation;

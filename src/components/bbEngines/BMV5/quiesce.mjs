@@ -40,7 +40,7 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  *
  * @returns {{ score: number, move: null }} - an object with the score and move number
  */
-export const quiesce3 = (
+export const quiesce2 = (
   bitboards,
   player,
   alpha,
@@ -172,7 +172,7 @@ export const quiesce3 = (
     const oldCount = prevPositions.get(newHash) || 0;
     prevPositions.set(newHash, oldCount + 1);
 
-    const { score: scoreAfterCapture } = quiesce3(
+    const { score: scoreAfterCapture } = quiesce2(
       bitboards,
       opponent,
       -beta,
