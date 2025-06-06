@@ -17,7 +17,6 @@ import {
   indexArrays,
   initializePieceIndicies,
 } from "../components/bitboardUtils/pieceIndicies";
-import { jest } from "@jest/globals";
 
 // [ description, FEN, UCI move ]
 const cases = [

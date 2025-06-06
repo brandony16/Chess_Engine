@@ -17,6 +17,8 @@ export const BMV1 = (
   player,
   castlingRights,
   enPassantSquare,
+
+  // placeholders to match inputs of other engines
   prevPositions = new Map(),
   maxDepth = 0,
   timeLimit = Infinity

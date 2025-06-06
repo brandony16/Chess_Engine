@@ -11,7 +11,6 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../components/bitboardUtils/constants.mjs";
-import { bigIntFullRep } from "../components/bitboardUtils/debugFunctions.mjs";
 import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers.mjs";
 import {
   makeMove,
@@ -324,29 +323,6 @@ describe("updateAttackMasks vs full recompute", () => {
     const oldMasks = individualAttackMasks.slice();
 
     const move = new Move(60, 58, BLACK_KING, null, null, false, false);
-    makeMove(bitboards, move);
-
-    const afterMoveAttackMasks = individualAttackMasks.slice();
-    computeAllAttackMasks(bitboards);
-    expect(afterMoveAttackMasks).toEqual(individualAttackMasks);
-    expect(afterMoveAttackMasks).not.toEqual(oldMasks);
-
-    unMakeMove(move, bitboards);
-    expect(oldMasks).toEqual(individualAttackMasks);
-  });
-
-  test.only("debug position", () => {
-    const fen = "3rr1k1/1pp3p1/pq1bbn1p/3p4/3PpP2/P1N1N2P/1PPBQ1P1/3RR1K1 b - f3 0 1";
-    const fenData = getFENData(fen);
-    bitboards = fenData.bitboards;
-
-    initializePieceIndicies(bitboards);
-    initializePieceAtArray(bitboards);
-    computeAllAttackMasks(bitboards);
-    // Snapshot old masks & bitboards
-    const oldMasks = individualAttackMasks.slice();
-
-    const move = new Move(28, 21, 6, 0, null, false, true);
     makeMove(bitboards, move);
 
     const afterMoveAttackMasks = individualAttackMasks.slice();

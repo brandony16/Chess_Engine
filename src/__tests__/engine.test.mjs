@@ -101,7 +101,7 @@ describe("Engine values are right after one pass", () => {
   });
 });
 
-describe.only("Engine finds obvious best moves", () => {
+describe("Engine finds obvious best moves", () => {
   test("engine captures a hanging piece with white", () => {
     const fen = "8/3r4/8/6k1/8/2R5/5K2/2b5 w - - 0 1";
     const fenData = getFENData(fen);
