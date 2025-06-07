@@ -5,22 +5,22 @@ import PropTypes from "prop-types";
 */
 const Piece = ({ type }) => {
   const pieceImages = {
-    r: "bR.svg",
-    n: "bN.svg",
-    b: "bB.svg",
-    q: "bQ.svg",
-    k: "bK.svg",
-    p: "bP.svg",
-    R: "wR.svg",
-    N: "wN.svg",
-    B: "wB.svg",
-    Q: "wQ.svg",
-    K: "wK.svg",
-    P: "wP.svg",
+    r: "./images/bR.svg",
+    n: "./images/bN.svg",
+    b: "./images/bB.svg",
+    q: "./images/bQ.svg",
+    k: "./images/bK.svg",
+    p: "./images/bP.svg",
+    R: "./images/wR.svg",
+    N: "./images/wN.svg",
+    B: "./images/wB.svg",
+    Q: "./images/wQ.svg",
+    K: "./images/wK.svg",
+    P: "./images/wP.svg",
   };
 
   return (
-    <img src={`./images/${pieceImages[type]}`} alt={type} className="piece" />
+    <img src={pieceImages[type]} alt={type} className="piece" />
   );
 };
 
