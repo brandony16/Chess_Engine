@@ -20,7 +20,7 @@ const Piece = ({ type }) => {
   };
 
   return (
-    <img src={`/images/${pieceImages[type]}`} alt={type} className="piece" />
+    <img src={`./images/${pieceImages[type]}`} alt={type} className="piece" />
   );
 };
 
