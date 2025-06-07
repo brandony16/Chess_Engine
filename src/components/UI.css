@@ -4,6 +4,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: #1e1e1e;
+  font-family: "Segoe UI", sans-serif;
 }
 
 .gameWrap {
@@ -13,8 +15,8 @@
   position: relative;
 }
 
-
 .sidebar {
+  position: relative;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -22,11 +24,13 @@
   gap: 1rem;
   width: 30vh;
   height: 100%;
-  max-height: 100%;
-  background-color: darkslategray;
+  background-color: #355a5a;
   padding: 20px;
-  border-radius: 20px;
-  border: 10px solid black;
+  padding-bottom: 5px;
+  border-radius: 16px;
+  border: 5px solid black;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  color: #f0f0f0;
 }
 
 .turnText {
@@ -36,6 +40,10 @@
   padding: 8px;
   margin-bottom: auto;
   align-self: center;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  border-bottom: 2px solid black;
 }
 
 .moveList {
@@ -43,45 +51,85 @@
   flex-direction: column;
   width: 100%;
   height: 70%;
-  max-height: 70%;
-  overflow-y: scroll;
+  overflow-y: auto;
   gap: 4px;
+  padding-right: 4px;
+}
+
+.moveList::-webkit-scrollbar {
+  width: 6px;
+}
+.moveList::-webkit-scrollbar-thumb {
+  background: #767676;
+  border-radius: 4px;
 }
 
 .moveNum {
   font-weight: bold;
+  color: #a7a7a7;
+  cursor: default;
 }
 
 .pastMove {
+  box-sizing: border-box;
   display: grid;
   grid-template-columns: 1fr 2fr 2fr;
   cursor: pointer;
+  border-radius: 6px;
+  column-gap: 4px;
+  transition: background-color 0.2s;
 }
 
-.highlighted {
-  background-color: rgba(100, 100, 100, 0.3);
+.move,
+.moveNum {
+  box-sizing: border-box;
+  padding: 2px 4px;
+}
+
+.move:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.move.highlighted, .move.highlighted:hover {
+  background-color: rgba(255, 255, 255, 0.15);
 }
 
 .moveArrows {
-  align-self: center;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 0.3rem;
 }
 
 .iconBtnWrap {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  column-gap: 4px;
+  gap: 6px;
 }
 
 .sidebarIconBtn {
   padding: 0;
-  aspect-ratio: 1/1;
-  border: 0;
+  aspect-ratio: 1 / 1;
+  border: none;
+  background: none;
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: transform 0.2s ease;
+  cursor: pointer;
+}
+
+.sidebarIconBtn:hover {
+  transform: scale(1.1);
 }
 
 .sidebarIcon {
   width: 60%;
   aspect-ratio: 1/1;
+}
+
+.sidebarIconBtn.moveArrow {
+  min-width: 15%;
 }

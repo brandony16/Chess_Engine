@@ -1,29 +1,32 @@
 :root {
   --darkSquare: #9c7452;
   --lightSquare: #f0d198;
+  --boardBg: #674628;
+  --highlight: rgba(255, 255, 255, 0.2);
+  --selection: rgba(50, 150, 250, 0.4);
+  --labelColor: #4d2709;
+  --labelSize: 1rem;
 }
 
 .board {
   display: grid;
-  grid-template-rows: repeat(8, 1fr);
-  grid-template-columns: repeat(8, 1fr);
+  grid-template: repeat(8, 1fr) / repeat(8, 1fr);
   box-sizing: border-box;
-  aspect-ratio: 1/1;
+  aspect-ratio: 1;
   height: 100%;
-  background-color: rgb(103, 58, 5);
-  padding: 2rem;
-  border-radius: 20px;
+  padding: 1.5rem;
+  background-color: var(--boardBg);
+  border-radius: 16px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
 }
 
 .cell {
-  background-color: white;
   position: relative;
-  aspect-ratio: 1/1;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100%;
-  box-sizing: border-box;
+  aspect-ratio: 1;
+  transition: background-color 0.2s;
 }
 
 .cell.light {
@@ -35,19 +38,40 @@
 }
 
 .piece {
-  height: calc(60vh / 8 * 0.7);
-  box-sizing: border-box;
   position: absolute;
+  width: 95%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  cursor: grab;
+  transition: transform 0.2s;
   z-index: 10;
+
+  user-select: none; /* no text/image selection */
+  -webkit-user-select: none; /* Safari/Chrome */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+ */
+  -webkit-user-drag: none; /* disable the ghost image on drag */
 }
 
+.piece:hover {
+  cursor: grab;
+}
+
+.piece:active {
+  cursor: grabbing;
+  transform: scale(1.05);
+}
+
+/* rank/file labels */
 .rowId,
 .colId {
   position: absolute;
+  font-family: "Segoe UI", sans-serif;
   font-weight: bold;
-  font-size: 100%;
-  font-family: Helvetica, sans-serif;
-  color: rgb(77, 39, 9);
+  font-size: var(--labelSize);
+  color: var(--labelColor);
+  user-select: none;
+  pointer-events: none;
 }
 
 .rowId {
@@ -55,30 +79,27 @@
   right: 5%;
 }
 
-.rowId.light {
-  color: var(--darkSquare);
-}
-
-.rowId.dark {
-  color: var(--lightSquare);
-}
-
 .colId {
   left: 5%;
   top: 5%;
 }
 
+/* invert label color for contrast */
+.rowId.light,
 .colId.light {
   color: var(--darkSquare);
 }
 
+.rowId.dark,
 .colId.dark {
   color: var(--lightSquare);
 }
 
+/* selected / move-highlight overlay */
 .selectedCover {
   position: absolute;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
+  inset: 0;
+  background-color: var(--selection);
+  pointer-events: none;
+  border-radius: 4px;
 }

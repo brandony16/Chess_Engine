@@ -5,18 +5,18 @@ import PropTypes from "prop-types";
 */
 const Piece = ({ type }) => {
   const pieceImages = {
-    r: "BlackRook.png",
-    n: "BlackKnight.png",
-    b: "BlackBishop.png",
-    q: "BlackQueen.png",
-    k: "BlackKing.png",
-    p: "BlackPawn.png",
-    R: "WhiteRook.png",
-    N: "WhiteKnight.png",
-    B: "WhiteBishop.png",
-    Q: "WhiteQueen.png",
-    K: "WhiteKing.png",
-    P: "WhitePawn.png",
+    r: "bR.svg",
+    n: "bN.svg",
+    b: "bB.svg",
+    q: "bQ.svg",
+    k: "bK.svg",
+    p: "bP.svg",
+    R: "wR.svg",
+    N: "wN.svg",
+    B: "wB.svg",
+    Q: "wQ.svg",
+    K: "wK.svg",
+    P: "wP.svg",
   };
 
   return (
