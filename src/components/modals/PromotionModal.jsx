@@ -32,8 +32,10 @@ const PromotionModal = ({ onPromote, square, userPlayer }) => {
       <div className="modal">
         <div className="promotionOptions">
           {pieces.map((piece) => {
-            const fullPlayer = isUserWhite ? "White" : "Black";
-            const imageName = fullPlayer + piece.slice(0, -1) + ".png"; // Adds the player and removes the s at the end
+            const playerChar = userPlayer === WHITE ? "w" : "b";
+            const pieceChar = piece[0] === "K" ? "N" : piece[0]
+            const imageName = playerChar + pieceChar + ".svg";
+            const src = "./images/" + imageName // Adds the player and removes the s at the end
             return (
               <button
                 key={piece}
@@ -42,7 +44,7 @@ const PromotionModal = ({ onPromote, square, userPlayer }) => {
                 style={modalStyle}
               >
                 <img
-                  src={`/images/${imageName}`}
+                  src={src}
                   alt={piece.charAt(0)}
                   className="piece"
                 />

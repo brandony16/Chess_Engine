@@ -3,17 +3,16 @@ import MoveArrows from "./MoveArrows";
 import MoveList from "./MoveList";
 import { useGameStore } from "../gameStore.mjs";
 import { WHITE } from "../bitboardUtils/constants.mjs";
+import { ModalTypes } from "../utilTypes";
 
 const Sidebar = ({ changeBoardView }) => {
   const {
     currPlayer,
-    resetGame,
     isGameOver,
     result,
     pastMoves,
     currIndexOfDisplayed,
-    openGameHistory,
-    openBattleMenu,
+    openModal,
     flipBoardView,
   } = useGameStore.getState();
   const turnText = currPlayer === WHITE ? "White's Turn" : "Black's Turn";
@@ -27,14 +26,14 @@ const Sidebar = ({ changeBoardView }) => {
         <button
           title="New game"
           className="newGame sidebarIconBtn"
-          onClick={() => resetGame()}
+          onClick={() => openModal(ModalTypes.NEW)}
         >
           <img className="sidebarIcon" src="./images/new.svg" alt="new game" />
         </button>
         <button
           title="Battle engines"
           className="engineBattle sidebarIconBtn"
-          onClick={() => openBattleMenu()}
+          onClick={() => openModal(ModalTypes.BATTLE)}
         >
           <img
             className="sidebarIcon"
@@ -45,7 +44,7 @@ const Sidebar = ({ changeBoardView }) => {
         <button
           title="View previous games"
           className="prevGames sidebarIconBtn"
-          onClick={() => openGameHistory()}
+          onClick={() => openModal(ModalTypes.HISTORY)}
         >
           <img
             className="sidebarIcon"

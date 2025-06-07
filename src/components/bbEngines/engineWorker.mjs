@@ -3,6 +3,7 @@ import { initializePieceIndicies } from "../bitboardUtils/pieceIndicies";
 import { computeAllAttackMasks } from "../bitboardUtils/PieceMasks/individualAttackMasks";
 import { clearTT } from "../bitboardUtils/TranspositionTable/transpositionTable";
 import { BMV5 } from "./BMV5/BondMonkeyV5";
+import { engineRegistry } from "./engineRegistry.mjs";
 
 onmessage = (e) => {
   const {
@@ -11,6 +12,7 @@ onmessage = (e) => {
     castlingRights,
     enPassantSquare,
     prevPositions,
+    engine,
     maxDepth,
     timeLimit,
   } = e.data;
@@ -21,7 +23,8 @@ onmessage = (e) => {
   initializePieceAtArray(bitboards);
   computeAllAttackMasks(bitboards);
 
-  const move = BMV5(
+  const engineFn = engineRegistry[engine];
+  const move = engineFn(
     bitboards,
     player,
     castlingRights,

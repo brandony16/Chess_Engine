@@ -33,8 +33,6 @@ const BitboardGame = () => {
     isGameOver,
     resetGame,
     isModalOpen,
-    isGameHistoryMenuOpen,
-    isBattleEnginesOpen,
   } = useGameStore();
 
   // Creates a new worker
@@ -355,7 +353,7 @@ const BitboardGame = () => {
    * @param {int} depth - the depth for the engine to search
    * @param {int} timeLimit - the time the engine has to make a move in ms
    */
-  const getEngineMove = (depth, timeLimit) => {
+  const getEngineMove = () => {
     if (!worker) return;
     const state = useGameStore.getState();
 
@@ -365,8 +363,9 @@ const BitboardGame = () => {
       castlingRights: state.castlingRights,
       enPassantSquare: state.enPassantSquare,
       prevPositions: state.pastPositions,
-      maxDepth: depth,
-      timeLimit,
+      engine: state.selectedEngine,
+      maxDepth: state.engineDepth,
+      timeLimit: state.engineTimeLimitMs,
     });
   };
 
@@ -382,7 +381,7 @@ const BitboardGame = () => {
   // Runs the engine move after the user makes a move
   useEffect(() => {
     if (currPlayer !== userSide && !isGameOver && userSide !== null) {
-      getEngineMove(5, 5000);
+      getEngineMove();
     }
   }, [currPlayer, userSide]);
 
@@ -401,8 +400,6 @@ const BitboardGame = () => {
       </div>
       {isModalOpen && (
         <Modal
-          isGameHistory={isGameHistoryMenuOpen}
-          isBattle={isBattleEnginesOpen}
           battleEngines={battleTwoEngines}
         />
       )}

@@ -3,9 +3,29 @@ import GameHistoryModal from "./GameHistoryModal";
 import { useGameStore } from "../gameStore.mjs";
 import "./Modal.css";
 import BattleEngines from "./battleEngines";
+import NewGame from "./NewGame";
 
-const Modal = ({ isGameHistory, isBattle, battleEngines }) => {
-  const closeModal = useGameStore((state) => state.closeModal);
+const Modal = ({ battleEngines }) => {
+  const { modalType, closeModal } = useGameStore.getState();
+
+  const MODAL_TITLES = {
+    history: "Past Games:",
+    battle: "Engine Battle:",
+    new: "New Game:",
+  };
+
+  const renderModalContent = () => {
+    switch (modalType) {
+      case "history":
+        return <GameHistoryModal />;
+      case "battle":
+        return <BattleEngines battleEngines={battleEngines} />;
+      case "new":
+        return <NewGame />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="modalWrap">
@@ -13,20 +33,14 @@ const Modal = ({ isGameHistory, isBattle, battleEngines }) => {
         <button className="close" onClick={() => closeModal()}>
           X
         </button>
-        <h1 className="modalHeader">
-          {isGameHistory && "Past Games:"}
-          {isBattle && "Engine Battle:"}
-        </h1>
-        {isGameHistory && <GameHistoryModal />}
-        {isBattle && <BattleEngines battleEngines={battleEngines} />}
+        <h1 className="modalHeader">{MODAL_TITLES[modalType]}</h1>
+        {renderModalContent()}
       </div>
     </div>
   );
 };
 
 Modal.propTypes = {
-  isGameHistory: PropTypes.bool.isRequired,
-  isBattle: PropTypes.bool.isRequired,
   battleEngines: PropTypes.func.isRequired,
 };
 
