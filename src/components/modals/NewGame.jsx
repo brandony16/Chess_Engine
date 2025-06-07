@@ -27,54 +27,41 @@ const NewGame = () => {
   const getSide = () => {
     if (userSide[0] === "W") {
       return WHITE;
-    } 
+    }
     if (userSide[0] === "B") {
       return BLACK;
     }
     return Math.floor(Math.random() * 2);
-  }
+  };
 
   return (
     <div className="newGameBody">
+      <EngineSelector engine={engine} onChange={setEngineLocal} />
       <SideSelector value={userSide} onChange={setUserSide} />
 
-      <EngineSelector engine={engine} onChange={setEngineLocal}/>
-      <div className="form-group">
-        <label htmlFor="engine-select">Engine:</label>
-        <select
-          id="engine-select"
-          value={engine}
-          onChange={(e) => setEngineLocal(e.target.value)}
-        >
-          {Object.values(EngineTypes).map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </select>
-      </div>
 
-      <div className="form-group">
-        <label htmlFor="depth-input">Search Depth:</label>
-        <input
-          id="depth-input"
-          type="number"
-          min="1"
-          value={depth}
-          onChange={(e) => setDepth(Number(e.target.value))}
-        />
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="time-input">Time Limit (ms):</label>
-        <input
-          id="time-input"
-          type="number"
-          min="100"
-          step="100"
-          value={timeLimit}
-          onChange={(e) => setTimeLimit(Number(e.target.value))}
-        />
+      <div className="depthTimeWrap">
+        <div className="form-group">
+          <label htmlFor="depth-input">Search Depth:</label>
+          <input
+            id="depth-input"
+            type="number"
+            min="1"
+            value={depth}
+            onChange={(e) => setDepth(Number(e.target.value))}
+          />
+        </div>
+        <div className="form-group">
+          <label htmlFor="time-input">Time Limit (ms):</label>
+          <input
+            id="time-input"
+            type="number"
+            min="100"
+            step="100"
+            value={timeLimit}
+            onChange={(e) => setTimeLimit(Number(e.target.value))}
+          />
+        </div>
       </div>
 
       <div className="modal-actions">

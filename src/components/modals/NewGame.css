@@ -1,13 +1,119 @@
+:root {
+  --legend-text: #ddd;
+  --engine-bg: #f9f9f9;
+  --engine-border: #ddd;
+  --engine-hover: #eef2f5;
+  --engine-selected-bg: #e0f7fa;
+  --engine-selected-border: #26c6da;
+  --engine-text: #1b1b1b;
+  --engine-desc: #666;
+  --engine-radius: 8px;
+  --engine-gap: 1rem;
+  --darkSquare: #9c7452;
+  --lightSquare: #f0d198;
+  --input-bg: #fff;
+  --input-border: #ccc;
+  --input-focus-border: #26c6da;
+  --input-radius: 6px;
+  --input-padding: 0.5rem;
+  --label-size: 0.9rem;
+  --gap-size: 1rem;
+}
+
+.newGameBody {
+  height: 85%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+legend {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--legend-text);
+}
+
+/* Engine Selector */
+.engineWrap {
+  border: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--engine-gap);
+}
+
+.engine-selector {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-height: 125px;
+  overflow-y: scroll;
+}
+
+.engine-selector::-webkit-scrollbar {
+  width: 4px;
+}
+.engine-selector::-webkit-scrollbar-thumb {
+  background: var(--engine-text);
+  border-radius: 4px;
+}
+
+.engineOption {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  padding: 0.5rem;
+  background: var(--engine-bg);
+  border: 3px solid var(--engine-border);
+  border-radius: var(--engine-radius);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.engineOption:hover {
+  background: var(--engine-hover);
+}
+
+.engineOption.selected {
+  background: var(--lightSquare);
+  border-color: var(--darkSquare);
+}
+
+.engineOption input {
+  /* hide the native radio but keep it accessible */
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.engineName {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--engine-text);
+  margin-bottom: 0.25rem;
+}
+
+.engineDesc {
+  font-size: 0.8rem;
+  color: var(--engine-desc);
+  line-height: 1.4;
+}
+
 /* SideSelector.css */
 .side-selector {
   display: flex;
   gap: 1rem;
   border: none;
-  justify-content: center;
+  justify-content: start;
   align-items: center;
   margin: 0;
-  padding: 0;
-  height: 10%;
+  box-sizing: border-box;
+  padding: 0px;
+  height: 22%;
 }
 
 .option {
@@ -18,6 +124,8 @@
   padding: 4px;
   border-radius: 4px;
   box-sizing: border-box;
+  margin-left: 8px;
+  border: 3px solid transparent;
 }
 
 .option input {
@@ -29,13 +137,17 @@
 }
 
 .option .newGameIcon {
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 100%;
+  aspect-ratio: 1/1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .option.selected {
   box-sizing: border-box;
-  outline: 4px solid black;
+  border-color: var(--darkSquare);
+  background-color: var(--lightSquare);
 }
 
 /* screen-reader only text */
@@ -48,4 +160,36 @@
   padding: 0;
   position: absolute;
   width: 1px;
+}
+
+/* Depth and Time */
+.depthTimeWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-size);
+  margin: 1rem 0;
+}
+
+.depthTimeWrap .form-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 120px; /* grow/shrink with a min width */
+  max-width: 200px;
+}
+
+.depthTimeWrap .form-group label {
+  font-size: var(--label-size);
+  font-weight: 600;
+  color: var(--legend-text);
+  margin-bottom: 0.25rem;
+}
+
+.depthTimeWrap .form-group input {
+  padding: var(--input-padding);
+  font-size: 1rem;
+  border: 2px solid var(--input-border);
+  border-radius: var(--input-radius);
+  background-color: var(--input-bg);
+  color: var(--engine-text);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }

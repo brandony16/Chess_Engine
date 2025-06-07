@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 
 const SideSelector = ({ value, onChange }) => (
   <fieldset className="side-selector">
-    <legend>Choose your side</legend>
+    <legend className="sideLegend">Choose your side</legend>
 
     <label className={`option ${value === "W" ? "selected" : ""}`}>
       <input
@@ -16,7 +16,7 @@ const SideSelector = ({ value, onChange }) => (
       <span className="sr-only">White</span>
     </label>
 
-    <label className={`option ${value === "R" ? "selected" : ""}`}>
+    <label className={`option ${value === "R" ? "selected" : ""}`} >
       <input
         type="radio"
         name="side"
@@ -24,7 +24,7 @@ const SideSelector = ({ value, onChange }) => (
         checked={value === "R"}
         onChange={() => onChange("R")}
       />
-      <img src="./images/random.svg" alt="random" className="newGameIcon" id="rand" />
+      <img src="./images/random.svg" alt="random" className="newGameIcon" />
       <span className="sr-only">Random</span>
     </label>
 
@@ -36,7 +36,7 @@ const SideSelector = ({ value, onChange }) => (
         checked={value === "B"}
         onChange={() => onChange("B")}
       />
-      <img src="./images/bK.svg" alt="black" className="newGameIcon"/>
+      <img src="./images/bK.svg" alt="black" className="newGameIcon" />
       <span className="sr-only">Black</span>
     </label>
   </fieldset>
