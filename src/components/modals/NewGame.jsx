@@ -2,12 +2,15 @@ import { useState } from "react";
 import { EngineTypes } from "../utilTypes";
 import { useGameStore } from "../gameStore.mjs";
 import { BLACK, WHITE } from "../bitboardUtils/constants.mjs";
+import SideSelector from "./newGameComponents/SideSelector";
+import "./NewGame.css";
+import EngineSelector from "./newGameComponents/EngineSelector";
 
 const NewGame = () => {
   const resetGame = useGameStore((s) => s.resetGame);
   const closeModal = useGameStore((s) => s.closeModal);
 
-  const [userSide, setUserSide] = useState(WHITE);
+  const [userSide, setUserSide] = useState("W");
   const [engine, setEngineLocal] = useState(EngineTypes.BMV5);
   const [depth, setDepth] = useState(4);
   const [timeLimit, setTimeLimit] = useState(5000);
@@ -15,31 +18,27 @@ const NewGame = () => {
   const handleStart = () => {
     resetGame({
       isEngineGame: false,
-      userSide: parseInt(userSide),
+      userSide: getSide(),
       engine: engine,
       depth: depth,
       timeLimitMs: timeLimit,
     });
   };
+  const getSide = () => {
+    if (userSide[0] === "W") {
+      return WHITE;
+    } 
+    if (userSide[0] === "B") {
+      return BLACK;
+    }
+    return Math.floor(Math.random() * 2);
+  }
 
   return (
     <div className="newGameBody">
-      <div className="form-group">
-        <label htmlFor="player-select">Side to play:</label>
-        <select
-          id="player-select"
-          value={userSide}
-          onChange={(e) => setUserSide(e.target.value)}
-        >
-            <option value={WHITE}>
-              White
-            </option>
-            <option value={BLACK}>
-              Black
-            </option>
-        </select>
-      </div>
+      <SideSelector value={userSide} onChange={setUserSide} />
 
+      <EngineSelector engine={engine} onChange={setEngineLocal}/>
       <div className="form-group">
         <label htmlFor="engine-select">Engine:</label>
         <select

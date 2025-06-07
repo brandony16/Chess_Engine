@@ -1,0 +1,51 @@
+/* SideSelector.css */
+.side-selector {
+  display: flex;
+  gap: 1rem;
+  border: none;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  height: 10%;
+}
+
+.option {
+  position: relative;
+  cursor: pointer;
+  height: 100%;
+  aspect-ratio: 1/1;
+  padding: 4px;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.option input {
+  /* hide the native radio but keep it accessible */
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.option .newGameIcon {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.option.selected {
+  box-sizing: border-box;
+  outline: 4px solid black;
+}
+
+/* screen-reader only text */
+.sr-only {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
