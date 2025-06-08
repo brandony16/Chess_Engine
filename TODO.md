@@ -4,7 +4,8 @@
 - (maybe) add ability to change the color of the board. Maybe have different
   themes?
 - Allow highlighting of square when right clicked
-- Make engine battle have a modal that shows progress on allows termination (maybe?)
+- Make engine battle have a modal that shows progress on allows termination 
+- Make it so text says your turn, opponents turn
 
 ## Engine
 - Improve evaluation function with things such as king safety

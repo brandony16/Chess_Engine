@@ -11,6 +11,7 @@
   --engine-gap: 1rem;
   --darkSquare: #9c7452;
   --lightSquare: #f0d198;
+  --lightSquareHover: #e4c387;
   --input-bg: #fff;
   --input-border: #ccc;
   --input-focus-border: #26c6da;
@@ -18,6 +19,7 @@
   --input-padding: 0.5rem;
   --label-size: 0.9rem;
   --gap-size: 1rem;
+  --warning-color: #efa300;
 }
 
 .newGameBody {
@@ -32,6 +34,12 @@ legend {
   font-weight: 600;
   margin-bottom: 0.5rem;
   color: var(--legend-text);
+}
+
+.bottomRowWrap {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
 }
 
 /* Engine Selector */
@@ -50,6 +58,7 @@ legend {
   margin: 0;
   min-height: 125px;
   overflow-y: scroll;
+  border-radius: 4px;
 }
 
 .engine-selector::-webkit-scrollbar {
@@ -113,7 +122,6 @@ legend {
   margin: 0;
   box-sizing: border-box;
   padding: 0px;
-  height: 22%;
 }
 
 .option {
@@ -124,7 +132,6 @@ legend {
   padding: 4px;
   border-radius: 4px;
   box-sizing: border-box;
-  margin-left: 8px;
   border: 3px solid transparent;
 }
 
@@ -137,7 +144,6 @@ legend {
 }
 
 .option .newGameIcon {
-  width: 100%;
   aspect-ratio: 1/1;
   display: flex;
   justify-content: center;
@@ -150,31 +156,22 @@ legend {
   background-color: var(--lightSquare);
 }
 
-/* screen-reader only text */
-.sr-only {
-  border: 0;
-  clip: rect(0 0 0 0);
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  padding: 0;
-  position: absolute;
-  width: 1px;
-}
-
 /* Depth and Time */
 .depthTimeWrap {
   display: flex;
+  align-items: center;
+  justify-content: space-around;
   flex-wrap: wrap;
   gap: var(--gap-size);
-  margin: 1rem 0;
+  height: 25%;
+  margin-bottom: 1rem;
 }
 
 .depthTimeWrap .form-group {
   display: flex;
   flex-direction: column;
-  flex: 1 1 120px; /* grow/shrink with a min width */
   max-width: 200px;
+  position: relative;
 }
 
 .depthTimeWrap .form-group label {
@@ -191,5 +188,48 @@ legend {
   border-radius: var(--input-radius);
   background-color: var(--input-bg);
   color: var(--engine-text);
-  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.depthWarning {
+  position: absolute;
+  top: 80%;
+  font-size: 0.7rem;
+  color: var(--warning-color);
+}
+
+/* Game Eng & Cancel Buttons */
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--engine-text);
+}
+
+.btn.cancel {
+  background-color: var(--engine-bg);
+  border: 3px solid var(--engine-border);
+  color: #333;
+}
+
+.btn.cancel:hover {
+  background-color: #d5d5d5;
+}
+
+.btn.primary {
+  background-color: var(--lightSquare);
+  border: 3px solid var(--darkSquare);
+}
+
+.btn.primary:hover {
+  background-color: var(--lightSquareHover);
 }

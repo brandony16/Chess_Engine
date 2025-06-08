@@ -13,7 +13,6 @@ const SideSelector = ({ value, onChange }) => (
         onChange={() => onChange("W")}
       />
       <img src="./images/wK.svg" alt="white" className="newGameIcon" />
-      <span className="sr-only">White</span>
     </label>
 
     <label className={`option ${value === "R" ? "selected" : ""}`} >
@@ -25,7 +24,6 @@ const SideSelector = ({ value, onChange }) => (
         onChange={() => onChange("R")}
       />
       <img src="./images/random.svg" alt="random" className="newGameIcon" />
-      <span className="sr-only">Random</span>
     </label>
 
     <label className={`option ${value === "B" ? "selected" : ""}`}>
@@ -37,7 +35,6 @@ const SideSelector = ({ value, onChange }) => (
         onChange={() => onChange("B")}
       />
       <img src="./images/bK.svg" alt="black" className="newGameIcon" />
-      <span className="sr-only">Black</span>
     </label>
   </fieldset>
 );

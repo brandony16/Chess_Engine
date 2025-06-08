@@ -37,8 +37,6 @@ const NewGame = () => {
   return (
     <div className="newGameBody">
       <EngineSelector engine={engine} onChange={setEngineLocal} />
-      <SideSelector value={userSide} onChange={setUserSide} />
-
 
       <div className="depthTimeWrap">
         <div className="form-group">
@@ -50,6 +48,11 @@ const NewGame = () => {
             value={depth}
             onChange={(e) => setDepth(Number(e.target.value))}
           />
+          {depth >= 8 && (
+            <p className="depthWarning">
+              Warning: High depths may cause long engine thinking time!
+            </p>
+          )}
         </div>
         <div className="form-group">
           <label htmlFor="time-input">Time Limit (ms):</label>
@@ -64,13 +67,16 @@ const NewGame = () => {
         </div>
       </div>
 
-      <div className="modal-actions">
-        <button onClick={closeModal} className="btn cancel">
-          Cancel
-        </button>
-        <button onClick={handleStart} className="btn primary">
-          Start Game
-        </button>
+      <div className="bottomRowWrap">
+        <SideSelector value={userSide} onChange={setUserSide} />
+        <div className="modal-actions">
+          <button onClick={closeModal} className="btn cancel">
+            Cancel
+          </button>
+          <button onClick={handleStart} className="btn primary">
+            Start Game
+          </button>
+        </div>
       </div>
     </div>
   );
