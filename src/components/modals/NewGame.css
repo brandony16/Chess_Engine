@@ -1,27 +1,3 @@
-:root {
-  --legend-text: #ddd;
-  --engine-bg: #f9f9f9;
-  --engine-border: #ddd;
-  --engine-hover: #eef2f5;
-  --engine-selected-bg: #e0f7fa;
-  --engine-selected-border: #26c6da;
-  --engine-text: #1b1b1b;
-  --engine-desc: #666;
-  --engine-radius: 8px;
-  --engine-gap: 1rem;
-  --darkSquare: #9c7452;
-  --lightSquare: #f0d198;
-  --lightSquareHover: #e4c387;
-  --input-bg: #fff;
-  --input-border: #ccc;
-  --input-focus-border: #26c6da;
-  --input-radius: 6px;
-  --input-padding: 0.5rem;
-  --label-size: 0.9rem;
-  --gap-size: 1rem;
-  --warning-color: #efa300;
-}
-
 .newGameBody {
   height: 85%;
   display: flex;
@@ -130,7 +106,7 @@ legend {
   height: 100%;
   aspect-ratio: 1/1;
   padding: 4px;
-  border-radius: 4px;
+  border-radius: 12px;
   box-sizing: border-box;
   border: 3px solid transparent;
 }
@@ -184,10 +160,15 @@ legend {
 .depthTimeWrap .form-group input {
   padding: var(--input-padding);
   font-size: 1rem;
-  border: 2px solid var(--input-border);
+  border: 3px solid var(--input-border);
   border-radius: var(--input-radius);
   background-color: var(--input-bg);
   color: var(--engine-text);
+}
+
+.depthTimeWrap .form-group input:focus {
+  outline: none;
+  border-color: var(--input-focus-border);
 }
 
 .depthWarning {

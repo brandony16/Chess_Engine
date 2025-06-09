@@ -1,25 +1,3 @@
-:root {
-  --legend-text: #ddd;
-  --engine-bg: #f9f9f9;
-  --engine-border: #ddd;
-  --engine-hover: #eef2f5;
-  --engine-selected-bg: #e0f7fa;
-  --engine-text: #1b1b1b;
-  --engine-desc: #666;
-  --engine-radius: 8px;
-  --engine-gap: 1rem;
-  --darkSquare: #9c7452;
-  --lightSquare: #f0d198;
-  --lightSquareHover: #e4c387;
-  --input-bg: #fff;
-  --input-border: #ccc;
-  --input-radius: 6px;
-  --input-padding: 0.5rem;
-  --label-size: 0.9rem;
-  --gap-size: 1rem;
-  --warning-color: #efa300;
-}
-
 .battleEngines {
   border-radius: 8px;
   max-width: 500px;
@@ -38,35 +16,50 @@
 /* Engine Setting */
 .engineSettingPanel {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-sizing: border-box;
-  gap: 1rem;
-  padding: 4px;
+  flex-wrap: wrap;
+  gap: var(--gap-size);
+  margin-bottom: 1rem;
+  padding: 1rem;
 }
 
-.engineSettingPanel#one {
-  border-right: 2px solid var(--darkSquare);
+#one.engineSettingPanel {
+  border-right: 4px solid var(--darkSquare);
 }
 
-.engine, .labelWrap {
+.engineSettingPanel .engine,
+.engineSettingPanel .labelWrap {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  flex: 1 1 120px;
 }
 
 .modalLabel {
   font-size: var(--label-size);
   font-weight: 600;
-  color: var(--legend-text);
+  color: var(--label-color);
   margin-bottom: 0.25rem;
 }
 
-.numInput, .modalSelect {
+.modalSelect,
+.numInput {
   padding: var(--input-padding);
   font-size: 1rem;
-  border: 2px solid var(--input-border);
+  border: 3px solid var(--input-border);
   border-radius: var(--input-radius);
   background-color: var(--input-bg);
   color: var(--engine-text);
+}
+
+.modalSelect:focus,
+.numInput:focus {
+  outline: none;
+  border-color: var(--input-focus-border);
+  background-color: var(--lightSquare);
+}
+
+/* Make the select and input take full width of their column */
+.modalSelect,
+.numInput {
+  width: 100%;
+  box-sizing: border-box;
 }

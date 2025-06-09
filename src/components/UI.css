@@ -1,3 +1,34 @@
+:root {
+  --legend-text: #ddd;
+  --engine-bg: #f9f9f9;
+  --engine-border: #ddd;
+  --engine-hover: #eef2f5;
+  --engine-selected-bg: #e0f7fa;
+  --engine-selected-border: #26c6da;
+  --engine-text: #1b1b1b;
+  --engine-desc: #666;
+  --engine-radius: 8px;
+  --engine-gap: 1rem;
+  --darkSquare: #9c7452;
+  --lightSquare: #f0d198;
+  --lightSquareHover: #e4c387;
+  --input-bg: #fff;
+  --input-border: #ccc;
+  --input-focus-border: #9c7452;
+  --input-radius: 6px;
+  --input-padding: 0.5rem;
+  --label-size: 0.9rem;
+  --gap-size: 1rem;
+  --warning-color: #efa300;
+  --darkSquare: #9c7452;
+  --lightSquare: #f0d198;
+  --boardBg: #674628;
+  --highlight: rgba(255, 255, 255, 0.2);
+  --selection: rgba(50, 150, 250, 0.4);
+  --labelColor: #4d2709;
+  --labelSize: 1rem;
+}
+
 .body {
   width: 100vw;
   height: 100vh;
@@ -90,7 +121,8 @@
   background-color: rgba(255, 255, 255, 0.05);
 }
 
-.move.highlighted, .move.highlighted:hover {
+.move.highlighted,
+.move.highlighted:hover {
   background-color: rgba(255, 255, 255, 0.15);
 }
 

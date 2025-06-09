@@ -9,14 +9,7 @@ import { useState } from "react";
 import EngineSettings from "./battleEnginesComponents/engineSetting";
 
 const BattleEngines = ({ battleEngines }) => {
-  const engines = [
-    "BondMonkeyV1",
-    "BondMonkeyV2",
-    "BondMonkeyV3",
-    "BondMonkeyV4",
-    "BondMonkeyV5",
-  ];
-  const nameToEngine = {
+  const nameToEngine = { // Put in utilTypes
     BondMonkeyV1: BMV1,
     BondMonkeyV2: BMV2,
     BondMonkeyV3: BMV3,
