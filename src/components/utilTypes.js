@@ -12,3 +12,11 @@ export const EngineTypes = Object.freeze({
   BMV4: "BMV4",
   BMV5: "BMV5",
 });
+
+export const engineStrings = [
+    "BondMonkeyV1",
+    "BondMonkeyV2",
+    "BondMonkeyV3",
+    "BondMonkeyV4",
+    "BondMonkeyV5",
+  ];

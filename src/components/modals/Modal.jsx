@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import GameHistoryModal from "./GameHistoryModal";
 import { useGameStore } from "../gameStore.mjs";
 import "./Modal.css";
-import BattleEngines from "./battleEngines";
+import BattleEngines from "./BattleEngines";
 import NewGame from "./NewGame";
 
 const Modal = ({ battleEngines }) => {

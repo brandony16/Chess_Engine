@@ -288,8 +288,14 @@ const BitboardGame = () => {
    * @param {int} games - the number of games to play
    * @param {int} depth - the depth to search for each move
    */
-  const battleTwoEngines = async (engine1, engine2, games = 10, depth = 3) => {
-    resetGame();
+  const battleTwoEngines = async (
+    engine1,
+    eng1Depth,
+    engine2,
+    eng2Depth,
+    games
+  ) => {
+    resetGame({});
     useGameStore.setState({ userSide: null });
 
     let wins = 0;
@@ -299,18 +305,20 @@ const BitboardGame = () => {
     let gameNum = 1;
     let whiteSide = engine1;
     let blackSide = engine2;
+    let whiteDepth = eng1Depth;
+    let blackDepth = eng2Depth;
     while (gameNum <= games) {
       // Set up game and play opening
-      resetGame(true);
+      resetGame({ isEngineGame: true });
       console.log("Game " + gameNum + " started");
       await playRandomOpening();
 
       // Sim games
       while (!useGameStore.getState().isGameOver) {
-        makeEngineMove(whiteSide, depth, 5000);
+        makeEngineMove(whiteSide, whiteDepth, 5000);
         if (useGameStore.getState().isGameOver) break;
 
-        makeEngineMove(blackSide, depth, 5000);
+        makeEngineMove(blackSide, blackDepth, 5000);
         if (useGameStore.getState().isGameOver) break;
       }
 
@@ -331,10 +339,9 @@ const BitboardGame = () => {
       }
 
       // Flip sides
-      resetGame(true);
-      const temp = whiteSide;
-      whiteSide = blackSide;
-      blackSide = temp;
+      resetGame({ isEngineGame: true });
+      [whiteSide, blackSide] = [blackSide, whiteSide];
+      [whiteDepth, blackDepth] = [blackDepth, whiteDepth];
       gameNum++;
     }
 
@@ -398,11 +405,7 @@ const BitboardGame = () => {
         )}
         <Sidebar changeBoardView={changeBoardView} />
       </div>
-      {isModalOpen && (
-        <Modal
-          battleEngines={battleTwoEngines}
-        />
-      )}
+      {isModalOpen && <Modal battleEngines={battleTwoEngines} />}
     </div>
   );
 };

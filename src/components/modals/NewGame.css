@@ -65,7 +65,7 @@ legend {
   width: 4px;
 }
 .engine-selector::-webkit-scrollbar-thumb {
-  background: var(--engine-text);
+  background: var(--darkSquare);
   border-radius: 4px;
 }
 

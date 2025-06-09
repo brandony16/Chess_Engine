@@ -1,6 +1,5 @@
 import PropTypes from "prop-types";
 import { EngineTypes } from "../../utilTypes";
-import "./EngineSelector.css";
 
 const EngineSelector = ({ engine, onChange }) => {
   const engineTitles = {

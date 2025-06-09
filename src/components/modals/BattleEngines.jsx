@@ -5,9 +5,17 @@ import { BMV2 } from "../bbEngines/BMV2/BondMonkeyV2.mjs";
 import { BMV3 } from "../bbEngines/BMV3/BondMonkeyV3.mjs";
 import { BMV4 } from "../bbEngines/BMV4/BondMonkeyV4.mjs";
 import { BMV5 } from "../bbEngines/BMV5/BondMonkeyV5.mjs";
+import { useState } from "react";
+import EngineSettings from "./battleEnginesComponents/engineSetting";
 
 const BattleEngines = ({ battleEngines }) => {
-  const engines = ["BondMonkeyV1", "BondMonkeyV2", "BondMonkeyV3", "BondMonkeyV4", "BondMonkeyV5"];
+  const engines = [
+    "BondMonkeyV1",
+    "BondMonkeyV2",
+    "BondMonkeyV3",
+    "BondMonkeyV4",
+    "BondMonkeyV5",
+  ];
   const nameToEngine = {
     BondMonkeyV1: BMV1,
     BondMonkeyV2: BMV2,
@@ -16,77 +24,51 @@ const BattleEngines = ({ battleEngines }) => {
     BondMonkeyV5: BMV5,
   };
 
-  const startBattle = (e) => {
-    e.preventDefault();
+  const [engine1, setEngine1] = useState("BondMonkeyV5");
+  const [depth1, setDepth1] = useState(5);
+  const [engine2, setEngine2] = useState("BondMonkeyV5");
+  const [depth2, setDepth2] = useState(5);
+  const [numGames, setNumGames] = useState(5);
 
-    const form = document.getElementById("battleForm");
-    const data = new FormData(form);
-    const engine1 = data.get("engine1");
+  const startBattle = () => {
     const engine1Func = nameToEngine[engine1];
-    const engine2 = data.get("engine2");
     const engine2Func = nameToEngine[engine2];
-    const depth = data.get("depth");
-    const numGames = data.get("games");
 
-    battleEngines(engine1Func, engine2Func, numGames, depth);
+    battleEngines(engine1Func, depth1, engine2Func, depth2, numGames);
   };
 
   return (
-    <form id="battleForm" className="battleEngines">
-      <div className="engineWrapper">
-        <div className="engine">
-          <label htmlFor="engine1" className="modalSubheader">
-            Engine 1:
-          </label>
-          <select name="engine1" className="modalSelect">
-            {engines.map((name, index) => {
-              return (
-                <option key={index} value={name}>
-                  {name}
-                </option>
-              );
-            })}
-          </select>
-        </div>
-        <div className="engine">
-          <label htmlFor="engine2" className="modalSubheader">
-            Engine 2:
-          </label>
-          <select name="engine2" className="modalSelect">
-            {engines.map((name, index) => {
-              return (
-                <option key={index} value={name} className="option">
-                  {name}
-                </option>
-              );
-            })}
-          </select>
-        </div>
+    <div id="battleForm" className="battleEngines">
+      <div className="engineSettingsWrap">
+        <EngineSettings
+          engineValue={engine1}
+          depthValue={depth1}
+          setEngine={setEngine1}
+          setDepth={setDepth1}
+          id="one"
+        />
+        <EngineSettings
+          engineValue={engine2}
+          depthValue={depth2}
+          setEngine={setEngine2}
+          setDepth={setDepth2}
+          id="two"
+        />
       </div>
 
       <div className="paramWrap">
         <div className="labelWrap">
-          <label htmlFor="depth">Depth:</label>
-          <input
-            type="number"
-            name="depth"
-            step={1}
-            defaultValue={3}
-            className="numInput"
-            max="10"
-            min="1"
-          />
-        </div>
-        <div className="labelWrap">
-          <label htmlFor="games">Games:</label>
+          <legend>Games:</legend>
           <input
             type="number"
             name="games"
+            id="games"
             step="1"
-            defaultValue="5"
             className="numInput"
             max="100"
             min="1"
+            value={numGames}
+            onChange={(e) => setNumGames(Number(e.target.value))}
           />
         </div>
       </div>
@@ -95,11 +77,11 @@ const BattleEngines = ({ battleEngines }) => {
         className="battle"
         type="submit"
         id="battle"
-        onClick={(e) => startBattle(e)}
+        onClick={() => startBattle()}
       >
         Start
       </button>
-    </form>
+    </div>
   );
 };
 
