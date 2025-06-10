@@ -14,9 +14,17 @@ export const EngineTypes = Object.freeze({
 });
 
 export const engineStrings = [
-    "BondMonkeyV1",
-    "BondMonkeyV2",
-    "BondMonkeyV3",
-    "BondMonkeyV4",
-    "BondMonkeyV5",
-  ];
+  "BondMonkeyV1",
+  "BondMonkeyV2",
+  "BondMonkeyV3",
+  "BondMonkeyV4",
+  "BondMonkeyV5",
+];
+
+export const nameToType = {
+  BondMonkeyV1: EngineTypes.BMV1,
+  BondMonkeyV2: EngineTypes.BMV2,
+  BondMonkeyV3: EngineTypes.BMV3,
+  BondMonkeyV4: EngineTypes.BMV4,
+  BondMonkeyV5: EngineTypes.BMV5,
+};

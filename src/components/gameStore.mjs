@@ -46,6 +46,9 @@ const makeInitialState = () => ({
   // -----MODAL STATE-----
   isModalOpen: false,
   modalType: ModalTypes.NONE,
+
+  // -----TERMINATE MOVE-----
+  breakBattleLoop: false,
 });
 
 export const useGameStore = create((set, get) => {
@@ -184,6 +187,28 @@ export const useGameStore = create((set, get) => {
       set((state) => ({
         boardViewSide: state.boardViewSide === WHITE ? BLACK : WHITE,
       }));
+    },
+
+    changeViewedMove: (direction) => {
+      const state = get();
+      const index = state.currIndexOfDisplayed + direction;
+
+      if (index < 0 || index >= state.pastBitboards.length) return;
+
+      set((state) => ({
+        displayedBitboards: state.pastBitboards[index],
+        currIndexOfDisplayed: state.currIndexOfDisplayed + direction,
+      }));
+
+      if (index === state.pastBitboards.length - 1) {
+        set(() => ({ isCurrPositionShown: true }));
+      } else {
+        set(() => ({
+          isCurrPositionShown: false,
+          selectedSquare: null,
+          moveBitboard: null,
+        }));
+      }
     },
   };
 });

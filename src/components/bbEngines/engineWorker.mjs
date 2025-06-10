@@ -2,10 +2,10 @@ import { initializePieceAtArray } from "../bitboardUtils/pieceGetters";
 import { initializePieceIndicies } from "../bitboardUtils/pieceIndicies";
 import { computeAllAttackMasks } from "../bitboardUtils/PieceMasks/individualAttackMasks";
 import { clearTT } from "../bitboardUtils/TranspositionTable/transpositionTable";
-import { BMV5 } from "./BMV5/BondMonkeyV5";
 import { engineRegistry } from "./engineRegistry.mjs";
 
-onmessage = (e) => {
+
+self.onmessage = (e) => {
   const {
     bitboards,
     player,

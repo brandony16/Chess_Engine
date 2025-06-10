@@ -1,11 +1,10 @@
-import PropTypes from "prop-types";
 import GameHistoryModal from "./GameHistoryModal";
 import { useGameStore } from "../gameStore.mjs";
 import "./Modal.css";
 import BattleEngines from "./BattleEngines";
 import NewGame from "./NewGame";
 
-const Modal = ({ battleEngines }) => {
+const Modal = () => {
   const { modalType, closeModal } = useGameStore.getState();
 
   const MODAL_TITLES = {
@@ -19,7 +18,7 @@ const Modal = ({ battleEngines }) => {
       case "history":
         return <GameHistoryModal />;
       case "battle":
-        return <BattleEngines battleEngines={battleEngines} />;
+        return <BattleEngines />;
       case "new":
         return <NewGame />;
       default:
@@ -38,10 +37,6 @@ const Modal = ({ battleEngines }) => {
       </div>
     </div>
   );
-};
-
-Modal.propTypes = {
-  battleEngines: PropTypes.func.isRequired,
 };
 
 export default Modal;

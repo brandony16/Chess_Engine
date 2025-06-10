@@ -18,10 +18,8 @@ import Modal from "./modals/Modal";
 import { BLACK_PAWN, WHITE_PAWN } from "./bitboardUtils/constants.mjs";
 import Move from "./bitboardUtils/moveMaking/move.mjs";
 import { isKing } from "./bitboardUtils/bbUtils.mjs";
-import {
-  getOpeningMoves,
-  squareToIndex,
-} from "./bitboardUtils/FENandUCIHelpers.mjs";
+
+import EngineWorker from "./bbEngines/engineWorker.mjs?worker";
 
 // Runs the game
 const BitboardGame = () => {
@@ -31,57 +29,21 @@ const BitboardGame = () => {
     promotion,
     promotionMove,
     isGameOver,
-    resetGame,
     isModalOpen,
+    changeViewedMove,
   } = useGameStore();
 
-  // Creates a new worker
-  const worker = useMemo(() => {
-    return new Worker(
-      new URL("./bbEngines/engineWorker.mjs", import.meta.url),
-      {
-        type: "module",
-      }
-    );
+  // Create the single engine worker
+  const engineWorker = useMemo(() => {
+    const w = new EngineWorker();
+    w.onmessage = (e) => {
+      const { move } = e.data;
+      processMove(move.from, move.to, move.promotion);
+    };
+    return w;
   }, []);
 
   // FUNCTIONS ----------------------------------------------------------------
-  /**
-   * Makes a move with the given engine
-   *
-   * @param {function} engine - the engine to use for the move
-   * @param {int} depth - the depth to search
-   * @param {int} timeLimit - the time limit the engine has for a move in ms
-   */
-  const makeEngineMove = (engine, depth = 3, timeLimit = Infinity) => {
-    const {
-      isCurrPositionShown,
-      isGameOver,
-      bitboards,
-      currPlayer,
-      castlingRights,
-      enPassantSquare,
-      pastPositions,
-    } = useGameStore.getState();
-
-    if (!isCurrPositionShown || isGameOver) return;
-
-    const bestMove = engine(
-      bitboards,
-      currPlayer,
-      castlingRights,
-      enPassantSquare,
-      pastPositions,
-      depth,
-      timeLimit
-    );
-    const from = bestMove.from;
-    const to = bestMove.to;
-    const promotion = bestMove.promotion;
-
-    processMove(from, to, promotion);
-  };
-
   /**
    * Processes a move by making the move and updating state.
    *
@@ -235,136 +197,16 @@ const BitboardGame = () => {
   };
 
   /**
-   * Plays a random 4 move (8 ply) opening
-   */
-  const playRandomOpening = async () => {
-    // Fetches an 8ply opening from openings.json
-    const moves = await getOpeningMoves();
-
-    for (const uciMove of moves) {
-      const from = squareToIndex(uciMove.slice(0, 2));
-      const to = squareToIndex(uciMove.slice(2, 4));
-      const promotion = null; // Cant have a promotion in 4 moves
-
-      processMove(from, to, promotion);
-    }
-  };
-
-  /**
-   * Changes what move is visible to the user. The direction should be -1 or 1
-   * for moving one move back and forward.
-   *
-   * @param {int} direction - what move you want to go to (-1, 1)
-   */
-  const changeBoardView = (direction) => {
-    const { currIndexOfDisplayed, pastBitboards } = useGameStore.getState();
-
-    const index = currIndexOfDisplayed + direction;
-
-    if (index < 0 || index >= pastBitboards.length) return;
-
-    useGameStore.setState({
-      displayedBitboards: pastBitboards[index],
-      currIndexOfDisplayed:
-        useGameStore.getState().currIndexOfDisplayed + direction,
-    });
-
-    if (index === pastBitboards.length - 1) {
-      useGameStore.setState({ isCurrPositionShown: true });
-    } else {
-      useGameStore.setState({
-        isCurrPositionShown: false,
-        selectedSquare: null,
-        moveBitboard: null,
-      });
-    }
-  };
-
-  /**
-   * Battles two engines, alternating the side each plays.
-   *
-   * @param {function} engine1 - the engine that starts with white
-   * @param {function} engine2 - the engine that starts with black
-   * @param {int} games - the number of games to play
-   * @param {int} depth - the depth to search for each move
-   */
-  const battleTwoEngines = async (
-    engine1,
-    eng1Depth,
-    engine2,
-    eng2Depth,
-    games
-  ) => {
-    resetGame({});
-    useGameStore.setState({ userSide: null });
-
-    let wins = 0;
-    let draws = 0;
-    let losses = 0;
-
-    let gameNum = 1;
-    let whiteSide = engine1;
-    let blackSide = engine2;
-    let whiteDepth = eng1Depth;
-    let blackDepth = eng2Depth;
-    while (gameNum <= games) {
-      // Set up game and play opening
-      resetGame({ isEngineGame: true });
-      console.log("Game " + gameNum + " started");
-      await playRandomOpening();
-
-      // Sim games
-      while (!useGameStore.getState().isGameOver) {
-        makeEngineMove(whiteSide, whiteDepth, 5000);
-        if (useGameStore.getState().isGameOver) break;
-
-        makeEngineMove(blackSide, blackDepth, 5000);
-        if (useGameStore.getState().isGameOver) break;
-      }
-
-      const result = useGameStore.getState().result;
-      console.log("Game " + gameNum + " Over");
-      console.log(result);
-      const engineNum = gameNum % 2 === 1 ? 1 : 2;
-      console.log("With white being engine" + engineNum);
-
-      const resultChar = result.charAt(0);
-      const engineSide = engineNum === 1 ? "W" : "B";
-      if (resultChar === engineSide) {
-        wins++;
-      } else if (resultChar === "D") {
-        draws++;
-      } else {
-        losses++;
-      }
-
-      // Flip sides
-      resetGame({ isEngineGame: true });
-      [whiteSide, blackSide] = [blackSide, whiteSide];
-      [whiteDepth, blackDepth] = [blackDepth, whiteDepth];
-      gameNum++;
-    }
-
-    console.log("Engine1 Stats:");
-    console.log("\n Wins: " + wins);
-    console.log("\n Draws: " + draws);
-    console.log("\n Losses: " + losses);
-    // 1 decimal place
-    const winRate = Number(((wins / games) * 100).toFixed(1));
-    console.log("Win Rate: " + winRate + "%");
-  };
-
-  /**
    * Gets the move of the engine from the worker
    *
    * @param {int} depth - the depth for the engine to search
    * @param {int} timeLimit - the time the engine has to make a move in ms
    */
   const getEngineMove = () => {
-    if (!worker) return;
+    if (!engineWorker) return;
     const state = useGameStore.getState();
 
-    worker.postMessage({
+    engineWorker.postMessage({
       bitboards: state.bitboards,
       player: state.currPlayer,
       castlingRights: state.castlingRights,
@@ -375,15 +217,6 @@ const BitboardGame = () => {
       timeLimit: state.engineTimeLimitMs,
     });
   };
-
-  // Processes the engines move from the worker
-  useEffect(() => {
-    worker.onmessage = (e) => {
-      const { move } = e.data;
-
-      processMove(move.from, move.to, move.promotion);
-    };
-  }, []);
 
   // Runs the engine move after the user makes a move
   useEffect(() => {
@@ -403,9 +236,9 @@ const BitboardGame = () => {
             userPlayer={userSide}
           />
         )}
-        <Sidebar changeBoardView={changeBoardView} />
+        <Sidebar changeBoardView={changeViewedMove} />
       </div>
-      {isModalOpen && <Modal battleEngines={battleTwoEngines} />}
+      {isModalOpen && <Modal />}
     </div>
   );
 };

@@ -1,35 +1,50 @@
-import PropTypes from "prop-types";
-import { BMV1 } from "../bbEngines/BondMonkeyV1.mjs";
 import "./BattleEngines.css";
-import { BMV2 } from "../bbEngines/BMV2/BondMonkeyV2.mjs";
-import { BMV3 } from "../bbEngines/BMV3/BondMonkeyV3.mjs";
-import { BMV4 } from "../bbEngines/BMV4/BondMonkeyV4.mjs";
-import { BMV5 } from "../bbEngines/BMV5/BondMonkeyV5.mjs";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import EngineSettings from "./battleEnginesComponents/engineSetting";
+import { nameToType } from "../utilTypes";
+import BattleWorker from "../bbEngines/battleEngineWorker.mjs?worker";
 
-const BattleEngines = ({ battleEngines }) => {
-  const nameToEngine = { // Put in utilTypes
-    BondMonkeyV1: BMV1,
-    BondMonkeyV2: BMV2,
-    BondMonkeyV3: BMV3,
-    BondMonkeyV4: BMV4,
-    BondMonkeyV5: BMV5,
-  };
-
+const BattleEngines = () => {
   const [engine1, setEngine1] = useState("BondMonkeyV5");
   const [depth1, setDepth1] = useState(5);
   const [engine2, setEngine2] = useState("BondMonkeyV5");
   const [depth2, setDepth2] = useState(5);
   const [numGames, setNumGames] = useState(5);
+  
+  // Create the battle engines worker
+  const battleWorker = useMemo(() => {
+    const w = new BattleWorker();
+    w.onmessage = (e) => {
+      const data = e.data;
+      handleBattleMessage(data);
+    };
+    return w;
+  }, []);
 
-  const startBattle = () => {
-    const engine1Func = nameToEngine[engine1];
-    const engine2Func = nameToEngine[engine2];
+  const handleBattleMessage = (data) => {
+    const { type, gameNum, wins, draws, losses, winRate } = data;
 
-    battleEngines(engine1Func, depth1, engine2Func, depth2, numGames);
+    if (type === "progress") {
+      console.log("Progress " + gameNum);
+      return;
+    }
+
+    console.log("Done");
   };
 
+  const startBattle = () => {
+    if (!battleWorker) return;
+    const engine1Type = nameToType[engine1];
+    const engine2Type = nameToType[engine2];
+
+    battleWorker.postMessage({
+      engine1Type,
+      depth1,
+      engine2Type,
+      depth2,
+      numGames,
+    });
+  };
   return (
     <div id="battleForm" className="battleEngines">
       <div className="engineSettingsWrap">
@@ -76,10 +91,6 @@ const BattleEngines = ({ battleEngines }) => {
       </button>
     </div>
   );
-};
-
-BattleEngines.propTypes = {
-  battleEngines: PropTypes.func.isRequired,
 };
 
 export default BattleEngines;
