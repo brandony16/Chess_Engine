@@ -28,3 +28,9 @@ export const nameToType = {
   BondMonkeyV4: EngineTypes.BMV4,
   BondMonkeyV5: EngineTypes.BMV5,
 };
+
+export const BattleModalStates = {
+  SETTING: "setting",
+  LOADING: "loading",
+  FINISHED: "finished",
+}

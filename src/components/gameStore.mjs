@@ -102,6 +102,7 @@ export const useGameStore = create((set, get) => {
       isEngineGame = false,
       userSide = null,
       engine = EngineTypes.BMV5,
+      engine2 = null,
       depth = 4,
       timeLimitMs = 5000,
     }) => {
@@ -111,7 +112,7 @@ export const useGameStore = create((set, get) => {
             moves: state.pastMoves,
             bitboards: state.pastBitboards,
             result: state.result,
-            isEngineGame,
+            isEngineGame: isEngineGame,
             userSide: state.userSide,
           }
         : null;
@@ -120,6 +121,8 @@ export const useGameStore = create((set, get) => {
         return;
       }
 
+      const historyArr = historyEntry ? [...state.gameHistory, historyEntry] : state.gameHistory;
+
       // re-init globals
       initializePieceIndicies(INITIAL_BITBOARDS);
       computeAllAttackMasks(INITIAL_BITBOARDS);
@@ -127,9 +130,7 @@ export const useGameStore = create((set, get) => {
 
       set(() => ({
         ...makeInitialState(),
-        gameHistory: historyEntry
-          ? [...state.gameHistory, historyEntry]
-          : state.gameHistory,
+        gameHistory: historyArr,
         userSide: userSide,
         selectedEngine: engine,
         engineDepth: depth,

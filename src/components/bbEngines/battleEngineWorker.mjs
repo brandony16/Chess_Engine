@@ -1,27 +1,23 @@
 import { useGameStore } from "../gameStore.mjs";
 import { makeEngineMove, playRandomOpening } from "./engineFuncs.mjs";
-import { engineRegistry } from "./engineRegistry.mjs";
 
 self.onmessage = async (e) => {
   const { engine1, eng1Depth, engine2, eng2Depth, games } = e.data;
   useGameStore.setState({ userSide: null });
   const { breakBattleLoop, resetGame } = useGameStore.getState();
 
-  const engine1Fn = engineRegistry[engine1];
-  const engine2Fn = engineRegistry[engine2];
-
   let wins = 0;
   let draws = 0;
   let losses = 0;
 
   let gameNum = 1;
-  let whiteSide = engine1Fn;
-  let blackSide = engine2Fn;
+  let whiteSide = engine1;
+  let blackSide = engine2;
   let whiteDepth = eng1Depth;
   let blackDepth = eng2Depth;
   while (gameNum <= games && !breakBattleLoop) {
     // Set up game and play opening
-    
+
     resetGame({ isEngineGame: true });
     await playRandomOpening();
 
@@ -45,6 +41,8 @@ self.onmessage = async (e) => {
     } else {
       losses++;
     }
+    
+    resetGame({ isEngineGame: true });
 
     // Flip sides
     [whiteSide, blackSide] = [blackSide, whiteSide];

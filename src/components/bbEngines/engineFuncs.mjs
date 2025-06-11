@@ -1,5 +1,6 @@
 import { getNewEnPassant } from "../bitboardUtils/bbChessLogic.mjs";
 import { isKing } from "../bitboardUtils/bbUtils.mjs";
+import { BLACK_PAWN, WHITE_PAWN } from "../bitboardUtils/constants.mjs";
 import { getOpeningMoves, squareToIndex } from "../bitboardUtils/FENandUCIHelpers.mjs";
 import { checkGameOver } from "../bitboardUtils/gameOverLogic.mjs";
 import { moveToReadable } from "../bitboardUtils/generalHelpers.mjs";
@@ -8,6 +9,7 @@ import Move from "../bitboardUtils/moveMaking/move.mjs";
 import { pieceAt } from "../bitboardUtils/pieceGetters.mjs";
 import { computeHash } from "../bitboardUtils/zobristHashing.mjs";
 import { useGameStore } from "../gameStore.mjs";
+import { engineRegistry } from "./engineRegistry.mjs";
 
 /**
  * Plays a random 4 move (8 ply) opening
@@ -28,7 +30,8 @@ export const playRandomOpening = async () => {
 /**
  * Makes a move with the given engine
  *
- * @param {function} engine - the engine to use for the move
+ * @param {string} engine - the string of the engine to use for the move.
+ * Should be on of the types in the EngineRegistry
  * @param {int} depth - the depth to search
  * @param {int} timeLimit - the time limit the engine has for a move in ms
  */
@@ -45,7 +48,9 @@ export const makeEngineMove = (engine, depth = 3, timeLimit = Infinity) => {
 
   if (!isCurrPositionShown || isGameOver) return;
 
-  const bestMove = engine(
+  const engineFn = engineRegistry[engine];
+
+  const bestMove = engineFn(
     bitboards,
     currPlayer,
     castlingRights,
