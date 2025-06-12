@@ -41,7 +41,7 @@ self.onmessage = async (e) => {
     } else {
       losses++;
     }
-    
+
     resetGame({ isEngineGame: true });
 
     // Flip sides
@@ -49,6 +49,8 @@ self.onmessage = async (e) => {
     [whiteDepth, blackDepth] = [blackDepth, whiteDepth];
 
     // Send Progress Update
+    const gameHistory = useGameStore.getState().gameHistory;
+    const gameHistoryEntry = gameHistory[gameHistory.length - 1];
     const winRate = ((wins / gameNum) * 100).toFixed(1);
     self.postMessage({
       type: "progress",
@@ -57,6 +59,7 @@ self.onmessage = async (e) => {
       draws,
       losses,
       winRate,
+      gameHistoryEntry,
     });
 
     gameNum++;

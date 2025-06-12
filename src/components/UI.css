@@ -27,6 +27,14 @@
   --selection: rgba(50, 150, 250, 0.4);
   --labelColor: #4d2709;
   --labelSize: 1rem;
+  --card-bg: #2f4f4f;
+  --card-border: #1e2d2d;
+  --card-radius: 12px;
+  --card-shadow: rgba(0, 0, 0, 0.5);
+  --text-primary: #f0f0f0;
+  --text-secondary: #ccc;
+  --accent: #f08383;
+  --gap: 1rem;
 }
 
 .body {

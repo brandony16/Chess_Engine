@@ -121,7 +121,9 @@ export const useGameStore = create((set, get) => {
         return;
       }
 
-      const historyArr = historyEntry ? [...state.gameHistory, historyEntry] : state.gameHistory;
+      const historyArr = historyEntry
+        ? [...state.gameHistory, historyEntry]
+        : state.gameHistory;
 
       // re-init globals
       initializePieceIndicies(INITIAL_BITBOARDS);
@@ -210,6 +212,12 @@ export const useGameStore = create((set, get) => {
           moveBitboard: null,
         }));
       }
+    },
+
+    addHistoryEntry: (entry) => {
+      set((state) => ({
+        gameHistory: [...state.gameHistory, entry],
+      }));
     },
   };
 });

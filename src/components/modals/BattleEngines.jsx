@@ -4,6 +4,7 @@ import EngineSettings from "./battleEnginesComponents/engineSetting";
 import { BattleModalStates, nameToType } from "../utilTypes";
 import BattleWorker from "../bbEngines/battleEngineWorker.mjs?worker";
 import FinalStats from "./battleEnginesComponents/FinalStats";
+import { useGameStore } from "../gameStore.mjs";
 
 const BattleEngines = () => {
   const [engine1, setEngine1] = useState("BondMonkeyV5");
@@ -15,6 +16,8 @@ const BattleEngines = () => {
   const [modalState, setModalState] = useState(BattleModalStates.SETTING);
   const [finalStats, setFinalStats] = useState(null);
 
+  const { addHistoryEntry } = useGameStore.getState();
+
   const handleBattleMessage = useCallback((e) => {
     const data = e.data;
     if (data.type === "finished" || data.type === "done") {
@@ -25,6 +28,9 @@ const BattleEngines = () => {
       console.log(
         `Game ${data.gameNum} — W:${data.wins}/D:${data.draws}/L:${data.losses}`
       );
+    }
+    if (data.gameHistoryEntry) {
+      addHistoryEntry(data.gameHistoryEntry);
     }
   }, []);
 

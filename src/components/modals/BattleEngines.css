@@ -2,7 +2,6 @@
   border-radius: 8px;
   max-width: 500px;
   display: flex;
-  margin-top: 18px;
   flex-direction: column;
   gap: 1.25rem;
 }
@@ -62,4 +61,93 @@
 .numInput {
   width: 100%;
   box-sizing: border-box;
+}
+
+/* Final Stats Screen */
+.finalStats {
+  border: 2px solid var(--card-border);
+  border-radius: var(--card-radius);
+  box-shadow: 0 6px 16px var(--card-shadow);
+  color: var(--text-primary);
+  padding: 1rem;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.versusHeader {
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-align: center;
+  margin: 0;
+}
+
+.versusHeader .vs {
+  color: var(--accent);
+  margin: 0 0.5rem;
+}
+
+.summaryHeader {
+  font-size: 1.15rem;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.2rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.statItem dt {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+}
+
+.statItem dd {
+  font-size: 1.1rem;
+  font-weight: bold;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.resetBtn {
+  align-self: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.resetBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(38, 198, 218, 0.5);
 }
