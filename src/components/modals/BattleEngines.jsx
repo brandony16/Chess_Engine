@@ -5,6 +5,7 @@ import { BattleModalStates, nameToType } from "../utilTypes";
 import BattleWorker from "../bbEngines/battleEngineWorker.mjs?worker";
 import FinalStats from "./battleEnginesComponents/FinalStats";
 import { useGameStore } from "../gameStore.mjs";
+import Loading from "./battleEnginesComponents/Loading";
 
 const BattleEngines = () => {
   const [engine1, setEngine1] = useState("BondMonkeyV5");
@@ -12,9 +13,18 @@ const BattleEngines = () => {
   const [engine2, setEngine2] = useState("BondMonkeyV5");
   const [depth2, setDepth2] = useState(5);
   const [numGames, setNumGames] = useState(5);
+  const [gameBeingProcessed, setGameBeingProcessed] = useState(1);
 
   const [modalState, setModalState] = useState(BattleModalStates.SETTING);
-  const [finalStats, setFinalStats] = useState(null);
+  const [finalStats, setFinalStats] = useState({
+      type: null,
+      gameNum: 0,
+      wins: -1,
+      draws: -1,
+      losses: -1,
+      winRate: 0,
+      gameHistoryEntry: null,
+  });
 
   const { addHistoryEntry } = useGameStore.getState();
 
@@ -23,11 +33,9 @@ const BattleEngines = () => {
     if (data.type === "finished" || data.type === "done") {
       setFinalStats(data);
       setModalState(BattleModalStates.FINISHED);
+      setGameBeingProcessed(1);
     } else if (data.type === "progress") {
-      // optionally track progress: data.gameNum, data.winRate, etc.
-      console.log(
-        `Game ${data.gameNum} — W:${data.wins}/D:${data.draws}/L:${data.losses}`
-      );
+      setGameBeingProcessed((prev) => prev + 1);
     }
     if (data.gameHistoryEntry) {
       addHistoryEntry(data.gameHistoryEntry);
@@ -60,7 +68,9 @@ const BattleEngines = () => {
   let content;
   switch (modalState) {
     case BattleModalStates.LOADING:
-      content = <div className="loading">Running games… please wait.</div>;
+      content = (
+        <Loading gameNum={gameBeingProcessed} totalGames={numGames} />
+      );
       break;
 
     case BattleModalStates.FINISHED:
