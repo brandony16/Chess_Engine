@@ -5,9 +5,6 @@ import {
 } from "../../bitboardUtils/TranspositionTable/transpositionTable.mjs";
 import { CHECKMATE_VALUE } from "../../bitboardUtils/constants.mjs";
 import { minimax5 } from "./minimax5.mjs";
-import { computeAllAttackMasks } from "../../bitboardUtils/PieceMasks/individualAttackMasks.mjs";
-import { initializePieceIndicies } from "../../bitboardUtils/pieceIndicies.mjs";
-import { initializePieceAtArray } from "../../bitboardUtils/pieceGetters.mjs";
 
 // Root id for transposition table. Helps avoid stale entries
 export let rootId = 0;

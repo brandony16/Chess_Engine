@@ -268,7 +268,7 @@ describe("Engine finds obvious best moves", () => {
     expect(engineObj.captured).toBe(null);
   });
 
-  test.only("debug", () => {
+  test("debug", () => {
     const fen = "r2qkb1r/pp2pppp/2n2P2/8/2p2P2/2pP1P2/PPP1Q2P/R1B1KB1R w - - 0 1";
     const fenData = getFENData(fen);
     const bitboards = fenData.bitboards;
