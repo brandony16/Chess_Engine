@@ -117,10 +117,17 @@ npm run build
   4. View the results of the battle such as wins, losses, and draws.
 
 - **Past Games:**
+
   - When you finish a game it will be automatically stored in past games.
   - You can them go back and view these games you (or the engine) played.
   - Click on a game to view it and look through the moves.
   - NOTE: Previous games are lost when the page refreshes.
+
+- **Other Usage Notes:**
+  - Search times will depend on hardware, but depths above 6 or 7 can start to
+    take a while.
+  - Higher depths are also not recommended when simulating engine games due to
+    long wait times.
 
 ## Architecture & Implementation
 
@@ -147,11 +154,34 @@ npm run build
     heuristics. These all work to reduce the number of nodes that are searched.
     Move info can be found on each of these techniques at the
     [ChessProgrammingWiki](https://www.chessprogramming.org/Main_Page).
-  
-  - Later versions also include quiescence search, 
+
+  - Later versions also include quiescence search, which is a special type of
+    search that only simulates captures and promotions. This helps reduce the
+    "horizon effect," which occurs when an engine misevaluates a capture
+    sequence due to hitting the max depth.
+  - This type of search is done after hitting the initial max depth.
 
 - **Move Generation**
-
+  - Move generation is done by first finding all of the pseudo legal moves in a
+    position. These are the moves that follow that pieces moving rules, but do
+    not take into account whether the king is in check or if the king will be
+    put in check by a move.
+  - Pseudo legal moves are generated using precalculated movement tables for
+    non-sliding pieces (king, pawn, and knight); and using magic bitboards for
+    the sliding pieces (bishop, rook, queen).
+  - Magic bitboards are a technique where by multiplying the relevant occupancy
+    bitboard by a precomputed "magic number" then shifting the result to isolate
+    some number of bits, one can get a unique index. This index then can be used
+    on a precomputed move lookup table to get the moves for the piece. A better
+    explanation of magic bitboards can be found on the
+    [Chess Programming Wiki](https://www.chessprogramming.org/Magic_Bitboards)
+  - This is required on sliding pieces as those pieces are affected by other
+    pieces blocking them, so their moves aren't constant.
+  - Pieces like the pawn, knight, and king arent affected by blockers. (NOTE:
+    Pawn moves forward can be blocked, but those pawn moves are simply
+    recalculated every time since at most you have to check 2 squares and its
+    not worth it to do a bunch of magic bitboard lookups.)
+    
 - **Evaluation**
 
 - **Current Versions**
