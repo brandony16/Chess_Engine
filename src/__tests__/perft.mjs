@@ -21,6 +21,11 @@ export function perft(board, player, castling, ep, depth) {
   const opp = player === WHITE ? BLACK : WHITE;
 
   const moves = getAllLegalMoves(board, player, castling, ep);
+
+  // No need to sim every move if at the end
+  if (depth === 1) {
+    return moves.length;
+  }
   for (const move of moves) {
     makeMove(board, move);
 

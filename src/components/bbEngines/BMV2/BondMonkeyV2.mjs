@@ -1,11 +1,7 @@
 import { computeHash } from "../../bitboardUtils/zobristHashing.mjs";
-import { clearTT } from "../../bitboardUtils/TranspositionTable/transpositionTable.mjs";
 import { CHECKMATE_VALUE } from "../../bitboardUtils/constants.mjs";
 import { minimax2 } from "./minimax2.mjs";
 import { computeAllAttackMasks } from "../../bitboardUtils/PieceMasks/individualAttackMasks.mjs";
-
-// Root id for transposition table. Helps avoid stale entries
-export let rootId = 0;
 
 /**
  * Gets the best move in a position based purely off of material.
@@ -29,8 +25,6 @@ export function BMV2(
   maxDepth,
   timeLimit = Infinity
 ) {
-  clearTT(); // Clears transposition table
-
   const start = performance.now();
 
   let bestMove = null;
