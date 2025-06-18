@@ -6,7 +6,7 @@ bitboards, magic bitboards, and optimized negamax with alpha-beta pruning to
 deliver competitive play and a “battle mode” that lets two engines face off
 head-to-head.
 
-[▶️ Play Bondmonkey in your browser](https://brandony16.github.io/Chess_Engine/)
+[▶️ Play Bondmonkey](https://brandony16.github.io/Chess_Engine/)
 
 ---
 
