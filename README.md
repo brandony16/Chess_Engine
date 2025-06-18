@@ -34,11 +34,14 @@ duke it out in “Battle Mode”.
 
 ## 🎬 Demo / Screenshots
 
-![Bondmonkey Main Board](./assets/screenshot-main.png)  
-_Figure 1: Main playing board against AI version 3._
+![Bondmonkey Main Board](./public/screenshots/main-board.png)  
+_Figure 1: Main playing board against Bondmonkey V5._
 
-![Battle Mode](./assets/screenshot-battle.png)  
-_Figure 2: Battle Mode—AI v2 vs. AI v5._
+![Battle Mode](./public/screenshots/battle-result.png)  
+_Figure 2: Battle Mode Result for BMV5 vs BMV4_
+
+![Past Games](./public/screenshots/past-games.png)
+_Figure 3: Viewing past games_
 
 ---
 
@@ -64,7 +67,9 @@ npm run build
   scripts folder. To generate your own openings, first download a pgn file of
   openings and put it into the root of the project. Then in build-openings.js,
   change the PGN_PATH variable to the name of your pgn file, and tweak any other
-  settings at the top. You can then run
+  settings at the top.
+
+You can then run
 
 ```bash
 npm run build-openings

@@ -21,6 +21,10 @@
   padding: 10px;
   box-sizing: border-box;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+  align-items: center;
 }
 
 .close {
@@ -48,4 +52,5 @@
   height: 10%;
   text-decoration: underline;
   text-underline-offset: 4px;
+  width: 100%;
 }
