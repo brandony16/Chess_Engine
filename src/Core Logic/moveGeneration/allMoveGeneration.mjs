@@ -1,6 +1,5 @@
 import { bitScanForward, isKing, popcount } from "../bbUtils.mjs";
 import * as C from "../constants.mjs";
-import { bitboardsToFEN } from "../FENandUCIHelpers.mjs";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic.mjs";
 import { pieceAt } from "../pieceGetters.mjs";
 import { getPlayerIndicies, indexArrays } from "../pieceIndicies.mjs";

@@ -17,13 +17,13 @@ const BattleEngines = () => {
 
   const [modalState, setModalState] = useState(BattleModalStates.SETTING);
   const [finalStats, setFinalStats] = useState({
-      type: null,
-      gameNum: 0,
-      wins: -1,
-      draws: -1,
-      losses: -1,
-      winRate: 0,
-      gameHistoryEntry: null,
+    type: null,
+    gameNum: 0,
+    wins: -1,
+    draws: -1,
+    losses: -1,
+    winRate: 0,
+    gameHistoryEntry: null,
   });
 
   const { addHistoryEntry } = useGameStore.getState();
@@ -68,9 +68,7 @@ const BattleEngines = () => {
   let content;
   switch (modalState) {
     case BattleModalStates.LOADING:
-      content = (
-        <Loading gameNum={gameBeingProcessed} totalGames={numGames} />
-      );
+      content = <Loading gameNum={gameBeingProcessed} totalGames={numGames} />;
       break;
 
     case BattleModalStates.FINISHED:

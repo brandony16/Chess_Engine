@@ -23,10 +23,11 @@ self.onmessage = async (e) => {
 
     // Sim games
     while (!useGameStore.getState().isGameOver) {
-      makeEngineMove(whiteSide, whiteDepth, 5000);
+      // Cap at 100ms search time so times don't get insane
+      makeEngineMove(whiteSide, whiteDepth, 100);
       if (useGameStore.getState().isGameOver) break;
 
-      makeEngineMove(blackSide, blackDepth, 5000);
+      makeEngineMove(blackSide, blackDepth, 100);
     }
 
     const result = useGameStore.getState().result;
