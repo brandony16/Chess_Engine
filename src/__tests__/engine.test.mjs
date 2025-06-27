@@ -1,24 +1,15 @@
 import { BMV5 } from "../components/bbEngines/BMV5/BondMonkeyV5.mjs";
-import { getNewEnPassant } from "../components/bitboardUtils/bbChessLogic";
-import {
-  BLACK_KNIGHT,
-  WHITE_KNIGHT,
-} from "../components/bitboardUtils/constants.mjs";
-import { areBigUint64ArraysEqual } from "../components/bitboardUtils/debugFunctions";
-import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
-import { getAllLegalMoves } from "../components/bitboardUtils/moveGeneration/allMoveGeneration";
-import { updateCastlingRights } from "../components/bitboardUtils/moveMaking/castleMoveLogic";
-import {
-  makeMove,
-  unMakeMove,
-} from "../components/bitboardUtils/moveMaking/makeMoveLogic";
-import {
-  initializePieceAtArray,
-  pieceAt,
-} from "../components/bitboardUtils/pieceGetters";
-import { initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies.mjs";
-import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
-import { computeHash } from "../components/bitboardUtils/zobristHashing";
+import { getNewEnPassant } from "../Core Logic/bbChessLogic";
+import { BLACK_KNIGHT, WHITE_KNIGHT } from "../Core Logic/constants.mjs";
+import { areBigUint64ArraysEqual } from "../Core Logic/debugFunctions";
+import { getFENData } from "../Core Logic/FENandUCIHelpers";
+import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration";
+import { updateCastlingRights } from "../Core Logic/moveMaking/castleMoveLogic";
+import { makeMove, unMakeMove } from "../Core Logic/moveMaking/makeMoveLogic";
+import { initializePieceAtArray, pieceAt } from "../Core Logic/pieceGetters";
+import { initializePieceIndicies } from "../Core Logic/pieceIndicies.mjs";
+import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks";
+import { computeHash } from "../Core Logic/zobristHashing";
 import { mockEngine } from "./mockEngine";
 
 const fens = [
@@ -269,7 +260,8 @@ describe("Engine finds obvious best moves", () => {
   });
 
   test("debug", () => {
-    const fen = "r2qkb1r/pp2pppp/2n2P2/8/2p2P2/2pP1P2/PPP1Q2P/R1B1KB1R w - - 0 1";
+    const fen =
+      "r2qkb1r/pp2pppp/2n2P2/8/2p2P2/2pP1P2/PPP1Q2P/R1B1KB1R w - - 0 1";
     const fenData = getFENData(fen);
     const bitboards = fenData.bitboards;
     const player = fenData.player;

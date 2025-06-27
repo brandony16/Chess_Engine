@@ -1,9 +1,9 @@
-import { getAllPieces } from "../components/bitboardUtils/pieceGetters";
-import { initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies";
+import { getAllPieces } from "../Core Logic/pieceGetters";
+import { initializePieceIndicies } from "../Core Logic/pieceIndicies";
 import {
   attacksOf,
   computeMaskForPiece,
-} from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
+} from "../Core Logic/PieceMasks/individualAttackMasks";
 
 // Helper to build an empty 12‐entry piece array
 function emptyBitboards() {

@@ -1,11 +1,11 @@
-import { CHECKMATE_VALUE, WHITE } from "../../bitboardUtils/constants.mjs";
-import { pieceAt } from "../../bitboardUtils/pieceGetters.mjs";
-import { getAllIndicies } from "../../bitboardUtils/pieceIndicies.mjs";
+import { CHECKMATE_VALUE, WHITE } from "../../../Core Logic/constants.mjs";
+import { pieceAt } from "../../../Core Logic/pieceGetters.mjs";
+import { getAllIndicies } from "../../../Core Logic/pieceIndicies.mjs";
 
 /**
  * Gets the evaluation of the given position. Determines the eval using pure material.
  * Weights are slightly tweaked to be better in this version.
- * 
+ *
  * @param {number} player - the opposite player. If black plays checkmate, this is white.
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation

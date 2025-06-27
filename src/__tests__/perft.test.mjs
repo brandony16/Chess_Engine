@@ -1,8 +1,8 @@
-import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers.mjs";
-import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters.mjs";
-import { indexArrays, initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies.mjs";
-import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks.mjs";
-import { perft, perftDivide } from "./perft.mjs";
+import { getFENData } from "../Core Logic/FENandUCIHelpers.mjs";
+import { initializePieceAtArray } from "../Core Logic/pieceGetters.mjs";
+import { initializePieceIndicies } from "../Core Logic/pieceIndicies.mjs";
+import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks.mjs";
+import { perftDivide } from "./perft.mjs";
 
 const cases = [
   // [ description, depth, expected node count, FEN ]
@@ -21,7 +21,7 @@ const cases = [
   [
     "Start pos",
     3,
-  
+
     8902,
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   ],

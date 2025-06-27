@@ -2,21 +2,15 @@ import {
   bitboardsToFEN,
   getFENData,
   uciToMove,
-} from "../components/bitboardUtils/FENandUCIHelpers";
-import {
-  makeMove,
-  unMakeMove,
-} from "../components/bitboardUtils/moveMaking/makeMoveLogic";
-import * as C from "../components/bitboardUtils/constants";
-import {
-  initializePieceAtArray,
-  pieceAt,
-} from "../components/bitboardUtils/pieceGetters";
-import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
+} from "../Core Logic/FENandUCIHelpers";
+import { makeMove, unMakeMove } from "../Core Logic/moveMaking/makeMoveLogic";
+import * as C from "../Core Logic/constants";
+import { initializePieceAtArray, pieceAt } from "../Core Logic/pieceGetters";
+import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks";
 import {
   indexArrays,
   initializePieceIndicies,
-} from "../components/bitboardUtils/pieceIndicies";
+} from "../Core Logic/pieceIndicies";
 
 // [ description, FEN, UCI move ]
 const cases = [

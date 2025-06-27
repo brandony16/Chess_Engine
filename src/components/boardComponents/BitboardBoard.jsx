@@ -2,8 +2,8 @@ import Cell from "./Cell";
 import "./Board.css";
 
 import PropTypes from "prop-types";
-import { BLACK, PIECE_SYMBOLS, WHITE } from "../bitboardUtils/constants.mjs";
-import { getPieceAtSquare } from "../bitboardUtils/pieceGetters.mjs";
+import { BLACK, PIECE_SYMBOLS, WHITE } from "../../Core Logic/constants.mjs";
+import { getPieceAtSquare } from "../../Core Logic/pieceGetters.mjs";
 import { useGameStore } from "../gameStore.mjs";
 
 // Creates the board out of Cells

@@ -1,5 +1,5 @@
 import { beforeEach, jest } from "@jest/globals";
-import { checkGameOver } from "../components/bitboardUtils/gameOverLogic";
+import { checkGameOver } from "../Core Logic/gameOverLogic";
 import {
   BLACK_KING,
   BLACK_PAWN,
@@ -7,10 +7,10 @@ import {
   WHITE_KING,
   WHITE_QUEEN,
   WHITE_ROOK,
-} from "../components/bitboardUtils/constants";
-import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
-import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters";
-import { initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies";
+} from "../Core Logic/constants";
+import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks";
+import { initializePieceAtArray } from "../Core Logic/pieceGetters";
+import { initializePieceIndicies } from "../Core Logic/pieceIndicies";
 
 // helper: empty bitboards array of length N (adjust N to your piece-count)
 function emptyBitboards() {

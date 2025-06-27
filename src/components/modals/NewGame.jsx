@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { EngineTypes } from "../utilTypes";
 import { useGameStore } from "../gameStore.mjs";
-import { BLACK, WHITE } from "../bitboardUtils/constants.mjs";
+import { BLACK, WHITE } from "../../Core Logic/constants.mjs";
 import SideSelector from "./newGameComponents/SideSelector";
 import "./NewGame.css";
 import EngineSelector from "./newGameComponents/EngineSelector";

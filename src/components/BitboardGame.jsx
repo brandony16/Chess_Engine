@@ -3,21 +3,21 @@ import PromotionModal from "./modals/PromotionModal";
 import Sidebar from "./sidebar/Sidebar";
 import "./UI.css";
 import BitboardBoard from "./boardComponents/BitboardBoard";
-import { makeMove } from "./bitboardUtils/moveMaking/makeMoveLogic.mjs";
-import { computeHash } from "./bitboardUtils/zobristHashing.mjs";
-import { checkGameOver } from "./bitboardUtils/gameOverLogic.mjs";
-import { movesToBB, moveToReadable } from "./bitboardUtils/generalHelpers.mjs";
+import { makeMove } from "../Core Logic/moveMaking/makeMoveLogic.mjs";
+import { computeHash } from "../Core Logic/zobristHashing.mjs";
+import { checkGameOver } from "../Core Logic/gameOverLogic.mjs";
+import { movesToBB, moveToReadable } from "../Core Logic/generalHelpers.mjs";
 import {
   isPlayersPieceAtSquare,
   pieceAt,
-} from "./bitboardUtils/pieceGetters.mjs";
-import { getAllLegalMoves } from "./bitboardUtils/moveGeneration/allMoveGeneration.mjs";
-import { getNewEnPassant } from "./bitboardUtils/bbChessLogic.mjs";
+} from "../Core Logic/pieceGetters.mjs";
+import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration.mjs";
+import { getNewEnPassant } from "../Core Logic/bbChessLogic.mjs";
 import { useGameStore } from "./gameStore.mjs";
 import Modal from "./modals/Modal";
-import { BLACK_PAWN, WHITE_PAWN } from "./bitboardUtils/constants.mjs";
-import Move from "./bitboardUtils/moveMaking/move.mjs";
-import { isKing } from "./bitboardUtils/bbUtils.mjs";
+import { BLACK_PAWN, WHITE_PAWN } from "../Core Logic/constants.mjs";
+import Move from "../Core Logic/moveMaking/move.mjs";
+import { isKing } from "../Core Logic/bbUtils.mjs";
 
 import EngineWorker from "./bbEngines/engineWorker.mjs?worker";
 

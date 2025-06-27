@@ -1,8 +1,7 @@
-import { jest } from "@jest/globals";
-import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
-import { computePinned } from "../components/bitboardUtils/moveGeneration/computePinned";
-import * as C from "../components/bitboardUtils/constants";
-import { bitScanForward } from "../components/bitboardUtils/bbUtils";
+import { getFENData } from "../Core Logic/FENandUCIHelpers";
+import { computePinned } from "../Core Logic/moveGeneration/computePinned";
+import * as C from "../Core Logic/constants";
+import { bitScanForward } from "../Core Logic/bbUtils";
 
 describe("computePinned", () => {
   it("should be 0 when there are no pinned pieces", () => {

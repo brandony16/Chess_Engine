@@ -1,22 +1,22 @@
-import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic.mjs";
+import { updateCastlingRights } from "../../../Core Logic/moveMaking/castleMoveLogic.mjs";
 import {
   makeMove,
   unMakeMove,
-} from "../../bitboardUtils/moveMaking/makeMoveLogic.mjs";
-import { updateHash } from "../../bitboardUtils/zobristHashing.mjs";
-import { checkGameOver } from "../../bitboardUtils/gameOverLogic.mjs";
+} from "../../../Core Logic/moveMaking/makeMoveLogic.mjs";
+import { updateHash } from "../../../Core Logic/zobristHashing.mjs";
+import { checkGameOver } from "../../../Core Logic/gameOverLogic.mjs";
 import {
   getNewEnPassant,
   isInCheck,
-} from "../../bitboardUtils/bbChessLogic.mjs";
-import { BLACK, WEIGHTS, WHITE } from "../../bitboardUtils/constants.mjs";
+} from "../../../Core Logic/bbChessLogic.mjs";
+import { BLACK, WEIGHTS, WHITE } from "../../../Core Logic/constants.mjs";
 import { evaluate2 } from "./evaluation2.mjs";
-import { getAllLegalMoves } from "../../bitboardUtils/moveGeneration/allMoveGeneration.mjs";
+import { getAllLegalMoves } from "../../../Core Logic/moveGeneration/allMoveGeneration.mjs";
 
 /**
  * A minimax function that recursively finds the evaluation of the function.
  * This version implements minimax with alpha beta pruning and basic move sorting.
- * 
+ *
  * @param {Bitboards} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {boolean[4]} castlingRights - the castling rights
@@ -78,7 +78,8 @@ export const minimax2 = (
 
     // 1) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
-      score += (WEIGHTS[move.captured % 6] || 0) - (WEIGHTS[move.piece % 6] || 0);
+      score +=
+        (WEIGHTS[move.captured % 6] || 0) - (WEIGHTS[move.piece % 6] || 0);
     }
 
     return { move, score };

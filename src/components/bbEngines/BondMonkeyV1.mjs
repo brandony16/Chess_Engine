@@ -1,4 +1,4 @@
-import { getAllLegalMoves } from "../bitboardUtils/moveGeneration/allMoveGeneration.mjs";
+import { getAllLegalMoves } from "../../Core Logic/moveGeneration/allMoveGeneration.mjs";
 
 /**
  * Gets the "best" move in the given position. This version simply selects a random move.

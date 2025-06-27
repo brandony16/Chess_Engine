@@ -1,6 +1,6 @@
-import { CHECKMATE_VALUE, WHITE } from "../../bitboardUtils/constants.mjs";
-import { pieceAt } from "../../bitboardUtils/pieceGetters.mjs";
-import { getAllIndicies } from "../../bitboardUtils/pieceIndicies.mjs";
+import { CHECKMATE_VALUE, WHITE } from "../../../Core Logic/constants.mjs";
+import { pieceAt } from "../../../Core Logic/pieceGetters.mjs";
+import { getAllIndicies } from "../../../Core Logic/pieceIndicies.mjs";
 import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
 
 /**

@@ -3,11 +3,11 @@ import {
   generateBlockerSubsets,
   maskBits,
   rookAttacks,
-} from "../components/bitboardUtils/moveGeneration/magicBitboards/attackTable";
+} from "../Core Logic/moveGeneration/magicBitboards/attackTable";
 import {
   getBishopAttacksForSquare,
   getRookAttacksForSquare,
-} from "../components/bitboardUtils/moveGeneration/slidingPieceAttacks";
+} from "../Core Logic/moveGeneration/slidingPieceAttacks";
 
 describe("maskBits", () => {
   it("extracts correct bit positions", () => {

@@ -1,11 +1,10 @@
-import { getNumPieces } from "../../bitboardUtils/bbUtils.mjs";
 import {
   CHECKMATE_VALUE,
   WEIGHTS,
   WHITE,
-} from "../../bitboardUtils/constants.mjs";
-import { pieceAt } from "../../bitboardUtils/pieceGetters.mjs";
-import { getAllIndicies } from "../../bitboardUtils/pieceIndicies.mjs";
+} from "../../../Core Logic/constants.mjs";
+import { pieceAt } from "../../../Core Logic/pieceGetters.mjs";
+import { getAllIndicies } from "../../../Core Logic/pieceIndicies.mjs";
 
 /**
  * Gets the evaluation of the given position based purely off of the material in the position.

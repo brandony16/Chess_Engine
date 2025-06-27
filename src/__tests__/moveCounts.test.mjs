@@ -1,8 +1,8 @@
-import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
-import { getAllLegalMoves } from "../components/bitboardUtils/moveGeneration/allMoveGeneration";
-import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters";
-import { initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies";
-import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
+import { getFENData } from "../Core Logic/FENandUCIHelpers";
+import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration";
+import { initializePieceAtArray } from "../Core Logic/pieceGetters";
+import { initializePieceIndicies } from "../Core Logic/pieceIndicies";
+import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks";
 
 const cases = [
   [

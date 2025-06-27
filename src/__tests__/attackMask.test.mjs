@@ -10,19 +10,19 @@ import {
   WHITE_PAWN,
   WHITE_QUEEN,
   WHITE_ROOK,
-} from "../components/bitboardUtils/constants.mjs";
-import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers.mjs";
+} from "../Core Logic/constants.mjs";
+import { getFENData } from "../Core Logic/FENandUCIHelpers.mjs";
 import {
   makeMove,
   unMakeMove,
-} from "../components/bitboardUtils/moveMaking/makeMoveLogic.mjs";
-import Move from "../components/bitboardUtils/moveMaking/move.mjs";
-import { initializePieceAtArray } from "../components/bitboardUtils/pieceGetters.mjs";
-import { initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies.mjs";
+} from "../Core Logic/moveMaking/makeMoveLogic.mjs";
+import Move from "../Core Logic/moveMaking/move.mjs";
+import { initializePieceAtArray } from "../Core Logic/pieceGetters.mjs";
+import { initializePieceIndicies } from "../Core Logic/pieceIndicies.mjs";
 import {
   computeAllAttackMasks,
   individualAttackMasks,
-} from "../components/bitboardUtils/PieceMasks/individualAttackMasks.mjs";
+} from "../Core Logic/PieceMasks/individualAttackMasks.mjs";
 
 describe("updateAttackMasks vs full recompute", () => {
   let bitboards;

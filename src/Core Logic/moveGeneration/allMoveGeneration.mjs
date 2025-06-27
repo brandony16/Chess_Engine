@@ -187,8 +187,10 @@ export const getAllLegalMoves = (
       pinnedMask,
       getRayMask
     );
+    if (pieceMoves === 0n) continue;
 
     const legalMoves = isKing(piece) ? pieceMoves : pieceMoves & kingCheckMask;
+    if (legalMoves === 0n) continue;
 
     const legalMoveArr = getMovesFromBB(
       legalMoves,

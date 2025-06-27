@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import MoveArrows from "./MoveArrows";
 import MoveList from "./MoveList";
 import { useGameStore } from "../gameStore.mjs";
-import { WHITE } from "../bitboardUtils/constants.mjs";
+import { WHITE } from "../../Core Logic/constants.mjs";
 import { ModalTypes } from "../utilTypes";
 
 const Sidebar = ({ changeBoardView }) => {

@@ -1,10 +1,9 @@
-import { isInCheck, isSquareAttacked } from "../components/bitboardUtils/bbChessLogic";
-import * as C from "../components/bitboardUtils/constants";
-import { getFENData } from "../components/bitboardUtils/FENandUCIHelpers";
-import { initializePieceIndicies } from "../components/bitboardUtils/pieceIndicies";
-import { getAttackMask } from "../components/bitboardUtils/PieceMasks/attackMask";
-import { computeAllAttackMasks } from "../components/bitboardUtils/PieceMasks/individualAttackMasks";
-import { jest } from "@jest/globals";
+import { isInCheck, isSquareAttacked } from "../Core Logic/bbChessLogic";
+import * as C from "../Core Logic/constants";
+import { getFENData } from "../Core Logic/FENandUCIHelpers";
+import { initializePieceIndicies } from "../Core Logic/pieceIndicies";
+import { getAttackMask } from "../Core Logic/PieceMasks/attackMask";
+import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks";
 
 function emptyBitboards() {
   return new BigUint64Array(12).fill(0n);
@@ -154,4 +153,3 @@ describe("isInCheck", () => {
     expect(isInCheck(bbs, C.BLACK)).toBe(true);
   });
 });
-

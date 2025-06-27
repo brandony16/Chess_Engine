@@ -1,9 +1,8 @@
-import { initializePieceAtArray } from "../bitboardUtils/pieceGetters";
-import { initializePieceIndicies } from "../bitboardUtils/pieceIndicies";
-import { computeAllAttackMasks } from "../bitboardUtils/PieceMasks/individualAttackMasks";
-import { clearTT } from "../bitboardUtils/TranspositionTable/transpositionTable";
+import { initializePieceAtArray } from "../../Core Logic/pieceGetters";
+import { initializePieceIndicies } from "../../Core Logic/pieceIndicies";
+import { computeAllAttackMasks } from "../../Core Logic/PieceMasks/individualAttackMasks";
+import { clearTT } from "../../Core Logic/transpositionTable";
 import { engineRegistry } from "./engineRegistry.mjs";
-
 
 self.onmessage = (e) => {
   const {

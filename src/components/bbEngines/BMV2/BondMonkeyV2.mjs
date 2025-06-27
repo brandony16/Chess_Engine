@@ -1,7 +1,7 @@
-import { computeHash } from "../../bitboardUtils/zobristHashing.mjs";
-import { CHECKMATE_VALUE } from "../../bitboardUtils/constants.mjs";
+import { computeHash } from "../../../Core Logic/zobristHashing.mjs";
+import { CHECKMATE_VALUE } from "../../../Core Logic/constants.mjs";
 import { minimax2 } from "./minimax2.mjs";
-import { computeAllAttackMasks } from "../../bitboardUtils/PieceMasks/individualAttackMasks.mjs";
+import { computeAllAttackMasks } from "../../../Core Logic/PieceMasks/individualAttackMasks.mjs";
 
 /**
  * Gets the best move in a position based purely off of material.
@@ -33,7 +33,6 @@ export function BMV2(
   const epFile = enPassantSquare ? enPassantSquare % 8 : -1;
   const rootHash = computeHash(bitboards, player, epFile, castlingRights);
 
-  rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {
     computeAllAttackMasks(bitboards);
 
@@ -63,8 +62,6 @@ export function BMV2(
       console.log("time limit");
       break;
     }
-
-    rootId++;
   }
   return { ...bestMove, bestEval };
 }

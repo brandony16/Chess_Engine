@@ -1,7 +1,21 @@
-import { LRUMap } from "../LRUMap.mjs";
+import { LRUMap } from "./LRUMap.mjs";
 
 const TABLE_SIZE = 1 << 20;
 
+/**
+ * Transposition table is used to avoid recalcualting positions that have already been calculated.
+ * The same position can occur with different move orders, such as e3 then Nf3 vs Nf3 then e3.
+ *
+ * An entry looks like:
+ * {
+ *   rootId: rootId,
+ *   depth: maxDepth - currentDepth,
+ *   value: storedEval,
+ *   flag,
+ *   bestMove,
+ * }
+ * and the key is the hash of the position
+ */
 const table = new LRUMap(TABLE_SIZE);
 
 export const TT_FLAG = {

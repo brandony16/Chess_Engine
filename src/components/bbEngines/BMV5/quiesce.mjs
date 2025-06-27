@@ -1,22 +1,22 @@
-import { getNewEnPassant } from "../../bitboardUtils/bbChessLogic.mjs";
-import { BLACK, WHITE } from "../../bitboardUtils/constants.mjs";
-import { checkGameOver } from "../../bitboardUtils/gameOverLogic.mjs";
-import { getQuiescenceMoves } from "../../bitboardUtils/moveGeneration/quiescenceMoves/quiescenceMoves.mjs";
-import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic.mjs";
+import { getNewEnPassant } from "../../../Core Logic/bbChessLogic.mjs";
+import { BLACK, WHITE } from "../../../Core Logic/constants.mjs";
+import { checkGameOver } from "../../../Core Logic/gameOverLogic.mjs";
+import { getQuiescenceMoves } from "../../../Core Logic/moveGeneration/quiescenceMoves.mjs";
+import { updateCastlingRights } from "../../../Core Logic/moveMaking/castleMoveLogic.mjs";
 import {
   makeMove,
   unMakeMove,
-} from "../../bitboardUtils/moveMaking/makeMoveLogic.mjs";
+} from "../../../Core Logic/moveMaking/makeMoveLogic.mjs";
 import {
   getQTT,
   setQTT,
   TT_FLAG,
-} from "../../bitboardUtils/TranspositionTable/transpositionTable.mjs";
-import { updateHash } from "../../bitboardUtils/zobristHashing.mjs";
+} from "../../../Core Logic/transpositionTable.mjs";
+import { updateHash } from "../../../Core Logic/zobristHashing.mjs";
 import { evaluate5, weights } from "./evaluation5.mjs";
 
 // Max depth that quiescence search can go to.
-const maxQDepth = 10;
+const maxQDepth = 6;
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: maxQDepth }, () => [null, null]);
@@ -100,39 +100,42 @@ export const quiesce2 = (
   const ttMove = ttEntry?.bestMove || null;
 
   // Generates only capture and promotion moves
-  const captures = getQuiescenceMoves(bitboards, player, enPassantSquare).map(
-    (move) => {
-      let score = 0;
-      const from = move.from;
-      const to = move.to;
+  const captures = getQuiescenceMoves(
+    bitboards,
+    player,
+    castlingRights,
+    enPassantSquare
+  ).map((move) => {
+    let score = 0;
+    const from = move.from;
+    const to = move.to;
 
-      // 1) Transposition-table move is highest priority
-      if (ttMove && from === ttMove.from && to === ttMove.to) {
-        score += 1_000_000;
-      }
-
-      // 2) MVV/LVA: victim value minus your piece value
-      if (move.captured) {
-        score +=
-          100_000 +
-          (weights[move.captured % 6] || 0) -
-          (weights[move.piece % 6] || 0);
-      }
-
-      // 3) Killer moves at this ply
-      const [k0, k1] = killerMoves[depth];
-      if (k0 && from === k0.from && to === k0.to) {
-        score += 90_000;
-      } else if (k1 && from === k1.from && to === k1.to) {
-        score += 80_000;
-      }
-
-      // 4) History heuristic
-      score += historyScores[from][to];
-
-      return { move, score };
+    // 1) Transposition-table move is highest priority
+    if (ttMove && from === ttMove.from && to === ttMove.to) {
+      score += 1_000_000;
     }
-  );
+
+    // 2) MVV/LVA: victim value minus your piece value
+    if (move.captured) {
+      score +=
+        100_000 +
+        (weights[move.captured % 6] || 0) -
+        (weights[move.piece % 6] || 0);
+    }
+
+    // 3) Killer moves at this ply
+    const [k0, k1] = killerMoves[depth];
+    if (k0 && from === k0.from && to === k0.to) {
+      score += 90_000;
+    } else if (k1 && from === k1.from && to === k1.to) {
+      score += 80_000;
+    }
+
+    // 4) History heuristic
+    score += historyScores[from][to];
+
+    return { move, score };
+  });
 
   // Sort by MVV/LVA
   captures.sort((a, b) => b.score - a.score);

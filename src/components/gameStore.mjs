@@ -5,12 +5,12 @@ import {
   INITIAL_BITBOARDS,
   WHITE,
   WHITE_PAWN,
-} from "./bitboardUtils/constants.mjs";
-import { updateCastlingRights } from "./bitboardUtils/moveMaking/castleMoveLogic.mjs";
-import { getNewEnPassant } from "./bitboardUtils/bbChessLogic.mjs";
-import { computeAllAttackMasks } from "./bitboardUtils/PieceMasks/individualAttackMasks.mjs";
-import { initializePieceAtArray } from "./bitboardUtils/pieceGetters.mjs";
-import { initializePieceIndicies } from "./bitboardUtils/pieceIndicies.mjs";
+} from "../Core Logic/constants.mjs";
+import { updateCastlingRights } from "../Core Logic/moveMaking/castleMoveLogic.mjs";
+import { getNewEnPassant } from "../Core Logic/bbChessLogic.mjs";
+import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks.mjs";
+import { initializePieceAtArray } from "../Core Logic/pieceGetters.mjs";
+import { initializePieceIndicies } from "../Core Logic/pieceIndicies.mjs";
 import { EngineTypes, ModalTypes } from "./utilTypes";
 
 const makeInitialState = () => ({

@@ -1,8 +1,11 @@
-import { computeHash } from "../../bitboardUtils/zobristHashing.mjs";
-import { clearQTT, clearTT } from "../../bitboardUtils/TranspositionTable/transpositionTable.mjs";
-import { CHECKMATE_VALUE } from "../../bitboardUtils/constants.mjs";
+import { computeHash } from "../../../Core Logic/zobristHashing.mjs";
+import {
+  clearQTT,
+  clearTT,
+} from "../../../Core Logic/transpositionTable.mjs";
+import { CHECKMATE_VALUE } from "../../../Core Logic/constants.mjs";
 import { minimax4 } from "./minimax4.mjs";
-import { computeAllAttackMasks } from "../../bitboardUtils/PieceMasks/individualAttackMasks.mjs";
+import { computeAllAttackMasks } from "../../../Core Logic/PieceMasks/individualAttackMasks.mjs";
 
 // Root id for transposition table. Helps avoid stale entries
 export let rootId = 0;

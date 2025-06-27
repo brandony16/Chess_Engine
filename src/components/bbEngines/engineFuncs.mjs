@@ -1,13 +1,16 @@
-import { getNewEnPassant } from "../bitboardUtils/bbChessLogic.mjs";
-import { isKing } from "../bitboardUtils/bbUtils.mjs";
-import { BLACK_PAWN, WHITE_PAWN } from "../bitboardUtils/constants.mjs";
-import { getOpeningMoves, squareToIndex } from "../bitboardUtils/FENandUCIHelpers.mjs";
-import { checkGameOver } from "../bitboardUtils/gameOverLogic.mjs";
-import { moveToReadable } from "../bitboardUtils/generalHelpers.mjs";
-import { makeMove } from "../bitboardUtils/moveMaking/makeMoveLogic.mjs";
-import Move from "../bitboardUtils/moveMaking/move.mjs";
-import { pieceAt } from "../bitboardUtils/pieceGetters.mjs";
-import { computeHash } from "../bitboardUtils/zobristHashing.mjs";
+import { getNewEnPassant } from "../../Core Logic/bbChessLogic.mjs";
+import { isKing } from "../../Core Logic/bbUtils.mjs";
+import { BLACK_PAWN, WHITE_PAWN } from "../../Core Logic/constants.mjs";
+import {
+  getOpeningMoves,
+  squareToIndex,
+} from "../../Core Logic/FENandUCIHelpers.mjs";
+import { checkGameOver } from "../../Core Logic/gameOverLogic.mjs";
+import { moveToReadable } from "../../Core Logic/generalHelpers.mjs";
+import { makeMove } from "../../Core Logic/moveMaking/makeMoveLogic.mjs";
+import Move from "../../Core Logic/moveMaking/move.mjs";
+import { pieceAt } from "../../Core Logic/pieceGetters.mjs";
+import { computeHash } from "../../Core Logic/zobristHashing.mjs";
 import { useGameStore } from "../gameStore.mjs";
 import { engineRegistry } from "./engineRegistry.mjs";
 

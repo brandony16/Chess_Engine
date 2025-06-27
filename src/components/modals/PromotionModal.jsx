@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import "./PromotionModal.css";
-import { BLACK, WHITE } from "../bitboardUtils/constants.mjs";
+import { BLACK, WHITE } from "../../Core Logic/constants.mjs";
 
 const PromotionModal = ({ onPromote, square, userPlayer }) => {
   // Pieces for promotion. Are plural because the bitboards are plural

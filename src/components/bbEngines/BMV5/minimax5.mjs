@@ -1,24 +1,24 @@
-import { updateCastlingRights } from "../../bitboardUtils/moveMaking/castleMoveLogic.mjs";
+import { updateCastlingRights } from "../../../Core Logic/moveMaking/castleMoveLogic.mjs";
 import {
   makeMove,
   unMakeMove,
-} from "../../bitboardUtils/moveMaking/makeMoveLogic.mjs";
-import { updateHash } from "../../bitboardUtils/zobristHashing.mjs";
-import { checkGameOver } from "../../bitboardUtils/gameOverLogic.mjs";
+} from "../../../Core Logic/moveMaking/makeMoveLogic.mjs";
+import { updateHash } from "../../../Core Logic/zobristHashing.mjs";
+import { checkGameOver } from "../../../Core Logic/gameOverLogic.mjs";
 import {
   getNewEnPassant,
   isInCheck,
-} from "../../bitboardUtils/bbChessLogic.mjs";
+} from "../../../Core Logic/bbChessLogic.mjs";
 import {
   getTT,
   setTT,
   TT_FLAG,
-} from "../../bitboardUtils/TranspositionTable/transpositionTable.mjs";
-import { BLACK, MAX_PLY, WHITE } from "../../bitboardUtils/constants.mjs";
+} from "../../../Core Logic/transpositionTable.mjs";
+import { BLACK, MAX_PLY, WHITE } from "../../../Core Logic/constants.mjs";
 import { rootId } from "./BondMonkeyV5.mjs";
 import { evaluate5, weights } from "./evaluation5.mjs";
 import { quiesce2 } from "./quiesce.mjs";
-import { getAllLegalMoves } from "../../bitboardUtils/moveGeneration/allMoveGeneration.mjs";
+import { getAllLegalMoves } from "../../../Core Logic/moveGeneration/allMoveGeneration.mjs";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
