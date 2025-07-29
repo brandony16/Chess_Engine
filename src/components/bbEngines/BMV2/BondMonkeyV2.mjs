@@ -59,7 +59,6 @@ export function BMV2(
     }
 
     if (performance.now() - start > timeLimit) {
-      console.log("time limit");
       break;
     }
   }
