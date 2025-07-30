@@ -1,25 +1,29 @@
+import React, { useCallback } from "react";
+
 import { useGameStore } from "../gameStore.mjs";
 
 import chevronLeft from "../../assets/chevronLeft.svg";
 import chevronRight from "../../assets/chevronRight.svg";
-import React from "react";
 
 const MoveArrows = () => {
   const changeViewedMove = useGameStore((state) => state.changeViewedMove);
 
+  const goBack = useCallback(() => changeViewedMove(-1), [changeViewedMove]);
+  const goForward = useCallback(() => changeViewedMove(1), [changeViewedMove]);
+
   return (
     <div className="moveArrows">
       <button
-        title="Go back one move"
+        aria-label="Go back one move"
         className="prevMove sidebarIconBtn moveArrow"
-        onClick={() => changeViewedMove(-1)} // Back one move
+        onClick={goBack}
       >
         <img className="sidebarIcon" src={chevronLeft} alt="go back one move" />
       </button>
       <button
-        title="Go forward one move"
+        aria-label="Go forward one move"
         className="nextMove sidebarIconBtn moveArrow"
-        onClick={() => changeViewedMove(1)} // Forward one move
+        onClick={goForward}
       >
         <img
           className="sidebarIcon"

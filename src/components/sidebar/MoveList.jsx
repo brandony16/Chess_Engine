@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useLayoutEffect, useMemo, useRef } from "react";
 import { useGameStore } from "../gameStore.mjs";
 
 const MoveList = () => {
@@ -10,47 +10,64 @@ const MoveList = () => {
 
   const goToMove = useGameStore((state) => state.goToMove);
   const selectedMoveNum = Math.floor(currIndexOfDisplayed / 2);
-  const moveListRef = useRef(null);
+  const selectedSide = currIndexOfDisplayed % 2;
 
-  // Scrolls to the bottom when a move is made
-  useEffect(() => {
+  const moveRows = useMemo(() => {
+    const rows = [];
+    for (let i = 0; i < pastMoves.length; i += 2) {
+      const moveNumber = i / 2;
+      rows.push({
+        moveNumber,
+        whiteMove: pastMoves[i] || "",
+        blackMove: pastMoves[i + 1] || "",
+        highlightWhite: moveNumber === selectedMoveNum && selectedSide === 0,
+        highlightBlack: moveNumber === selectedMoveNum && selectedSide === 1,
+      });
+    }
+    return rows;
+  }, [pastMoves, selectedMoveNum, selectedSide]);
+
+  const moveListRef = useRef(null);
+  useLayoutEffect(() => {
     if (moveListRef.current) {
       moveListRef.current.scrollTop = moveListRef.current.scrollHeight;
     }
-  }, [pastMoves]);
+  }, [moveRows.length]);
 
   return (
-    <div className="moveList" ref={moveListRef}>
-      {pastMoves
-        .map(
-          (_, index) =>
-            index % 2 === 0 && [pastMoves[index], pastMoves[index + 1]]
+    <ul className="moveList" ref={moveListRef} role="list">
+      {moveRows.map(
+        ({
+          moveNumber,
+          whiteMove,
+          blackMove,
+          highlightWhite,
+          highlightBlack,
+        }) => (
+          <li key={moveNumber} className="pastMove">
+            <span className="moveNum">{moveNumber + 1}.</span>
+
+            <button
+              type="button"
+              className={`move${highlightWhite ? " highlighted" : ""}`}
+              onClick={() => goToMove(moveNumber, 0)}
+              aria-current={highlightWhite ? "step" : undefined}
+            >
+              {whiteMove}
+            </button>
+
+            <button
+              type="button"
+              className={`move${highlightBlack ? " highlighted" : ""}`}
+              onClick={() => blackMove && goToMove(moveNumber, 1)}
+              aria-current={highlightBlack ? "step" : undefined}
+            >
+              {blackMove}
+            </button>
+          </li>
         )
-        .filter(Boolean)
-        .map((pair, moveNumber) => {
-          let moveID = -1;
-          if (moveNumber === selectedMoveNum) {
-            moveID = currIndexOfDisplayed % 2;
-          }
-          return (
-            <div key={moveNumber} className="pastMove" id={moveNumber}>
-              <div className="moveNum">{moveNumber + 1}.</div>
-              <div
-                className={`move ${moveID === 0 ? "highlighted" : ""}`}
-                onClick={() => goToMove(moveNumber, 0)}
-              >
-                {pair[0]}
-              </div>
-              <div
-                className={`move ${moveID === 1 ? "highlighted" : ""}`}
-                onClick={() => (pair[1] ? goToMove(moveNumber, 1) : null)}
-              >
-                {pair[1] || ""}
-              </div>
-            </div>
-          );
-        })}
-    </div>
+      )}
+    </ul>
   );
 };
 
