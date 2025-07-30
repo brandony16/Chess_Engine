@@ -1,16 +1,28 @@
+.modalOverlay {
+  position: absolute;
+  top: 1.5rem;
+  z-index: 1000;
+}
+
+.promo--modal {
+  position: absolute;
+  pointer-events: auto;
+}
+
 .promotionOptions {
   display: flex;
   flex-direction: column;
-  width: calc((70vh - 4rem) / 8);
+  width: calc((70vh - 3rem) / 8);
   border-radius: 4px;
   overflow: hidden;
+  position: relative;
 }
 
 .promotionButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100%;;
+  width: 100%;
   aspect-ratio: 1/1;
   border-radius: 0px;
   outline: 2px solid darkgray;
@@ -19,4 +31,11 @@
 .promotionButton:hover {
   transition: 0.2s ease-in-out;
   background-color: rgb(221, 221, 221);
+}
+
+.promo--dark {
+  background-color: #1a1a1a;
+}
+.promo--light {
+  background-color: #f3f3f3;
 }

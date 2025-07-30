@@ -1,8 +1,9 @@
+import { useGameStore } from "./gameStore.mjs";
+
 import PromotionModal from "./modals/PromotionModal";
 import Sidebar from "./sidebar/Sidebar";
 import BitboardBoard from "./boardComponents/BitboardBoard";
 import Modal from "./modals/Modal";
-import { useGameStore } from "./gameStore.mjs";
 
 import useEngineWorker from "./hooks/useEngineWorker";
 import useChessActions from "./hooks/useChessActions";
@@ -13,7 +14,6 @@ import "./UI.css";
 // Runs the game
 const BitboardGame = () => {
   // Get states
-  const userSide = useGameStore((state) => state.userSide);
   const promotion = useGameStore((state) => state.promotion);
   const promotionMove = useGameStore((state) => state.promotionMove);
   const isModalOpen = useGameStore((state) => state.isModalOpen);
@@ -35,7 +35,6 @@ const BitboardGame = () => {
           <PromotionModal
             onPromote={handlePromotion}
             square={promotionMove.to}
-            userPlayer={userSide}
           />
         )}
         <Sidebar />
@@ -44,6 +43,5 @@ const BitboardGame = () => {
     </main>
   );
 };
-
 
 export default BitboardGame;

@@ -1,58 +1,53 @@
 import PropTypes from "prop-types";
 import "./PromotionModal.css";
-import { BLACK, WHITE } from "../../Core Logic/constants.mjs";
+import { WHITE } from "../../Core Logic/constants.mjs";
+import { useCallback } from "react";
+import { useGameStore } from "../gameStore.mjs";
 
+const path = "./src/assets/pieces/";
 
-const PromotionModal = ({ onPromote, square, userPlayer }) => {
-  // Pieces for promotion. Are plural because the bitboards are plural
-  const pieces = ["Queens", "Rooks", "Knights", "Bishops"];
-  const piecesToIndex = {
-    Queens: 4,
-    Rooks: 3,
-    Knights: 1,
-    Bishops: 2,
-  };
+const PROMO_PIECES = [
+  { name: "Queen", index: 4, char: "Q" },
+  { name: "Rook", index: 3, char: "R" },
+  { name: "Knight", index: 1, char: "N" },
+  { name: "Bishop", index: 2, char: "B" },
+];
 
-  const isUserWhite = userPlayer === WHITE;
+const PromotionModal = ({ onPromote, square }) => {
+  const userSide = useGameStore((state) => state.userSide);
+
+  const isUserWhite = userSide === WHITE;
   const col = isUserWhite ? square % 8 : 7 - (square % 8);
-  const background = isUserWhite ? "#1a1a1a" : "#f3f3f3";
+  const background = isUserWhite ? "promo--dark" : "promo--light";
 
-  const modalWrapperStyle = {
-    position: "absolute",
-    top: `2rem`,
-    left: `calc((70vh - 4rem)/8 * ${col} + 2rem)`,
-    zIndex: 1000,
-  };
+  const handlePromote = useCallback(
+    // Black piece is 6 indexes after the white piece
+    (index) => () => onPromote(index + userSide * 6),
+    [onPromote, userSide]
+  );
 
-  const modalStyle = {
-    backgroundColor: background,
-  };
+  // Build buttons
+  const buttons = PROMO_PIECES.map(({ name, index, char }) => {
+    const src = `${path}${userSide === WHITE ? "w" : "b"}${char}.svg`;
+    return (
+      <button
+        key={char}
+        onClick={handlePromote(index)}
+        className={`promotionButton ${background}`}
+        aria-label={`Promote to ${name}`}
+      >
+        <img src={src} alt={name} className="piece" draggable={false} />
+      </button>
+    );
+  });
 
   return (
-    <div className="modalOverlay" style={modalWrapperStyle}>
-      <div className="modal">
-        <div className="promotionOptions">
-          {pieces.map((piece) => {
-            const playerChar = userPlayer === WHITE ? "w" : "b";
-            const pieceChar = piece[0] === "K" ? "N" : piece[0]
-            const imageName = playerChar + pieceChar + ".svg";
-            const src = "./images/" + imageName // Adds the player and removes the s at the end
-            return (
-              <button
-                key={piece}
-                onClick={() => onPromote(piecesToIndex[piece] + userPlayer * 6)} // If black, add 6 to get black indexes
-                className="promotionButton"
-                style={modalStyle}
-              >
-                <img
-                  src={src}
-                  alt={piece.charAt(0)}
-                  className="piece"
-                />
-              </button>
-            );
-          })}
-        </div>
+    <div
+      className="modalOverlay"
+      style={{ left: `calc(((70vh - 3rem) / 8) * ${col} + 1.5rem)` }}
+    >
+      <div className="promo--modal">
+        <div className="promotionOptions">{buttons}</div>
       </div>
     </div>
   );
@@ -61,7 +56,6 @@ const PromotionModal = ({ onPromote, square, userPlayer }) => {
 PromotionModal.propTypes = {
   onPromote: PropTypes.func.isRequired,
   square: PropTypes.number.isRequired,
-  userPlayer: PropTypes.oneOf([WHITE, BLACK]).isRequired,
 };
 
 export default PromotionModal;
