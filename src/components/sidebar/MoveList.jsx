@@ -1,6 +1,8 @@
 import React, { useLayoutEffect, useMemo, useRef } from "react";
 import { useGameStore } from "../gameStore.mjs";
 
+import MoveEntry from "./MoveEntry";
+
 const MoveList = () => {
   // Get states
   const pastMoves = useGameStore((state) => state.pastMoves);
@@ -8,10 +10,10 @@ const MoveList = () => {
     (state) => state.currIndexOfDisplayed
   );
 
-  const goToMove = useGameStore((state) => state.goToMove);
   const selectedMoveNum = Math.floor(currIndexOfDisplayed / 2);
   const selectedSide = currIndexOfDisplayed % 2;
 
+  // Creates move rows. White moves first, then black moves
   const moveRows = useMemo(() => {
     const rows = [];
     for (let i = 0; i < pastMoves.length; i += 2) {
@@ -27,6 +29,7 @@ const MoveList = () => {
     return rows;
   }, [pastMoves, selectedMoveNum, selectedSide]);
 
+  // Scroll to bottom of move list when move is made
   const moveListRef = useRef(null);
   useLayoutEffect(() => {
     if (moveListRef.current) {
@@ -44,27 +47,14 @@ const MoveList = () => {
           highlightWhite,
           highlightBlack,
         }) => (
-          <li key={moveNumber} className="pastMove">
-            <span className="moveNum">{moveNumber + 1}.</span>
-
-            <button
-              type="button"
-              className={`move${highlightWhite ? " highlighted" : ""}`}
-              onClick={() => goToMove(moveNumber, 0)}
-              aria-current={highlightWhite ? "step" : undefined}
-            >
-              {whiteMove}
-            </button>
-
-            <button
-              type="button"
-              className={`move${highlightBlack ? " highlighted" : ""}`}
-              onClick={() => blackMove && goToMove(moveNumber, 1)}
-              aria-current={highlightBlack ? "step" : undefined}
-            >
-              {blackMove}
-            </button>
-          </li>
+          <MoveEntry
+            key={moveNumber}
+            moveNumber={moveNumber}
+            whiteMove={whiteMove}
+            blackMove={blackMove}
+            highlightWhite={highlightWhite}
+            highlightBlack={highlightBlack}
+          />
         )
       )}
     </ul>
