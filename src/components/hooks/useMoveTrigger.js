@@ -8,7 +8,9 @@ import { useGameStore } from "../gameStore.mjs";
  }} postToEngine 
  */
 export default function useMoveTrigger(postToEngine) {
-  const { currPlayer, userSide, isGameOver } = useGameStore.getState();
+  const currPlayer = useGameStore((state) => state.currPlayer);
+  const userSide = useGameStore((state) => state.userSide);
+  const isGameOver = useGameStore((state) => state.isGameOver);
 
   /**
    * Plays the engine move after the player makes its turn.

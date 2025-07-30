@@ -1,17 +1,24 @@
 import PromotionModal from "./modals/PromotionModal";
 import Sidebar from "./sidebar/Sidebar";
-import "./UI.css";
 import BitboardBoard from "./boardComponents/BitboardBoard";
-import { useGameStore } from "./gameStore.mjs";
 import Modal from "./modals/Modal";
+import { useGameStore } from "./gameStore.mjs";
+
 import useEngineWorker from "./hooks/useEngineWorker";
 import useChessActions from "./hooks/useChessActions";
 import useMoveTrigger from "./hooks/useMoveTrigger";
 
+import "./UI.css";
+
 // Runs the game
 const BitboardGame = () => {
-  const { userSide, promotion, promotionMove, isModalOpen, changeViewedMove } =
-    useGameStore();
+  // Get states
+  const userSide = useGameStore((state) => state.userSide);
+  const promotion = useGameStore((state) => state.promotion);
+  const promotionMove = useGameStore((state) => state.promotionMove);
+  const isModalOpen = useGameStore((state) => state.isModalOpen);
+  const changeViewedMove = useGameStore((state) => state.changeViewedMove);
+
   // Handler for chess actions
   const { processMove, handleSquareClick, handlePromotion } = useChessActions();
 
@@ -22,8 +29,8 @@ const BitboardGame = () => {
   useMoveTrigger(postToEngine);
 
   return (
-    <div className="body">
-      <div className="gameWrap">
+    <main className="body">
+      <section className="gameWrap" role="application">
         <BitboardBoard onSquareClick={handleSquareClick} />
         {promotion && (
           <PromotionModal
@@ -33,9 +40,9 @@ const BitboardGame = () => {
           />
         )}
         <Sidebar changeBoardView={changeViewedMove} />
-      </div>
+      </section>
       {isModalOpen && <Modal />}
-    </div>
+    </main>
   );
 };
 

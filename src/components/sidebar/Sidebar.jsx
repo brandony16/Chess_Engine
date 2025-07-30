@@ -5,6 +5,11 @@ import { useGameStore } from "../gameStore.mjs";
 import { WHITE } from "../../Core Logic/constants.mjs";
 import { ModalTypes } from "../utilTypes";
 
+import newGame from "../../assets/new.svg";
+import battle from "../../assets/battle.svg";
+import history from "../../assets/history.svg";
+import flipBoard from "../../assets/flip.svg";
+
 const Sidebar = ({ changeBoardView }) => {
   const {
     currPlayer,
@@ -28,40 +33,28 @@ const Sidebar = ({ changeBoardView }) => {
           className="newGame sidebarIconBtn"
           onClick={() => openModal(ModalTypes.NEW)}
         >
-          <img className="sidebarIcon" src="./images/new.svg" alt="new game" />
+          <img className="sidebarIcon" src={newGame} alt="new game" />
         </button>
         <button
           title="Battle engines"
           className="engineBattle sidebarIconBtn"
           onClick={() => openModal(ModalTypes.BATTLE)}
         >
-          <img
-            className="sidebarIcon"
-            src="./images/battle.svg"
-            alt="battle engines"
-          />
+          <img className="sidebarIcon" src={battle} alt="battle engines" />
         </button>
         <button
           title="View previous games"
           className="prevGames sidebarIconBtn"
           onClick={() => openModal(ModalTypes.HISTORY)}
         >
-          <img
-            className="sidebarIcon"
-            src="./images/history.svg"
-            alt="view past games"
-          />
+          <img className="sidebarIcon" src={history} alt="view past games" />
         </button>
         <button
           title="Flip board orientation"
           className="flipBoard sidebarIconBtn"
           onClick={() => flipBoardView()}
         >
-          <img
-            className="sidebarIcon"
-            src="./images/flip.svg"
-            alt="flip board"
-          />
+          <img className="sidebarIcon" src={flipBoard} alt="flip board" />
         </button>
       </div>
     </div>

@@ -1,4 +1,6 @@
+import { useCallback } from "react";
 import PropTypes from "prop-types";
+
 import { BLACK, COLUMN_SYMBOLS, WHITE } from "../../Core Logic/constants.mjs";
 import Piece from "./Piece";
 
@@ -23,11 +25,23 @@ const Cell = ({
   const squareColor = (row + col) % 2 === 0 ? "dark" : "light";
   const isWhite = boardViewSide === WHITE;
 
+  const handleClick = useCallback(
+    () => onSquareClick(row, col),
+    [onSquareClick, row, col]
+  );
+
+  // Build class name
+  const className = [
+    "cell",
+    squareColor,
+    isSelected && "selected",
+    !isSelected && isMove && "move",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div
-      className={`cell ${squareColor}`}
-      onClick={() => onSquareClick(row, col)}
-    >
+    <button className={className} onClick={handleClick} role="gridcell">
       {isWhite && row === 0 && (
         <div className={`rowId ${squareColor}`}>{COLUMN_SYMBOLS[col]}</div>
       )}
@@ -42,7 +56,7 @@ const Cell = ({
       )}
       {piece !== "-" && <Piece type={piece} />}
       <div className="selectedCover" style={style}></div>
-    </div>
+    </button>
   );
 };
 

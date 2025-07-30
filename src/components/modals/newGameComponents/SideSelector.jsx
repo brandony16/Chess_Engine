@@ -1,5 +1,9 @@
 import PropTypes from "prop-types";
 
+import wK from "../../../assets/pieces/wK.svg";
+import bK from "../../../assets/pieces/bK.svg";
+import random from "../../../assets/random.svg";
+
 const SideSelector = ({ value, onChange }) => (
   <fieldset className="side-selector">
     <legend className="sideLegend">Choose your side</legend>
@@ -12,10 +16,10 @@ const SideSelector = ({ value, onChange }) => (
         checked={value === "W"}
         onChange={() => onChange("W")}
       />
-      <img src="./images/wK.svg" alt="white" className="newGameIcon" />
+      <img src={wK} alt="white" className="newGameIcon" />
     </label>
 
-    <label className={`option ${value === "R" ? "selected" : ""}`} >
+    <label className={`option ${value === "R" ? "selected" : ""}`}>
       <input
         type="radio"
         name="side"
@@ -23,7 +27,7 @@ const SideSelector = ({ value, onChange }) => (
         checked={value === "R"}
         onChange={() => onChange("R")}
       />
-      <img src="./images/random.svg" alt="random" className="newGameIcon" />
+      <img src={random} alt="random" className="newGameIcon" />
     </label>
 
     <label className={`option ${value === "B" ? "selected" : ""}`}>
@@ -34,7 +38,7 @@ const SideSelector = ({ value, onChange }) => (
         checked={value === "B"}
         onChange={() => onChange("B")}
       />
-      <img src="./images/bK.svg" alt="black" className="newGameIcon" />
+      <img src={bK} alt="black" className="newGameIcon" />
     </label>
   </fieldset>
 );
