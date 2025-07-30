@@ -54,7 +54,7 @@ const BitboardBoard = ({ onSquareClick }) => {
             piece={symbol}
             row={actualRow}
             col={actualCol}
-            onSquareClick={() => onSquareClick(actualRow, actualCol)}
+            onSquareClick={onSquareClick}
             isSelected={isSelected}
             isMove={isMove}
             boardViewSide={boardViewSide}

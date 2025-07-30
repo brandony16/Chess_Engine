@@ -1,22 +1,25 @@
-import PropTypes from "prop-types";
+import { useGameStore } from "../gameStore.mjs";
 
 import chevronLeft from "../../assets/chevronLeft.svg";
 import chevronRight from "../../assets/chevronRight.svg";
+import React from "react";
 
-const MoveArrows = ({ changeBoardView }) => {
+const MoveArrows = () => {
+  const changeViewedMove = useGameStore((state) => state.changeViewedMove);
+
   return (
     <div className="moveArrows">
       <button
         title="Go back one move"
         className="prevMove sidebarIconBtn moveArrow"
-        onClick={() => changeBoardView(-1)}
+        onClick={() => changeViewedMove(-1)} // Back one move
       >
         <img className="sidebarIcon" src={chevronLeft} alt="go back one move" />
       </button>
       <button
         title="Go forward one move"
         className="nextMove sidebarIconBtn moveArrow"
-        onClick={() => changeBoardView(1)}
+        onClick={() => changeViewedMove(1)} // Forward one move
       >
         <img
           className="sidebarIcon"
@@ -28,8 +31,7 @@ const MoveArrows = ({ changeBoardView }) => {
   );
 };
 
-MoveArrows.propTypes = {
-  changeBoardView: PropTypes.func.isRequired,
-};
+const MemoizedArrows = React.memo(MoveArrows);
+MemoizedArrows.displayName = "MoveArrows";
 
-export default MoveArrows;
+export default MemoizedArrows;

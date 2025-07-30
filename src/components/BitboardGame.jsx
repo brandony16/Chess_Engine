@@ -17,7 +17,6 @@ const BitboardGame = () => {
   const promotion = useGameStore((state) => state.promotion);
   const promotionMove = useGameStore((state) => state.promotionMove);
   const isModalOpen = useGameStore((state) => state.isModalOpen);
-  const changeViewedMove = useGameStore((state) => state.changeViewedMove);
 
   // Handler for chess actions
   const { processMove, handleSquareClick, handlePromotion } = useChessActions();
@@ -39,11 +38,12 @@ const BitboardGame = () => {
             userPlayer={userSide}
           />
         )}
-        <Sidebar changeBoardView={changeViewedMove} />
+        <Sidebar />
       </section>
       {isModalOpen && <Modal />}
     </main>
   );
 };
+
 
 export default BitboardGame;

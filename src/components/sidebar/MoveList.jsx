@@ -1,10 +1,15 @@
-import PropTypes from "prop-types";
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useGameStore } from "../gameStore.mjs";
 
-const MoveList = ({ pastMoves, indexOfViewed }) => {
+const MoveList = () => {
+  // Get states
+  const pastMoves = useGameStore((state) => state.pastMoves);
+  const currIndexOfDisplayed = useGameStore(
+    (state) => state.currIndexOfDisplayed
+  );
+
   const goToMove = useGameStore((state) => state.goToMove);
-  const selectedMoveNum = Math.floor(indexOfViewed / 2);
+  const selectedMoveNum = Math.floor(currIndexOfDisplayed / 2);
   const moveListRef = useRef(null);
 
   // Scrolls to the bottom when a move is made
@@ -25,7 +30,7 @@ const MoveList = ({ pastMoves, indexOfViewed }) => {
         .map((pair, moveNumber) => {
           let moveID = -1;
           if (moveNumber === selectedMoveNum) {
-            moveID = indexOfViewed % 2;
+            moveID = currIndexOfDisplayed % 2;
           }
           return (
             <div key={moveNumber} className="pastMove" id={moveNumber}>
@@ -49,9 +54,7 @@ const MoveList = ({ pastMoves, indexOfViewed }) => {
   );
 };
 
-MoveList.propTypes = {
-  pastMoves: PropTypes.arrayOf(PropTypes.string).isRequired,
-  indexOfViewed: PropTypes.number.isRequired,
-};
+const MemoizedMoveList = React.memo(MoveList);
+MemoizedMoveList.displayName = "MoveList";
 
-export default MoveList;
+export default MemoizedMoveList;

@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import React, { useCallback } from "react";
 import PropTypes from "prop-types";
 
 import { BLACK, COLUMN_SYMBOLS, WHITE } from "../../Core Logic/constants.mjs";
@@ -84,4 +84,7 @@ Cell.propTypes = {
   boardViewSide: PropTypes.oneOf([WHITE, BLACK]).isRequired,
 };
 
-export default Cell;
+const MemoizedCell = React.memo(Cell);
+MemoizedCell.displayName = "Cell";
+
+export default MemoizedCell;
