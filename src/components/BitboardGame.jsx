@@ -1,6 +1,6 @@
 import { useGameStore } from "./gameStore.mjs";
 
-import PromotionModal from "./modals/PromotionModal";
+import PromotionModal from "./modals/promotionModal/PromotionModal";
 import Sidebar from "./sidebar/Sidebar";
 import BitboardBoard from "./boardComponents/BitboardBoard";
 import Modal from "./modals/Modal";

@@ -21,6 +21,14 @@ export const engineStrings = [
   "BondMonkeyV5",
 ];
 
+export const EngineObjects = {
+  BMV1: { name: "BondMonkey V1", description: "Plays random moves" },
+  BMV2: { name: "BondMonkey V2", description: "Basic searching" },
+  BMV3: { name: "BondMonkey V3", description: "More efficient searching" },
+  BMV4: { name: "BondMonkey V4", description: "Calculates tactics better" },
+  BMV5: { name: "BondMonkey V5", description: "Better Evaluation" },
+};
+
 export const nameToType = {
   BondMonkeyV1: EngineTypes.BMV1,
   BondMonkeyV2: EngineTypes.BMV2,
@@ -33,4 +41,4 @@ export const BattleModalStates = {
   SETTING: "setting",
   LOADING: "loading",
   FINISHED: "finished",
-}
+};

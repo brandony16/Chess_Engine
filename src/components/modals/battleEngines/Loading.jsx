@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import React from "react";
 
 const Loading = ({ gameNum, totalGames }) => {
   return (
@@ -16,4 +17,7 @@ Loading.propTypes = {
   totalGames: PropTypes.number.isRequired,
 };
 
-export default Loading;
+const MemoizedLoading = React.memo(Loading);
+MemoizedLoading.displayName = "Loading";
+
+export default MemoizedLoading;

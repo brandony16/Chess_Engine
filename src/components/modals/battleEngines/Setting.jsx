@@ -1,6 +1,9 @@
+import React from "react";
+import PropTypes from "prop-types";
+
 import EngineSettings from "./engineSetting";
 
-export const Setting = (
+export const Setting = ({
   engine1,
   setEngine1,
   depth1,
@@ -11,10 +14,10 @@ export const Setting = (
   setDepth2,
   numGames,
   setNumGames,
-  startBattle
-) => {
+  startBattle,
+}) => {
   return (
-    <div id="battleForm" className="battleEngines">
+    <>
       <div className="engineSettingsWrap">
         <EngineSettings
           engineValue={engine1}
@@ -57,6 +60,25 @@ export const Setting = (
       >
         Start
       </button>
-    </div>
+    </>
   );
 };
+
+Setting.propTypes = {
+  engine1: PropTypes.string.isRequired,
+  setEngine1: PropTypes.func.isRequired,
+  depth1: PropTypes.number.isRequired,
+  setDepth1: PropTypes.func.isRequired,
+  engine2: PropTypes.string.isRequired,
+  setEngine2: PropTypes.func.isRequired,
+  depth2: PropTypes.number.isRequired,
+  setDepth2: PropTypes.func.isRequired,
+  numGames: PropTypes.number.isRequired,
+  setNumGames: PropTypes.func.isRequired,
+  startBattle: PropTypes.func.isRequired,
+};
+
+const MemoizedSetting = React.memo(Setting);
+MemoizedSetting.displayName = "Setting";
+
+export default MemoizedSetting;

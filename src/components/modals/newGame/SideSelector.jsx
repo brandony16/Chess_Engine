@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import wK from "../../../assets/pieces/wK.svg";
 import bK from "../../../assets/pieces/bK.svg";
 import random from "../../../assets/random.svg";
+import React from "react";
 
 const SideSelector = ({ value, onChange }) => (
   <fieldset className="side-selector">
@@ -48,4 +49,7 @@ SideSelector.propTypes = {
   onChange: PropTypes.func.isRequired,
 };
 
-export default SideSelector;
+const MemoizedSideSelector = React.memo(SideSelector);
+MemoizedSideSelector.displayName = "SideSelector";
+
+export default MemoizedSideSelector;

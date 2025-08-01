@@ -1,12 +1,20 @@
 import PropTypes from "prop-types";
 import { engineStrings } from "../../utilTypes";
+import React from "react";
 
-const EngineSettings = ({ engineValue, depthValue, setEngine, setDepth, id }) => {
-  
+const EngineSettings = ({
+  engineValue,
+  depthValue,
+  setEngine,
+  setDepth,
+  id,
+}) => {
   return (
     <div className="engineSettingPanel" id={id}>
       <div className="engine">
-        <label className="modalLabel" htmlFor={"engSelect" + id}>Engine:</label>
+        <label className="modalLabel" htmlFor={"engSelect" + id}>
+          Engine:
+        </label>
         <select
           name="engine"
           className="modalSelect"
@@ -25,7 +33,9 @@ const EngineSettings = ({ engineValue, depthValue, setEngine, setDepth, id }) =>
       </div>
 
       <div className="labelWrap">
-        <label className="modalLabel" htmlFor={"depthSelect" + id}>Depth:</label>
+        <label className="modalLabel" htmlFor={"depthSelect" + id}>
+          Depth:
+        </label>
         <input
           type="number"
           name="depth"
@@ -50,4 +60,7 @@ EngineSettings.propTypes = {
   id: PropTypes.string.isRequired,
 };
 
-export default EngineSettings;
+const MemoizedEngineSettings = React.memo(EngineSettings);
+MemoizedEngineSettings.displayName = "EngineSettings";
+
+export default MemoizedEngineSettings;
