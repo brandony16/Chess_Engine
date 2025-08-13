@@ -1,4 +1,9 @@
-import { BLACK_KING, WHITE_KING, WHITE_KNIGHT, WHITE_PAWN } from "./constants.mjs";
+import {
+  BLACK_KING,
+  WHITE_KING,
+  WHITE_KNIGHT,
+  WHITE_PAWN,
+} from "./constants.mjs";
 
 /**
  * A helper to determine whether a square is on a board
@@ -111,4 +116,39 @@ export function popcount(bb) {
     count++;
   }
   return count;
+}
+
+/**
+ * Gets the indexes of all of the set bits in a bitboard.
+ *
+ * @param {bigint} mask - the bitboard
+ * @returns {Array<number>} an array of square indexes
+ */
+export function maskBits(mask) {
+  const bits = [];
+  let b = mask;
+  while (b) {
+    const bitIndex = bitScanForward(b);
+    bits.push(bitIndex);
+
+    b &= b - 1n;
+  }
+  return bits;
+}
+
+/**
+ * Generates all blocker permutations for a given mask of moves for a peice.
+ * For example, a rook on a1 can see the whole first row and first file. This
+ * function generates all possible blocker permutations on the first row and file.
+ * This will be 2^(N-1), with N being the number of set bits in the initial mask.
+ *
+ * @param {bigint} mask - the mask
+ * @returns {BigUint64Array} the blocker subsets
+ */
+export function* generateBlockerSubsets(mask) {
+  // Iterate submasks of mask: from mask, then (mask−1)&mask, ... down to 0
+  for (let sub = mask; ; sub = (sub - 1n) & mask) {
+    yield sub;
+    if (sub === 0n) break;
+  }
 }

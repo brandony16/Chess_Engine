@@ -6,7 +6,10 @@ import {
   getPlayerBoard,
 } from "../pieceGetters.mjs";
 import { BETWEEN } from "./checkersMask.mjs";
-import { bishopAttacks, rookAttacks } from "./magicBitboards/attackTable.mjs";
+import {
+  bishopAttacks,
+  rookAttacks,
+} from "./magicBitboards/magicBBMoveGen.mjs";
 
 /**
  * Computes a bitboard of all of a players pinned pieces.

@@ -1,6 +1,7 @@
-
 // Precompute masks
-export const rookMasks = Array.from({ length: 64 }, (_, sq) => generateRookMask(sq));
+export const rookMasks = Array.from({ length: 64 }, (_, sq) =>
+  generateRookMask(sq)
+);
 export const bishopMasks = Array.from({ length: 64 }, (_, sq) =>
   generateBishopMask(sq)
 );
@@ -27,10 +28,10 @@ function generateRookMask(sq) {
     let f = file + df;
     let r = rank + dr;
 
-    while (f >= 0 && f < 8 && r >= 0 && r < 8) {  
+    while (f >= 0 && f < 8 && r >= 0 && r < 8) {
       // Break if next move is off of the board.
       const nextF = f + df;
-      const nextR = r + dr;   
+      const nextR = r + dr;
       if (nextF >= 8 || nextF < 0 || nextR >= 8 || nextR < 0) break;
 
       mask |= 1n << BigInt(toIndex(f, r));
@@ -66,4 +67,3 @@ function generateBishopMask(sq) {
   }
   return mask;
 }
-

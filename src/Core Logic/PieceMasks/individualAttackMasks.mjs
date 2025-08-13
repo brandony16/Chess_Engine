@@ -17,7 +17,7 @@ import {
 import {
   bishopAttacks,
   rookAttacks,
-} from "../moveGeneration/magicBitboards/attackTable.mjs";
+} from "../moveGeneration/magicBitboards/magicBBMoveGen.mjs";
 import { getAllPieces } from "../pieceGetters.mjs";
 import { indexArrays } from "../pieceIndicies.mjs";
 import { kingMasks } from "./kingMask.mjs";
@@ -98,4 +98,4 @@ export function computeAllAttackMasks(bitboards) {
  * updating of attack masks to prevent recalculation every move.
  */
 export const individualAttackMasks = new BigUint64Array(NUM_PIECES).fill(0n);
-computeAllAttackMasks(INITIAL_BITBOARDS);
+// computeAllAttackMasks(INITIAL_BITBOARDS);

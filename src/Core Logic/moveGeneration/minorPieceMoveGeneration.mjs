@@ -22,7 +22,7 @@ import {
 } from "../pieceGetters.mjs";
 import { knightMasks } from "../PieceMasks/knightMask.mjs";
 import { blackPawnMasks, whitePawnMasks } from "../PieceMasks/pawnMask.mjs";
-import { bishopAttacks } from "./magicBitboards/attackTable.mjs";
+import { bishopAttacks } from "./magicBitboards/magicBBMoveGen.mjs";
 import { getRookAttacksForSquare } from "./slidingPieceAttacks.mjs";
 
 /**

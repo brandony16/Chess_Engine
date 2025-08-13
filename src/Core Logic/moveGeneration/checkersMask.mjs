@@ -3,7 +3,10 @@ import { getAllPieces } from "../pieceGetters.mjs";
 import * as C from "../constants.mjs";
 import { knightMasks } from "../PieceMasks/knightMask.mjs";
 import { slide } from "../generalHelpers.mjs";
-import { bishopAttacks, rookAttacks } from "./magicBitboards/attackTable.mjs";
+import {
+  bishopAttacks,
+  rookAttacks,
+} from "./magicBitboards/magicBBMoveGen.mjs";
 
 /**
  * Finds all pieces that put a given player's king in check and returns

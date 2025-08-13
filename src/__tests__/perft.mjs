@@ -1,12 +1,12 @@
-import { getNewEnPassant } from "../components/bitboardUtils/bbChessLogic.mjs";
-import { getAllLegalMoves } from "../components/bitboardUtils/moveGeneration/allMoveGeneration.mjs";
-import { updateCastlingRights } from "../components/bitboardUtils/moveMaking/castleMoveLogic.mjs";
+import { getNewEnPassant } from "../Core Logic/bbChessLogic.mjs";
+import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration.mjs";
+import { updateCastlingRights } from "../Core Logic/moveMaking/castleMoveLogic.mjs";
 import {
   makeMove,
   unMakeMove,
-} from "../components/bitboardUtils/moveMaking/makeMoveLogic.mjs";
-import { moveToUCI } from "../components/bitboardUtils/FENandUCIHelpers.mjs";
-import { BLACK, WHITE } from "../components/bitboardUtils/constants.mjs";
+} from "../Core Logic/moveMaking/makeMoveLogic.mjs";
+import { moveToUCI } from "../Core Logic/FENandUCIHelpers.mjs";
+import { BLACK, WHITE } from "../Core Logic/constants.mjs";
 
 /**
  * Count leaf nodes to `depth` by recursively generating, making, and unmaking moves.
@@ -54,7 +54,7 @@ export function perftDivide(board, player, castling, ep, depth) {
     // New game states
     const newEp = getNewEnPassant(move);
     const newCastling = updateCastlingRights(move.from, move.to, castling);
-    
+
     divide[uci] = perft(board, opp, newCastling, newEp, depth - 1);
 
     unMakeMove(move, board);

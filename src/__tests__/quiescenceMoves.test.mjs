@@ -1,6 +1,6 @@
 import { getFENData } from "../Core Logic/FENandUCIHelpers";
 import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration";
-import { getQuiescenceMoves } from "../Core Logic/moveGeneration/quiescenceMoves/quiescenceMoves";
+import { getQuiescenceMoves } from "../Core Logic/moveGeneration/quiescenceMoves.mjs";
 import { initializePieceAtArray } from "../Core Logic/pieceGetters";
 import { initializePieceIndicies } from "../Core Logic/pieceIndicies.mjs";
 import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks.mjs";
@@ -41,7 +41,6 @@ describe("getQuiescenceMove", () => {
     );
     const quiescenceMoves = getQuiescenceMoves(bitboards, player, castling, ep);
 
-    console.log(quiescenceMoves, filteredMoves)
     expect(quiescenceMoves.length).toBe(filteredMoves.length);
   });
 });

@@ -1,4 +1,4 @@
-import { NUM_PIECES, PIECE_SYMBOLS } from "./constants";
+import { NUM_PIECES, PIECE_SYMBOLS } from "./constants.mjs";
 
 /**
  * Converts a big int to an 8x8 grid of 1s and 0s.

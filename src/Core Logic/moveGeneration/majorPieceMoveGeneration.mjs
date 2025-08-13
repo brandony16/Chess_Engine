@@ -24,7 +24,10 @@ import {
 } from "../moveMaking/castleMoveLogic.mjs";
 import { getAllPieces, getPlayerBoard } from "../pieceGetters.mjs";
 import { kingMasks } from "../PieceMasks/kingMask.mjs";
-import { bishopAttacks, rookAttacks } from "./magicBitboards/attackTable.mjs";
+import {
+  bishopAttacks,
+  rookAttacks,
+} from "./magicBitboards/magicBBMoveGen.mjs";
 
 /**
  * Gets the move bitboard for a rook.

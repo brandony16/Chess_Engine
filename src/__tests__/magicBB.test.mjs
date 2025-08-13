@@ -1,13 +1,13 @@
-import {
-  bishopAttacks,
-  generateBlockerSubsets,
-  maskBits,
-  rookAttacks,
-} from "../Core Logic/moveGeneration/magicBitboards/attackTable";
+import { maskBits } from "../Core Logic/bbUtils.mjs";
+import { generateBlockerSubsets } from "../Core Logic/bbUtils.mjs";
 import {
   getBishopAttacksForSquare,
   getRookAttacksForSquare,
 } from "../Core Logic/moveGeneration/slidingPieceAttacks";
+import {
+  rookAttacks,
+  bishopAttacks,
+} from "../Core Logic/moveGeneration/magicBitboards/magicBBMoveGen.mjs";
 
 describe("maskBits", () => {
   it("extracts correct bit positions", () => {
@@ -26,8 +26,14 @@ describe("generateBlockerSubsets", () => {
   it("creates 2^N subsets for N mask bits", () => {
     // small mask: bits at 1 and 3 → N=2 → 4 subsets
     const mask = (1n << 1n) | (1n << 3n);
-    const subs = generateBlockerSubsets(mask);
-    expect(subs).toHaveLength(4);
+
+    let numSubs = 0;
+    let subs = [];
+    for (const sub of generateBlockerSubsets(mask)) {
+      subs.push(sub);
+      numSubs++;
+    }
+    expect(numSubs).toBe(4);
     // should include 0, single-bit, and both bits
     const asStrings = subs.map((x) => x.toString());
     expect(asStrings).toEqual(

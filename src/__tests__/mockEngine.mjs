@@ -1,13 +1,13 @@
 import { WHITE } from "chess.js";
-import { MAX_PLY, WEIGHTS } from "../components/bitboardUtils/constants";
-import { getNewEnPassant } from "../components/bitboardUtils/bbChessLogic";
-import { getAllLegalMoves } from "../components/bitboardUtils/moveGeneration/allMoveGeneration";
-import { pieceAt } from "../components/bitboardUtils/pieceGetters";
-import { makeMove, unMakeMove } from "../components/bitboardUtils/moveMaking/makeMoveLogic";
-import { updateHash } from "../components/bitboardUtils/zobristHashing";
-import { updateAttackMasks } from "../components/bitboardUtils/PieceMasks/attackMask";
-import { updateCastlingRights } from "../components/bitboardUtils/moveMaking/castleMoveLogic";
-import { areBigUint64ArraysEqual } from "../components/bitboardUtils/debugFunctions";
+import { MAX_PLY, WEIGHTS } from "../Core Logic/constants";
+import { getNewEnPassant } from "../Core Logic/bbChessLogic";
+import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration";
+import { pieceAt } from "../Core Logic/pieceGetters";
+import { makeMove, unMakeMove } from "../Core Logic/moveMaking/makeMoveLogic";
+import { updateHash } from "../Core Logic/zobristHashing";
+import { updateAttackMasks } from "../Core Logic/PieceMasks/attackMask";
+import { updateCastlingRights } from "../Core Logic/moveMaking/castleMoveLogic";
+import { areBigUint64ArraysEqual } from "../Core Logic/debugFunctions";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -30,7 +30,7 @@ export const mockEngine = (
   castlingRights,
   enPassantSquare,
   prevPositions,
-  prevHash,
+  prevHash
 ) => {
   const side = player === WHITE ? +1 : -1;
   const stateArray = [];
@@ -145,7 +145,7 @@ export const mockEngine = (
       castlingChanged: castlingChanged,
       prevEpFile: prevEpFile,
       prevHash: prevHash,
-    }
+    };
     stateArray.push(states);
 
     unMakeMove(move, bitboards);
@@ -153,11 +153,11 @@ export const mockEngine = (
     else prevPositions.delete(hash);
     const pieceAtAfter = structuredClone(pieceAt);
     if (JSON.stringify(pieceAtBefore) !== JSON.stringify(pieceAtAfter)) {
-      throw new Error("PieceAt is not the same when making & unmaking move")
-    } 
+      throw new Error("PieceAt is not the same when making & unmaking move");
+    }
     if (!areBigUint64ArraysEqual(bitboards, bitboardsBefore)) {
       console.log(move);
-      throw new Error("Bitboards not the same")
+      throw new Error("Bitboards not the same");
     }
   }
 
