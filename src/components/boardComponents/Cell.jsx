@@ -34,6 +34,20 @@ const Cell = ({
     [onSquareClick, row, col]
   );
 
+  const startDrag = useCallback(
+    (e) => {
+      handleDragStart(e, row, col, piece);
+    },
+    [handleDragStart, row, col, piece]
+  );
+
+  const endDrag = useCallback(
+    (e) => {
+      handleDrop(e, row, col);
+    },
+    [handleDrop, row, col]
+  );
+
   // Build class name
   const className = [
     "cell",
@@ -49,8 +63,9 @@ const Cell = ({
       className={className}
       onClick={handleClick}
       onDragOver={handleDragOver}
-      onDrop={handleDrop}
-      onDragStart={handleDragStart}
+      onDrop={endDrag}
+      onDragStart={startDrag}
+      draggable={piece !== "-"}
       role="gridcell"
     >
       {isWhite && row === 0 && (
@@ -65,9 +80,7 @@ const Cell = ({
       {!isWhite && col === 7 && (
         <div className={`colId ${squareColor}`}>{row + 1}</div>
       )}
-      {piece !== "-" && (
-        <Piece type={piece} handleDragStart={handleDragStart} />
-      )}
+      {piece !== "-" && <Piece type={piece} />}
       <div className="selectedCover" style={style}></div>
     </button>
   );
