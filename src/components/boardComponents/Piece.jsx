@@ -47,19 +47,24 @@ const pieceNames = {
 /* 
   Returns an image of the piece specified
 */
-const Piece = ({ type }) => {
+const Piece = ({ type, handleDragStart }) => {
+  const mockFunc = () => {
+    console.log("drag started");
+  };
   return (
     <img
       src={pieceImages[type]}
       alt={pieceNames[type]}
       className="piece"
-      draggable={false}
+      draggable={true}
+      onDragStart={mockFunc}
     />
   );
 };
 
 Piece.propTypes = {
   type: PropTypes.oneOf(Object.keys(pieceImages)).isRequired,
+  handleDragStart: PropTypes.func.isRequired,
 };
 
 const MemoizedPiece = React.memo(Piece);

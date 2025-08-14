@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 
 import { BLACK, COLUMN_SYMBOLS, WHITE } from "../../Core Logic/constants.mjs";
 import Piece from "./Piece";
+import useDragDrop from "../hooks/useDragDrop";
 
 // A board cell
 const Cell = ({
@@ -14,6 +15,9 @@ const Cell = ({
   isMove,
   boardViewSide,
 }) => {
+  const { handleDragStart, handleDragOver, handleDrop } =
+    useDragDrop(onSquareClick);
+
   const style = {
     backgroundColor: isSelected
       ? "rgba(255, 191, 89, 0.4)"
@@ -41,7 +45,14 @@ const Cell = ({
     .join(" ");
 
   return (
-    <button className={className} onClick={handleClick} role="gridcell">
+    <button
+      className={className}
+      onClick={handleClick}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+      onDragStart={handleDragStart}
+      role="gridcell"
+    >
       {isWhite && row === 0 && (
         <div className={`rowId ${squareColor}`}>{COLUMN_SYMBOLS[col]}</div>
       )}
@@ -54,7 +65,9 @@ const Cell = ({
       {!isWhite && col === 7 && (
         <div className={`colId ${squareColor}`}>{row + 1}</div>
       )}
-      {piece !== "-" && <Piece type={piece} />}
+      {piece !== "-" && (
+        <Piece type={piece} handleDragStart={handleDragStart} />
+      )}
       <div className="selectedCover" style={style}></div>
     </button>
   );
