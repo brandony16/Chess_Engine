@@ -1,4 +1,4 @@
-import { bitScanForward, isKing } from "../bbUtils.mjs";
+import { bitScanForward, isKing } from "../helpers/bbUtils.mjs";
 import {
   BLACK_PAWN,
   BLACK_PROMO_PIECES,

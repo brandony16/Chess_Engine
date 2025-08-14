@@ -3,7 +3,7 @@ import {
   WHITE_KING,
   WHITE_KNIGHT,
   WHITE_PAWN,
-} from "./constants.mjs";
+} from "../constants.mjs";
 
 /**
  * A helper to determine whether a square is on a board

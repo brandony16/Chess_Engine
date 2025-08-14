@@ -1,11 +1,11 @@
-import { isOnBoard } from "../bbUtils.mjs";
+import { isOnBoard } from "../helpers/bbUtils.mjs";
 
 // The king square offsets
 const KING_OFFSETS = [1, 7, 8, 9, -1, -7, -8, -9];
 
 /**
  * Computes a king move mask for a square. Does not do castling.
- * 
+ *
  * @param {number} square - the square of the king
  * @returns {bigint} the king move mask
  */
@@ -52,7 +52,7 @@ const initializeKingMasks = () => {
   for (let sq = 0; sq < 64; sq++) {
     kingMasks[sq] = computeKingMask(sq);
   }
-  
+
   return kingMasks;
 };
 

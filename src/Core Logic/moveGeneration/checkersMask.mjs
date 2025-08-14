@@ -2,7 +2,7 @@ import { blackPawnMasks, whitePawnMasks } from "../PieceMasks/pawnMask.mjs";
 import { getAllPieces } from "../pieceGetters.mjs";
 import * as C from "../constants.mjs";
 import { knightMasks } from "../PieceMasks/knightMask.mjs";
-import { slide } from "../generalHelpers.mjs";
+import { slide } from "../helpers/generalHelpers.mjs";
 import {
   bishopAttacks,
   rookAttacks,

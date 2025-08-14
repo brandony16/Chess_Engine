@@ -1,4 +1,4 @@
-import { isOnBoard } from "../bbUtils.mjs";
+import { isOnBoard } from "../helpers/bbUtils.mjs";
 
 // The square offsets for a knight
 const KNIGHT_OFFSETS = [17, 15, 10, 6, -17, -15, -10, -6];

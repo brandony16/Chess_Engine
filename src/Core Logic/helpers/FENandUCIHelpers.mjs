@@ -10,9 +10,9 @@ import {
   WHITE,
   WHITE_KINGSIDE,
   WHITE_QUEENSIDE,
-} from "./constants.mjs";
-import { getAllLegalMoves } from "./moveGeneration/allMoveGeneration.mjs";
-import { pieceAt } from "./pieceGetters.mjs";
+} from "../constants.mjs";
+import { getAllLegalMoves } from "../moveGeneration/allMoveGeneration.mjs";
+import { pieceAt } from "../pieceGetters.mjs";
 
 /**
  * Converts bitboards to a FEN string

@@ -1,4 +1,4 @@
-import { bitScanForward, isKing, popcount } from "./bbUtils.mjs";
+import { bitScanForward, isKing, popcount } from "./helpers/bbUtils.mjs";
 import { getAllPieces, pieceAt } from "./pieceGetters.mjs";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration.mjs";
 import {
@@ -19,7 +19,7 @@ import { getKingMovesForSquare } from "./moveGeneration/majorPieceMoveGeneration
 import { getAttackMask } from "./PieceMasks/attackMask.mjs";
 import { kingMasks } from "./PieceMasks/kingMask.mjs";
 import { getPlayerIndicies, indexArrays } from "./pieceIndicies.mjs";
-import { bitboardsToFEN } from "./FENandUCIHelpers.mjs";
+import { bitboardsToFEN } from "./helpers/FENandUCIHelpers.mjs";
 import { bigIntFullRep } from "./debugFunctions.mjs";
 import { computeAllAttackMasks } from "./PieceMasks/individualAttackMasks.mjs";
 
@@ -79,7 +79,9 @@ export const hasLegalMove = (
   const kingSq = indexArrays[kingIndex][0];
   if (kingSq === undefined) {
     console.log(indexArrays[kingIndex], kingIndex);
-    console.log(bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare))
+    console.log(
+      bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare)
+    );
   }
   const kingMask = 1n << BigInt(kingSq);
 

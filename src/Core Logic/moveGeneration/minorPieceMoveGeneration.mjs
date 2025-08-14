@@ -1,4 +1,4 @@
-import { bitScanForward } from "../bbUtils.mjs";
+import { bitScanForward } from "../helpers/bbUtils.mjs";
 import {
   BLACK_KING,
   BLACK_QUEEN,
@@ -12,7 +12,7 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../constants.mjs";
-import { slide } from "../generalHelpers.mjs";
+import { slide } from "../helpers/generalHelpers.mjs";
 import {
   getAllPieces,
   getBlackPieces,

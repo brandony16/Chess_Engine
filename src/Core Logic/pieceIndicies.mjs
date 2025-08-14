@@ -1,4 +1,4 @@
-import { bitScanForward } from "./bbUtils.mjs";
+import { bitScanForward } from "./helpers/bbUtils.mjs";
 import {
   BLACK_ROOK,
   INITIAL_BITBOARDS,

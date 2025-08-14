@@ -1,4 +1,4 @@
-import { bitScanForward } from "../bbUtils.mjs";
+import { bitScanForward } from "../helpers/bbUtils.mjs";
 import {
   BLACK,
   BLACK_BISHOP,
@@ -17,7 +17,7 @@ import {
   WHITE_QUEENSIDE,
   WHITE_ROOK,
 } from "../constants.mjs";
-import { slide } from "../generalHelpers.mjs";
+import { slide } from "../helpers/generalHelpers.mjs";
 import {
   isKingsideCastleLegal,
   isQueensideCastleLegal,

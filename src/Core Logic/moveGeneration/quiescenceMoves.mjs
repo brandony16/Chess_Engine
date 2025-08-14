@@ -3,7 +3,7 @@ import { getAttackMask } from "../PieceMasks/attackMask.mjs";
 import * as C from "../constants.mjs";
 import { computePinned, makePinRayMaskGenerator } from "./computePinned.mjs";
 import { getCheckers, getRayBetween } from "./checkersMask.mjs";
-import { bitScanForward, isKing, popcount } from "../bbUtils.mjs";
+import { bitScanForward, isKing, popcount } from "../helpers/bbUtils.mjs";
 import { getKingMovesForSquare } from "./majorPieceMoveGeneration.mjs";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic.mjs";
 import { getPlayerIndicies, indexArrays } from "../pieceIndicies.mjs";

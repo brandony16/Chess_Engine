@@ -1,4 +1,4 @@
-import { isSliding } from "../bbUtils.mjs";
+import { isSliding } from "../helpers/bbUtils.mjs";
 import {
   BLACK_BISHOP,
   BLACK_KNIGHT,
@@ -69,7 +69,7 @@ export const updateAttackMasks = (bitboards, move) => {
  * @param {number} piece - the piece to update. Not the same as move.piece
  * @param {Move} move - the move made
  * @param {bigint} occupancy - occupancy bitboard after the move
- * @param {bigint} relevantBitMask - the relevant bit mask for the move 
+ * @param {bigint} relevantBitMask - the relevant bit mask for the move
  */
 function updateOneSlidingType(piece, move, occupancy, relevantBitMask) {
   // If the piece is involved in the move, we will need to recompute it.
@@ -95,8 +95,8 @@ function updateOneSlidingType(piece, move, occupancy, relevantBitMask) {
  * the move directly changes. These are the square the piece moves from,
  * the square it moves to, and the square where a pawn got captured if
  * en passant occured.
- * 
- * @param {Move} move - the move made 
+ *
+ * @param {Move} move - the move made
  * @returns {bigint} - the mask of the relevant bits
  */
 function getRelevantBitMask(move) {

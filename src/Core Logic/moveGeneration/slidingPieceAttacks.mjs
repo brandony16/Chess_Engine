@@ -4,7 +4,7 @@ import {
   RANK_1_MASK,
   RANK_8_MASK,
 } from "../constants.mjs";
-import { slide } from "../generalHelpers.mjs";
+import { slide } from "../helpers/generalHelpers.mjs";
 
 /**
  * Gets the attack bitboard for a bishop. Used for initializing

@@ -1,4 +1,4 @@
-import { bitScanForward } from "../bbUtils.mjs";
+import { bitScanForward } from "../helpers/bbUtils.mjs";
 import * as C from "../constants.mjs";
 import {
   getDiagAttackersBitboard,

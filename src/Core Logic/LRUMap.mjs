@@ -1,6 +1,6 @@
 /**
  * A variation of a map that has a max size that when reached, deletes the least used value in the map.
- * Helps limit memory usage so map doesnt blow up to millions of attack maps that are all pretty much unused.
+ * Helps limit memory usage so map doesnt blow up to millions of entries that are all pretty much unused.
  */
 export class LRUMap {
   constructor(maxSize) {
@@ -76,4 +76,3 @@ export class LRUMap {
     return this.cache.size;
   }
 }
-

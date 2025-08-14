@@ -1,7 +1,12 @@
-import { isInCheck } from "./bbChessLogic.mjs";
-import { BLACK, COLUMN_SYMBOLS, GENERAL_SYMBOLS, WHITE } from "./constants.mjs";
-import { getAllLegalMoves } from "./moveGeneration/allMoveGeneration.mjs";
-import { pieceAt } from "./pieceGetters.mjs";
+import { isInCheck } from "../bbChessLogic.mjs";
+import {
+  BLACK,
+  COLUMN_SYMBOLS,
+  GENERAL_SYMBOLS,
+  WHITE,
+} from "../constants.mjs";
+import { getAllLegalMoves } from "../moveGeneration/allMoveGeneration.mjs";
+import { pieceAt } from "../pieceGetters.mjs";
 
 /**
  * Slides a specified direction until it hits a piece.

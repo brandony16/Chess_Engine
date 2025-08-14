@@ -1,4 +1,4 @@
-import { bitScanForward, isKing, popcount } from "../bbUtils.mjs";
+import { bitScanForward, isKing, popcount } from "../helpers/bbUtils.mjs";
 import * as C from "../constants.mjs";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic.mjs";
 import { pieceAt } from "../pieceGetters.mjs";

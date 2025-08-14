@@ -1,5 +1,5 @@
 import { hasLegalMove, isSquareAttacked } from "./bbChessLogic.mjs";
-import { getNumPieces } from "./bbUtils.mjs";
+import { getNumPieces } from "./helpers/bbUtils.mjs";
 import {
   BLACK,
   BLACK_KING,

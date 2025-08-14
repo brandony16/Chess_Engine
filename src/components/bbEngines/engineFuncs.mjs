@@ -1,12 +1,12 @@
 import { getNewEnPassant } from "../../Core Logic/bbChessLogic.mjs";
-import { isKing } from "../../Core Logic/bbUtils.mjs";
+import { isKing } from "../../Core Logic/helpers/bbUtils.mjs";
 import { BLACK_PAWN, WHITE_PAWN } from "../../Core Logic/constants.mjs";
 import {
   getOpeningMoves,
   squareToIndex,
-} from "../../Core Logic/FENandUCIHelpers.mjs";
+} from "../../Core Logic/helpers/FENandUCIHelpers.mjs";
 import { checkGameOver } from "../../Core Logic/gameOverLogic.mjs";
-import { moveToReadable } from "../../Core Logic/generalHelpers.mjs";
+import { moveToReadable } from "../../Core Logic/helpers/generalHelpers.mjs";
 import { makeMove } from "../../Core Logic/moveMaking/makeMoveLogic.mjs";
 import Move from "../../Core Logic/moveMaking/move.mjs";
 import { pieceAt } from "../../Core Logic/pieceGetters.mjs";

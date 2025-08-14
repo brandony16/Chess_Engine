@@ -1,6 +1,9 @@
 import { useCallback } from "react";
 import { useGameStore } from "../gameStore.mjs";
-import { movesToBB, moveToReadable } from "../../Core Logic/generalHelpers.mjs";
+import {
+  movesToBB,
+  moveToReadable,
+} from "../../Core Logic/helpers/generalHelpers.mjs";
 import { checkGameOver } from "../../Core Logic/gameOverLogic.mjs";
 import { computeHash } from "../../Core Logic/zobristHashing.mjs";
 import { getNewEnPassant } from "../../Core Logic/bbChessLogic.mjs";
@@ -11,7 +14,7 @@ import {
   isPlayersPieceAtSquare,
   pieceAt,
 } from "../../Core Logic/pieceGetters.mjs";
-import { isKing } from "../../Core Logic/bbUtils.mjs";
+import { isKing } from "../../Core Logic/helpers/bbUtils.mjs";
 import { getAllLegalMoves } from "../../Core Logic/moveGeneration/allMoveGeneration.mjs";
 
 /**
