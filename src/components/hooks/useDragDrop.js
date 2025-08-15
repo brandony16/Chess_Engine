@@ -6,7 +6,10 @@ export default function useDragDrop(onSquareClick) {
   const rafRef = useRef(null);
 
   const ensureDragElement = useCallback((pieceNode) => {
-    if (dragElRef.current) return dragElRef.current;
+    if (dragElRef.current) {
+      dragElRef.current.style.visibility = "visible";
+      return dragElRef.current;
+    }
 
     const el = document.createElement("div");
     el.className = "drag-layer";
@@ -35,10 +38,7 @@ export default function useDragDrop(onSquareClick) {
 
   const removeDragElement = useCallback(() => {
     if (dragElRef.current) {
-      if (dragElRef.current.parentNode) {
-        dragElRef.current.parentNode.removeChild(dragElRef.current);
-      }
-      dragElRef.current = null;
+      dragElRef.current.style.visibility = "hidden";
     }
   }, []);
 
@@ -79,14 +79,11 @@ export default function useDragDrop(onSquareClick) {
 
       const dragEl = ensureDragElement(pieceNode);
       dragEl.innerHTML = "";
+      console.log("handleDragStart: dragLayerExists?", !!dragElRef.current);
 
       if (pieceNode) {
         try {
           const cloned = pieceNode.cloneNode(true);
-
-          cloned
-            .querySelectorAll("img")
-            .forEach((img) => (img.draggable = false));
 
           cloned.style.pointerEvents = "none";
           dragEl.appendChild(cloned);
@@ -115,9 +112,9 @@ export default function useDragDrop(onSquareClick) {
 
       const currentTarget = e.currentTarget;
       const onDragEnd = () => {
+        removeDragElement();
         window.removeEventListener("dragover", onWindowDragOver);
         currentTarget.removeEventListener("dragend", onDragEnd);
-        removeDragElement();
       };
       currentTarget.addEventListener("dragend", onDragEnd);
     },
