@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import { PIECE_IMAGES } from "../utilTypes";
 
 export default function useDragDrop(onSquareClick) {
   const handleDragStart = useCallback(
@@ -9,23 +8,20 @@ export default function useDragDrop(onSquareClick) {
         return;
       }
 
+      // Set to blank image
       const img = new Image();
-      img.src = PIECE_IMAGES[piece];
+      const size = 1;
 
-      img.onload = () => {
-        const size = 60;
+      const canvas = document.createElement("canvas");
+      canvas.width = size;
+      canvas.height = size;
 
-        const canvas = document.createElement("canvas");
-        canvas.width = size;
-        canvas.height = size;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, size, size);
 
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, size, size);
-
-        e.dataTransfer.setDragImage(canvas, size / 2, size / 2);
-      };
-
+      e.dataTransfer.setDragImage(canvas, size / 2, size / 2);
       e.dataTransfer.effectAllowed = "move";
+
       onSquareClick(row, col);
     },
     [onSquareClick]

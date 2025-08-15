@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import PropTypes from "prop-types";
 
 import { BLACK, COLUMN_SYMBOLS, WHITE } from "../../Core Logic/constants.mjs";
@@ -15,6 +15,8 @@ const Cell = ({
   isMove,
   boardViewSide,
 }) => {
+  const [isPieceVisible, setIsPieceVisible] = useState(true);
+
   const { handleDragStart, handleDragOver, handleDrop } =
     useDragDrop(onSquareClick);
 
@@ -36,7 +38,14 @@ const Cell = ({
 
   const startDrag = useCallback(
     (e) => {
+      setIsPieceVisible(false);
       handleDragStart(e, row, col, piece);
+
+      const onDragEnd = () => {
+        document.removeEventListener("dragend", onDragEnd);
+        setIsPieceVisible(true);
+      };
+      document.addEventListener("dragend", onDragEnd);
     },
     [handleDragStart, row, col, piece]
   );
@@ -80,7 +89,7 @@ const Cell = ({
       {!isWhite && col === 7 && (
         <div className={`colId ${squareColor}`}>{row + 1}</div>
       )}
-      {piece !== "-" && <Piece type={piece} />}
+      {piece !== "-" && isPieceVisible && <Piece type={piece} />}
       <div className="selectedCover" style={style}></div>
     </button>
   );
