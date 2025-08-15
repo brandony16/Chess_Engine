@@ -1,9 +1,8 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import PropTypes from "prop-types";
 
 import { BLACK, COLUMN_SYMBOLS, WHITE } from "../../Core Logic/constants.mjs";
 import Piece from "./Piece";
-import useDragDrop from "../hooks/useDragDrop";
 
 // A board cell
 const Cell = ({
@@ -14,11 +13,12 @@ const Cell = ({
   isSelected,
   isMove,
   boardViewSide,
+  handleDragStart,
+  handleDragOver,
+  handleDrop,
 }) => {
   const [isPieceVisible, setIsPieceVisible] = useState(true);
-
-  const { handleDragStart, handleDragOver, handleDrop } =
-    useDragDrop(onSquareClick);
+  const pieceRef = useRef(null);
 
   const style = {
     backgroundColor: isSelected
@@ -38,8 +38,10 @@ const Cell = ({
 
   const startDrag = useCallback(
     (e) => {
+      handleDragStart(e, row, col, piece, pieceRef.current);
+
+      // Handle piece visibility
       setIsPieceVisible(false);
-      handleDragStart(e, row, col, piece);
 
       const onDragEnd = () => {
         document.removeEventListener("dragend", onDragEnd);
@@ -89,7 +91,11 @@ const Cell = ({
       {!isWhite && col === 7 && (
         <div className={`colId ${squareColor}`}>{row + 1}</div>
       )}
-      {piece !== "-" && isPieceVisible && <Piece type={piece} />}
+      {piece !== "-" && isPieceVisible && (
+        <div className="pieceWrapper" ref={pieceRef}>
+          <Piece type={piece} />
+        </div>
+      )}
       <div className="selectedCover" style={style}></div>
     </button>
   );
@@ -117,6 +123,9 @@ Cell.propTypes = {
   isSelected: PropTypes.bool.isRequired,
   isMove: PropTypes.bool.isRequired,
   boardViewSide: PropTypes.oneOf([WHITE, BLACK]).isRequired,
+  handleDragStart: PropTypes.func.isRequired,
+  handleDragOver: PropTypes.func.isRequired,
+  handleDrop: PropTypes.func.isRequired,
 };
 
 const MemoizedCell = React.memo(Cell);

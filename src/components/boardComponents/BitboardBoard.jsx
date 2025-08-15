@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 
 import { BLACK, PIECE_SYMBOLS, WHITE } from "../../Core Logic/constants.mjs";
@@ -7,13 +7,19 @@ import { useGameStore } from "../gameStore.mjs";
 import Cell from "./Cell";
 
 import "./Board.css";
+import useDragDrop from "../hooks/useDragDrop";
 
 // Creates the board out of Cells
 const BitboardBoard = ({ onSquareClick }) => {
+  const boardRef = useRef(null);
+
   const boardViewSide = useGameStore((state) => state.boardViewSide);
   const displayedBitboards = useGameStore((state) => state.displayedBitboards);
   const selectedSquare = useGameStore((state) => state.selectedSquare);
   const moveBitboard = useGameStore((state) => state.moveBitboard);
+
+  const { handleDragStart, handleDragOver, handleDrop } =
+    useDragDrop(onSquareClick);
 
   const cells = useMemo(() => {
     const list = [];
@@ -44,7 +50,7 @@ const BitboardBoard = ({ onSquareClick }) => {
   }, [boardViewSide, displayedBitboards, selectedSquare, moveBitboard]);
 
   return (
-    <div className="board" role="grid" aria-label="Chess board">
+    <div className="board" role="grid" aria-label="Chess board" ref={boardRef}>
       {cells.map(
         ({ square, actualRow, actualCol, symbol, isSelected, isMove }) => (
           <Cell
@@ -58,6 +64,9 @@ const BitboardBoard = ({ onSquareClick }) => {
             isSelected={isSelected}
             isMove={isMove}
             boardViewSide={boardViewSide}
+            handleDragStart={handleDragStart}
+            handleDragOver={handleDragOver}
+            handleDrop={handleDrop}
           />
         )
       )}

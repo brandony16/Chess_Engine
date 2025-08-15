@@ -40,8 +40,23 @@
   background-color: var(--darkSquare);
 }
 
-.piece {
+.pieceWrapper {
   position: absolute;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  user-select: none; /* no text/image selection */
+  -webkit-user-select: none; /* Safari/Chrome */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+ */
+  -webkit-user-drag: none; /* disable the ghost image on drag */
+}
+
+.piece {
   width: 95%;
   aspect-ratio: 1;
   object-fit: contain;

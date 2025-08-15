@@ -1,6 +1,0 @@
-.drag-img {
-  position: fixed;
-  width: calc((100% - 3rem) / 8);
-  height: calc((100% - 3rem) / 8);
-  aspect-ratio: 1/1;
-}
