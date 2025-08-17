@@ -38,8 +38,6 @@ const Cell = ({
 
   const startDrag = useCallback(
     (e) => {
-      console.log("dragstart - pieceRef.current:", pieceRef.current);
-
       handleDragStart(e, row, col, piece, pieceRef.current);
 
       // Handle piece visibility

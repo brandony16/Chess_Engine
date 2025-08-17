@@ -40,8 +40,8 @@ _Figure 1: Main playing board against Bondmonkey V5._
 ![Battle Mode](./public/screenshots/battle-result.png)  
 _Figure 2: Battle Mode Result for BMV5 vs BMV4_
 
-![Past Games](./public/screenshots/past-games.png)
-_Figure 3: Viewing past games_
+![Past Games](./public/screenshots/past-games.png) _Figure 3: Viewing past
+games_
 
 ---
 
@@ -65,9 +65,10 @@ npm run build
 - Note on openings: When engines battle, they first play a random opening found
   in openings.json. This was generated using the build-openings.js file in the
   scripts folder. To generate your own openings, first download a pgn file of
-  openings and put it into the root of the project. Then in build-openings.js,
-  change the PGN_PATH variable to the name of your pgn file, and tweak any other
-  settings at the top.
+  openings and put it into the root of the project. These can be found from
+  places such as [Lichess](https://database.nikonoel.fr/). Then in
+  build-openings.js, change the PGN_PATH variable to the name of your pgn file,
+  and tweak any other settings at the top.
 
 You can then run
 
@@ -99,7 +100,7 @@ to build the openings file.
   1. Open http://localhost:5173 (or the URL printed by Vite) if running locally,
      or the [website](https://brandony16.github.io/Chess_Engine/).
   2. Start playing by clicking on a piece then clicking on where you want to
-     move it.
+     move it. You can also drag and drop pieces to make moves.
 
   - By default, you will play Bondmonkey V5 at a depth of 5, with a max time of
     5s per search.

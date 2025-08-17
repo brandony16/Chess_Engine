@@ -79,7 +79,6 @@ export default function useDragDrop(onSquareClick) {
 
       const dragEl = ensureDragElement(pieceNode);
       dragEl.innerHTML = "";
-      console.log("handleDragStart: dragLayerExists?", !!dragElRef.current);
 
       if (pieceNode) {
         try {
