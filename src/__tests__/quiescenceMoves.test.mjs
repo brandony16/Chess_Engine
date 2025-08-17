@@ -1,4 +1,4 @@
-import { getFENData } from "../Core Logic/FENandUCIHelpers";
+import { getFENData } from "../Core Logic/helpers/FENandUCIHelpers";
 import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration";
 import { getQuiescenceMoves } from "../Core Logic/moveGeneration/quiescenceMoves.mjs";
 import { initializePieceAtArray } from "../Core Logic/pieceGetters";

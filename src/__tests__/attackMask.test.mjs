@@ -11,7 +11,7 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../Core Logic/constants.mjs";
-import { getFENData } from "../Core Logic/FENandUCIHelpers.mjs";
+import { getFENData } from "../Core Logic/helpers/FENandUCIHelpers.mjs";
 import {
   makeMove,
   unMakeMove,

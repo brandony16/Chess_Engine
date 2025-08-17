@@ -1,5 +1,7 @@
-import { maskBits } from "../Core Logic/bbUtils.mjs";
-import { generateBlockerSubsets } from "../Core Logic/bbUtils.mjs";
+import {
+  maskBits,
+  generateBlockerSubsets,
+} from "../Core Logic/helpers/bbUtils.mjs";
 import {
   getBishopAttacksForSquare,
   getRookAttacksForSquare,

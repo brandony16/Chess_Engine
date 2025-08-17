@@ -1,8 +1,6 @@
-import { beforeEach, jest } from "@jest/globals";
 import { checkGameOver } from "../Core Logic/gameOverLogic";
 import {
   BLACK_KING,
-  BLACK_PAWN,
   WHITE,
   WHITE_KING,
   WHITE_QUEEN,

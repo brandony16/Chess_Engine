@@ -1,9 +1,4 @@
-import {
-  BLACK_KING,
-  WHITE_KING,
-  WHITE_KNIGHT,
-  WHITE_PAWN,
-} from "../constants.mjs";
+import { isKing, isKnight, isPawn } from "./pieceUtils";
 
 /**
  * A helper to determine whether a square is on a board
@@ -81,23 +76,13 @@ export const getNumPieces = (bitboard) => {
 };
 
 /**
- * Helper function that determines if a given piece is a king
- *
- * @param {int} piece - the index of the piece
- * @returns {boolean} if the piece is a king
- */
-export const isKing = (piece) => {
-  return piece === WHITE_KING || piece === BLACK_KING;
-};
-
-/**
  * Helper that determines if a piece is a sliding piece
  *
  * @param {number} piece - the piece
  * @returns {boolean} if the piece is a sliding piece
  */
 export const isSliding = (piece) => {
-  if (piece % 6 === WHITE_PAWN || piece % 6 === WHITE_KNIGHT || isKing(piece)) {
+  if (isPawn(piece) || isKnight(piece) || isKing(piece)) {
     return false;
   }
   return true;
@@ -151,4 +136,18 @@ export function* generateBlockerSubsets(mask) {
     yield sub;
     if (sub === 0n) break;
   }
+}
+
+/**
+ * Determines if a given bit index is set on a bitboard.
+ *
+ * @param {bigint} bb - the btboard
+ * @param {number} bitIdx - the index of the bit
+ * @returns {boolean} if the bit is set
+ */
+export function isBitSet(bb, bitIdx) {
+  if (!bitIdx) return false;
+
+  const mask = 1n << BigInt(bitIdx);
+  return bb & mask;
 }

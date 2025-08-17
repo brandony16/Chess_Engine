@@ -1,7 +1,7 @@
-import { getFENData } from "../Core Logic/FENandUCIHelpers";
+import { getFENData } from "../Core Logic/helpers/FENandUCIHelpers";
 import { computePinned } from "../Core Logic/moveGeneration/computePinned";
 import * as C from "../Core Logic/constants";
-import { bitScanForward } from "../Core Logic/bbUtils";
+import { bitScanForward } from "../Core Logic/helpers/bbUtils";
 
 describe("computePinned", () => {
   it("should be 0 when there are no pinned pieces", () => {

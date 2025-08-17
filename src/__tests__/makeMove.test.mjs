@@ -2,7 +2,7 @@ import {
   bitboardsToFEN,
   getFENData,
   uciToMove,
-} from "../Core Logic/FENandUCIHelpers";
+} from "../Core Logic/helpers/FENandUCIHelpers";
 import { makeMove, unMakeMove } from "../Core Logic/moveMaking/makeMoveLogic";
 import * as C from "../Core Logic/constants";
 import { initializePieceAtArray, pieceAt } from "../Core Logic/pieceGetters";

@@ -1,6 +1,6 @@
 import { isInCheck, isSquareAttacked } from "../Core Logic/bbChessLogic";
 import * as C from "../Core Logic/constants";
-import { getFENData } from "../Core Logic/FENandUCIHelpers";
+import { getFENData } from "../Core Logic/helpers/FENandUCIHelpers";
 import { initializePieceIndicies } from "../Core Logic/pieceIndicies";
 import { getAttackMask } from "../Core Logic/PieceMasks/attackMask";
 import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks";

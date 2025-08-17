@@ -1,4 +1,4 @@
-import { bitScanForward, isKing } from "../helpers/bbUtils.mjs";
+import { bitScanForward } from "../helpers/bbUtils.mjs";
 import {
   BLACK_PAWN,
   BLACK_PROMO_PIECES,
@@ -6,11 +6,12 @@ import {
   WHITE_PAWN,
   WHITE_PROMO_PIECES,
 } from "../constants.mjs";
-import { getAllPieces, pieceAt } from "../pieceGetters.mjs";
+import { pieceAt } from "../pieceGetters.mjs";
 import { undoIndexArrayUpdate, updateIndexArrays } from "../pieceIndicies.mjs";
 import { updateAttackMasks } from "../PieceMasks/attackMask.mjs";
 import { makeCastleMove, unMakeCastleMove } from "./castleMoveLogic.mjs";
 import Move from "./move.mjs";
+import { isKing, isPawn } from "../helpers/pieceUtils";
 
 /**
  * Makes a move. Directly alters the given bitboards.
@@ -27,7 +28,6 @@ export const makeMove = (bitboards, move) => {
   const captured = move.captured;
   const promotion = move.promotion;
   const enPassant = move.enPassant;
-  const oldOccupancy = getAllPieces(bitboards);
 
   // Handle castle case
   if (move.castling) {
@@ -165,7 +165,7 @@ export const getMovesFromBB = (
 
   const promotionFromRank = player === WHITE ? 6 : 1;
   const row = Math.floor(from / 8);
-  const isPromotion = row === promotionFromRank && piece % 6 === WHITE_PAWN;
+  const isPromotion = row === promotionFromRank && isPawn(piece);
 
   let moves = bitboard;
   while (moves !== 0n) {

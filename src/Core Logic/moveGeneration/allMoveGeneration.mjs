@@ -1,4 +1,4 @@
-import { bitScanForward, isKing, popcount } from "../helpers/bbUtils.mjs";
+import { bitScanForward, isBitSet, popcount } from "../helpers/bbUtils.mjs";
 import * as C from "../constants.mjs";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic.mjs";
 import { pieceAt } from "../pieceGetters.mjs";
@@ -16,6 +16,7 @@ import {
   getMagicBishopMovesForSquare,
   getPawnMovesForSquare,
 } from "./minorPieceMoveGeneration.mjs";
+import { isKing, isKnight, isPawn } from "../helpers/pieceUtils";
 
 /**
  * Gets the moves for a specific piece. Returns a bitboard of the moves for that piece.
@@ -133,7 +134,8 @@ export const getAllLegalMoves = (
   let kingCheckMask = ~0n;
 
   // If king is in check
-  if (oppAttackMask & (1n << BigInt(kingSq))) {
+  const isKingInCheck = oppAttackMask & (1n << BigInt(kingSq));
+  if (isKingInCheck) {
     const checkers = getCheckers(bitboards, player, kingSq);
     const numCheck = popcount(checkers);
 
@@ -163,7 +165,7 @@ export const getAllLegalMoves = (
     const oppSq = bitScanForward(checkers);
 
     // If a knight check, need to capture it (or move king)
-    if (pieceAt[oppSq] % 6 === C.WHITE_KNIGHT) {
+    if (isKnight(pieceAt[oppSq])) {
       kingCheckMask = checkers;
     } else {
       const rayMask = getRayBetween(kingSq, oppSq);
@@ -188,7 +190,15 @@ export const getAllLegalMoves = (
     );
     if (pieceMoves === 0n) continue;
 
-    const legalMoves = isKing(piece) ? pieceMoves : pieceMoves & kingCheckMask;
+    let legalMoves = isKing(piece) ? pieceMoves : pieceMoves & kingCheckMask;
+    if (
+      isKingInCheck &&
+      enPassantSquare &&
+      isPawn(piece) &&
+      isBitSet(pieceMoves, enPassantSquare)
+    ) {
+      legalMoves = legalMoves | (1n << BigInt(enPassantSquare));
+    }
     if (legalMoves === 0n) continue;
 
     const legalMoveArr = getMovesFromBB(

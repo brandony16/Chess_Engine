@@ -1,7 +1,7 @@
 import {
   bitboardsToFEN,
   getFENData,
-} from "../Core Logic/FENandUCIHelpers";
+} from "../Core Logic/helpers/FENandUCIHelpers";
 import { initializePieceAtArray } from "../Core Logic/pieceGetters";
 
 describe("FEN - Board Conversions", () => {

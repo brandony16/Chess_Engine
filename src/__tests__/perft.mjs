@@ -5,7 +5,7 @@ import {
   makeMove,
   unMakeMove,
 } from "../Core Logic/moveMaking/makeMoveLogic.mjs";
-import { moveToUCI } from "../Core Logic/FENandUCIHelpers.mjs";
+import { moveToUCI } from "../Core Logic/helpers/FENandUCIHelpers.mjs";
 import { BLACK, WHITE } from "../Core Logic/constants.mjs";
 
 /**

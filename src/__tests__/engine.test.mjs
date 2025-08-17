@@ -2,7 +2,7 @@ import { BMV5 } from "../components/bbEngines/BMV5/BondMonkeyV5.mjs";
 import { getNewEnPassant } from "../Core Logic/bbChessLogic";
 import { BLACK_KNIGHT, WHITE_KNIGHT } from "../Core Logic/constants.mjs";
 import { areBigUint64ArraysEqual } from "../Core Logic/debugFunctions";
-import { getFENData } from "../Core Logic/FENandUCIHelpers";
+import { getFENData } from "../Core Logic/helpers/FENandUCIHelpers";
 import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration";
 import { updateCastlingRights } from "../Core Logic/moveMaking/castleMoveLogic";
 import { makeMove, unMakeMove } from "../Core Logic/moveMaking/makeMoveLogic";

@@ -1,5 +1,5 @@
 import { evaluate5 } from "../components/bbEngines/BMV5/evaluation5.mjs";
-import { getFENData } from "../Core Logic/FENandUCIHelpers.mjs";
+import { getFENData } from "../Core Logic/helpers/FENandUCIHelpers.mjs";
 import { initializePieceIndicies } from "../Core Logic/pieceIndicies.mjs";
 import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks.mjs";
 import { initializePieceAtArray } from "../Core Logic/pieceGetters.mjs";

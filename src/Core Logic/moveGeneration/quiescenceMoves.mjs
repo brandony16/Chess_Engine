@@ -3,11 +3,12 @@ import { getAttackMask } from "../PieceMasks/attackMask.mjs";
 import * as C from "../constants.mjs";
 import { computePinned, makePinRayMaskGenerator } from "./computePinned.mjs";
 import { getCheckers, getRayBetween } from "./checkersMask.mjs";
-import { bitScanForward, isKing, popcount } from "../helpers/bbUtils.mjs";
+import { bitScanForward, popcount } from "../helpers/bbUtils.mjs";
 import { getKingMovesForSquare } from "./majorPieceMoveGeneration.mjs";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic.mjs";
 import { getPlayerIndicies, indexArrays } from "../pieceIndicies.mjs";
 import { getPieceMoves } from "./allMoveGeneration.mjs";
+import { isKing, isKnight } from "../helpers/pieceUtils";
 
 /**
  * Generates quiescence moves for a position. These are captures and promotions.
@@ -72,7 +73,7 @@ export const getQuiescenceMoves = (
     const oppSq = bitScanForward(checkers);
 
     // If a knight check, need to capture it (or move king)
-    if (pieceAt[oppSq] % 6 === C.WHITE_KNIGHT) {
+    if (isKnight(pieceAt[oppSq])) {
       kingCheckMask = checkers;
     } else {
       const rayMask = getRayBetween(kingSq, oppSq);

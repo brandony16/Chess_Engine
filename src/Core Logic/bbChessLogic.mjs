@@ -1,4 +1,4 @@
-import { bitScanForward, isKing, popcount } from "./helpers/bbUtils.mjs";
+import { bitScanForward, popcount } from "./helpers/bbUtils.mjs";
 import { getAllPieces, pieceAt } from "./pieceGetters.mjs";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration.mjs";
 import {
@@ -7,7 +7,6 @@ import {
   BLACK_PAWN,
   WHITE,
   WHITE_KING,
-  WHITE_KNIGHT,
   WHITE_PAWN,
 } from "./constants.mjs";
 import {
@@ -22,6 +21,7 @@ import { getPlayerIndicies, indexArrays } from "./pieceIndicies.mjs";
 import { bitboardsToFEN } from "./helpers/FENandUCIHelpers.mjs";
 import { bigIntFullRep } from "./debugFunctions.mjs";
 import { computeAllAttackMasks } from "./PieceMasks/individualAttackMasks.mjs";
+import { isKing, isKnight } from "./helpers/pieceUtils";
 
 /**
  * Determines whether a given square is attacked by the opponent
@@ -127,7 +127,7 @@ export const hasLegalMove = (
     const oppSq = bitScanForward(checkers);
 
     // If a knight check, need to catpure it (or move king)
-    if (pieceAt[oppSq] % 6 === WHITE_KNIGHT) {
+    if (isKnight(pieceAt[oppSq])) {
       kingCheckMask = checkers;
     } else {
       const rayMask = getRayBetween(kingSq, oppSq);

@@ -1,5 +1,4 @@
-import { WHITE } from "chess.js";
-import { MAX_PLY, WEIGHTS } from "../Core Logic/constants";
+import { WEIGHTS } from "../Core Logic/constants";
 import { getNewEnPassant } from "../Core Logic/bbChessLogic";
 import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration";
 import { pieceAt } from "../Core Logic/pieceGetters";
@@ -8,12 +7,6 @@ import { updateHash } from "../Core Logic/zobristHashing";
 import { updateAttackMasks } from "../Core Logic/PieceMasks/attackMask";
 import { updateCastlingRights } from "../Core Logic/moveMaking/castleMoveLogic";
 import { areBigUint64ArraysEqual } from "../Core Logic/debugFunctions";
-
-// killerMoves[ply] = [firstKillerMove, secondKillerMove]
-const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
-
-// historyScores[fromSquare][toSquare] = integer score
-const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
 
 /**
  * A minimax function that recursively finds the evaluation of the function.
@@ -32,31 +25,7 @@ export const mockEngine = (
   prevPositions,
   prevHash
 ) => {
-  const side = player === WHITE ? +1 : -1;
   const stateArray = [];
-
-  // // Transpositition table logic
-  // const key = prevHash;
-  // const origAlpha = alpha;
-  // const remaining = maxDepth - currentDepth;
-  // const ttEntry = getTT(key);
-
-  // if (ttEntry && ttEntry.depth >= remaining) {
-  //   if (ttEntry.flag === TT_FLAG.EXACT) {
-  //     return { score: side * ttEntry.value, move: ttEntry.bestMove };
-  //   }
-  //   if (ttEntry.flag === TT_FLAG.LOWER_BOUND) {
-  //     alpha = Math.max(alpha, side * ttEntry.value);
-  //   }
-  //   if (ttEntry.flag === TT_FLAG.UPPER_BOUND) {
-  //     beta = Math.min(beta, side * ttEntry.value);
-  //   }
-  //   if (alpha >= beta) {
-  //     return { score: side * ttEntry.value, move: ttEntry.bestMove };
-  //   }
-  // }
-
-  // const ttMove = ttEntry?.bestMove || null;
 
   // Gets the legal moves then assigns them scores based on the transposition table,
   // if the move is a capture, if its a killer move, and if its in history.
@@ -70,27 +39,10 @@ export const mockEngine = (
     const from = move.from;
     const to = move.to;
 
-    // // 1) Transposition-table move is highest priority
-    // if (ttMove && from === ttMove.from && to === ttMove.to) {
-    //   score += 1_000_000;
-    // }
-
-    // 2) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
       score +=
         100_000 + (WEIGHTS[pieceAt[to]] || 0) - (WEIGHTS[pieceAt[from]] || 0);
     }
-
-    // // 3) Killer moves at this ply
-    // const [k0, k1] = killerMoves[currentDepth];
-    // if (k0 && from === k0.from && to === k0.to) {
-    //   score += 90_000;
-    // } else if (k1 && from === k1.from && to === k1.to) {
-    //   score += 80_000;
-    // }
-
-    // // 4) History heuristic
-    // score += historyScores[from][to];
 
     return { move, score };
   });
@@ -160,22 +112,6 @@ export const mockEngine = (
       throw new Error("Bitboards not the same");
     }
   }
-
-  // // Update transposition table
-  // let flag = TT_FLAG.EXACT;
-  // const storedEval = side * bestEval;
-  // if (storedEval <= origAlpha) {
-  //   flag = TT_FLAG.UPPER_BOUND;
-  // } else if (storedEval >= beta) {
-  //   flag = TT_FLAG.LOWER_BOUND;
-  // }
-  // setTT(key, {
-  //   rootId: rootId,
-  //   depth: maxDepth - currentDepth,
-  //   value: storedEval,
-  //   flag,
-  //   bestMove,
-  // });
 
   return stateArray;
 };

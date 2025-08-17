@@ -14,8 +14,8 @@ import {
   isPlayersPieceAtSquare,
   pieceAt,
 } from "../../Core Logic/pieceGetters.mjs";
-import { isKing } from "../../Core Logic/helpers/bbUtils.mjs";
 import { getAllLegalMoves } from "../../Core Logic/moveGeneration/allMoveGeneration.mjs";
+import { isKing, isPawn } from "../../Core Logic/helpers/pieceUtils";
 
 /**
  * Custom hook for chess actions.
@@ -43,8 +43,7 @@ export default function useChessActions() {
     // Get variables for Move object
     const piece = pieceAt[from];
     const castling = isKing(piece) && Math.abs(from - to) === 2;
-    const enPassant =
-      to === enPassantSquare && (piece === WHITE_PAWN || piece === BLACK_PAWN);
+    const enPassant = to === enPassantSquare && isPawn(piece);
     let captured = pieceAt[to];
     if (enPassant) {
       captured = piece === WHITE_PAWN ? BLACK_PAWN : WHITE_PAWN;

@@ -1,4 +1,4 @@
-import { getFENData } from "../Core Logic/FENandUCIHelpers.mjs";
+import { getFENData } from "../Core Logic/helpers/FENandUCIHelpers.mjs";
 import { initializePieceAtArray } from "../Core Logic/pieceGetters.mjs";
 import { initializePieceIndicies } from "../Core Logic/pieceIndicies.mjs";
 import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks.mjs";
@@ -89,6 +89,7 @@ const cases = [
     89_890,
     "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
   ],
+  ["En passant check", 1, 8, "8/4k3/8/4Pp2/4K3/8/8/8 w - f6 0 1"],
 ];
 
 describe("perft node counts", () => {
