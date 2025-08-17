@@ -1,15 +1,15 @@
 import {
   maskBits,
   generateBlockerSubsets,
-} from "../Core Logic/helpers/bbUtils.mjs";
+} from "../coreLogic/helpers/bbUtils.mjs";
 import {
   getBishopAttacksForSquare,
   getRookAttacksForSquare,
-} from "../Core Logic/moveGeneration/slidingPieceAttacks";
+} from "../coreLogic/moveGeneration/slidingPieceAttacks";
 import {
   rookAttacks,
   bishopAttacks,
-} from "../Core Logic/moveGeneration/magicBitboards/magicBBMoveGen.mjs";
+} from "../coreLogic/moveGeneration/magicBitboards/magicBBMoveGen.mjs";
 
 describe("maskBits", () => {
   it("extracts correct bit positions", () => {

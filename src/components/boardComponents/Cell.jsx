@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from "react";
 import PropTypes from "prop-types";
 
-import { BLACK, COLUMN_SYMBOLS, WHITE } from "../../Core Logic/constants.mjs";
+import { BLACK, COLUMN_SYMBOLS, WHITE } from "../../coreLogic/constants.mjs";
 import Piece from "./Piece";
 
 // A board cell

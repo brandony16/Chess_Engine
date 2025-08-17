@@ -1,9 +1,9 @@
-import { getFENData } from "../Core Logic/helpers/FENandUCIHelpers";
-import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration";
-import { getQuiescenceMoves } from "../Core Logic/moveGeneration/quiescenceMoves.mjs";
-import { initializePieceAtArray } from "../Core Logic/pieceGetters";
-import { initializePieceIndicies } from "../Core Logic/pieceIndicies.mjs";
-import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks.mjs";
+import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers";
+import { getAllLegalMoves } from "../coreLogic/moveGeneration/allMoveGeneration";
+import { getQuiescenceMoves } from "../coreLogic/moveGeneration/quiescenceMoves.mjs";
+import { initializePieceAtArray } from "../coreLogic/pieceGetters";
+import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
+import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
 
 const cases = [
   // ["Start pos", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"],

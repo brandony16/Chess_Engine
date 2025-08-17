@@ -3,19 +3,19 @@ import { useGameStore } from "../gameStore.mjs";
 import {
   movesToBB,
   moveToReadable,
-} from "../../Core Logic/helpers/generalHelpers.mjs";
-import { checkGameOver } from "../../Core Logic/gameOverLogic.mjs";
-import { computeHash } from "../../Core Logic/zobristHashing.mjs";
-import { getNewEnPassant } from "../../Core Logic/bbChessLogic.mjs";
-import { makeMove } from "../../Core Logic/moveMaking/makeMoveLogic.mjs";
-import Move from "../../Core Logic/moveMaking/move.mjs";
-import { BLACK_PAWN, WHITE_PAWN } from "../../Core Logic/constants.mjs";
+} from "../../coreLogic/helpers/generalHelpers.mjs";
+import { checkGameOver } from "../../coreLogic/gameOverLogic.mjs";
+import { computeHash } from "../../coreLogic/zobristHashing.mjs";
+import { getNewEnPassant } from "../../coreLogic/bbChessLogic.mjs";
+import { makeMove } from "../../coreLogic/moveMaking/makeMoveLogic.mjs";
+import Move from "../../coreLogic/moveMaking/move.mjs";
+import { BLACK_PAWN, WHITE_PAWN } from "../../coreLogic/constants.mjs";
 import {
   isPlayersPieceAtSquare,
   pieceAt,
-} from "../../Core Logic/pieceGetters.mjs";
-import { getAllLegalMoves } from "../../Core Logic/moveGeneration/allMoveGeneration.mjs";
-import { isKing, isPawn } from "../../Core Logic/helpers/pieceUtils";
+} from "../../coreLogic/pieceGetters.mjs";
+import { getAllLegalMoves } from "../../coreLogic/moveGeneration/allMoveGeneration.mjs";
+import { isKing, isPawn } from "../../coreLogic/helpers/pieceUtils";
 
 /**
  * Custom hook for chess actions.

@@ -1,18 +1,18 @@
-import { getNewEnPassant } from "../../../Core Logic/bbChessLogic.mjs";
-import { BLACK, WHITE } from "../../../Core Logic/constants.mjs";
-import { checkGameOver } from "../../../Core Logic/gameOverLogic.mjs";
-import { getQuiescenceMoves } from "../../../Core Logic/moveGeneration/quiescenceMoves.mjs";
-import { updateCastlingRights } from "../../../Core Logic/moveMaking/castleMoveLogic.mjs";
+import { getNewEnPassant } from "../../../coreLogic/bbChessLogic.mjs";
+import { BLACK, WHITE } from "../../../coreLogic/constants.mjs";
+import { checkGameOver } from "../../../coreLogic/gameOverLogic.mjs";
+import { getQuiescenceMoves } from "../../../coreLogic/moveGeneration/quiescenceMoves.mjs";
+import { updateCastlingRights } from "../../../coreLogic/moveMaking/castleMoveLogic.mjs";
 import {
   makeMove,
   unMakeMove,
-} from "../../../Core Logic/moveMaking/makeMoveLogic.mjs";
+} from "../../../coreLogic/moveMaking/makeMoveLogic.mjs";
 import {
   getQTT,
   setQTT,
   TT_FLAG,
-} from "../../../Core Logic/transpositionTable.mjs";
-import { updateHash } from "../../../Core Logic/zobristHashing.mjs";
+} from "../../../coreLogic/transpositionTable.mjs";
+import { updateHash } from "../../../coreLogic/zobristHashing.mjs";
 import { evaluate5, weights } from "./evaluation5.mjs";
 
 // Max depth that quiescence search can go to.

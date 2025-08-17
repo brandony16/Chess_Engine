@@ -102,8 +102,8 @@ to build the openings file.
   2. Start playing by clicking on a piece then clicking on where you want to
      move it. You can also drag and drop pieces to make moves.
 
-  - By default, you will play Bondmonkey V5 at a depth of 5, with a max time of
-    5s per search.
+  - By default, you will play the most recent version of BondMonkey at a depth
+    of 5, with a max time of 5s per search.
 
 - **Sidebar:**
 

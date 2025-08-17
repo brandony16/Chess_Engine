@@ -1,8 +1,8 @@
-import { computeHash } from "../../../Core Logic/zobristHashing.mjs";
-import { clearTT } from "../../../Core Logic/transpositionTable.mjs";
-import { CHECKMATE_VALUE } from "../../../Core Logic/constants.mjs";
+import { computeHash } from "../../../coreLogic/zobristHashing.mjs";
+import { clearTT } from "../../../coreLogic/transpositionTable.mjs";
+import { CHECKMATE_VALUE } from "../../../coreLogic/constants.mjs";
 import { minimax3 } from "./minimax3.mjs";
-import { computeAllAttackMasks } from "../../../Core Logic/PieceMasks/individualAttackMasks.mjs";
+import { computeAllAttackMasks } from "../../../coreLogic/PieceMasks/individualAttackMasks.mjs";
 
 // Root id for transposition table. Helps avoid stale entries
 export let rootId = 0;

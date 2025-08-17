@@ -1,7 +1,7 @@
-import { getFENData } from "../Core Logic/helpers/FENandUCIHelpers.mjs";
-import { initializePieceAtArray } from "../Core Logic/pieceGetters.mjs";
-import { initializePieceIndicies } from "../Core Logic/pieceIndicies.mjs";
-import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks.mjs";
+import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
+import { initializePieceAtArray } from "../coreLogic/pieceGetters.mjs";
+import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
+import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
 import { perftDivide } from "./perft.mjs";
 
 const cases = [

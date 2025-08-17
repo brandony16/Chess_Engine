@@ -24,6 +24,7 @@ export const EngineTypes = Object.freeze({
   BMV3: "BMV3",
   BMV4: "BMV4",
   BMV5: "BMV5",
+  BMV6: "BMV6",
 });
 
 export const engineStrings = [
@@ -32,6 +33,7 @@ export const engineStrings = [
   "BondMonkeyV3",
   "BondMonkeyV4",
   "BondMonkeyV5",
+  "BondMonkeyV6",
 ];
 
 export const EngineObjects = {
@@ -40,6 +42,7 @@ export const EngineObjects = {
   BMV3: { name: "BondMonkey V3", description: "More efficient searching" },
   BMV4: { name: "BondMonkey V4", description: "Calculates tactics better" },
   BMV5: { name: "BondMonkey V5", description: "Better Evaluation" },
+  BMV6: { name: "BondMonkey V6", description: "IN PROGRESS" },
 };
 
 export const nameToType = {
@@ -48,6 +51,7 @@ export const nameToType = {
   BondMonkeyV3: EngineTypes.BMV3,
   BondMonkeyV4: EngineTypes.BMV4,
   BondMonkeyV5: EngineTypes.BMV5,
+  BondMonkeyV6: EngineTypes.BMV6,
 };
 
 export const BattleModalStates = {

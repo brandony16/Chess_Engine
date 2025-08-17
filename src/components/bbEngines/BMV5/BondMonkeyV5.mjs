@@ -1,9 +1,9 @@
-import { computeHash } from "../../../Core Logic/zobristHashing.mjs";
+import { computeHash } from "../../../coreLogic/zobristHashing.mjs";
 import {
   clearQTT,
   clearTT,
-} from "../../../Core Logic/transpositionTable.mjs";
-import { CHECKMATE_VALUE } from "../../../Core Logic/constants.mjs";
+} from "../../../coreLogic/transpositionTable.mjs";
+import { CHECKMATE_VALUE } from "../../../coreLogic/constants.mjs";
 import { minimax5 } from "./minimax5.mjs";
 
 // Root id for transposition table. Helps avoid stale entries

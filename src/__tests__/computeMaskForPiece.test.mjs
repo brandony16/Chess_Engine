@@ -1,9 +1,9 @@
-import { getAllPieces } from "../Core Logic/pieceGetters";
-import { initializePieceIndicies } from "../Core Logic/pieceIndicies";
+import { getAllPieces } from "../coreLogic/pieceGetters";
+import { initializePieceIndicies } from "../coreLogic/pieceIndicies";
 import {
   attacksOf,
   computeMaskForPiece,
-} from "../Core Logic/PieceMasks/individualAttackMasks";
+} from "../coreLogic/PieceMasks/individualAttackMasks";
 
 // Helper to build an empty 12‐entry piece array
 function emptyBitboards() {

@@ -1,9 +1,9 @@
-import { isInCheck, isSquareAttacked } from "../Core Logic/bbChessLogic";
-import * as C from "../Core Logic/constants";
-import { getFENData } from "../Core Logic/helpers/FENandUCIHelpers";
-import { initializePieceIndicies } from "../Core Logic/pieceIndicies";
-import { getAttackMask } from "../Core Logic/PieceMasks/attackMask";
-import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks";
+import { isInCheck, isSquareAttacked } from "../coreLogic/bbChessLogic";
+import * as C from "../coreLogic/constants";
+import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers";
+import { initializePieceIndicies } from "../coreLogic/pieceIndicies";
+import { getAttackMask } from "../coreLogic/PieceMasks/attackMask";
+import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks";
 
 function emptyBitboards() {
   return new BigUint64Array(12).fill(0n);

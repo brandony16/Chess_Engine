@@ -1,8 +1,8 @@
 import { evaluate5 } from "../components/bbEngines/BMV5/evaluation5.mjs";
-import { getFENData } from "../Core Logic/helpers/FENandUCIHelpers.mjs";
-import { initializePieceIndicies } from "../Core Logic/pieceIndicies.mjs";
-import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks.mjs";
-import { initializePieceAtArray } from "../Core Logic/pieceGetters.mjs";
+import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
+import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
+import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
+import { initializePieceAtArray } from "../coreLogic/pieceGetters.mjs";
 
 const cases = [
   ["Start pos", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 0],

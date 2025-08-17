@@ -2,7 +2,7 @@ import { useCallback, useReducer } from "react";
 
 import { EngineTypes } from "../../utilTypes";
 import { useGameStore } from "../../gameStore.mjs";
-import { BLACK, WHITE } from "../../../Core Logic/constants.mjs";
+import { BLACK, WHITE } from "../../../coreLogic/constants.mjs";
 
 import SideSelector from "./SideSelector";
 import EngineSelector from "./EngineSelector";
@@ -11,8 +11,8 @@ import "./NewGame.css";
 
 const initialState = {
   userSide: "W",
-  engine: EngineTypes.BMV5,
-  depth: 4,
+  engine: EngineTypes.BMV6,
+  depth: 5,
   timeLimit: 5000,
 };
 

@@ -5,12 +5,12 @@ import {
   INITIAL_BITBOARDS,
   WHITE,
   WHITE_PAWN,
-} from "../Core Logic/constants.mjs";
-import { updateCastlingRights } from "../Core Logic/moveMaking/castleMoveLogic.mjs";
-import { getNewEnPassant } from "../Core Logic/bbChessLogic.mjs";
-import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks.mjs";
-import { initializePieceAtArray } from "../Core Logic/pieceGetters.mjs";
-import { initializePieceIndicies } from "../Core Logic/pieceIndicies.mjs";
+} from "../coreLogic/constants.mjs";
+import { updateCastlingRights } from "../coreLogic/moveMaking/castleMoveLogic.mjs";
+import { getNewEnPassant } from "../coreLogic/bbChessLogic.mjs";
+import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
+import { initializePieceAtArray } from "../coreLogic/pieceGetters.mjs";
+import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
 import { EngineTypes, ModalTypes } from "./utilTypes";
 
 const makeInitialState = () => ({
@@ -32,7 +32,7 @@ const makeInitialState = () => ({
   result: null,
   gameHistory: [],
   userSide: WHITE,
-  selectedEngine: EngineTypes.BMV5,
+  selectedEngine: EngineTypes.BMV6,
   engineDepth: 5,
   engineTimeLimitMs: 5000,
 

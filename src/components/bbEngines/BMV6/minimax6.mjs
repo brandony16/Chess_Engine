@@ -14,14 +14,10 @@ import {
   setTT,
   TT_FLAG,
 } from "../../../coreLogic/transpositionTable.mjs";
-import {
-  BLACK,
-  MAX_PLY,
-  WEIGHTS,
-  WHITE,
-} from "../../../coreLogic/constants.mjs";
-import { rootId } from "./BondMonkeyV3.mjs";
-import { evaluate3 } from "./evaluation3.mjs";
+import { BLACK, MAX_PLY, WHITE } from "../../../coreLogic/constants.mjs";
+import { rootId } from "./BondMonkeyV6.mjs";
+import { evaluate6, weights } from "./evaluation6.mjs";
+import { quiesce2 } from "./quiesce.mjs";
 import { getAllLegalMoves } from "../../../coreLogic/moveGeneration/allMoveGeneration.mjs";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
@@ -31,11 +27,9 @@ const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
 const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
 
 /**
- * V3: Adds transposition table, killer moves, and history heuristic for better move
- * sorting and less recalculation.
- *
+ * A minimax function that recursively finds the evaluation of the function.
  * @param {Bitboards} bitboards - the bitboards of the current position
- * @param {number} player - the player whose move it is (0 for w, 1 for b)
+ * @param {0 | 1} player - the player whose move it is (0 for w, 1 for b)
  * @param {Array<boolean>} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {Map} prevPositions - a map of the previous positions
@@ -46,7 +40,8 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  * @param {number} beta - the beta value for alpha-beta pruning
  * @returns {{score: number, move: object}} evaluation of the move and the move
  */
-export const minimax3 = (
+
+export const minimax6 = (
   bitboards,
   player,
   castlingRights,
@@ -69,7 +64,7 @@ export const minimax3 = (
 
   if (gameOver.isGameOver) {
     return {
-      score: evaluate3(opponent, gameOver.result, currentDepth),
+      score: evaluate6(opponent, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -77,10 +72,17 @@ export const minimax3 = (
   if (currentDepth >= maxDepth) {
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
-      return {
-        score: evaluate3(player, gameOver.result, currentDepth),
-        move: null,
-      };
+      const q = quiesce2(
+        bitboards,
+        player,
+        alpha,
+        beta,
+        enPassantSquare,
+        castlingRights,
+        prevPositions,
+        prevHash
+      );
+      return { score: q.score, move: null };
     }
   }
 
@@ -128,8 +130,8 @@ export const minimax3 = (
     if (move.captured) {
       score +=
         100_000 +
-        (WEIGHTS[move.captured % 6] || 0) -
-        (WEIGHTS[move.piece % 6] || 0);
+        (weights[move.captured % 6] || 0) -
+        (weights[move.piece % 6] || 0);
     }
 
     // 3) Killer moves at this ply
@@ -146,7 +148,7 @@ export const minimax3 = (
     return { move, score };
   });
 
-  // If the game is over, it would have been caught by gameOver check at beginning
+  // If the game is over, it would have been caught by terminal check
   if (scored.length === 0) {
     throw new Error("Issue with move generation. No moves generated");
   }
@@ -166,7 +168,6 @@ export const minimax3 = (
     // New game states
     const newEnPassant = getNewEnPassant(move);
     const newCastling = updateCastlingRights(from, move.to, castlingRights);
-    const newPositions = new Map(prevPositions);
 
     // Update Hash
     const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
@@ -186,14 +187,15 @@ export const minimax3 = (
       prevEpFile,
       castlingChanged
     );
-    newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
+    const oldCount = prevPositions.get(hash) || 0;
+    prevPositions.set(hash, oldCount + 1);
 
-    const { score: moveEval } = minimax3(
+    const { score: moveEval } = minimax6(
       bitboards,
       opponent,
       newCastling,
       newEnPassant,
-      newPositions,
+      prevPositions,
       hash,
       currentDepth + 1,
       maxDepth,
@@ -202,13 +204,16 @@ export const minimax3 = (
     );
 
     unMakeMove(move, bitboards);
+    if (oldCount) prevPositions.set(hash, oldCount);
+    else prevPositions.delete(hash);
 
-    // Negate eval to get it from this players perspective
+    // Invert moveEval to get eval from this players perspective
     const score = -moveEval;
     if (score > bestEval) {
       bestEval = score;
       bestMove = move;
     }
+
     if (score > alpha) {
       alpha = score;
     }
@@ -236,15 +241,16 @@ export const minimax3 = (
 
   // Update transposition table
   let flag = TT_FLAG.EXACT;
-  if (bestEval <= origAlpha) {
+  const storedEval = bestEval;
+  if (storedEval <= origAlpha) {
     flag = TT_FLAG.UPPER_BOUND;
-  } else if (bestEval >= beta) {
+  } else if (storedEval >= beta) {
     flag = TT_FLAG.LOWER_BOUND;
   }
   setTT(key, {
     rootId: rootId,
     depth: maxDepth - currentDepth,
-    value: bestEval,
+    value: storedEval,
     flag,
     bestMove,
   });

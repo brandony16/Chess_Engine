@@ -1,8 +1,8 @@
 import React, { useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 
-import { BLACK, PIECE_SYMBOLS, WHITE } from "../../Core Logic/constants.mjs";
-import { getPieceAtSquare } from "../../Core Logic/pieceGetters.mjs";
+import { BLACK, PIECE_SYMBOLS, WHITE } from "../../coreLogic/constants.mjs";
+import { getPieceAtSquare } from "../../coreLogic/pieceGetters.mjs";
 import { useGameStore } from "../gameStore.mjs";
 import Cell from "./Cell";
 

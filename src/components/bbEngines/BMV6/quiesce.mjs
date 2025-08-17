@@ -13,7 +13,7 @@ import {
   TT_FLAG,
 } from "../../../coreLogic/transpositionTable.mjs";
 import { updateHash } from "../../../coreLogic/zobristHashing.mjs";
-import { evaluate4, weights } from "./evaluation4.mjs";
+import { evaluate6, weights } from "./evaluation6.mjs";
 
 // Max depth that quiescence search can go to.
 const maxQDepth = 6;
@@ -26,9 +26,8 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
 
 /**
  * Performs a quiescence search, which calculates lines of captures. Only evaluates moves
- * that are captures or promotions to increase tactical capabilities. Implements many of
- * the same features of the minimax search, such as transposition tables, and advanced move
- * sorting.
+ * that are captures or promotions to increase tactical capabilities. Uses negamax, a
+ * variation of minimax that serves the same purpose.
  *
  * @param {Bitboards} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
@@ -41,7 +40,7 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  *
  * @returns {{ score: number, move: null }} - an object with the score and move number
  */
-export const quiesce1 = (
+export const quiesce2 = (
   bitboards,
   player,
   alpha,
@@ -52,6 +51,7 @@ export const quiesce1 = (
   prevHash,
   depth = 0
 ) => {
+  // Terminal check for if game is over
   const opponent = player === WHITE ? BLACK : WHITE;
   const gameOver = checkGameOver(
     bitboards,
@@ -62,13 +62,13 @@ export const quiesce1 = (
   );
   if (gameOver.isGameOver) {
     return {
-      score: evaluate4(opponent, gameOver.result, 0),
+      score: evaluate6(opponent, gameOver.result, 0),
       move: null,
     };
   }
 
   // Static evaluation of the position
-  const standPat = evaluate4(player, null, 0);
+  const standPat = evaluate6(player, null, 0);
 
   if (depth + 1 > maxQDepth) {
     return { score: standPat, move: null };
@@ -81,6 +81,7 @@ export const quiesce1 = (
   const origAlpha = alpha;
   alpha = Math.max(alpha, standPat);
 
+  // Use transposition table values
   const ttEntry = getQTT(prevHash);
   const remaining = maxQDepth - depth;
   if (ttEntry && ttEntry.depth >= remaining && ttEntry.isQuiescence) {
@@ -174,7 +175,7 @@ export const quiesce1 = (
     const oldCount = prevPositions.get(newHash) || 0;
     prevPositions.set(newHash, oldCount + 1);
 
-    const { score: scoreAfterCapture } = quiesce1(
+    const { score: scoreAfterCapture } = quiesce2(
       bitboards,
       opponent,
       -beta,

@@ -1,12 +1,12 @@
-import { getNewEnPassant } from "../Core Logic/bbChessLogic.mjs";
-import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration.mjs";
-import { updateCastlingRights } from "../Core Logic/moveMaking/castleMoveLogic.mjs";
+import { getNewEnPassant } from "../coreLogic/bbChessLogic.mjs";
+import { getAllLegalMoves } from "../coreLogic/moveGeneration/allMoveGeneration.mjs";
+import { updateCastlingRights } from "../coreLogic/moveMaking/castleMoveLogic.mjs";
 import {
   makeMove,
   unMakeMove,
-} from "../Core Logic/moveMaking/makeMoveLogic.mjs";
-import { moveToUCI } from "../Core Logic/helpers/FENandUCIHelpers.mjs";
-import { BLACK, WHITE } from "../Core Logic/constants.mjs";
+} from "../coreLogic/moveMaking/makeMoveLogic.mjs";
+import { moveToUCI } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
+import { BLACK, WHITE } from "../coreLogic/constants.mjs";
 
 /**
  * Count leaf nodes to `depth` by recursively generating, making, and unmaking moves.

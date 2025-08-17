@@ -3,7 +3,7 @@ import MoveList from "./MoveList";
 import SidebarActions from "./SidebarActions";
 
 import { useGameStore } from "../gameStore.mjs";
-import { WHITE } from "../../Core Logic/constants.mjs";
+import { WHITE } from "../../coreLogic/constants.mjs";
 import React, { useMemo } from "react";
 
 const Sidebar = () => {

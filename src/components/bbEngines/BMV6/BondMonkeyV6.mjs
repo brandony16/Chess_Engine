@@ -1,18 +1,14 @@
 import { computeHash } from "../../../coreLogic/zobristHashing.mjs";
-import {
-  clearQTT,
-  clearTT,
-} from "../../../coreLogic/transpositionTable.mjs";
+import { clearQTT, clearTT } from "../../../coreLogic/transpositionTable.mjs";
 import { CHECKMATE_VALUE } from "../../../coreLogic/constants.mjs";
-import { minimax4 } from "./minimax4.mjs";
-import { computeAllAttackMasks } from "../../../coreLogic/PieceMasks/individualAttackMasks.mjs";
+import { minimax6 } from "./minimax6.mjs";
 
 // Root id for transposition table. Helps avoid stale entries
 export let rootId = 0;
 
 /**
- * Gets the best move in a position. Adds a quiescence search to prevent the horizon effect
- * where the engine will miscalculate capture sequences.
+ * Gets the best move in a position.
+ * V5: Adds a better evaluation function using piece sqaure tables (PSQT).
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
@@ -21,9 +17,9 @@ export let rootId = 0;
  * @param {Map} prevPositions - a map of the previous positions
  * @param {number} depth - the depth to search in ply. 1 ply is one player moving. 2 ply is one move, where each side gets to play.
  * @param {number} timeLimit - the max time the engine can search in milliseconds.
- * @returns {{ from: number, to: number, promotion: string}, number} the best move found and the evaluation
+ * @returns {bestMove: Move, bestEval: number} the best move found and the evaluation
  */
-export function BMV4(
+export function BMV6(
   bitboards,
   player,
   castlingRights,
@@ -45,9 +41,7 @@ export function BMV4(
 
   rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {
-    computeAllAttackMasks(bitboards);
-
-    const { score, move } = minimax4(
+    const { score, move } = minimax6(
       bitboards,
       player,
       castlingRights,

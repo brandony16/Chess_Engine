@@ -2,15 +2,15 @@ import {
   bitboardsToFEN,
   getFENData,
   uciToMove,
-} from "../Core Logic/helpers/FENandUCIHelpers";
-import { makeMove, unMakeMove } from "../Core Logic/moveMaking/makeMoveLogic";
-import * as C from "../Core Logic/constants";
-import { initializePieceAtArray, pieceAt } from "../Core Logic/pieceGetters";
-import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks";
+} from "../coreLogic/helpers/FENandUCIHelpers";
+import { makeMove, unMakeMove } from "../coreLogic/moveMaking/makeMoveLogic";
+import * as C from "../coreLogic/constants";
+import { initializePieceAtArray, pieceAt } from "../coreLogic/pieceGetters";
+import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks";
 import {
   indexArrays,
   initializePieceIndicies,
-} from "../Core Logic/pieceIndicies";
+} from "../coreLogic/pieceIndicies";
 
 // [ description, FEN, UCI move ]
 const cases = [

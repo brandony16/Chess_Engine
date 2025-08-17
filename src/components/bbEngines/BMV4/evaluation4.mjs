@@ -1,6 +1,6 @@
-import { CHECKMATE_VALUE, WHITE } from "../../../Core Logic/constants.mjs";
-import { pieceAt } from "../../../Core Logic/pieceGetters.mjs";
-import { getAllIndicies } from "../../../Core Logic/pieceIndicies.mjs";
+import { CHECKMATE_VALUE, WHITE } from "../../../coreLogic/constants.mjs";
+import { pieceAt } from "../../../coreLogic/pieceGetters.mjs";
+import { getAllIndicies } from "../../../coreLogic/pieceIndicies.mjs";
 
 /**
  * Gets the evaluation of the given position. Determines the eval using pure material.

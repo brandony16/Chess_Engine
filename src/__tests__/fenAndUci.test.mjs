@@ -1,8 +1,8 @@
 import {
   bitboardsToFEN,
   getFENData,
-} from "../Core Logic/helpers/FENandUCIHelpers";
-import { initializePieceAtArray } from "../Core Logic/pieceGetters";
+} from "../coreLogic/helpers/FENandUCIHelpers";
+import { initializePieceAtArray } from "../coreLogic/pieceGetters";
 
 describe("FEN - Board Conversions", () => {
   const fens = [

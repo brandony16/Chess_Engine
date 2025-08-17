@@ -1,7 +1,7 @@
-import { computeHash } from "../../../Core Logic/zobristHashing.mjs";
-import { CHECKMATE_VALUE } from "../../../Core Logic/constants.mjs";
+import { computeHash } from "../../../coreLogic/zobristHashing.mjs";
+import { CHECKMATE_VALUE } from "../../../coreLogic/constants.mjs";
 import { minimax2 } from "./minimax2.mjs";
-import { computeAllAttackMasks } from "../../../Core Logic/PieceMasks/individualAttackMasks.mjs";
+import { computeAllAttackMasks } from "../../../coreLogic/PieceMasks/individualAttackMasks.mjs";
 
 /**
  * Gets the best move in a position based purely off of material.

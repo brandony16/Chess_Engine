@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { BattleModalStates, nameToType } from "../../utilTypes";
-import BattleWorker from "../../bbEngines/battleEngineWorker.mjs?worker";
 import { useGameStore } from "../../gameStore.mjs";
 
 import Setting from "./Setting";
@@ -57,7 +56,12 @@ const BattleEngines = () => {
 
   // Create the battle engines worker
   useEffect(() => {
-    const w = new BattleWorker();
+    const BattleWorker = new URL(
+      "../../bbEngines/battleEngineWorker",
+      import.meta.url
+    );
+    const w = new Worker(BattleWorker, { type: "module" });
+
     w.onmessage = (e) => handleBattleMessage(e);
 
     workerRef.current = w;

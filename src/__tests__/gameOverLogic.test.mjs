@@ -1,14 +1,14 @@
-import { checkGameOver } from "../Core Logic/gameOverLogic";
+import { checkGameOver } from "../coreLogic/gameOverLogic";
 import {
   BLACK_KING,
   WHITE,
   WHITE_KING,
   WHITE_QUEEN,
   WHITE_ROOK,
-} from "../Core Logic/constants";
-import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks";
-import { initializePieceAtArray } from "../Core Logic/pieceGetters";
-import { initializePieceIndicies } from "../Core Logic/pieceIndicies";
+} from "../coreLogic/constants";
+import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks";
+import { initializePieceAtArray } from "../coreLogic/pieceGetters";
+import { initializePieceIndicies } from "../coreLogic/pieceIndicies";
 
 // helper: empty bitboards array of length N (adjust N to your piece-count)
 function emptyBitboards() {

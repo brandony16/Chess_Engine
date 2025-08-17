@@ -1,7 +1,7 @@
-import { initializePieceAtArray } from "../../Core Logic/pieceGetters";
-import { initializePieceIndicies } from "../../Core Logic/pieceIndicies";
-import { computeAllAttackMasks } from "../../Core Logic/PieceMasks/individualAttackMasks";
-import { clearTT } from "../../Core Logic/transpositionTable";
+import { initializePieceAtArray } from "../../coreLogic/pieceGetters";
+import { initializePieceIndicies } from "../../coreLogic/pieceIndicies";
+import { computeAllAttackMasks } from "../../coreLogic/PieceMasks/individualAttackMasks";
+import { clearTT } from "../../coreLogic/transpositionTable";
 import { engineRegistry } from "./engineRegistry.mjs";
 
 self.onmessage = (e) => {

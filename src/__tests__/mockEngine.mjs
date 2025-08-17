@@ -1,12 +1,12 @@
-import { WEIGHTS } from "../Core Logic/constants";
-import { getNewEnPassant } from "../Core Logic/bbChessLogic";
-import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration";
-import { pieceAt } from "../Core Logic/pieceGetters";
-import { makeMove, unMakeMove } from "../Core Logic/moveMaking/makeMoveLogic";
-import { updateHash } from "../Core Logic/zobristHashing";
-import { updateAttackMasks } from "../Core Logic/PieceMasks/attackMask";
-import { updateCastlingRights } from "../Core Logic/moveMaking/castleMoveLogic";
-import { areBigUint64ArraysEqual } from "../Core Logic/debugFunctions";
+import { WEIGHTS } from "../coreLogic/constants";
+import { getNewEnPassant } from "../coreLogic/bbChessLogic";
+import { getAllLegalMoves } from "../coreLogic/moveGeneration/allMoveGeneration";
+import { pieceAt } from "../coreLogic/pieceGetters";
+import { makeMove, unMakeMove } from "../coreLogic/moveMaking/makeMoveLogic";
+import { updateHash } from "../coreLogic/zobristHashing";
+import { updateAttackMasks } from "../coreLogic/PieceMasks/attackMask";
+import { updateCastlingRights } from "../coreLogic/moveMaking/castleMoveLogic";
+import { areBigUint64ArraysEqual } from "../coreLogic/debugFunctions";
 
 /**
  * A minimax function that recursively finds the evaluation of the function.

@@ -1,15 +1,15 @@
 import { BMV5 } from "../components/bbEngines/BMV5/BondMonkeyV5.mjs";
-import { getNewEnPassant } from "../Core Logic/bbChessLogic";
-import { BLACK_KNIGHT, WHITE_KNIGHT } from "../Core Logic/constants.mjs";
-import { areBigUint64ArraysEqual } from "../Core Logic/debugFunctions";
-import { getFENData } from "../Core Logic/helpers/FENandUCIHelpers";
-import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration";
-import { updateCastlingRights } from "../Core Logic/moveMaking/castleMoveLogic";
-import { makeMove, unMakeMove } from "../Core Logic/moveMaking/makeMoveLogic";
-import { initializePieceAtArray, pieceAt } from "../Core Logic/pieceGetters";
-import { initializePieceIndicies } from "../Core Logic/pieceIndicies.mjs";
-import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks";
-import { computeHash } from "../Core Logic/zobristHashing";
+import { getNewEnPassant } from "../coreLogic/bbChessLogic";
+import { BLACK_KNIGHT, WHITE_KNIGHT } from "../coreLogic/constants.mjs";
+import { areBigUint64ArraysEqual } from "../coreLogic/debugFunctions";
+import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers";
+import { getAllLegalMoves } from "../coreLogic/moveGeneration/allMoveGeneration";
+import { updateCastlingRights } from "../coreLogic/moveMaking/castleMoveLogic";
+import { makeMove, unMakeMove } from "../coreLogic/moveMaking/makeMoveLogic";
+import { initializePieceAtArray, pieceAt } from "../coreLogic/pieceGetters";
+import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
+import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks";
+import { computeHash } from "../coreLogic/zobristHashing";
 import { mockEngine } from "./mockEngine";
 
 const fens = [

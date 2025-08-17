@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
 
-import EngineWorker from "../bbEngines/engineWorker.mjs?worker";
-
 /**
  * Hook that creates an engine worker to make a move.
  *
@@ -12,7 +10,12 @@ export default function useEngineWorker(onMove) {
 
   // Create engine worker
   useEffect(() => {
-    const w = new EngineWorker();
+    const EngineWorker = new URL(
+      "../bbEngines/engineWorker.mjs",
+      import.meta.url
+    );
+    const w = new Worker(EngineWorker, { type: "module" });
+
     w.onmessage = (e) => {
       const { move } = e.data;
       onMove(move.from, move.to, move.promotion);

@@ -1,8 +1,8 @@
-import { getFENData } from "../Core Logic/helpers/FENandUCIHelpers";
-import { getAllLegalMoves } from "../Core Logic/moveGeneration/allMoveGeneration";
-import { initializePieceAtArray } from "../Core Logic/pieceGetters";
-import { initializePieceIndicies } from "../Core Logic/pieceIndicies";
-import { computeAllAttackMasks } from "../Core Logic/PieceMasks/individualAttackMasks";
+import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers";
+import { getAllLegalMoves } from "../coreLogic/moveGeneration/allMoveGeneration";
+import { initializePieceAtArray } from "../coreLogic/pieceGetters";
+import { initializePieceIndicies } from "../coreLogic/pieceIndicies";
+import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks";
 
 const cases = [
   [

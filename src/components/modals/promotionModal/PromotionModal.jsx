@@ -1,6 +1,6 @@
 import PropTypes from "prop-types";
 import "./PromotionModal.css";
-import { WHITE } from "../../../Core Logic/constants.mjs";
+import { WHITE } from "../../../coreLogic/constants.mjs";
 import { useCallback } from "react";
 import { useGameStore } from "../../gameStore.mjs";
 
