@@ -62,13 +62,13 @@ export const quiesce2 = (
   );
   if (gameOver.isGameOver) {
     return {
-      score: evaluate6(opponent, gameOver.result, 0),
+      score: evaluate6(bitboards, opponent, gameOver.result, 0),
       move: null,
     };
   }
 
   // Static evaluation of the position
-  const standPat = evaluate6(player, null, 0);
+  const standPat = evaluate6(bitboards, player, null, 0);
 
   if (depth + 1 > maxQDepth) {
     return { score: standPat, move: null };

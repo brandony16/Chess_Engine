@@ -1,6 +1,7 @@
-import { CHECKMATE_VALUE, WHITE } from "../../../coreLogic/constants.mjs";
+import { BLACK, CHECKMATE_VALUE, WHITE } from "../../../coreLogic/constants.mjs";
 import { pieceAt } from "../../../coreLogic/pieceGetters.mjs";
 import { getAllIndicies } from "../../../coreLogic/pieceIndicies.mjs";
+import { calculateMobility } from "./mobility";
 import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
 
 /**
@@ -11,7 +12,7 @@ import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation
  */
-export const evaluate6 = (player, result, depth) => {
+export const evaluate6 = (bitboards, player, result, depth) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
     if (result.includes("Checkmate")) {
@@ -32,9 +33,17 @@ export const evaluate6 = (player, result, depth) => {
       (weights[piece % 6] + PIECE_SQUARE_TABLES[piece][square]);
   }
 
+  const opponent = player === WHITE ? BLACK : WHITE;
+  const ourMobility = calculateMobility(bitboards, player);
+  const theirMobility = calculateMobility(bitboards, opponent);
+  const mobilityDiff = ourMobility - theirMobility;
+
+  evaluation += mobilityDiff;
+
   return player === WHITE ? evaluation : -evaluation;
 };
 
 // Weights from Chess Programming Wiki Simplified Evaluation Function Page.
 // https://www.chessprogramming.org/Simplified_Evaluation_Function
 export const weights = [100, 320, 330, 500, 900, 20_000];
+

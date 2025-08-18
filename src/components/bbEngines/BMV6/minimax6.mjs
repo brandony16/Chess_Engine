@@ -64,7 +64,7 @@ export const minimax6 = (
 
   if (gameOver.isGameOver) {
     return {
-      score: evaluate6(opponent, gameOver.result, currentDepth),
+      score: evaluate6(bitboards, opponent, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -174,12 +174,9 @@ export const minimax6 = (
     const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
     const castlingChanged = new Array(newCastling.length);
     for (let i = 0; i < newCastling.length; i++) {
-      if (castlingRights[i] !== newCastling[i]) {
-        castlingChanged[i] = true;
-      } else {
-        castlingChanged[i] = false;
-      }
+      castlingChanged[i] = castlingRights[i] !== newCastling[i];
     }
+
     const hash = updateHash(
       prevHash,
       move,

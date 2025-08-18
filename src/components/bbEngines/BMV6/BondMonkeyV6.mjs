@@ -8,7 +8,7 @@ export let rootId = 0;
 
 /**
  * Gets the best move in a position.
- * V5: Adds a better evaluation function using piece sqaure tables (PSQT).
+ * V6: Adds mobility calculation into evaluation usign pseudo-legal moves.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
