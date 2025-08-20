@@ -6,7 +6,7 @@ const Loading = ({ gameNum, totalGames }) => {
     <div className="loadingScreen" role="status" aria-live="polite">
       <div className="spinner" aria-hidden="true"></div>
       <p className="loadingText">
-        Processing game {gameNum} of {totalGames}…
+        Playing game {gameNum} of {totalGames}…
       </p>
     </div>
   );

@@ -1,13 +1,19 @@
-import { BLACK, CHECKMATE_VALUE, WHITE } from "../../../coreLogic/constants.mjs";
+import {
+  BLACK,
+  CHECKMATE_VALUE,
+  WHITE,
+} from "../../../coreLogic/constants.mjs";
 import { pieceAt } from "../../../coreLogic/pieceGetters.mjs";
 import { getAllIndicies } from "../../../coreLogic/pieceIndicies.mjs";
-import { calculateMobility } from "./mobility";
+import { calculateMobility } from "../mobility";
 import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
 
 /**
- * Gets the evaluation of the given position.
- * V5: Adds piece sqaure tables (PSQT) for improved evaluation and positioning.
+ * Gets the evaluation of the given position relative to the passed player.
+ * Positive if winning, negative if losing.
  * 
+ * V6: Adds mobility
+ *
  * @param {number} player - the opposite player. If black plays checkmate, this is white.
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation
@@ -21,6 +27,7 @@ export const evaluate6 = (bitboards, player, result, depth) => {
     return 0; // Draw
   }
 
+  // Build evaluation relative to white
   let evaluation = 0;
 
   const allIndicies = getAllIndicies();
@@ -33,17 +40,16 @@ export const evaluate6 = (bitboards, player, result, depth) => {
       (weights[piece % 6] + PIECE_SQUARE_TABLES[piece][square]);
   }
 
-  const opponent = player === WHITE ? BLACK : WHITE;
-  const ourMobility = calculateMobility(bitboards, player);
-  const theirMobility = calculateMobility(bitboards, opponent);
-  const mobilityDiff = ourMobility - theirMobility;
+  const whiteMobility = calculateMobility(bitboards, WHITE);
+  const blackMobility = calculateMobility(bitboards, BLACK);
+  const mobilityDiff = whiteMobility - blackMobility;
 
   evaluation += mobilityDiff;
 
+  // Eval relative to player passed in
   return player === WHITE ? evaluation : -evaluation;
 };
 
 // Weights from Chess Programming Wiki Simplified Evaluation Function Page.
 // https://www.chessprogramming.org/Simplified_Evaluation_Function
 export const weights = [100, 320, 330, 500, 900, 20_000];
-
