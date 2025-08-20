@@ -32,7 +32,7 @@ const makeInitialState = () => ({
   result: null,
   gameHistory: [],
   userSide: WHITE,
-  selectedEngine: EngineTypes.BMV6,
+  selectedEngine: EngineTypes.BMV7,
   engineDepth: 5,
   engineTimeLimitMs: 5000,
 

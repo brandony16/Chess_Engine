@@ -11,9 +11,9 @@ import "./BattleEngines.css";
 
 const BattleEngines = () => {
   // Engine States
-  const [engine1, setEngine1] = useState("BondMonkeyV5");
+  const [engine1, setEngine1] = useState("BondMonkeyV7");
   const [depth1, setDepth1] = useState(5);
-  const [engine2, setEngine2] = useState("BondMonkeyV5");
+  const [engine2, setEngine2] = useState("BondMonkeyV7");
   const [depth2, setDepth2] = useState(5);
 
   // Game Settings

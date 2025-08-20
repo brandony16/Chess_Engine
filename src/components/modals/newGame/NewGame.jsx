@@ -11,7 +11,7 @@ import "./NewGame.css";
 
 const initialState = {
   userSide: "W",
-  engine: EngineTypes.BMV6,
+  engine: EngineTypes.BMV7,
   depth: 5,
   timeLimit: 5000,
 };
