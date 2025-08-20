@@ -1,24 +1,17 @@
-import {
-  BLACK,
-  CHECKMATE_VALUE,
-  WHITE,
-} from "../../../coreLogic/constants.mjs";
-import { pieceAt } from "../../../coreLogic/pieceGetters.mjs";
-import { getAllIndicies } from "../../../coreLogic/pieceIndicies.mjs";
-import { calculateMobility } from "../mobility";
+import { CHECKMATE_VALUE, WHITE } from "../../constants.mjs";
+import { pieceAt } from "../../pieceGetters.mjs";
+import { getAllIndicies } from "../../pieceIndicies.mjs";
 import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
 
 /**
- * Gets the evaluation of the given position relative to the passed player.
- * Positive if winning, negative if losing.
- * 
- * V6: Adds mobility
+ * Gets the evaluation of the given position.
+ * V5: Adds piece sqaure tables (PSQT) for improved evaluation and positioning.
  *
  * @param {number} player - the opposite player. If black plays checkmate, this is white.
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation
  */
-export const evaluate6 = (bitboards, player, result, depth) => {
+export const evaluate5 = (player, result, depth) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
     if (result.includes("Checkmate")) {
@@ -27,7 +20,6 @@ export const evaluate6 = (bitboards, player, result, depth) => {
     return 0; // Draw
   }
 
-  // Build evaluation relative to white
   let evaluation = 0;
 
   const allIndicies = getAllIndicies();
@@ -40,13 +32,6 @@ export const evaluate6 = (bitboards, player, result, depth) => {
       (weights[piece % 6] + PIECE_SQUARE_TABLES[piece][square]);
   }
 
-  const whiteMobility = calculateMobility(bitboards, WHITE);
-  const blackMobility = calculateMobility(bitboards, BLACK);
-  const mobilityDiff = whiteMobility - blackMobility;
-
-  evaluation += mobilityDiff;
-
-  // Eval relative to player passed in
   return player === WHITE ? evaluation : -evaluation;
 };
 

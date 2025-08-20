@@ -1,19 +1,12 @@
-import { getNewEnPassant } from "../../../coreLogic/bbChessLogic.mjs";
-import { BLACK, WHITE } from "../../../coreLogic/constants.mjs";
-import { checkGameOver } from "../../../coreLogic/gameOverLogic.mjs";
-import { getQuiescenceMoves } from "../../../coreLogic/moveGeneration/quiescenceMoves.mjs";
-import { updateCastlingRights } from "../../../coreLogic/moveMaking/castleMoveLogic.mjs";
-import {
-  makeMove,
-  unMakeMove,
-} from "../../../coreLogic/moveMaking/makeMoveLogic.mjs";
-import {
-  getQTT,
-  setQTT,
-  TT_FLAG,
-} from "../../../coreLogic/transpositionTable.mjs";
-import { updateHash } from "../../../coreLogic/zobristHashing.mjs";
-import { evaluate5, weights } from "./evaluation5.mjs";
+import { getNewEnPassant } from "../../bbChessLogic.mjs";
+import { BLACK, WHITE } from "../../constants.mjs";
+import { checkGameOver } from "../../gameOverLogic.mjs";
+import { getQuiescenceMoves } from "../../moveGeneration/quiescenceMoves.mjs";
+import { updateCastlingRights } from "../../moveMaking/castleMoveLogic.mjs";
+import { makeMove, unMakeMove } from "../../moveMaking/makeMoveLogic.mjs";
+import { getQTT, setQTT, TT_FLAG } from "../../transpositionTable.mjs";
+import { updateHash } from "../../zobristHashing.mjs";
+import { evaluate6, weights } from "./evaluation/evaluation6.mjs";
 
 // Max depth that quiescence search can go to.
 const maxQDepth = 6;
@@ -40,7 +33,7 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  *
  * @returns {{ score: number, move: null }} - an object with the score and move number
  */
-export const quiesce2 = (
+export const quiesce6 = (
   bitboards,
   player,
   alpha,
@@ -62,13 +55,13 @@ export const quiesce2 = (
   );
   if (gameOver.isGameOver) {
     return {
-      score: evaluate5(opponent, gameOver.result, 0),
+      score: evaluate6(bitboards, opponent, gameOver.result, 0),
       move: null,
     };
   }
 
   // Static evaluation of the position
-  const standPat = evaluate5(player, null, 0);
+  const standPat = evaluate6(bitboards, player, null, 0);
 
   if (depth + 1 > maxQDepth) {
     return { score: standPat, move: null };
@@ -175,7 +168,7 @@ export const quiesce2 = (
     const oldCount = prevPositions.get(newHash) || 0;
     prevPositions.set(newHash, oldCount + 1);
 
-    const { score: scoreAfterCapture } = quiesce2(
+    const { score: scoreAfterCapture } = quiesce6(
       bitboards,
       opponent,
       -beta,

@@ -11,7 +11,7 @@ export default function useEngineWorker(onMove) {
   // Create engine worker
   useEffect(() => {
     const EngineWorker = new URL(
-      "../bbEngines/engineWorker.mjs",
+      "../workers/engineWorker.mjs",
       import.meta.url
     );
     const w = new Worker(EngineWorker, { type: "module" });

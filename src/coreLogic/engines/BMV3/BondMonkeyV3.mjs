@@ -1,28 +1,25 @@
-import { computeHash } from "../../../coreLogic/zobristHashing.mjs";
-import {
-  clearQTT,
-  clearTT,
-} from "../../../coreLogic/transpositionTable.mjs";
-import { CHECKMATE_VALUE } from "../../../coreLogic/constants.mjs";
-import { minimax5 } from "./minimax5.mjs";
+import { computeHash } from "../../zobristHashing.mjs";
+import { clearTT } from "../../transpositionTable.mjs";
+import { CHECKMATE_VALUE } from "../../constants.mjs";
+import { minimax3 } from "./minimax3.mjs";
+import { computeAllAttackMasks } from "../../PieceMasks/individualAttackMasks.mjs";
 
 // Root id for transposition table. Helps avoid stale entries
 export let rootId = 0;
 
 /**
- * Gets the best move in a position.
- * V5: Adds a better evaluation function using piece sqaure tables (PSQT).
+ * Gets the best move in the position. Look at minimax3 for more detailed additions.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
- * @param {Array<boolean} castlingRights - the castling rights
+ * @param {Array<boolean>} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {Map} prevPositions - a map of the previous positions
- * @param {number} depth - the depth to search in ply. 1 ply is one player moving. 2 ply is one move, where each side gets to play.
+ * @param {number} maxDepth - the depth to search in ply. 1 ply is one player moving. 2 ply is one move, where each side gets to play.
  * @param {number} timeLimit - the max time the engine can search in milliseconds.
- * @returns {bestMove: Move, bestEval: number} the best move found and the evaluation
+ * @returns {{ from: number, to: number, promotion: string}, number} the best move found and the evaluation
  */
-export function BMV5(
+export function BMV3(
   bitboards,
   player,
   castlingRights,
@@ -32,7 +29,6 @@ export function BMV5(
   timeLimit = Infinity
 ) {
   clearTT(); // Clears transposition table
-  clearQTT();
 
   const start = performance.now();
 
@@ -44,7 +40,9 @@ export function BMV5(
 
   rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {
-    const { score, move } = minimax5(
+    computeAllAttackMasks(bitboards);
+
+    const { score, move } = minimax3(
       bitboards,
       player,
       castlingRights,
@@ -57,7 +55,7 @@ export function BMV5(
       Infinity
     );
 
-    if (move !== null) {
+    if (move != null) {
       bestEval = score;
       bestMove = move;
     }
@@ -72,6 +70,5 @@ export function BMV5(
 
     rootId++;
   }
-
   return { ...bestMove, bestEval };
 }

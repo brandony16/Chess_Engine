@@ -1,28 +1,13 @@
-import { updateCastlingRights } from "../../../coreLogic/moveMaking/castleMoveLogic.mjs";
-import {
-  makeMove,
-  unMakeMove,
-} from "../../../coreLogic/moveMaking/makeMoveLogic.mjs";
-import { updateHash } from "../../../coreLogic/zobristHashing.mjs";
-import { checkGameOver } from "../../../coreLogic/gameOverLogic.mjs";
-import {
-  getNewEnPassant,
-  isInCheck,
-} from "../../../coreLogic/bbChessLogic.mjs";
-import {
-  getTT,
-  setTT,
-  TT_FLAG,
-} from "../../../coreLogic/transpositionTable.mjs";
-import {
-  BLACK,
-  MAX_PLY,
-  WEIGHTS,
-  WHITE,
-} from "../../../coreLogic/constants.mjs";
+import { updateCastlingRights } from "../../moveMaking/castleMoveLogic.mjs";
+import { makeMove, unMakeMove } from "../../moveMaking/makeMoveLogic.mjs";
+import { updateHash } from "../../zobristHashing.mjs";
+import { checkGameOver } from "../../gameOverLogic.mjs";
+import { getNewEnPassant, isInCheck } from "../../bbChessLogic.mjs";
+import { getTT, setTT, TT_FLAG } from "../../transpositionTable.mjs";
+import { BLACK, MAX_PLY, WEIGHTS, WHITE } from "../../constants.mjs";
 import { rootId } from "./BondMonkeyV3.mjs";
 import { evaluate3 } from "./evaluation3.mjs";
-import { getAllLegalMoves } from "../../../coreLogic/moveGeneration/allMoveGeneration.mjs";
+import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);

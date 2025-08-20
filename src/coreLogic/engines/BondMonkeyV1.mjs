@@ -1,4 +1,4 @@
-import { getAllLegalMoves } from "../../coreLogic/moveGeneration/allMoveGeneration.mjs";
+import { getAllLegalMoves } from "../moveGeneration/allMoveGeneration.mjs";
 
 /**
  * Gets the "best" move in the given position. This version simply selects a random move.

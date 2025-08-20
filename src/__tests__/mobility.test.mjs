@@ -1,5 +1,3 @@
-import { calculateMobility } from "../components/bbEngines/mobility.mjs";
-import { getMobility } from "../components/bbEngines/mobilityTables.mjs";
 import {
   BLACK,
   BLACK_BISHOP,
@@ -12,6 +10,8 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../coreLogic/constants.mjs";
+import { calculateMobility } from "../coreLogic/engines/BMV6/evaluation/mobility.mjs";
+import { getMobility } from "../coreLogic/engines/BMV6/evaluation/mobilityTables.mjs";
 import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
 import { initializePieceAtArray } from "../coreLogic/pieceGetters.mjs";
 import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";

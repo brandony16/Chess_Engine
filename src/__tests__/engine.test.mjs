@@ -1,4 +1,4 @@
-import { BMV5 } from "../components/bbEngines/BMV5/BondMonkeyV5.mjs";
+import { BMV5 } from "../coreLogic/engines/BMV5/BondMonkeyV5.mjs";
 import { getNewEnPassant } from "../coreLogic/bbChessLogic";
 import { BLACK_KNIGHT, WHITE_KNIGHT } from "../coreLogic/constants.mjs";
 import { areBigUint64ArraysEqual } from "../coreLogic/debugFunctions";

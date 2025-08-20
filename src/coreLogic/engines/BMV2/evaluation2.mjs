@@ -1,10 +1,6 @@
-import {
-  CHECKMATE_VALUE,
-  WEIGHTS,
-  WHITE,
-} from "../../../coreLogic/constants.mjs";
-import { pieceAt } from "../../../coreLogic/pieceGetters.mjs";
-import { getAllIndicies } from "../../../coreLogic/pieceIndicies.mjs";
+import { CHECKMATE_VALUE, WEIGHTS, WHITE } from "../../constants.mjs";
+import { pieceAt } from "../../pieceGetters.mjs";
+import { getAllIndicies } from "../../pieceIndicies.mjs";
 
 /**
  * Gets the evaluation of the given position based purely off of the material in the position.
@@ -12,7 +8,7 @@ import { getAllIndicies } from "../../../coreLogic/pieceIndicies.mjs";
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation
  */
-export const evaluate3 = (player, result, depth) => {
+export const evaluate2 = (player, result, depth) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
     if (result.includes("Checkmate")) {
@@ -26,9 +22,7 @@ export const evaluate3 = (player, result, depth) => {
   const allIndicies = getAllIndicies();
   for (const square of allIndicies) {
     const piece = pieceAt[square];
-
     evaluation += WEIGHTS[piece];
   }
-  
   return player === WHITE ? evaluation : -evaluation;
 };

@@ -1,8 +1,8 @@
-import { evaluate5 } from "../components/bbEngines/BMV5/evaluation5.mjs";
 import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
 import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
 import { initializePieceAtArray } from "../coreLogic/pieceGetters.mjs";
+import { evaluate5 } from "../coreLogic/engines/BMV5/evaluation5.mjs";
 
 const cases = [
   ["Start pos", "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 0],

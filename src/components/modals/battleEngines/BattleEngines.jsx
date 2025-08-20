@@ -57,7 +57,7 @@ const BattleEngines = () => {
   // Create the battle engines worker
   useEffect(() => {
     const BattleWorker = new URL(
-      "../../bbEngines/battleEngineWorker",
+      "../../workers/battleEngineWorker",
       import.meta.url
     );
     const w = new Worker(BattleWorker, { type: "module" });

@@ -1,24 +1,14 @@
-import { updateCastlingRights } from "../../../coreLogic/moveMaking/castleMoveLogic.mjs";
-import {
-  makeMove,
-  unMakeMove,
-} from "../../../coreLogic/moveMaking/makeMoveLogic.mjs";
-import { updateHash } from "../../../coreLogic/zobristHashing.mjs";
-import { checkGameOver } from "../../../coreLogic/gameOverLogic.mjs";
-import {
-  getNewEnPassant,
-  isInCheck,
-} from "../../../coreLogic/bbChessLogic.mjs";
-import {
-  getTT,
-  setTT,
-  TT_FLAG,
-} from "../../../coreLogic/transpositionTable.mjs";
-import { BLACK, MAX_PLY, WHITE } from "../../../coreLogic/constants.mjs";
+import { updateCastlingRights } from "../../moveMaking/castleMoveLogic.mjs";
+import { makeMove, unMakeMove } from "../../moveMaking/makeMoveLogic.mjs";
+import { updateHash } from "../../zobristHashing.mjs";
+import { checkGameOver } from "../../gameOverLogic.mjs";
+import { getNewEnPassant, isInCheck } from "../../bbChessLogic.mjs";
+import { getTT, setTT, TT_FLAG } from "../../transpositionTable.mjs";
+import { BLACK, MAX_PLY, WHITE } from "../../constants.mjs";
 import { rootId } from "./BondMonkeyV5.mjs";
 import { evaluate5, weights } from "./evaluation5.mjs";
-import { quiesce2 } from "./quiesce.mjs";
-import { getAllLegalMoves } from "../../../coreLogic/moveGeneration/allMoveGeneration.mjs";
+import { quiesce5 } from "./quiesce5.mjs";
+import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -72,7 +62,7 @@ export const minimax5 = (
   if (currentDepth >= maxDepth) {
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
-      const q = quiesce2(
+      const q = quiesce5(
         bitboards,
         player,
         alpha,

@@ -1,12 +1,12 @@
-import { getPlayerIndicies } from "../../coreLogic/pieceIndicies.mjs";
+import { popcount } from "../../../helpers/bbUtils.mjs";
+import { isKing, isPawn } from "../../../helpers/pieceUtils";
 import {
   getAllPieces,
   getPlayerBoard,
   pieceAt,
-} from "../../coreLogic/pieceGetters.mjs";
-import { isKing, isPawn } from "../../coreLogic/helpers/pieceUtils";
-import { attacksOf } from "../../coreLogic/PieceMasks/individualAttackMasks.mjs";
-import { popcount } from "../../coreLogic/helpers/bbUtils.mjs";
+} from "../../../pieceGetters.mjs";
+import { getPlayerIndicies } from "../../../pieceIndicies.mjs";
+import { attacksOf } from "../../../PieceMasks/individualAttackMasks.mjs";
 import { getMobility } from "./mobilityTables.mjs";
 
 /**

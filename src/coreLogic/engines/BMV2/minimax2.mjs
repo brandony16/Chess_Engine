@@ -1,17 +1,11 @@
-import { updateCastlingRights } from "../../../coreLogic/moveMaking/castleMoveLogic.mjs";
-import {
-  makeMove,
-  unMakeMove,
-} from "../../../coreLogic/moveMaking/makeMoveLogic.mjs";
-import { updateHash } from "../../../coreLogic/zobristHashing.mjs";
-import { checkGameOver } from "../../../coreLogic/gameOverLogic.mjs";
-import {
-  getNewEnPassant,
-  isInCheck,
-} from "../../../coreLogic/bbChessLogic.mjs";
-import { BLACK, WEIGHTS, WHITE } from "../../../coreLogic/constants.mjs";
+import { updateCastlingRights } from "../../moveMaking/castleMoveLogic.mjs";
+import { makeMove, unMakeMove } from "../../moveMaking/makeMoveLogic.mjs";
+import { updateHash } from "../../zobristHashing.mjs";
+import { checkGameOver } from "../../gameOverLogic.mjs";
+import { getNewEnPassant, isInCheck } from "../../bbChessLogic.mjs";
+import { BLACK, WEIGHTS, WHITE } from "../../constants.mjs";
 import { evaluate2 } from "./evaluation2.mjs";
-import { getAllLegalMoves } from "../../../coreLogic/moveGeneration/allMoveGeneration.mjs";
+import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
 
 /**
  * A minimax function that recursively finds the evaluation of the function.
