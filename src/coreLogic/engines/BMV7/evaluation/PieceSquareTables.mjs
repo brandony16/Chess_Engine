@@ -2,16 +2,14 @@
  * Piece square tables store values for where pieces "should" be placed.
  * It rewards knights being centralized, for example.
  * Tables were inspired and tweaked from the Chess Programming Wiki's
- * Simplified Evaluation Function page. 
- * https://www.chessprogramming.org/Simplified_Evaluation_Function 
+ * Simplified Evaluation Function page.
+ * https://www.chessprogramming.org/Simplified_Evaluation_Function
  */
 
-/**
- * Pawns should take center space, and pawns in front of the king
- * should not move frequently. Also pawns are rewarded for getting
- * closer to promotion
- */
-const WHITE_PAWN_PIECE_SQUARE_TABLE = [
+import { isWhite } from "../../../helpers/pieceUtils";
+import { blendWithPhase } from "./phase.mjs";
+
+export const MG_PAWN_TABLE = [
    0,  0,  0,  0,  0,  0,  0,  0,
    5, 10, 10,-20,-20, 10, 10,  5,
    5, -5,-10,  0,  0,-10, -5,  5,
@@ -22,24 +20,18 @@ const WHITE_PAWN_PIECE_SQUARE_TABLE = [
    0,  0,  0,  0,  0,  0,  0,  0,
 ];
 
-
-
-const BLACK_PAWN_PIECE_SQUARE_TABLE = [
+export const EG_PAWN_TABLE = [
    0,  0,  0,  0,  0,  0,  0,  0,
-  50, 50, 50, 50, 50, 50, 50, 50,
-  10, 10, 20, 30, 30, 20, 10, 10,
-   5,  5, 10, 25, 25, 10,  5,  5,
-   0,  0, 10, 20, 20,  0,  0,  0,
-   5, -5,-10,  0,  0,-10, -5,  5,
    5, 10, 10,-20,-20, 10, 10,  5,
+   5, -5,-10,  0,  0,-10, -5,  5,
+   0,  0, 10, 20, 20,  0,  0,  0,
+   5,  5, 10, 25, 25, 10,  5,  5,
+  10, 10, 20, 30, 30, 20, 10, 10,
+  50, 50, 50, 50, 50, 50, 50, 50,
    0,  0,  0,  0,  0,  0,  0,  0,
 ];
 
-/**
- * Knights should be on central squares as they have limited use
- * at the edges of the board.
- */
-const WHITE_KNIGHT_PIECE_SQUARE_TABLE = [
+export const MG_KNIGHT_TABLE = [
   -50,-40,-30,-30,-30,-30,-40,-50,
   -40,-20,  0,  5,  5,  0,-20,-40,
   -30,  5, 20, 15, 15, 20,  5,-30,
@@ -50,21 +42,20 @@ const WHITE_KNIGHT_PIECE_SQUARE_TABLE = [
   -50,-40,-30,-30,-30,-30,-40,-50,
 ]
 
-const BLACK_KNIGHT_PIECE_SQUARE_TABLE = [
+
+export const EG_KNIGHT_TABLE = [
   -50,-40,-30,-30,-30,-30,-40,-50,
-  -40,-20,  0,  0,  0,  0,-20,-40,
-  -30,  0, 10, 15, 15, 10,  0,-30,
-  -30,  5, 15, 25, 25, 15,  5,-30,
-  -30,  0, 15, 25, 25, 15,  0,-30,
-  -30,  5, 20, 15, 15, 20,  5,-30,
   -40,-20,  0,  5,  5,  0,-20,-40,
+  -30,  5, 20, 15, 15, 20,  5,-30,
+  -30,  0, 15, 25, 25, 15,  0,-30,
+  -30,  5, 15, 25, 25, 15,  5,-30,
+  -30,  0, 10, 15, 15, 10,  0,-30,
+  -40,-20,  0,  0,  0,  0,-20,-40,
   -50,-40,-30,-30,-30,-30,-40,-50,
 ]
 
-/**
- * Encourage bishops to centralize and be on good diagonals.
- */
-const WHITE_BISHOP_PIECE_SQUARE_TABLE = [
+
+export const MG_BISHOP_TABLE = [
   -20,-10,-10,-10,-10,-10,-10,-20,
   -10,  5,  0,  0,  0,  0,  5,-10,
   -10, 10, 10, 10, 10, 10, 10,-10,
@@ -75,22 +66,18 @@ const WHITE_BISHOP_PIECE_SQUARE_TABLE = [
   -20,-10,-10,-10,-10,-10,-10,-20,
 ]
 
-const BLACK_BISHOP_PIECE_SQUARE_TABLE = [
+export const EG_BISHOP_TABLE = [
   -20,-10,-10,-10,-10,-10,-10,-20,
-  -10,  0,  0,  0,  0,  0,  0,-10,
-  -10,  0,  5, 10, 10,  5,  0,-10,
-  -10,  5,  5, 10, 10,  5,  5,-10,
-  -10,  0, 10, 10, 10, 10,  0,-10,
-  -10, 10, 10, 10, 10, 10, 10,-10,
   -10,  5,  0,  0,  0,  0,  5,-10,
+  -10, 10, 10, 10, 10, 10, 10,-10,
+  -10,  0, 10, 10, 10, 10,  0,-10,
+  -10,  5,  5, 10, 10,  5,  5,-10,
+  -10,  0,  5, 10, 10,  5,  0,-10,
+  -10,  0,  0,  0,  0,  0,  0,-10,
   -20,-10,-10,-10,-10,-10,-10,-20,
 ]
 
-/**
- * Encourage the rooks to centralize and move to the opponent's
- * second rank.
- */
-const WHITE_ROOK_PIECE_SQUARE_TABLE = [
+export const MG_ROOK_TABLE = [
    0,  0,  5, 10, 10,  5,  0,  0,
   -5,  0,  0,  0,  0,  0,  0, -5,
   -5,  0,  0,  0,  0,  0,  0, -5,
@@ -101,22 +88,30 @@ const WHITE_ROOK_PIECE_SQUARE_TABLE = [
    0,  0,  0,  0,  0,  0,  0,  0,
 ]
 
-const BLACK_ROOK_PIECE_SQUARE_TABLE = [
-   0,  0,  0,  0,  0,  0,  0,  0,
+
+export const EG_ROOK_TABLE = [
+   0,  0,  5, 10, 10,  5,  0,  0,
+  -5,  0,  0,  0,  0,  0,  0, -5,
+  -5,  0,  0,  0,  0,  0,  0, -5,
+  -5,  0,  0,  0,  0,  0,  0, -5,
+  -5,  0,  0,  0,  0,  0,  0, -5,
+  -5,  0,  0,  0,  0,  0,  0, -5,
    5, 10, 10, 10, 10, 10, 10,  5,
-  -5,  0,  0,  0,  0,  0,  0, -5,
-  -5,  0,  0,  0,  0,  0,  0, -5,
-  -5,  0,  0,  0,  0,  0,  0, -5,
-  -5,  0,  0,  0,  0,  0,  0, -5,
-  -5,  0,  0,  0,  0,  0,  0, -5,
-   0,  0,  0,  5,  5,  0,  0,  0
+   0,  0,  0,  0,  0,  0,  0,  0,
 ]
 
-/**
- * Generally encourage the queen to be centralized, where it can be
- * the most active.
- */
-const WHITE_QUEEN_PIECE_SQUARE_TABLE = [
+
+export const MG_QUEEN_TABLE = [
+  -20,-10,-10, -5, -5,-10,-10,-20,
+  -10,  0,  0,  0,  0,  5,  0,-10,
+  -10,  0,  5,  5,  5,  5,  5,-10,
+   -5,  0,  5,  5,  5,  5,  0,  0,
+   -5,  0,  5,  5,  5,  5,  0, -5,
+  -10,  0,  5,  5,  5,  5,  0,-10,
+  -10,  0,  0,  0,  0,  0,  0,-10,
+  -20,-10,-10, -5, -5,-10,-10,-20,
+]
+export const EG_QUEEN_TABLE = [
   -20,-10,-10, -5, -5,-10,-10,-20,
   -10,  0,  0,  0,  0,  5,  0,-10,
   -10,  0,  5,  5,  5,  5,  5,-10,
@@ -127,21 +122,7 @@ const WHITE_QUEEN_PIECE_SQUARE_TABLE = [
   -20,-10,-10, -5, -5,-10,-10,-20,
 ]
 
-const BLACK_QUEEN_PIECE_SQUARE_TABLE = [
-  -20,-10,-10, -5, -5,-10,-10,-20,
-  -10,  0,  0,  0,  0,  0,  0,-10,
-  -10,  0,  5,  5,  5,  5,  0,-10,
-   -5,  0,  5,  5,  5,  5,  0, -5,
-    0,  0,  5,  5,  5,  5,  0, -5,
-  -10,  5,  5,  5,  5,  5,  0,-10,
-  -10,  0,  5,  0,  0,  0,  0,-10,
-  -20,-10,-10, -5, -5,-10,-10,-20
-]
-
-/**
- * Encourage king to castle and be behind the pawns
- */
-const WHITE_KING_PIECE_SQUARE_TABLE = [
+export const MG_KING_TABLE = [
    20, 30, 10,  0,  0, 10, 30, 20,
    20, 20,  0,  0,  0,  0, 20, 20,
   -10,-20,-20,-20,-20,-20,-20,-10,
@@ -152,31 +133,40 @@ const WHITE_KING_PIECE_SQUARE_TABLE = [
   -30,-40,-40,-50,-50,-40,-40,-30,
 ]
 
-const BLACK_KING_PIECE_SQUARE_TABLE = [
-  -30,-40,-40,-50,-50,-40,-40,-30,
-  -30,-40,-40,-50,-50,-40,-40,-30,
-  -30,-40,-40,-50,-50,-40,-40,-30,
-  -30,-40,-40,-50,-50,-40,-40,-30,
-  -20,-30,-30,-40,-40,-30,-30,-20,
-  -10,-20,-20,-20,-20,-20,-20,-10,
+export const EG_KING_TABLE = [
+   20, 30, 10,  0,  0, 10, 30, 20,
    20, 20,  0,  0,  0,  0, 20, 20,
-   20, 30, 10,  0,  0, 10, 30, 20
+  -10,-20,-20,-20,-20,-20,-20,-10,
+  -20,-30,-30,-40,-40,-30,-30,-20,
+  -30,-40,-40,-50,-50,-40,-40,-30,
+  -30,-40,-40,-50,-50,-40,-40,-30,
+  -30,-40,-40,-50,-50,-40,-40,-30,
+  -30,-40,-40,-50,-50,-40,-40,-30,
 ]
 
-/**
- * All Piece Square Tables
- */
-export const PIECE_SQUARE_TABLES = [
-  WHITE_PAWN_PIECE_SQUARE_TABLE,
-  WHITE_KNIGHT_PIECE_SQUARE_TABLE,
-  WHITE_BISHOP_PIECE_SQUARE_TABLE,
-  WHITE_ROOK_PIECE_SQUARE_TABLE,
-  WHITE_QUEEN_PIECE_SQUARE_TABLE,
-  WHITE_KING_PIECE_SQUARE_TABLE,
-  BLACK_PAWN_PIECE_SQUARE_TABLE,
-  BLACK_KNIGHT_PIECE_SQUARE_TABLE,
-  BLACK_BISHOP_PIECE_SQUARE_TABLE,
-  BLACK_ROOK_PIECE_SQUARE_TABLE,
-  BLACK_QUEEN_PIECE_SQUARE_TABLE,
-  BLACK_KING_PIECE_SQUARE_TABLE,
-]
+export const MG_TABLES = [
+  MG_PAWN_TABLE,
+  MG_KNIGHT_TABLE,
+  MG_BISHOP_TABLE,
+  MG_ROOK_TABLE,
+  MG_QUEEN_TABLE,
+  MG_KING_TABLE,
+];
+
+export const EG_TABLES = [
+  EG_PAWN_TABLE,
+  EG_KNIGHT_TABLE,
+  EG_BISHOP_TABLE,
+  EG_ROOK_TABLE,
+  EG_QUEEN_TABLE,
+  EG_KING_TABLE,
+];
+
+export const getPSQTValue = (piece, sq, phase) => {
+  const relativeSq = isWhite(piece) ? sq : sq ^ 56; // If black, mirror the file
+
+  const mgValue = MG_TABLES[piece % 6][relativeSq];
+  const egValue = EG_TABLES[piece % 6][relativeSq];
+
+  return blendWithPhase(mgValue, egValue, phase);
+};

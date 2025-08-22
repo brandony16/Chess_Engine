@@ -2,8 +2,8 @@ import { BLACK, CHECKMATE_VALUE, WHITE } from "../../../constants.mjs";
 import { pieceAt } from "../../../pieceGetters.mjs";
 import { getAllIndicies } from "../../../pieceIndicies.mjs";
 import { calculateMobility } from "./mobility.mjs";
-import { calculatePhase } from "./phase";
-import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
+import { calculatePhase } from "./phase.mjs";
+import { getPSQTValue } from "./PieceSquareTables.mjs";
 
 /**
  * Gets the evaluation of the given position relative to the passed player.
@@ -36,7 +36,7 @@ export const evaluate7 = (bitboards, player, result, depth) => {
 
     evaluation +=
       playerMultiplier *
-      (weights[piece % 6] + PIECE_SQUARE_TABLES[piece][square]);
+      (weights[piece % 6] + getPSQTValue(piece, square, phase));
   }
 
   const whiteMobility = calculateMobility(bitboards, WHITE, phase);

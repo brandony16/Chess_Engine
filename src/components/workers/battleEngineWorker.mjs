@@ -1,3 +1,4 @@
+import { getOpeningMoves } from "../../coreLogic/helpers/FENandUCIHelpers.mjs";
 import { useGameStore } from "../gameStore.mjs";
 import { makeEngineMove, playRandomOpening } from "./engineFuncs.mjs";
 
@@ -15,19 +16,23 @@ self.onmessage = async (e) => {
   let blackSide = engine2;
   let whiteDepth = eng1Depth;
   let blackDepth = eng2Depth;
+  let openingMoves = null;
   while (gameNum <= games && !breakBattleLoop) {
-    // Set up game and play opening
-
+    // Set up game and play opening.
+    // Change opening every other move so each side plays with white and black
+    if (gameNum % 2 === 1) {
+      openingMoves = await getOpeningMoves();
+    }
     resetGame({ isEngineGame: true });
-    await playRandomOpening();
+    await playRandomOpening(openingMoves);
 
     // Sim games
     while (!useGameStore.getState().isGameOver) {
-      // Cap at 100ms search time so times don't get insane
-      makeEngineMove(whiteSide, whiteDepth, 100);
+      // Cap at 300ms search time so times don't get insane
+      makeEngineMove(whiteSide, whiteDepth, 300);
       if (useGameStore.getState().isGameOver) break;
 
-      makeEngineMove(blackSide, blackDepth, 100);
+      makeEngineMove(blackSide, blackDepth, 300);
     }
 
     const result = useGameStore.getState().result;

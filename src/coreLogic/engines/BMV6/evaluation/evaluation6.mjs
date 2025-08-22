@@ -31,9 +31,20 @@ export const evaluate6 = (bitboards, player, result, depth) => {
     const piece = pieceAt[square];
     const playerMultiplier = piece < 6 ? 1 : -1;
 
-    evaluation +=
-      playerMultiplier *
-      (weights[piece % 6] + PIECE_SQUARE_TABLES[piece][square]);
+    try {
+      evaluation +=
+        playerMultiplier *
+        (weights[piece % 6] + PIECE_SQUARE_TABLES[piece][square]);
+    } catch (err) {
+      console.log(
+        piece,
+        square,
+        playerMultiplier,
+        weights[piece % 6],
+        PIECE_SQUARE_TABLES[piece][square]
+      );
+      throw err;
+    }
   }
 
   const whiteMobility = calculateMobility(bitboards, WHITE);

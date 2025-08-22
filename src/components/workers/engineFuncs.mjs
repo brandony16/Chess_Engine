@@ -17,9 +17,11 @@ import { isKing } from "../../coreLogic/helpers/pieceUtils";
 /**
  * Plays a random 4 move (8 ply) opening
  */
-export const playRandomOpening = async () => {
+export const playRandomOpening = async (moves = null) => {
   // Fetches an 8ply opening from openings.json
-  const moves = await getOpeningMoves();
+  if (!moves) {
+    moves = await getOpeningMoves();
+  }
 
   for (const uciMove of moves) {
     const from = squareToIndex(uciMove.slice(0, 2));

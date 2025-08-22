@@ -10,8 +10,9 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../coreLogic/constants.mjs";
-import { calculateMobility } from "../coreLogic/engines/BMV6/evaluation/mobility.mjs";
-import { getMobility } from "../coreLogic/engines/BMV6/evaluation/mobilityTables.mjs";
+import { calculateMobility } from "../coreLogic/engines/BMV7/evaluation/mobility.mjs";
+import { getMobility } from "../coreLogic/engines/BMV7/evaluation/mobilityTables.mjs";
+import { MAX_PHASE } from "../coreLogic/engines/BMV7/evaluation/phase.mjs";
 import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
 import { initializePieceAtArray } from "../coreLogic/pieceGetters.mjs";
 import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
@@ -73,5 +74,35 @@ describe("calculateMobility", () => {
 
     expect(whiteMobility).toBe(getMobility(WHITE_BISHOP, 7));
     expect(blackMobility).toBe(getMobility(BLACK_ROOK, 12));
+  });
+});
+
+describe("getMobility", () => {
+  it("should get a middlegame value when phase is max", () => {
+    const phase = MAX_PHASE;
+
+    const knightMobility = getMobility(BLACK_KNIGHT, 0, phase);
+    const bishopMobility = getMobility(WHITE_BISHOP, 5, phase);
+    const rookMobility = getMobility(BLACK_ROOK, 14, phase);
+    const queenMobility = getMobility(WHITE_QUEEN, 15, phase);
+
+    expect(knightMobility).toBe(-75);
+    expect(bishopMobility).toBe(51);
+    expect(rookMobility).toBe(59);
+    expect(queenMobility).toBe(73);
+  });
+
+  it("should get an endgame value when phase is 0", () => {
+    const phase = 0;
+
+    const knightMobility = getMobility(BLACK_KNIGHT, 0, phase);
+    const bishopMobility = getMobility(WHITE_BISHOP, 5, phase);
+    const rookMobility = getMobility(BLACK_ROOK, 14, phase);
+    const queenMobility = getMobility(WHITE_QUEEN, 15, phase);
+
+    expect(knightMobility).toBe(-76);
+    expect(bishopMobility).toBe(42);
+    expect(rookMobility).toBe(169);
+    expect(queenMobility).toBe(122);
   });
 });

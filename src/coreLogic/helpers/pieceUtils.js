@@ -23,3 +23,7 @@ export function isQueen(piece) {
 export function isKing(piece) {
   return piece === C.WHITE_KING || piece === C.BLACK_KING;
 }
+
+export function isWhite(piece) {
+  return piece < 6; // 6 pieces for each side
+}

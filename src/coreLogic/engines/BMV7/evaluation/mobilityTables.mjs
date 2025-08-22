@@ -29,10 +29,10 @@ import {
   isQueen,
   isRook,
 } from "../../../helpers/pieceUtils";
-import { blendWithPhase } from "./phase";
+import { blendWithPhase, MAX_PHASE } from "./phase.mjs";
 
-// Knight has at most 8 moves
-const KNIGHT_MOBILITY = [
+// Knight has 0-8 moves
+export const KNIGHT_MOBILITY = [
   [-75, -76],
   [-56, -54],
   [-9, -26],
@@ -44,8 +44,8 @@ const KNIGHT_MOBILITY = [
   [36, 29],
 ];
 
-// Bishop has at most 13 moves
-const BISHOP_MOBILITY = [
+// Bishop has 0-13 moves
+export const BISHOP_MOBILITY = [
   [-48, -58],
   [-21, -19],
   [16, -2],
@@ -62,8 +62,8 @@ const BISHOP_MOBILITY = [
   [97, 94],
 ];
 
-// Rook has at most 14 moves
-const ROOK_MOBILITY = [
+// Rook has 0-14 moves
+export const ROOK_MOBILITY = [
   [-56, -78],
   [-25, -18],
   [-11, 26],
@@ -81,8 +81,8 @@ const ROOK_MOBILITY = [
   [59, 169],
 ];
 
-// Queen has at most 27 moves (rook + bishop)
-const QUEEN_MOBILITY = [
+// Queen has 0-27 moves (rook + bishop)
+export const QUEEN_MOBILITY = [
   [-40, -35],
   [-25, -12],
   [2, 7],
@@ -130,10 +130,11 @@ export const getMobilityValues = (piece, moves) => {
   }
 };
 
-export const getMobility = (piece, moves, phase) => {
+export const getMobility = (piece, moves, phase = MAX_PHASE) => {
   const mobilityValues = getMobilityValues(piece, moves);
 
   const mgScore = mobilityValues[0];
   const egScore = mobilityValues[1];
+
   return blendWithPhase(mgScore, egScore, phase);
 };

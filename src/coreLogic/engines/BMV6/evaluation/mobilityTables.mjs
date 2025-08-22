@@ -40,7 +40,7 @@ const BISHOP_MOBILITY = [
 
 // Rook has at most 14 moves
 const ROOK_MOBILITY = [
-  -56, -25, -18, -11, -5, -4, -1, 8, 14, 21, 23, 31, 32, 43, 49, 59,
+  -56, -25, -11, -5, -4, -1, 8, 14, 21, 23, 31, 32, 43, 49, 59,
 ];
 
 // Queen has at most 27 moves (rook + bishop)
