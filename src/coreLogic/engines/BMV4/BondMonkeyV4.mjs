@@ -40,6 +40,8 @@ export function BMV4(
   const epFile = enPassantSquare ? enPassantSquare % 8 : -1;
   const rootHash = computeHash(bitboards, player, epFile, castlingRights);
 
+  const searchStats = { nodes: 0 };
+
   rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {
     computeAllAttackMasks(bitboards);
@@ -54,7 +56,8 @@ export function BMV4(
       0,
       depth,
       -Infinity,
-      Infinity
+      Infinity,
+      searchStats
     );
 
     if (move !== null) {
@@ -73,5 +76,5 @@ export function BMV4(
     rootId++;
   }
 
-  return { ...bestMove, bestEval };
+  return { ...bestMove, bestEval, searchStats };
 }

@@ -30,6 +30,7 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  * @param {Array<boolean>} castlingRights - the castling rights
  * @param {Map} prevPositions - a map of the previous positions
  * @param {bigint} prevHash - the hash of the current position before moves are simulated.
+ * @param {object} stats - an object for logging stats of the search.
  *
  * @returns {{ score: number, move: null }} - an object with the score and move number
  */
@@ -42,8 +43,12 @@ export const quiesce5 = (
   castlingRights,
   prevPositions,
   prevHash,
+  stats,
   depth = 0
 ) => {
+  // Increment node count for profiling
+  stats.nodes++;
+
   // Terminal check for if game is over
   const opponent = player === WHITE ? BLACK : WHITE;
   const gameOver = checkGameOver(
@@ -177,6 +182,7 @@ export const quiesce5 = (
       newCastling,
       prevPositions,
       newHash,
+      stats,
       depth + 1
     );
 

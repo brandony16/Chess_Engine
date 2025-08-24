@@ -30,5 +30,9 @@ export const BMV1 = (
     enPassantSquare
   );
 
-  return moves[Math.floor(Math.random() * moves.length)];
+  const searchStats = { nodes: 0 }; // No nodes are searched in this version
+
+  const randMove = moves[Math.floor(Math.random() * moves.length)];
+
+  return { ...randMove, searchStats };
 };

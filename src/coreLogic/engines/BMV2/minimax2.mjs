@@ -21,6 +21,8 @@ import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
  * @param {depth} maxDepth - the maximum depth of the search
  * @param {number} alpha - the alpha value for alpha-beta pruning
  * @param {number} beta - the beta value for alpha-beta pruning
+ * @param {object} stats - an object for logging stats of the search.
+ *
  * @returns {{score: number, move: object}} evaluation of the move and the move
  */
 export const minimax2 = (
@@ -33,8 +35,13 @@ export const minimax2 = (
   currentDepth,
   maxDepth,
   alpha,
-  beta
+  beta,
+  stats
 ) => {
+  // Increment node count for profiling
+  stats.nodes++;
+
+  // Game over checks
   const opponent = player === WHITE ? BLACK : WHITE;
   const gameOver = checkGameOver(
     bitboards,
@@ -131,7 +138,8 @@ export const minimax2 = (
       currentDepth + 1,
       maxDepth,
       -beta,
-      -alpha
+      -alpha,
+      stats
     );
 
     unMakeMove(move, bitboards);

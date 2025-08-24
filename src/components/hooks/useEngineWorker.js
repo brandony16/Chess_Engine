@@ -22,6 +22,16 @@ export default function useEngineWorker(onMove) {
     };
     workerRef.current = w;
 
+    w.onerror = (e) => {
+      console.error(
+        "Worker runtime error:",
+        e.message,
+        e.filename,
+        e.lineno,
+        e.colno
+      );
+    };
+
     return () => {
       w.terminate();
       workerRef.current = null;

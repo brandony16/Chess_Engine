@@ -94,13 +94,16 @@ export const isSliding = (piece) => {
  * @returns {number}
  */
 export function popcount(bb) {
-  let count = 0;
-  while (bb !== 0n) {
-    // Remove the lowest bit:
-    bb &= bb - 1n;
-    count++;
-  }
-  return count;
+  let lo = Number(bb & 0xffffffffn);
+  let hi = Number((bb >> 32n) & 0xffffffffn);
+  return popcount32(lo) + popcount32(hi);
+}
+
+function popcount32(x) {
+  // Hacker’s Delight popcount32
+  x -= (x >>> 1) & 0x55555555;
+  x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
+  return (((x + (x >>> 4)) & 0x0f0f0f0f) * 0x01010101) >>> 24;
 }
 
 /**

@@ -17,7 +17,7 @@ export let rootId = 0;
  * @param {Map} prevPositions - a map of the previous positions
  * @param {number} maxDepth - the depth to search in ply. 1 ply is one player moving. 2 ply is one move, where each side gets to play.
  * @param {number} timeLimit - the max time the engine can search in milliseconds.
- * @returns {{ from: number, to: number, promotion: string}, number} the best move found and the evaluation
+ * @returns {bestMove: Move, bestEval: number, searchStats: object} the best move found and the evaluation
  */
 export function BMV3(
   bitboards,
@@ -38,6 +38,8 @@ export function BMV3(
   const epFile = enPassantSquare ? enPassantSquare % 8 : -1;
   const rootHash = computeHash(bitboards, player, epFile, castlingRights);
 
+  const searchStats = { nodes: 0 };
+
   rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {
     computeAllAttackMasks(bitboards);
@@ -52,7 +54,8 @@ export function BMV3(
       0,
       depth,
       -Infinity,
-      Infinity
+      Infinity,
+      searchStats
     );
 
     if (move != null) {
@@ -70,5 +73,5 @@ export function BMV3(
 
     rootId++;
   }
-  return { ...bestMove, bestEval };
+  return { ...bestMove, bestEval, searchStats };
 }

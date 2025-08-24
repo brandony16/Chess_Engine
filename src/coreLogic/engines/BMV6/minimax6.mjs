@@ -28,6 +28,8 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  * @param {depth} maxDepth - the maximum depth of the search
  * @param {number} alpha - the alpha value for alpha-beta pruning
  * @param {number} beta - the beta value for alpha-beta pruning
+ * @param {object} stats - an object for logging stats of the search.
+ * 
  * @returns {{score: number, move: object}} evaluation of the move and the move
  */
 
@@ -41,8 +43,13 @@ export const minimax6 = (
   currentDepth,
   maxDepth,
   alpha,
-  beta
+  beta,
+  stats
 ) => {
+  // Increment node count for profiling
+  stats.nodes++;
+
+  // Game over checks
   const opponent = player === WHITE ? BLACK : WHITE;
   const gameOver = checkGameOver(
     bitboards,
@@ -187,7 +194,8 @@ export const minimax6 = (
       currentDepth + 1,
       maxDepth,
       -beta,
-      -alpha
+      -alpha,
+      stats
     );
 
     unMakeMove(move, bitboards);
@@ -220,7 +228,7 @@ export const minimax6 = (
         }
 
         // Weights this move higher in history
-        historyScores[move.from][move.to] += 2 ^ (maxDepth - currentDepth);
+        historyScores[move.from][move.to] += 1 << (maxDepth - currentDepth);
       }
       break;
     }

@@ -39,6 +39,8 @@ export function BMV5(
   const epFile = enPassantSquare ? enPassantSquare % 8 : -1;
   const rootHash = computeHash(bitboards, player, epFile, castlingRights);
 
+  const searchStats = { nodes: 0 };
+
   rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {
     const { score, move } = minimax5(
@@ -51,7 +53,8 @@ export function BMV5(
       0,
       depth,
       -Infinity,
-      Infinity
+      Infinity,
+      searchStats
     );
 
     if (move !== null) {
@@ -70,5 +73,5 @@ export function BMV5(
     rootId++;
   }
 
-  return { ...bestMove, bestEval };
+  return { ...bestMove, bestEval, searchStats };
 }
