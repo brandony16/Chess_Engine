@@ -122,18 +122,18 @@ export const minimax3 = (
         100_000 +
         (WEIGHTS[move.captured % 6] || 0) -
         (WEIGHTS[move.piece % 6] || 0);
-    }
+    } else {
+      // 3) Killer moves at this ply
+      const [k0, k1] = killerMoves[currentDepth];
+      if (k0 && from === k0.from && to === k0.to) {
+        score += 90_000;
+      } else if (k1 && from === k1.from && to === k1.to) {
+        score += 80_000;
+      }
 
-    // 3) Killer moves at this ply
-    const [k0, k1] = killerMoves[currentDepth];
-    if (k0 && from === k0.from && to === k0.to) {
-      score += 90_000;
-    } else if (k1 && from === k1.from && to === k1.to) {
-      score += 80_000;
+      // 4) History heuristic
+      score += historyScores[from][to];
     }
-
-    // 4) History heuristic
-    score += historyScores[from][to];
 
     return { move, score };
   });

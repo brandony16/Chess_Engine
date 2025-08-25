@@ -87,12 +87,72 @@ const runSpeedSuite = (depth, engine) => {
 
 describe("engine speed test", () => {
   it("should run speed test", () => {
-    console.log("BMV2 Results: ");
-    runSpeedSuite(5, EngineTypes.BMV2);
-
     console.log("BMV3 Results: ");
     runSpeedSuite(5, EngineTypes.BMV3);
 
     expect(4).toBe(4); // So jest doesnt throw an error
   });
 });
+
+  //   Fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1, Time: 494.92ms, Nodes: 37085
+
+  //     at runSpeedSuite (src/__tests__/engineSpeed.test.mjs:82:33)
+
+  // console.log
+  //   Fen: r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1, Time: 1510.58ms, Nodes: 111979
+
+  //     at runSpeedSuite (src/__tests__/engineSpeed.test.mjs:82:33)
+
+  // console.log
+  //   Fen: 8/3k4/3ppn2/1p4p1/3P4/2N1PP2/1P2K3/8 w - - 0 1, Time: 50.75ms, Nodes: 7119
+
+  //     BMV3 Results: HISTORY ONLY
+
+  //     at Object.<anonymous> (src/__tests__/engineSpeed.test.mjs:90:33)
+
+  // console.log
+  //   Fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1, Time: 285.02ms, Nodes: 12612
+
+  //     at runSpeedSuite (src/__tests__/engineSpeed.test.mjs:82:33)
+
+  // console.log
+  //   Fen: r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1, Time: 910.79ms, Nodes: 57225
+
+  //     at runSpeedSuite (src/__tests__/engineSpeed.test.mjs:82:33)
+
+  // console.log
+  //   Fen: 8/3k4/3ppn2/1p4p1/3P4/2N1PP2/1P2K3/8 w - - 0 1, Time: 43.19ms, Nodes: 4379
+
+  //     BMV3 Results: KILLER ONLY
+
+  //     at Object.<anonymous> (src/__tests__/engineSpeed.test.mjs:90:33)
+
+  // console.log
+  //   Fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1, Time: 272.44ms, Nodes: 13312
+
+  //     at runSpeedSuite (src/__tests__/engineSpeed.test.mjs:82:33)
+
+  // console.log
+  //   Fen: r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1, Time: 880.50ms, Nodes: 57241
+
+  //     at runSpeedSuite (src/__tests__/engineSpeed.test.mjs:82:33)
+
+  // console.log
+  //   Fen: 8/3k4/3ppn2/1p4p1/3P4/2N1PP2/1P2K3/8 w - - 0 1, Time: 45.60ms, Nodes: 6040
+
+  //     BMV3 Results: BOTH HISTORY AND KILLER MOVES
+
+  //     at Object.<anonymous> (src/__tests__/engineSpeed.test.mjs:90:33)
+
+  // console.log
+  //   Fen: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1, Time: 260.79ms, Nodes: 13187
+
+  //     at runSpeedSuite (src/__tests__/engineSpeed.test.mjs:82:33)
+
+  // console.log
+  //   Fen: r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1, Time: 918.78ms, Nodes: 57166
+
+  //     at runSpeedSuite (src/__tests__/engineSpeed.test.mjs:82:33)
+
+  // console.log
+  //   Fen: 8/3k4/3ppn2/1p4p1/3P4/2N1PP2/1P2K3/8 w - - 0 1, Time: 45.95ms, Nodes: 5422

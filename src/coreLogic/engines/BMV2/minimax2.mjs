@@ -146,7 +146,7 @@ export const minimax2 = (
 
     const score = -moveEval;
     if (score > bestEval) {
-      bestEval = moveEval;
+      bestEval = score;
       bestMove = move;
     }
     if (score > alpha) {
