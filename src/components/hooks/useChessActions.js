@@ -15,7 +15,7 @@ import {
   pieceAt,
 } from "../../coreLogic/pieceGetters.mjs";
 import { getAllLegalMoves } from "../../coreLogic/moveGeneration/allMoveGeneration.mjs";
-import { isKing, isPawn } from "../../coreLogic/helpers/pieceUtils";
+import { isKing, isPawn } from "../../coreLogic/helpers/pieceUtils.mjs";
 
 /**
  * Custom hook for chess actions.

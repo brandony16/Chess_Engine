@@ -55,3 +55,26 @@ export function logAllBitboards(bitboards) {
     console.log(bigIntFullRep(bitboard));
   }
 }
+
+
+export const ENGINE_STATS = {
+  
+  // Transposition Table Stats
+  ttHits: 0,
+  ttExactHits: 0,
+  ttCutoffHits: 0,
+  ttMoveUsed: 0,
+  
+  // Killer Moves
+  killerHits: 0,
+  killerUpdates: 0,
+  
+  // History
+  historyHits: 0,
+  maxHistoryVal: 0,
+  historyUpdates: 0,
+  
+  // Misc
+  nodes: 0,
+  betaCuts: 0,
+}

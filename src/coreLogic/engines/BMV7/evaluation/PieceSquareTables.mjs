@@ -6,7 +6,7 @@
  * https://www.chessprogramming.org/Simplified_Evaluation_Function
  */
 
-import { isWhite } from "../../../helpers/pieceUtils";
+import { isWhite } from "../../../helpers/pieceUtils.mjs";
 import { blendWithPhase } from "./phase.mjs";
 
 export const MG_PAWN_TABLE = [

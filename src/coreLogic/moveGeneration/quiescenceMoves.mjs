@@ -8,7 +8,7 @@ import { getKingMovesForSquare } from "./majorPieceMoveGeneration.mjs";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic.mjs";
 import { getPlayerIndicies, indexArrays } from "../pieceIndicies.mjs";
 import { getPieceMoves } from "./allMoveGeneration.mjs";
-import { isKing, isKnight } from "../helpers/pieceUtils";
+import { isKing, isKnight } from "../helpers/pieceUtils.mjs";
 
 /**
  * Generates quiescence moves for a position. These are captures and promotions.

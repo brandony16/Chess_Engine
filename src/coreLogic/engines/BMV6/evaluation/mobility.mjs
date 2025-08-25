@@ -1,5 +1,5 @@
 import { popcount } from "../../../helpers/bbUtils.mjs";
-import { isKing, isPawn } from "../../../helpers/pieceUtils";
+import { isKing, isPawn } from "../../../helpers/pieceUtils.mjs";
 import {
   getAllPieces,
   getPlayerBoard,

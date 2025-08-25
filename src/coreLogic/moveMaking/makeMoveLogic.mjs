@@ -11,7 +11,7 @@ import { undoIndexArrayUpdate, updateIndexArrays } from "../pieceIndicies.mjs";
 import { updateAttackMasks } from "../PieceMasks/attackMask.mjs";
 import { makeCastleMove, unMakeCastleMove } from "./castleMoveLogic.mjs";
 import Move from "./move.mjs";
-import { isKing, isPawn } from "../helpers/pieceUtils";
+import { isKing, isPawn } from "../helpers/pieceUtils.mjs";
 
 /**
  * Makes a move. Directly alters the given bitboards.

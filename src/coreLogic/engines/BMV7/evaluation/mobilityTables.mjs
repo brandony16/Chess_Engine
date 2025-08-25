@@ -28,7 +28,7 @@ import {
   isPawn,
   isQueen,
   isRook,
-} from "../../../helpers/pieceUtils";
+} from "../../../helpers/pieceUtils.mjs";
 import { blendWithPhase, MAX_PHASE } from "./phase.mjs";
 
 // Knight has 0-8 moves

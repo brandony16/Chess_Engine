@@ -21,7 +21,7 @@ import { getPlayerIndicies, indexArrays } from "./pieceIndicies.mjs";
 import { bitboardsToFEN } from "./helpers/FENandUCIHelpers.mjs";
 import { bigIntFullRep } from "./debugFunctions.mjs";
 import { computeAllAttackMasks } from "./PieceMasks/individualAttackMasks.mjs";
-import { isKing, isKnight } from "./helpers/pieceUtils";
+import { isKing, isKnight } from "./helpers/pieceUtils.mjs";
 
 /**
  * Determines whether a given square is attacked by the opponent

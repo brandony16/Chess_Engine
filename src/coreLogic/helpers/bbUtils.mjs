@@ -1,4 +1,4 @@
-import { isKing, isKnight, isPawn } from "./pieceUtils";
+import { isKing, isKnight, isPawn } from "./pieceUtils.mjs";
 
 /**
  * A helper to determine whether a square is on a board

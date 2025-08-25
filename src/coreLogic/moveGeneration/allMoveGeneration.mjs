@@ -16,7 +16,7 @@ import {
   getMagicBishopMovesForSquare,
   getPawnMovesForSquare,
 } from "./minorPieceMoveGeneration.mjs";
-import { isKing, isKnight, isPawn } from "../helpers/pieceUtils";
+import { isKing, isKnight, isPawn } from "../helpers/pieceUtils.mjs";
 
 /**
  * Gets the moves for a specific piece. Returns a bitboard of the moves for that piece.

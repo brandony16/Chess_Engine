@@ -8,6 +8,7 @@ import { BLACK, MAX_PLY, WEIGHTS, WHITE } from "../../constants.mjs";
 import { rootId } from "./BondMonkeyV3.mjs";
 import { evaluate3 } from "./evaluation3.mjs";
 import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
+import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
@@ -29,7 +30,7 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  * @param {depth} maxDepth - the maximum depth of the search
  * @param {number} alpha - the alpha value for alpha-beta pruning
  * @param {number} beta - the beta value for alpha-beta pruning
- * @param {object} stats - an object for logging stats of the search.
+ * @param {ENGINE_STATS} stats - an object for logging stats of the search.
  *
  * @returns {{score: number, move: object}} evaluation of the move and the move
  */
@@ -83,7 +84,10 @@ export const minimax3 = (
   const ttEntry = getTT(key);
 
   if (ttEntry && ttEntry.depth >= remaining && ttEntry.rootId === rootId) {
+    stats.ttHits++;
+
     if (ttEntry.flag === TT_FLAG.EXACT) {
+      stats.ttExactHits++;
       return { score: ttEntry.value, move: ttEntry.bestMove };
     }
     if (ttEntry.flag === TT_FLAG.LOWER_BOUND) {
@@ -93,6 +97,7 @@ export const minimax3 = (
       beta = Math.min(beta, ttEntry.value);
     }
     if (alpha >= beta) {
+      stats.ttCutoffHits++;
       return { score: ttEntry.value, move: ttEntry.bestMove };
     }
   }
@@ -113,6 +118,7 @@ export const minimax3 = (
 
     // 1) Transposition-table move is highest priority
     if (ttMove && from === ttMove.from && to === ttMove.to) {
+      stats.ttMoveUsed++;
       score += 1_000_000;
     }
 
@@ -122,17 +128,25 @@ export const minimax3 = (
         100_000 +
         (WEIGHTS[move.captured % 6] || 0) -
         (WEIGHTS[move.piece % 6] || 0);
-    } else {
+    } else { // Quiet move
       // 3) Killer moves at this ply
       const [k0, k1] = killerMoves[currentDepth];
       if (k0 && from === k0.from && to === k0.to) {
         score += 90_000;
+        stats.killerHits++;
       } else if (k1 && from === k1.from && to === k1.to) {
         score += 80_000;
+        stats.killerHits++;
       }
 
       // 4) History heuristic
-      score += historyScores[from][to];
+      const historyValue = historyScores[from][to] || 0;
+      if (historyValue) {
+        stats.historyHits++;
+        score += historyValue;
+        if (historyValue > stats.maxHistoryVal)
+          stats.maxHistoryVal = historyValue;
+      }
     }
 
     return { move, score };
@@ -218,11 +232,14 @@ export const minimax3 = (
         ) {
           killer[1] = killer[0];
           killer[0] = move;
+          stats.killerUpdates++;
         }
 
         // Weights this move higher in history
         historyScores[move.from][move.to] += 1 << (maxDepth - currentDepth);
+        stats.historyUpdates++;
       }
+      stats.betaCuts++;
       break;
     }
   }

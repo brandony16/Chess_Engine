@@ -3,18 +3,18 @@ import fs from "fs";
 import {
   getBishopAttacksForSquare,
   getRookAttacksForSquare,
-} from "../src/Core Logic/moveGeneration/slidingPieceAttacks.mjs";
+} from "../src/coreLogic/moveGeneration/slidingPieceAttacks.mjs";
 import {
   bishopMasks,
   rookMasks,
-} from "../src/Core Logic/moveGeneration/magicBitboards/generateMasks.mjs";
+} from "../src/coreLogic/moveGeneration/magicBitboards/generateMasks.mjs";
 import {
   bishopMagics,
   bishopShifts,
   rookMagics,
   rookShifts,
-} from "../src/Core Logic/moveGeneration/magicBitboards/magicNumbers.mjs";
-import { generateBlockerSubsets } from "../src/Core Logic/bbUtils.mjs";
+} from "../src/coreLogic/moveGeneration/magicBitboards/magicNumbers.mjs";
+import { generateBlockerSubsets } from "../src/coreLogic/helpers/bbUtils.mjs";
 
 /*
   This script generates the magic bitboard attack tables for rooks and bishops and saves them to attackTables.mjs.
