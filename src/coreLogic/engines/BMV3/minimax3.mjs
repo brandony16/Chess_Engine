@@ -15,6 +15,7 @@ const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
 
 // historyScores[fromSquare][toSquare] = integer score
 const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
+const MAX_HISTORY_VALUE = 5_000;
 
 /**
  * V3: Adds transposition table, killer moves, and history heuristic for better move
@@ -124,11 +125,12 @@ export const minimax3 = (
 
     // 2) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
-      score +=
-        100_000 +
-        (WEIGHTS[move.captured % 6] || 0) -
-        (WEIGHTS[move.piece % 6] || 0);
-    } else { // Quiet move
+      const victimValue = WEIGHTS[move.captured % 6] || 0;
+      const attackerValue = WEIGHTS[move.piece % 6] || 0;
+      const diff = victimValue - attackerValue;
+      score += 100_000 + diff * 1000;
+    } else {
+      // Quiet move
       // 3) Killer moves at this ply
       const [k0, k1] = killerMoves[currentDepth];
       if (k0 && from === k0.from && to === k0.to) {
@@ -235,8 +237,14 @@ export const minimax3 = (
           stats.killerUpdates++;
         }
 
-        // Weights this move higher in history
-        historyScores[move.from][move.to] += 1 << (maxDepth - currentDepth);
+        // Update history heuristic
+        let newScore =
+          historyScores[move.from][move.to] + maxDepth - currentDepth;
+
+        // Cap value
+        if (newScore > MAX_HISTORY_VALUE) newScore = MAX_HISTORY_VALUE;
+        historyScores[move.from][move.to] = newScore;
+
         stats.historyUpdates++;
       }
       stats.betaCuts++;
