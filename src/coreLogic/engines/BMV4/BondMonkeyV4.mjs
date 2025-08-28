@@ -3,6 +3,7 @@ import { clearQTT, clearTT } from "../../transpositionTable.mjs";
 import { CHECKMATE_VALUE } from "../../constants.mjs";
 import { minimax4 } from "./minimax4.mjs";
 import { computeAllAttackMasks } from "../../PieceMasks/individualAttackMasks.mjs";
+import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
 // Root id for transposition table. Helps avoid stale entries
 export let rootId = 0;
@@ -40,7 +41,7 @@ export function BMV4(
   const epFile = enPassantSquare ? enPassantSquare % 8 : -1;
   const rootHash = computeHash(bitboards, player, epFile, castlingRights);
 
-  const searchStats = { nodes: 0 };
+  const searchStats = structuredClone(ENGINE_STATS);
 
   rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {

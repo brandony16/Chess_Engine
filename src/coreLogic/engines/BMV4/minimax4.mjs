@@ -9,12 +9,14 @@ import { rootId } from "./BondMonkeyV4.mjs";
 import { evaluate4, weights } from "./evaluation4.mjs";
 import { quiesce4 } from "./quiesce4.mjs";
 import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
+import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);
 
 // historyScores[fromSquare][toSquare] = integer score
 const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
+const MAX_HISTORY_VALUE = 5_000;
 
 /**
  * A minimax function that recursively finds the evaluation of the function.
@@ -30,7 +32,7 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  * @param {depth} maxDepth - the maximum depth of the search
  * @param {number} alpha - the alpha value for alpha-beta pruning
  * @param {number} beta - the beta value for alpha-beta pruning
- * @param {object} stats - an object for logging stats of the search.
+ * @param {ENGINE_STATS} stats - an object for logging stats of the search.
  *
  * @returns {{score: number, move: object}} evaluation of the move and the move
  */
@@ -92,7 +94,10 @@ export const minimax4 = (
   const ttEntry = getTT(key);
 
   if (ttEntry && ttEntry.depth >= remaining && ttEntry.rootId === rootId) {
+    stats.ttHits++;
+
     if (ttEntry.flag === TT_FLAG.EXACT) {
+      stats.ttExactHits++;
       return { score: ttEntry.value, move: ttEntry.bestMove };
     }
     if (ttEntry.flag === TT_FLAG.LOWER_BOUND) {
@@ -102,6 +107,7 @@ export const minimax4 = (
       beta = Math.min(beta, ttEntry.value);
     }
     if (alpha >= beta) {
+      stats.ttCutoffHits++;
       return { score: ttEntry.value, move: ttEntry.bestMove };
     }
   }
@@ -122,27 +128,37 @@ export const minimax4 = (
 
     // 1) Transposition-table move is highest priority
     if (ttMove && from === ttMove.from && to === ttMove.to) {
+      stats.ttMoveUsed++;
       score += 1_000_000;
     }
 
     // 2) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
-      score +=
-        100_000 +
-        (weights[move.captured % 6] || 0) -
-        (weights[move.piece % 6] || 0);
-    }
+      const victimValue = weights[move.captured % 6] || 0;
+      const attackerValue = weights[move.piece % 6] || 0;
+      const diff = victimValue - attackerValue;
+      score += 100_000 + diff * 1000;
+    } else {
+      // Quiet move
+      // 3) Killer moves at this ply
+      const [k0, k1] = killerMoves[currentDepth];
+      if (k0 && from === k0.from && to === k0.to) {
+        score += 90_000;
+        stats.killerHits++;
+      } else if (k1 && from === k1.from && to === k1.to) {
+        score += 80_000;
+        stats.killerHits++;
+      }
 
-    // 3) Killer moves at this ply
-    const [k0, k1] = killerMoves[currentDepth];
-    if (k0 && from === k0.from && to === k0.to) {
-      score += 90_000;
-    } else if (k1 && from === k1.from && to === k1.to) {
-      score += 80_000;
+      // 4) History heuristic
+      const historyValue = historyScores[from][to] || 0;
+      if (historyValue) {
+        stats.historyHits++;
+        score += historyValue;
+        if (historyValue > stats.maxHistoryVal)
+          stats.maxHistoryVal = historyValue;
+      }
     }
-
-    // 4) History heuristic
-    score += historyScores[from][to];
 
     return { move, score };
   });
@@ -229,11 +245,20 @@ export const minimax4 = (
         ) {
           killer[1] = killer[0];
           killer[0] = move;
+          stats.killerUpdates++;
         }
 
-        // Weights this move higher in history
-        historyScores[move.from][move.to] += 1 << (maxDepth - currentDepth);
+        // Update history heuristic
+        let newScore =
+          historyScores[move.from][move.to] + maxDepth - currentDepth;
+
+        // Cap value
+        if (newScore > MAX_HISTORY_VALUE) newScore = MAX_HISTORY_VALUE;
+        historyScores[move.from][move.to] = newScore;
+
+        stats.historyUpdates++;
       }
+      stats.betaCuts++;
       break;
     }
   }
