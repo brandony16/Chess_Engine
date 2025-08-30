@@ -89,5 +89,5 @@ const runSpeedSuite = (depth, engine) => {
   return times;
 };
 
-console.log("BMV4 Results: ");
+console.log("BMV3 Results: ");
 runSpeedSuite(8, EngineTypes.BMV4);

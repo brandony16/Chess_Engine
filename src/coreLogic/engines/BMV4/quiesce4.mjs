@@ -10,7 +10,7 @@ import { evaluate4, weights } from "./evaluation4.mjs";
 import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
 // Max depth that quiescence search can go to.
-const maxQDepth = 6;
+const maxQDepth = 4;
 
 /**
  * Performs a quiescence search, which calculates lines of captures. Only evaluates moves
@@ -94,7 +94,7 @@ export const quiesce4 = (
     }
     if (alpha >= beta) {
       stats.quiesceTtCutoffHits++;
-      return { score: ttEntry.value, move: null };
+      return { score: ttEntry.value, move: ttEntry.bestMove };
     }
   }
 
@@ -132,6 +132,7 @@ export const quiesce4 = (
   captures.sort((a, b) => b.score - a.score);
   const orderedCaptures = captures.map((m) => m.move);
 
+  let bestMove = null;
   for (const move of orderedCaptures) {
     const victimValue = weights[move.captured % 6] || 0;
     // if even winning the capture can’t push us above alpha, skip it:
@@ -189,6 +190,7 @@ export const quiesce4 = (
     }
     if (score > alpha) {
       alpha = score;
+      bestMove = move;
     }
 
     if (beta <= alpha) {
@@ -208,6 +210,7 @@ export const quiesce4 = (
     depth: remaining,
     flag: flag,
     isQuiescence: true,
+    bestMove,
   });
 
   return { score: alpha, move: null };
