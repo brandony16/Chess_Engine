@@ -7,15 +7,10 @@ import { makeMove, unMakeMove } from "../../moveMaking/makeMoveLogic.mjs";
 import { getQTT, setQTT, TT_FLAG } from "../../transpositionTable.mjs";
 import { updateHash } from "../../zobristHashing.mjs";
 import { evaluate6, weights } from "./evaluation/evaluation6.mjs";
+import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
 // Max depth that quiescence search can go to.
-const maxQDepth = 6;
-
-// killerMoves[ply] = [firstKillerMove, secondKillerMove]
-const killerMoves = Array.from({ length: maxQDepth }, () => [null, null]);
-
-// historyScores[fromSquare][toSquare] = integer score
-const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
+const maxQDepth = 4;
 
 /**
  * Performs a quiescence search, which calculates lines of captures. Only evaluates moves
@@ -30,7 +25,7 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
  * @param {Array<boolean>} castlingRights - the castling rights
  * @param {Map} prevPositions - a map of the previous positions
  * @param {bigint} prevHash - the hash of the current position before moves are simulated.
- * @param {object} stats - an object for logging stats of the search.
+ * @param {ENGINE_STATS} stats - an object for logging stats of the search.
  *
  * @returns {{ score: number, move: null }} - an object with the score and move number
  */
@@ -46,6 +41,9 @@ export const quiesce6 = (
   stats,
   depth = 0
 ) => {
+  // Increment node count
+  stats.quiesceNodes++;
+
   // Terminal check for if game is over
   const opponent = player === WHITE ? BLACK : WHITE;
   const gameOver = checkGameOver(
@@ -71,8 +69,10 @@ export const quiesce6 = (
 
   // Beta cutoff
   if (standPat >= beta) {
+    stats.quiesceBetaCuts++;
     return { score: beta, move: null };
   }
+
   const origAlpha = alpha;
   alpha = Math.max(alpha, standPat);
 
@@ -80,15 +80,21 @@ export const quiesce6 = (
   const ttEntry = getQTT(prevHash);
   const remaining = maxQDepth - depth;
   if (ttEntry && ttEntry.depth >= remaining && ttEntry.isQuiescence) {
+    stats.quiesceTtHits++;
+
     if (ttEntry.flag === TT_FLAG.EXACT) {
-      return { score: ttEntry.value, move: null };
-    } else if (ttEntry.flag === TT_FLAG.LOWER_BOUND && ttEntry.value > alpha) {
-      alpha = ttEntry.value;
-    } else if (ttEntry.flag === TT_FLAG.UPPER_BOUND && ttEntry.value < beta) {
-      beta = ttEntry.value;
+      stats.quiesceTtExactHits++;
+      return { score: ttEntry.value, move: ttEntry.bestMove };
+    }
+    if (ttEntry.flag === TT_FLAG.LOWER_BOUND) {
+      alpha = Math.max(alpha, ttEntry.value);
+    }
+    if (ttEntry.flag === TT_FLAG.UPPER_BOUND) {
+      beta = Math.min(beta, ttEntry.value);
     }
     if (alpha >= beta) {
-      return { score: ttEntry.value, move: null };
+      stats.quiesceTtCutoffHits++;
+      return { score: ttEntry.value, move: ttEntry.bestMove };
     }
   }
 
@@ -107,27 +113,17 @@ export const quiesce6 = (
 
     // 1) Transposition-table move is highest priority
     if (ttMove && from === ttMove.from && to === ttMove.to) {
+      stats.quiesceTtMoveUsed++;
       score += 1_000_000;
     }
 
-    // 2) MVV/LVA: victim value minus your piece value
+    // 2) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
-      score +=
-        100_000 +
-        (weights[move.captured % 6] || 0) -
-        (weights[move.piece % 6] || 0);
+      const victimValue = weights[move.captured % 6] || 0;
+      const attackerValue = weights[move.piece % 6] || 0;
+      const diff = victimValue - attackerValue;
+      score += 100_000 + diff * 1000;
     }
-
-    // 3) Killer moves at this ply
-    const [k0, k1] = killerMoves[depth];
-    if (k0 && from === k0.from && to === k0.to) {
-      score += 90_000;
-    } else if (k1 && from === k1.from && to === k1.to) {
-      score += 80_000;
-    }
-
-    // 4) History heuristic
-    score += historyScores[from][to];
 
     return { move, score };
   });
@@ -136,6 +132,7 @@ export const quiesce6 = (
   captures.sort((a, b) => b.score - a.score);
   const orderedCaptures = captures.map((m) => m.move);
 
+  let bestMove = null;
   for (const move of orderedCaptures) {
     const victimValue = weights[move.captured % 6] || 0;
     // if even winning the capture can’t push us above alpha, skip it:
@@ -193,24 +190,11 @@ export const quiesce6 = (
     }
     if (score > alpha) {
       alpha = score;
+      bestMove = move;
     }
 
     if (beta <= alpha) {
-      if (move.captured === null) {
-        const killer = killerMoves[depth];
-
-        if (
-          !killer[0] ||
-          move.from !== killer[0].from ||
-          move.to !== killer[0].to
-        ) {
-          killer[1] = killer[0];
-          killer[0] = move;
-        }
-
-        // Weights this move higher in history
-        historyScores[move.from][move.to] += 2 ^ remaining;
-      }
+      stats.quiesceBetaCuts++;
       break;
     }
   }
@@ -226,6 +210,7 @@ export const quiesce6 = (
     depth: remaining,
     flag: flag,
     isQuiescence: true,
+    bestMove,
   });
 
   return { score: alpha, move: null };

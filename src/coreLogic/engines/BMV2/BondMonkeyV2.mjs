@@ -1,7 +1,6 @@
 import { computeHash } from "../../zobristHashing.mjs";
 import { CHECKMATE_VALUE } from "../../constants.mjs";
 import { minimax2 } from "./minimax2.mjs";
-import { computeAllAttackMasks } from "../../PieceMasks/individualAttackMasks.mjs";
 
 /**
  * Gets the best move in a position based purely off of material.
@@ -36,8 +35,6 @@ export function BMV2(
   const searchStats = { nodes: 0 };
 
   for (let depth = 1; depth <= maxDepth; depth++) {
-    computeAllAttackMasks(bitboards);
-
     const { score, move } = minimax2(
       bitboards,
       player,

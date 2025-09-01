@@ -37,9 +37,9 @@ const runEngineSpeedTest = (fen, depth, engine) => {
   const castling = fenData.castling;
   const ep = fenData.ep;
 
+  initializePieceIndicies(bitboards);
   computeAllAttackMasks(bitboards);
   initializePieceAtArray(bitboards);
-  initializePieceIndicies(bitboards);
 
   const engineFn = engineRegistry[engine];
 
@@ -89,5 +89,4 @@ const runSpeedSuite = (depth, engine) => {
   return times;
 };
 
-console.log("BMV3 Results: ");
-runSpeedSuite(8, EngineTypes.BMV4);
+runSpeedSuite(6, EngineTypes.BMV5);

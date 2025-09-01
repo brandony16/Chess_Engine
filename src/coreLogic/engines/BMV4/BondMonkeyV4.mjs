@@ -2,7 +2,6 @@ import { computeHash } from "../../zobristHashing.mjs";
 import { clearQTT, clearTT } from "../../transpositionTable.mjs";
 import { CHECKMATE_VALUE } from "../../constants.mjs";
 import { minimax4 } from "./minimax4.mjs";
-import { computeAllAttackMasks } from "../../PieceMasks/individualAttackMasks.mjs";
 import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
 // Root id for transposition table. Helps avoid stale entries
@@ -45,8 +44,6 @@ export function BMV4(
 
   rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {
-    computeAllAttackMasks(bitboards);
-
     const { score, move } = minimax4(
       bitboards,
       player,
