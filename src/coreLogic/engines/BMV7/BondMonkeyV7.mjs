@@ -1,7 +1,7 @@
 import { computeHash } from "../../zobristHashing.mjs";
 import { clearQTT, clearTT } from "../../transpositionTable.mjs";
 import { CHECKMATE_VALUE } from "../../constants.mjs";
-import { minimax7 } from "./minimax7.mjs";
+import { minimax } from "./minimax.mjs";
 import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
 // Root id for transposition table. Helps avoid stale entries
@@ -9,7 +9,7 @@ export let rootId = 0;
 
 /**
  * Gets the best move in a position.
- * V6: Adds mobility calculation into evaluation usign pseudo-legal moves.
+ * V7: Improves Quiesce search with SEE.
  *
  * @param {BigUint64Array} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
@@ -44,7 +44,7 @@ export function BMV7(
 
   rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {
-    const { score, move } = minimax7(
+    const { score, move } = minimax(
       bitboards,
       player,
       castlingRights,

@@ -6,8 +6,8 @@ import { getNewEnPassant, isInCheck } from "../../bbChessLogic.mjs";
 import { getTT, setTT, TT_FLAG } from "../../transpositionTable.mjs";
 import { BLACK, MAX_PLY, WHITE } from "../../constants.mjs";
 import { rootId } from "./BondMonkeyV5.mjs";
-import { evaluate5, weights } from "./evaluation5.mjs";
-import { quiesce5 } from "./quiesce5.mjs";
+import { evaluate, weights } from "./evaluation.mjs";
+import { quiesce } from "./quiesce.mjs";
 import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
 import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
@@ -34,7 +34,7 @@ const MAX_HISTORY_VALUE = 5_000;
  *
  * @returns {{score: number, move: object}} evaluation of the move and the move
  */
-export const minimax5 = (
+export const minimax = (
   bitboards,
   player,
   castlingRights,
@@ -62,7 +62,7 @@ export const minimax5 = (
 
   if (gameOver.isGameOver) {
     return {
-      score: evaluate5(opponent, gameOver.result, currentDepth),
+      score: evaluate(opponent, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -70,7 +70,7 @@ export const minimax5 = (
   if (currentDepth >= maxDepth) {
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
-      const q = quiesce5(
+      const q = quiesce(
         bitboards,
         player,
         alpha,
@@ -203,7 +203,7 @@ export const minimax5 = (
     const oldCount = prevPositions.get(hash) || 0;
     prevPositions.set(hash, oldCount + 1);
 
-    const { score: moveEval } = minimax5(
+    const { score: moveEval } = minimax(
       bitboards,
       opponent,
       newCastling,

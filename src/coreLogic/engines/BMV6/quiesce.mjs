@@ -6,7 +6,7 @@ import { updateCastlingRights } from "../../moveMaking/castleMoveLogic.mjs";
 import { makeMove, unMakeMove } from "../../moveMaking/makeMoveLogic.mjs";
 import { getQTT, setQTT, TT_FLAG } from "../../transpositionTable.mjs";
 import { updateHash } from "../../zobristHashing.mjs";
-import { evaluate7, weights } from "./evaluation/evaluation7.mjs";
+import { evaluate, weights } from "./evaluation/evaluation.mjs";
 import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
 // Max depth that quiescence search can go to.
@@ -29,7 +29,7 @@ const maxQDepth = 4;
  *
  * @returns {{ score: number, move: null }} - an object with the score and move number
  */
-export const quiesce7 = (
+export const quiesce = (
   bitboards,
   player,
   alpha,
@@ -55,13 +55,13 @@ export const quiesce7 = (
   );
   if (gameOver.isGameOver) {
     return {
-      score: evaluate7(bitboards, opponent, gameOver.result, 0),
+      score: evaluate(bitboards, opponent, gameOver.result, 0),
       move: null,
     };
   }
 
   // Static evaluation of the position
-  const standPat = evaluate7(bitboards, player, null, 0);
+  const standPat = evaluate(bitboards, player, null, 0);
 
   if (depth + 1 > maxQDepth) {
     return { score: standPat, move: null };
@@ -167,7 +167,7 @@ export const quiesce7 = (
     const oldCount = prevPositions.get(newHash) || 0;
     prevPositions.set(newHash, oldCount + 1);
 
-    const { score: scoreAfterCapture } = quiesce7(
+    const { score: scoreAfterCapture } = quiesce(
       bitboards,
       opponent,
       -beta,

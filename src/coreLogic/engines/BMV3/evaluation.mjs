@@ -8,7 +8,7 @@ import { getAllIndicies } from "../../pieceIndicies.mjs";
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation
  */
-export const evaluate3 = (player, result, depth) => {
+export const evaluate = (player, result, depth) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
     if (result.includes("Checkmate")) {

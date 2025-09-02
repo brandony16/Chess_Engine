@@ -4,7 +4,7 @@ import { updateHash } from "../../zobristHashing.mjs";
 import { checkGameOver } from "../../gameOverLogic.mjs";
 import { getNewEnPassant, isInCheck } from "../../bbChessLogic.mjs";
 import { BLACK, WEIGHTS, WHITE } from "../../constants.mjs";
-import { evaluate2 } from "./evaluation2.mjs";
+import { evaluate } from "./evaluation.mjs";
 import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
 
 /**
@@ -25,7 +25,7 @@ import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
  *
  * @returns {{score: number, move: object}} evaluation of the move and the move
  */
-export const minimax2 = (
+export const minimax = (
   bitboards,
   player,
   castlingRights,
@@ -53,7 +53,7 @@ export const minimax2 = (
 
   if (gameOver.isGameOver) {
     return {
-      score: evaluate2(opponent, gameOver.result, currentDepth),
+      score: evaluate(opponent, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -62,7 +62,7 @@ export const minimax2 = (
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
       return {
-        score: evaluate2(player, gameOver.result, currentDepth),
+        score: evaluate(player, gameOver.result, currentDepth),
         move: null,
       };
     }
@@ -128,7 +128,7 @@ export const minimax2 = (
     );
     newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
-    const { score: moveEval } = minimax2(
+    const { score: moveEval } = minimax(
       bitboards,
       opponent,
       newCastling,

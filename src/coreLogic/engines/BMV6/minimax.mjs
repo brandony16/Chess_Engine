@@ -5,9 +5,9 @@ import { checkGameOver } from "../../gameOverLogic.mjs";
 import { getNewEnPassant, isInCheck } from "../../bbChessLogic.mjs";
 import { getTT, setTT, TT_FLAG } from "../../transpositionTable.mjs";
 import { BLACK, MAX_PLY, WHITE } from "../../constants.mjs";
-import { rootId } from "./BondMonkeyV7.mjs";
-import { evaluate7, weights } from "./evaluation/evaluation7.mjs";
-import { quiesce7 } from "./quiesce7.mjs";
+import { rootId } from "./BondMonkeyV6.mjs";
+import { evaluate, weights } from "./evaluation/evaluation.mjs";
+import { quiesce } from "./quiesce.mjs";
 import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
 import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
@@ -34,7 +34,8 @@ const MAX_HISTORY_VALUE = 5_000;
  *
  * @returns {{score: number, move: object}} evaluation of the move and the move
  */
-export const minimax7 = (
+
+export const minimax = (
   bitboards,
   player,
   castlingRights,
@@ -62,7 +63,7 @@ export const minimax7 = (
 
   if (gameOver.isGameOver) {
     return {
-      score: evaluate7(bitboards, opponent, gameOver.result, currentDepth),
+      score: evaluate(bitboards, opponent, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -70,7 +71,7 @@ export const minimax7 = (
   if (currentDepth >= maxDepth) {
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
-      const q = quiesce7(
+      const q = quiesce(
         bitboards,
         player,
         alpha,
@@ -109,7 +110,6 @@ export const minimax7 = (
       return { score: ttEntry.value, move: ttEntry.bestMove };
     }
   }
-
   const ttMove = ttEntry?.bestMove || null;
 
   // Gets the legal moves then assigns them scores based on the transposition table,
@@ -200,7 +200,7 @@ export const minimax7 = (
     const oldCount = prevPositions.get(hash) || 0;
     prevPositions.set(hash, oldCount + 1);
 
-    const { score: moveEval } = minimax7(
+    const { score: moveEval } = minimax(
       bitboards,
       opponent,
       newCastling,

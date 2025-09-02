@@ -89,4 +89,4 @@ const runSpeedSuite = (depth, engine) => {
   return times;
 };
 
-runSpeedSuite(6, EngineTypes.BMV5);
+runSpeedSuite(2, EngineTypes.BMV7);

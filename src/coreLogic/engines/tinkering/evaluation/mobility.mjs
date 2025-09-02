@@ -16,7 +16,7 @@ import { getMobility } from "./mobilityTables.mjs";
  * @param {0 | 1} player - whose mobility to calculate
  * @returns {number} - the mobility of the given player
  */
-export const calculateMobility = (bitboards, player) => {
+export const calculateMobility = (bitboards, player, phase) => {
   const pieceIndicies = getPlayerIndicies(player);
   const occupancy = getAllPieces(bitboards);
   const ownOccupancy = getPlayerBoard(player, bitboards);
@@ -33,7 +33,7 @@ export const calculateMobility = (bitboards, player) => {
     const pseudolegalMoves = attacks & ~ownOccupancy; // Mask out moves to own pieces
 
     const numMoves = popcount(pseudolegalMoves);
-    mobility += getMobility(piece, numMoves);
+    mobility += getMobility(piece, numMoves, phase);
   }
 
   return mobility;

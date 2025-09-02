@@ -29,27 +29,91 @@ import {
   isQueen,
   isRook,
 } from "../../../helpers/pieceUtils.mjs";
+import { blendWithPhase, MAX_PHASE } from "./phase.mjs";
 
-// Knight has at most 8 moves
-const KNIGHT_MOBILITY = [-75, -56, -9, -2, 6, 15, 22, 30, 36];
-
-// Bishop has at most 13 moves
-const BISHOP_MOBILITY = [
-  -48, -21, 16, 26, 37, 51, 54, 63, 65, 71, 79, 81, 92, 97,
+// Knight has 0-8 moves
+export const KNIGHT_MOBILITY = [
+  [-75, -76],
+  [-56, -54],
+  [-9, -26],
+  [-2, -10],
+  [6, 5],
+  [15, 11],
+  [22, 26],
+  [30, 28],
+  [36, 29],
 ];
 
-// Rook has at most 14 moves
-const ROOK_MOBILITY = [
-  -56, -25, -11, -5, -4, -1, 8, 14, 21, 23, 31, 32, 43, 49, 59,
+// Bishop has 0-13 moves
+export const BISHOP_MOBILITY = [
+  [-48, -58],
+  [-21, -19],
+  [16, -2],
+  [26, 12],
+  [37, 22],
+  [51, 42],
+  [54, 54],
+  [63, 58],
+  [65, 63],
+  [71, 70],
+  [79, 74],
+  [81, 86],
+  [92, 90],
+  [97, 94],
 ];
 
-// Queen has at most 27 moves (rook + bishop)
-const QUEEN_MOBILITY = [
-  -40, -25, 2, 4, 14, 24, 25, 40, 43, 47, 54, 56, 60, 70, 72, 73, 75, 77, 86,
-  94, 99, 108, 112, 113, 118, 119, 123, 128,
+// Rook has 0-14 moves
+export const ROOK_MOBILITY = [
+  [-56, -78],
+  [-25, -18],
+  [-11, 26],
+  [-5, 55],
+  [-4, 70],
+  [-1, 81],
+  [8, 109],
+  [14, 120],
+  [21, 128],
+  [23, 143],
+  [31, 154],
+  [32, 160],
+  [43, 165],
+  [49, 168],
+  [59, 169],
 ];
 
-export const getMobility = (piece, moves) => {
+// Queen has 0-27 moves (rook + bishop)
+export const QUEEN_MOBILITY = [
+  [-40, -35],
+  [-25, -12],
+  [2, 7],
+  [4, 19],
+  [14, 37],
+  [24, 55],
+  [25, 62],
+  [40, 76],
+  [43, 79],
+  [47, 87],
+  [54, 94],
+  [56, 102],
+  [60, 111],
+  [70, 116],
+  [72, 118],
+  [73, 122],
+  [75, 128],
+  [77, 130],
+  [85, 133],
+  [94, 136],
+  [99, 140],
+  [108, 157],
+  [112, 158],
+  [113, 161],
+  [118, 174],
+  [119, 177],
+  [123, 191],
+  [128, 199],
+];
+
+export const getMobilityValues = (piece, moves) => {
   switch (true) {
     case isKnight(piece):
       return KNIGHT_MOBILITY[moves];
@@ -64,4 +128,13 @@ export const getMobility = (piece, moves) => {
     default:
       throw new Error("Invalid piece: ", piece);
   }
+};
+
+export const getMobility = (piece, moves, phase = MAX_PHASE) => {
+  const mobilityValues = getMobilityValues(piece, moves);
+
+  const mgScore = mobilityValues[0];
+  const egScore = mobilityValues[1];
+
+  return blendWithPhase(mgScore, egScore, phase);
 };

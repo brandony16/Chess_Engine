@@ -6,7 +6,7 @@ import { updateCastlingRights } from "../../moveMaking/castleMoveLogic.mjs";
 import { makeMove, unMakeMove } from "../../moveMaking/makeMoveLogic.mjs";
 import { getQTT, setQTT, TT_FLAG } from "../../transpositionTable.mjs";
 import { updateHash } from "../../zobristHashing.mjs";
-import { evaluate4, weights } from "./evaluation4.mjs";
+import { evaluate, weights } from "./evaluation.mjs";
 import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
 // Max depth that quiescence search can go to.
@@ -14,9 +14,8 @@ const maxQDepth = 4;
 
 /**
  * Performs a quiescence search, which calculates lines of captures. Only evaluates moves
- * that are captures or promotions to increase tactical capabilities. Implements many of
- * the same features of the minimax search, such as transposition tables, and advanced move
- * sorting.
+ * that are captures or promotions to increase tactical capabilities. Uses negamax, a
+ * variation of minimax that serves the same purpose.
  *
  * @param {Bitboards} bitboards - the bitboards of the current position
  * @param {number} player - the player whose move it is (0 for w, 1 for b)
@@ -30,7 +29,7 @@ const maxQDepth = 4;
  *
  * @returns {{ score: number, move: null }} - an object with the score and move number
  */
-export const quiesce4 = (
+export const quiesce = (
   bitboards,
   player,
   alpha,
@@ -56,13 +55,13 @@ export const quiesce4 = (
   );
   if (gameOver.isGameOver) {
     return {
-      score: evaluate4(opponent, gameOver.result, 0),
+      score: evaluate(opponent, gameOver.result, 0),
       move: null,
     };
   }
 
   // Static evaluation of the position
-  const standPat = evaluate4(player, null, 0);
+  const standPat = evaluate(player, null, 0);
 
   if (depth + 1 > maxQDepth) {
     return { score: standPat, move: null };
@@ -77,6 +76,7 @@ export const quiesce4 = (
   const origAlpha = alpha;
   alpha = Math.max(alpha, standPat);
 
+  // Use transposition table values
   const ttEntry = getQTT(prevHash);
   const remaining = maxQDepth - depth;
   if (ttEntry && ttEntry.depth >= remaining && ttEntry.isQuiescence) {
@@ -99,7 +99,6 @@ export const quiesce4 = (
   }
 
   const ttMove = ttEntry?.bestMove || null;
-
   // Generates only capture and promotion moves
   const captures = getQuiescenceMoves(
     bitboards,
@@ -167,7 +166,7 @@ export const quiesce4 = (
     const oldCount = prevPositions.get(newHash) || 0;
     prevPositions.set(newHash, oldCount + 1);
 
-    const { score: scoreAfterCapture } = quiesce4(
+    const { score: scoreAfterCapture } = quiesce(
       bitboards,
       opponent,
       -beta,

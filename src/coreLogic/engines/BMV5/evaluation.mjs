@@ -1,16 +1,17 @@
 import { CHECKMATE_VALUE, WHITE } from "../../constants.mjs";
 import { pieceAt } from "../../pieceGetters.mjs";
 import { getAllIndicies } from "../../pieceIndicies.mjs";
+import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
 
 /**
- * Gets the evaluation of the given position. Determines the eval using pure material.
- * Weights are slightly tweaked to be better in this version.
+ * Gets the evaluation of the given position.
+ * V5: Adds piece sqaure tables (PSQT) for improved evaluation and positioning.
  *
  * @param {number} player - the opposite player. If black plays checkmate, this is white.
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation
  */
-export const evaluate4 = (player, result, depth) => {
+export const evaluate = (player, result, depth) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
     if (result.includes("Checkmate")) {
@@ -26,10 +27,11 @@ export const evaluate4 = (player, result, depth) => {
     const piece = pieceAt[square];
     const playerMultiplier = piece < 6 ? 1 : -1;
 
-    evaluation += playerMultiplier * weights[piece % 6];
+    evaluation +=
+      playerMultiplier *
+      (weights[piece % 6] + PIECE_SQUARE_TABLES[piece][square]);
   }
 
-  // Return eval relative to the player
   return player === WHITE ? evaluation : -evaluation;
 };
 

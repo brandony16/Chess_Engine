@@ -2,19 +2,20 @@ import { BLACK, CHECKMATE_VALUE, WHITE } from "../../../constants.mjs";
 import { pieceAt } from "../../../pieceGetters.mjs";
 import { getAllIndicies } from "../../../pieceIndicies.mjs";
 import { calculateMobility } from "./mobility.mjs";
-import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
+import { calculatePhase } from "./phase.mjs";
+import { getPSQTValue } from "./PieceSquareTables.mjs";
 
 /**
  * Gets the evaluation of the given position relative to the passed player.
  * Positive if winning, negative if losing.
  *
- * V6: Adds mobility
+ * V7: Adds phase scaling
  *
  * @param {number} player - the opposite player. If black plays checkmate, this is white.
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation
  */
-export const evaluate6 = (bitboards, player, result, depth) => {
+export const evaluate = (bitboards, player, result, depth) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
     if (result.includes("Checkmate")) {
@@ -26,29 +27,20 @@ export const evaluate6 = (bitboards, player, result, depth) => {
   // Build evaluation relative to white
   let evaluation = 0;
 
+  const phase = calculatePhase();
+
   const allIndicies = getAllIndicies();
   for (const square of allIndicies) {
     const piece = pieceAt[square];
     const playerMultiplier = piece < 6 ? 1 : -1;
 
-    try {
-      evaluation +=
-        playerMultiplier *
-        (weights[piece % 6] + PIECE_SQUARE_TABLES[piece][square]);
-    } catch (err) {
-      console.log(
-        piece,
-        square,
-        playerMultiplier,
-        weights[piece % 6],
-        PIECE_SQUARE_TABLES[piece][square]
-      );
-      throw err;
-    }
+    evaluation +=
+      playerMultiplier *
+      (weights[piece % 6] + getPSQTValue(piece, square, phase));
   }
 
-  const whiteMobility = calculateMobility(bitboards, WHITE);
-  const blackMobility = calculateMobility(bitboards, BLACK);
+  const whiteMobility = calculateMobility(bitboards, WHITE, phase);
+  const blackMobility = calculateMobility(bitboards, BLACK, phase);
   const mobilityDiff = whiteMobility - blackMobility;
 
   evaluation += mobilityDiff;

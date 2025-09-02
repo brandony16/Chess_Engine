@@ -4,10 +4,9 @@ import { updateHash } from "../../zobristHashing.mjs";
 import { checkGameOver } from "../../gameOverLogic.mjs";
 import { getNewEnPassant, isInCheck } from "../../bbChessLogic.mjs";
 import { getTT, setTT, TT_FLAG } from "../../transpositionTable.mjs";
-import { BLACK, MAX_PLY, WHITE } from "../../constants.mjs";
-import { rootId } from "./BondMonkeyV6.mjs";
-import { evaluate6, weights } from "./evaluation/evaluation6.mjs";
-import { quiesce6 } from "./quiesce6.mjs";
+import { BLACK, MAX_PLY, WEIGHTS, WHITE } from "../../constants.mjs";
+import { rootId } from "./BondMonkeyV3.mjs";
+import { evaluate } from "./evaluation.mjs";
 import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
 import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
@@ -19,9 +18,11 @@ const historyScores = Array.from({ length: 64 }, () => Array(64).fill(0));
 const MAX_HISTORY_VALUE = 5_000;
 
 /**
- * A minimax function that recursively finds the evaluation of the function.
+ * V3: Adds transposition table, killer moves, and history heuristic for better move
+ * sorting and less recalculation.
+ *
  * @param {Bitboards} bitboards - the bitboards of the current position
- * @param {0 | 1} player - the player whose move it is (0 for w, 1 for b)
+ * @param {number} player - the player whose move it is (0 for w, 1 for b)
  * @param {Array<boolean>} castlingRights - the castling rights
  * @param {number} enPassantSquare - the square where en passant is legal
  * @param {Map} prevPositions - a map of the previous positions
@@ -34,8 +35,7 @@ const MAX_HISTORY_VALUE = 5_000;
  *
  * @returns {{score: number, move: object}} evaluation of the move and the move
  */
-
-export const minimax6 = (
+export const minimax = (
   bitboards,
   player,
   castlingRights,
@@ -63,7 +63,7 @@ export const minimax6 = (
 
   if (gameOver.isGameOver) {
     return {
-      score: evaluate6(bitboards, opponent, gameOver.result, currentDepth),
+      score: evaluate(opponent, gameOver.result, currentDepth),
       move: null,
     };
   }
@@ -71,18 +71,10 @@ export const minimax6 = (
   if (currentDepth >= maxDepth) {
     // Extends search by one if player is in check
     if (!isInCheck(bitboards, player) || currentDepth !== maxDepth) {
-      const q = quiesce6(
-        bitboards,
-        player,
-        alpha,
-        beta,
-        enPassantSquare,
-        castlingRights,
-        prevPositions,
-        prevHash,
-        stats
-      );
-      return { score: q.score, move: null };
+      return {
+        score: evaluate(player, gameOver.result, currentDepth),
+        move: null,
+      };
     }
   }
 
@@ -110,6 +102,7 @@ export const minimax6 = (
       return { score: ttEntry.value, move: ttEntry.bestMove };
     }
   }
+
   const ttMove = ttEntry?.bestMove || null;
 
   // Gets the legal moves then assigns them scores based on the transposition table,
@@ -132,8 +125,8 @@ export const minimax6 = (
 
     // 2) Captures (MVV/LVA: victim value minus your piece value)
     if (move.captured) {
-      const victimValue = weights[move.captured % 6] || 0;
-      const attackerValue = weights[move.piece % 6] || 0;
+      const victimValue = WEIGHTS[move.captured % 6] || 0;
+      const attackerValue = WEIGHTS[move.piece % 6] || 0;
       const diff = victimValue - attackerValue;
       score += 100_000 + diff * 1000;
     } else {
@@ -161,7 +154,7 @@ export const minimax6 = (
     return { move, score };
   });
 
-  // If the game is over, it would have been caught by terminal check
+  // If the game is over, it would have been caught by gameOver check at beginning
   if (scored.length === 0) {
     throw new Error("Issue with move generation. No moves generated");
   }
@@ -181,15 +174,19 @@ export const minimax6 = (
     // New game states
     const newEnPassant = getNewEnPassant(move);
     const newCastling = updateCastlingRights(from, move.to, castlingRights);
+    const newPositions = new Map(prevPositions);
 
     // Update Hash
     const newEpFile = newEnPassant ? newEnPassant % 8 : -1;
     const prevEpFile = enPassantSquare ? enPassantSquare % 8 : -1;
     const castlingChanged = new Array(newCastling.length);
     for (let i = 0; i < newCastling.length; i++) {
-      castlingChanged[i] = castlingRights[i] !== newCastling[i];
+      if (castlingRights[i] !== newCastling[i]) {
+        castlingChanged[i] = true;
+      } else {
+        castlingChanged[i] = false;
+      }
     }
-
     const hash = updateHash(
       prevHash,
       move,
@@ -197,15 +194,14 @@ export const minimax6 = (
       prevEpFile,
       castlingChanged
     );
-    const oldCount = prevPositions.get(hash) || 0;
-    prevPositions.set(hash, oldCount + 1);
+    newPositions.set(hash, (newPositions.get(hash) || 0) + 1);
 
-    const { score: moveEval } = minimax6(
+    const { score: moveEval } = minimax(
       bitboards,
       opponent,
       newCastling,
       newEnPassant,
-      prevPositions,
+      newPositions,
       hash,
       currentDepth + 1,
       maxDepth,
@@ -215,16 +211,13 @@ export const minimax6 = (
     );
 
     unMakeMove(move, bitboards);
-    if (oldCount) prevPositions.set(hash, oldCount);
-    else prevPositions.delete(hash);
 
-    // Invert moveEval to get eval from this players perspective
+    // Negate eval to get it from this players perspective
     const score = -moveEval;
     if (score > bestEval) {
       bestEval = score;
       bestMove = move;
     }
-
     if (score > alpha) {
       alpha = score;
     }
@@ -261,16 +254,15 @@ export const minimax6 = (
 
   // Update transposition table
   let flag = TT_FLAG.EXACT;
-  const storedEval = bestEval;
-  if (storedEval <= origAlpha) {
+  if (bestEval <= origAlpha) {
     flag = TT_FLAG.UPPER_BOUND;
-  } else if (storedEval >= beta) {
+  } else if (bestEval >= beta) {
     flag = TT_FLAG.LOWER_BOUND;
   }
   setTT(key, {
     rootId: rootId,
     depth: maxDepth - currentDepth,
-    value: storedEval,
+    value: bestEval,
     flag,
     bestMove,
   });

@@ -1,6 +1,7 @@
 import { computeHash } from "../../zobristHashing.mjs";
 import { CHECKMATE_VALUE } from "../../constants.mjs";
-import { minimax2 } from "./minimax2.mjs";
+import { minimax } from "./minimax.mjs";
+import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
 /**
  * Gets the best move in a position based purely off of material.
@@ -32,10 +33,10 @@ export function BMV2(
   const epFile = enPassantSquare ? enPassantSquare % 8 : -1;
   const rootHash = computeHash(bitboards, player, epFile, castlingRights);
 
-  const searchStats = { nodes: 0 };
+  const searchStats = structuredClone(ENGINE_STATS);
 
   for (let depth = 1; depth <= maxDepth; depth++) {
-    const { score, move } = minimax2(
+    const { score, move } = minimax(
       bitboards,
       player,
       castlingRights,

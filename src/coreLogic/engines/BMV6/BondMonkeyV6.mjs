@@ -1,7 +1,7 @@
 import { computeHash } from "../../zobristHashing.mjs";
 import { clearQTT, clearTT } from "../../transpositionTable.mjs";
 import { CHECKMATE_VALUE } from "../../constants.mjs";
-import { minimax6 } from "./minimax6.mjs";
+import { minimax } from "./minimax.mjs";
 import { ENGINE_STATS } from "../../debugFunctions.mjs";
 
 // Root id for transposition table. Helps avoid stale entries
@@ -44,7 +44,7 @@ export function BMV6(
 
   rootId = 0;
   for (let depth = 1; depth <= maxDepth; depth++) {
-    const { score, move } = minimax6(
+    const { score, move } = minimax(
       bitboards,
       player,
       castlingRights,

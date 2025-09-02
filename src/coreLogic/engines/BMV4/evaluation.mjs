@@ -1,14 +1,16 @@
-import { CHECKMATE_VALUE, WEIGHTS, WHITE } from "../../constants.mjs";
+import { CHECKMATE_VALUE, WHITE } from "../../constants.mjs";
 import { pieceAt } from "../../pieceGetters.mjs";
 import { getAllIndicies } from "../../pieceIndicies.mjs";
 
 /**
- * Gets the evaluation of the given position based purely off of the material in the position.
+ * Gets the evaluation of the given position. Determines the eval using pure material.
+ * Weights are slightly tweaked to be better in this version.
+ *
  * @param {number} player - the opposite player. If black plays checkmate, this is white.
  * @param {string} result - the game over result of the position. Null if game is not over
  * @returns {number} The evaluation
  */
-export const evaluate2 = (player, result, depth) => {
+export const evaluate = (player, result, depth) => {
   // Needs to be a big number but not infinity because then it wont update the move
   if (result) {
     if (result.includes("Checkmate")) {
@@ -22,7 +24,15 @@ export const evaluate2 = (player, result, depth) => {
   const allIndicies = getAllIndicies();
   for (const square of allIndicies) {
     const piece = pieceAt[square];
-    evaluation += WEIGHTS[piece];
+    const playerMultiplier = piece < 6 ? 1 : -1;
+
+    evaluation += playerMultiplier * weights[piece % 6];
   }
+
+  // Return eval relative to the player
   return player === WHITE ? evaluation : -evaluation;
 };
+
+// Weights from Chess Programming Wiki Simplified Evaluation Function Page.
+// https://www.chessprogramming.org/Simplified_Evaluation_Function
+export const weights = [100, 320, 330, 500, 900, 20_000];

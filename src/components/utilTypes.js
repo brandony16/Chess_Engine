@@ -45,7 +45,7 @@ export const EngineObjects = {
   BMV4: { name: "BondMonkey V4", description: "Calculates tactics better" },
   BMV5: { name: "BondMonkey V5", description: "Better Evaluation" },
   BMV6: { name: "BondMonkey V6", description: "Values mobility more" },
-  BMV7: { name: "BondMonkey V7", description: "Takes into account game phase" },
+  BMV7: { name: "BondMonkey V7", description: "Better exchange searching" },
 };
 
 export const nameToType = {
