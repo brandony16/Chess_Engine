@@ -76,4 +76,84 @@ describe("getLeastValuableBit", () => {
     expect(lvb1).toBe(exp1);
     expect(lvb2).toBe(exp2);
   });
+
+  it("should be a bishop bit when that is the lvb", () => {
+    const fen = "8/2qkr1b1/8/4P3/8/2B1R1Q1/4K3/8 w - - 1 1";
+    const fenData = getFENData(fen);
+    const bitboards = fenData.bitboards;
+
+    initializePieceIndicies(bitboards);
+    computeAllAttackMasks(bitboards);
+    initializePieceAtArray(bitboards);
+    const occ = getAllPieces(bitboards);
+
+    const toSq1 = 36; // e5 - attacked by bishop queen and rook on both sides
+    const attadef1 = attacksTo(bitboards, occ, toSq1);
+    const lvb1 = getLeastValuableBit(bitboards, attadef1, WHITE);
+    const exp1 = 1n << 18n; // White bishop
+    const lvb2 = getLeastValuableBit(bitboards, attadef1, BLACK);
+    const exp2 = 1n << 54n; // Black bishop
+    expect(lvb1).toBe(exp1);
+    expect(lvb2).toBe(exp2);
+  });
+
+  it("should be a rook bit when that is the lvb", () => {
+    const fen = "8/2q5/4k3/2r1P3/3K4/4R1Q1/8/8 w - - 1 1";
+    const fenData = getFENData(fen);
+    const bitboards = fenData.bitboards;
+
+    initializePieceIndicies(bitboards);
+    computeAllAttackMasks(bitboards);
+    initializePieceAtArray(bitboards);
+    const occ = getAllPieces(bitboards);
+
+    const toSq1 = 36; // e5 - attacked by queen, king, and rook on both sides
+    const attadef1 = attacksTo(bitboards, occ, toSq1);
+    const lvb1 = getLeastValuableBit(bitboards, attadef1, WHITE);
+    const exp1 = 1n << 20n; // White rook
+    const lvb2 = getLeastValuableBit(bitboards, attadef1, BLACK);
+    const exp2 = 1n << 34n; // Black rook
+    expect(lvb1).toBe(exp1);
+    expect(lvb2).toBe(exp2);
+  });
+
+  it("should be a queen bit when that is the lvb", () => {
+    const fen = "8/2q5/4k3/4P3/3K4/6Q1/8/8 w - - 1 1";
+    const fenData = getFENData(fen);
+    const bitboards = fenData.bitboards;
+
+    initializePieceIndicies(bitboards);
+    computeAllAttackMasks(bitboards);
+    initializePieceAtArray(bitboards);
+    const occ = getAllPieces(bitboards);
+
+    const toSq1 = 36; // e5 - attacked by queen and king on both sides
+    const attadef1 = attacksTo(bitboards, occ, toSq1);
+    const lvb1 = getLeastValuableBit(bitboards, attadef1, WHITE);
+    const exp1 = 1n << 22n; // White queen
+    const lvb2 = getLeastValuableBit(bitboards, attadef1, BLACK);
+    const exp2 = 1n << 50n; // Black queen
+    expect(lvb1).toBe(exp1);
+    expect(lvb2).toBe(exp2);
+  });
+
+  it("should be a king bit when that is the lvb", () => {
+    const fen = "8/8/4k3/4P3/3K4/8/8/8 w - - 1 1";
+    const fenData = getFENData(fen);
+    const bitboards = fenData.bitboards;
+
+    initializePieceIndicies(bitboards);
+    computeAllAttackMasks(bitboards);
+    initializePieceAtArray(bitboards);
+    const occ = getAllPieces(bitboards);
+
+    const toSq1 = 36; // e5 - attacked by king on both sides
+    const attadef1 = attacksTo(bitboards, occ, toSq1);
+    const lvb1 = getLeastValuableBit(bitboards, attadef1, WHITE);
+    const exp1 = 1n << 27n; // White king
+    const lvb2 = getLeastValuableBit(bitboards, attadef1, BLACK);
+    const exp2 = 1n << 44n; // Black king
+    expect(lvb1).toBe(exp1);
+    expect(lvb2).toBe(exp2);
+  });
 });
