@@ -8,6 +8,7 @@ import { getQTT, setQTT, TT_FLAG } from "../../transpositionTable.mjs";
 import { updateHash } from "../../zobristHashing.mjs";
 import { evaluate, weights } from "./evaluation/evaluation.mjs";
 import { ENGINE_STATS } from "../../debugFunctions.mjs";
+import { SEE } from "./SEE.mjs";
 
 // Max depth that quiescence search can go to.
 const maxQDepth = 4;
@@ -134,9 +135,8 @@ export const quiesce = (
 
   let bestMove = null;
   for (const move of orderedCaptures) {
-    const victimValue = weights[move.captured % 6] || 0;
-    // if even winning the capture can’t push us above alpha, skip it:
-    if (standPat + victimValue <= alpha) continue;
+    const staticExchangeEval = SEE(bitboards, move.captured, move.from, move.to, move.piece, player);
+    if (staticExchangeEval < 0) continue; // Capture is losing so skip it
 
     makeMove(bitboards, move);
 

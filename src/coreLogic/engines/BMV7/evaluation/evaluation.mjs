@@ -40,8 +40,6 @@ export const evaluate = (bitboards, player, result, depth) => {
         piece,
         square,
         playerMultiplier,
-        weights[piece % 6],
-        PIECE_SQUARE_TABLES[piece][square]
       );
       throw err;
     }
