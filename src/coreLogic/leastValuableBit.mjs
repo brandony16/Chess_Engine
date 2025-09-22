@@ -19,7 +19,7 @@ import {
  * @returns {bigint} - a bitboard with one bit set, the lvb
  */
 export function getLeastValuableBit(bitboards, bb, side) {
-  const playerBoard = getPlayerBoard(side, bitboards);
+  const playerBoard = getPlayerBoard(side, bitboards);  
   const playerAttackers = bb & playerBoard;
   if (!playerAttackers) return 0n;
 
