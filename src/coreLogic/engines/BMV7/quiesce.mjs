@@ -9,9 +9,10 @@ import { updateHash } from "../../zobristHashing.mjs";
 import { evaluate, weights } from "./evaluation/evaluation.mjs";
 import { ENGINE_STATS } from "../../debugFunctions.mjs";
 import { SEE } from "./SEE.mjs";
+import { bitboardsToFEN } from "../../helpers/FENandUCIHelpers.mjs";
 
 // Max depth that quiescence search can go to.
-const maxQDepth = 4;
+const maxQDepth = 1;
 
 /**
  * Performs a quiescence search, which calculates lines of captures. Only evaluates moves
@@ -135,8 +136,24 @@ export const quiesce = (
 
   let bestMove = null;
   for (const move of orderedCaptures) {
-    const staticExchangeEval = SEE(bitboards, move.captured, move.from, move.to, move.piece, player);
-    if (staticExchangeEval < 0) continue; // Capture is losing so skip it
+    const staticExchangeEval = SEE(
+      bitboards,
+      move.captured,
+      move.from,
+      move.to,
+      move.piece,
+      player
+    );
+    if (staticExchangeEval < 0) {
+      console.log(
+        "Skipping",
+        move,
+        "SEE=",
+        staticExchangeEval,
+        bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare)
+      );
+      continue;
+    } // Capture is losing so skip it
 
     makeMove(bitboards, move);
 

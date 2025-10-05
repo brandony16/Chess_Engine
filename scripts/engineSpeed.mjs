@@ -83,10 +83,12 @@ const runSpeedSuite = (depth, engine) => {
     for (const key of Object.keys(stats)) {
       console.log(`${key}: ${stats[key]}`);
     }
+    const totalNodes = stats.nodes + stats.quiesceNodes;
+    console.log(`Nodes/sec: ${(totalNodes / time * 1000).toFixed(2)}`)
     console.log("\n");
   }
 
   return times;
 };
 
-runSpeedSuite(7, EngineTypes.BMV7);
+runSpeedSuite(7, EngineTypes.BMV6);
