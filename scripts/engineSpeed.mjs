@@ -3,7 +3,6 @@ import { BMV3 } from "../src/coreLogic/engines/BMV3/BondMonkeyV3.mjs";
 import { BMV4 } from "../src/coreLogic/engines/BMV4/BondMonkeyV4.mjs";
 import { BMV5 } from "../src/coreLogic/engines/BMV5/BondMonkeyV5.mjs";
 import { BMV6 } from "../src/coreLogic/engines/BMV6/BondMonkeyV6.mjs";
-import { BMV7 } from "../src/coreLogic/engines/BMV7/BondMonkeyV7.mjs";
 import { BMV1 } from "../src/coreLogic/engines/BondMonkeyV1.mjs";
 import { getFENData } from "../src/coreLogic/helpers/FENandUCIHelpers.mjs";
 import { initializePieceAtArray } from "../src/coreLogic/pieceGetters.mjs";
@@ -17,7 +16,6 @@ const EngineTypes = Object.freeze({
   BMV4: "BMV4",
   BMV5: "BMV5",
   BMV6: "BMV6",
-  BMV7: "BMV7",
 });
 
 const engineRegistry = {
@@ -27,7 +25,6 @@ const engineRegistry = {
   [EngineTypes.BMV4]: BMV4,
   [EngineTypes.BMV5]: BMV5,
   [EngineTypes.BMV6]: BMV6,
-  [EngineTypes.BMV7]: BMV7,
 };
 
 const runEngineSpeedTest = (fen, depth, engine) => {
@@ -84,11 +81,11 @@ const runSpeedSuite = (depth, engine) => {
       console.log(`${key}: ${stats[key]}`);
     }
     const totalNodes = stats.nodes + stats.quiesceNodes;
-    console.log(`Nodes/sec: ${(totalNodes / time * 1000).toFixed(2)}`)
+    console.log(`Nodes/sec: ${((totalNodes / time) * 1000).toFixed(2)}`);
     console.log("\n");
   }
 
   return times;
 };
 
-runSpeedSuite(7, EngineTypes.BMV6);
+runSpeedSuite(6, EngineTypes.BMV6);
