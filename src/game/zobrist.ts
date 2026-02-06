@@ -1,10 +1,11 @@
-import { NUM_PIECES } from "./chessConstants.js";
+import { NUM_PIECES } from "./chessConstants.ts";
+
 
 /**
  * Generates a random 64 bit integer
  * @returns {bigint} - a random bigint
  */
-function rand64() {
+function rand64(): bigint {
   // Create two 32-bit random integers
   const high = Math.floor(Math.random() * 0x100000000);
   const low = Math.floor(Math.random() * 0x100000000);
@@ -31,15 +32,15 @@ for (let p = 0; p < NUM_PIECES; p++) {
 /**
  * Create En Passant keys for hashing. One for each file
  */
-export const EN_PASSANT_ZOBRIST = Array.from(
+export const EN_PASSANT_ZOBRIST: readonly bigint[] = Array.from(
   { length: 8 },
-  () => rand64()
+  () => rand64(),
 );
 
 // 16 possible castling-rights bitmasks (0–15)
-export const CASTLING_ZOBRIST = Array.from(
+export const CASTLING_ZOBRIST: readonly bigint[] = Array.from(
   { length: 16 },
-  () => rand64()
+  () => rand64(),
 );
 
 /**

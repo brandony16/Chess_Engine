@@ -8,12 +8,12 @@ import { checkGameOver } from "../../coreLogic/gameOverLogic.mjs";
 import { computeHash } from "../../coreLogic/zobristHashing.mjs";
 import { getNewEnPassant } from "../../coreLogic/bbChessLogic.mjs";
 import { makeMove } from "../../coreLogic/moveMaking/makeMoveLogic.mjs";
-import Move from "../../coreLogic/moveMaking/move.mjs";
+import Move from "../../game/moveMaking/move.ts";
 import { BLACK_PAWN, WHITE_PAWN } from "../../coreLogic/constants.mjs";
 import {
   isPlayersPieceAtSquare,
   pieceAt,
-} from "../../coreLogic/pieceGetters.mjs";
+} from "../../game/pieceUtils/pieceGetters.ts";
 import { getAllLegalMoves } from "../../coreLogic/moveGeneration/allMoveGeneration.mjs";
 import { isKing, isPawn } from "../../coreLogic/helpers/pieceUtils.mjs";
 

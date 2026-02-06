@@ -9,7 +9,7 @@ import {
   getKnights,
   getQueens,
   getRooks,
-} from "../pieceGetters.mjs";
+} from "../../game/pieceUtils/pieceGetters.ts";
 import { kingMasks } from "./kingMask.mjs";
 import { knightMasks } from "./knightMask.mjs";
 import { blackPawnMasks, whitePawnMasks } from "./pawnMask.mjs";

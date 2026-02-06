@@ -1,5 +1,5 @@
 import { blackPawnMasks, whitePawnMasks } from "../PieceMasks/pawnMask.mjs";
-import { getAllPieces } from "../pieceGetters.mjs";
+import { getAllPieces } from "../../game/pieceUtils/pieceGetters.ts";
 import * as C from "../constants.mjs";
 import { knightMasks } from "../PieceMasks/knightMask.mjs";
 import { slide } from "../helpers/generalHelpers.mjs";

@@ -4,7 +4,7 @@ import { getLeastValuableBit } from "../coreLogic/leastValuableBit.mjs";
 import {
   getAllPieces,
   initializePieceAtArray,
-} from "../coreLogic/pieceGetters.mjs";
+} from "../game/pieceUtils/pieceGetters.ts";
 import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
 import { attacksTo } from "../coreLogic/PieceMasks/attacksTo.mjs";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";

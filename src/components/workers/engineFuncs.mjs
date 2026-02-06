@@ -7,8 +7,8 @@ import {
 import { checkGameOver } from "../../coreLogic/gameOverLogic.mjs";
 import { moveToReadable } from "../../coreLogic/helpers/generalHelpers.mjs";
 import { makeMove } from "../../coreLogic/moveMaking/makeMoveLogic.mjs";
-import Move from "../../coreLogic/moveMaking/move.mjs";
-import { pieceAt } from "../../coreLogic/pieceGetters.mjs";
+import Move from "../../game/moveMaking/move.ts";
+import { pieceAt } from "../../game/pieceUtils/pieceGetters.ts";
 import { computeHash } from "../../coreLogic/zobristHashing.mjs";
 import { useGameStore } from "../gameStore.mjs";
 import { engineRegistry } from "./engineRegistry.mjs";

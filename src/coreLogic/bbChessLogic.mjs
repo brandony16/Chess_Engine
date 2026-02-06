@@ -1,5 +1,5 @@
 import { bitScanForward, popcount } from "./helpers/bbUtils.mjs";
-import { getAllPieces, pieceAt } from "./pieceGetters.mjs";
+import { getAllPieces, pieceAt } from "../game/pieceUtils/pieceGetters.ts";
 import { getPieceMoves } from "./moveGeneration/allMoveGeneration.mjs";
 import {
   BLACK,

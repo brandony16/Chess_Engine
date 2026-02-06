@@ -12,7 +12,7 @@ import {
   WHITE_QUEENSIDE,
 } from "../constants.mjs";
 import { getAllLegalMoves } from "../moveGeneration/allMoveGeneration.mjs";
-import { pieceAt } from "../pieceGetters.mjs";
+import { pieceAt } from "../../game/pieceUtils/pieceGetters.ts";
 
 /**
  * Converts bitboards to a FEN string

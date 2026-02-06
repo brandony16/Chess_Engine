@@ -1,4 +1,4 @@
-import { getPlayerBoard, pieceAt } from "../pieceGetters.mjs";
+import { getPlayerBoard, pieceAt } from "../../game/pieceUtils/pieceGetters.ts";
 import { getAttackMask } from "../PieceMasks/attackMask.mjs";
 import * as C from "../constants.mjs";
 import { computePinned, makePinRayMaskGenerator } from "./computePinned.mjs";

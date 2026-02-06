@@ -6,7 +6,7 @@ import {
   WHITE,
 } from "../constants.mjs";
 import { getAllLegalMoves } from "../moveGeneration/allMoveGeneration.mjs";
-import { pieceAt } from "../pieceGetters.mjs";
+import { pieceAt } from "../../game/pieceUtils/pieceGetters.ts";
 
 /**
  * Slides a specified direction until it hits a piece.

@@ -1,5 +1,5 @@
 import { BLACK, CHECKMATE_VALUE, WHITE } from "../../../constants.mjs";
-import { pieceAt } from "../../../pieceGetters.mjs";
+import { pieceAt } from "../../../../game/pieceUtils/pieceGetters.ts";
 import { getAllIndicies } from "../../../pieceIndicies.mjs";
 import { calculateMobility } from "./mobility.mjs";
 import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";

@@ -2,7 +2,7 @@ import React, { useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 
 import { BLACK, PIECE_SYMBOLS, WHITE } from "../../coreLogic/constants.mjs";
-import { getPieceAtSquare } from "../../coreLogic/pieceGetters.mjs";
+import { getPieceAtSquare } from "../../game/pieceUtils/pieceGetters.ts";
 import { useGameStore } from "../gameStore.mjs";
 import Cell from "./Cell";
 

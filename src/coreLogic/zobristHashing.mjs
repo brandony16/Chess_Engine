@@ -6,7 +6,7 @@ import {
   WHITE_ROOK,
 } from "./constants.mjs";
 import { getAllIndicies } from "./pieceIndicies.mjs";
-import { pieceAt } from "./pieceGetters.mjs";
+import { pieceAt } from "../game/pieceUtils/pieceGetters.ts";
 
 /**
  * Generates a random 64 bit integer

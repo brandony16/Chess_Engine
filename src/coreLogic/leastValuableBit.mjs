@@ -6,7 +6,7 @@ import {
   getPlayerBoard,
   getQueens,
   getRooks,
-} from "./pieceGetters.mjs";
+} from "../game/pieceUtils/pieceGetters.ts";
 
 /**
  * Gets the least valuable bit from a bitboard based off of material value.

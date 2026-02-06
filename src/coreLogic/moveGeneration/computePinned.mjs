@@ -4,7 +4,7 @@ import {
   getDiagAttackersBitboard,
   getOrthAttackersBitboard,
   getPlayerBoard,
-} from "../pieceGetters.mjs";
+} from "../../game/pieceUtils/pieceGetters.ts";
 import { BETWEEN } from "./checkersMask.mjs";
 import {
   bishopAttacks,

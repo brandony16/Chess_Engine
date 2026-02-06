@@ -10,7 +10,7 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../constants.mjs";
-import { getAllPieces } from "../pieceGetters.mjs";
+import { getAllPieces } from "../../game/pieceUtils/pieceGetters.ts";
 import {
   computeMaskForPiece,
   individualAttackMasks,

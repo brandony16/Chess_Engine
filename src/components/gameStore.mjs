@@ -9,7 +9,7 @@ import {
 import { updateCastlingRights } from "../coreLogic/moveMaking/castleMoveLogic.mjs";
 import { getNewEnPassant } from "../coreLogic/bbChessLogic.mjs";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
-import { initializePieceAtArray } from "../coreLogic/pieceGetters.mjs";
+import { initializePieceAtArray } from "../game/pieceUtils/pieceGetters.ts";
 import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
 import { EngineTypes, ModalTypes } from "./utilTypes";
 

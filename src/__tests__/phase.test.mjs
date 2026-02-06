@@ -4,7 +4,7 @@ import {
 } from "../coreLogic/engines/BMV7/evaluation/phase";
 import { blendWithPhase } from "../coreLogic/engines/BMV7/evaluation/phase.mjs";
 import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
-import { initializePieceAtArray } from "../coreLogic/pieceGetters.mjs";
+import { initializePieceAtArray } from "../game/pieceUtils/pieceGetters.ts";
 import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
 

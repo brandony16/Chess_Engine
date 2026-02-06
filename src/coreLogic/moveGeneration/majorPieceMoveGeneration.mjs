@@ -22,7 +22,7 @@ import {
   isKingsideCastleLegal,
   isQueensideCastleLegal,
 } from "../moveMaking/castleMoveLogic.mjs";
-import { getAllPieces, getPlayerBoard } from "../pieceGetters.mjs";
+import { getAllPieces, getPlayerBoard } from "../../game/pieceUtils/pieceGetters.ts";
 import { kingMasks } from "../PieceMasks/kingMask.mjs";
 import {
   bishopAttacks,

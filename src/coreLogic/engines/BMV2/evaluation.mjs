@@ -1,5 +1,5 @@
 import { CHECKMATE_VALUE, WEIGHTS, WHITE } from "../../constants.mjs";
-import { pieceAt } from "../../pieceGetters.mjs";
+import { pieceAt } from "../../../game/pieceUtils/pieceGetters.ts";
 import { getAllIndicies } from "../../pieceIndicies.mjs";
 
 /**

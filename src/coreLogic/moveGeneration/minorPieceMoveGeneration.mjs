@@ -19,7 +19,7 @@ import {
   getEmptySquares,
   getPlayerBoard,
   getWhitePieces,
-} from "../pieceGetters.mjs";
+} from "../../game/pieceUtils/pieceGetters.ts";
 import { knightMasks } from "../PieceMasks/knightMask.mjs";
 import { blackPawnMasks, whitePawnMasks } from "../PieceMasks/pawnMask.mjs";
 import { bishopAttacks } from "./magicBitboards/magicBBMoveGen.mjs";

@@ -17,7 +17,7 @@ import {
   bishopAttacks,
   rookAttacks,
 } from "../moveGeneration/magicBitboards/magicBBMoveGen.mjs";
-import { getAllPieces } from "../pieceGetters.mjs";
+import { getAllPieces } from "../../game/pieceUtils/pieceGetters.ts";
 import { indexArrays } from "../pieceIndicies.mjs";
 import { kingMasks } from "./kingMask.mjs";
 import { knightMasks } from "./knightMask.mjs";
