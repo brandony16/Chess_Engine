@@ -10,7 +10,6 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../constants.mjs";
-import { bigIntFullRep } from "../debugFunctions.mjs";
 import { getAllPieces } from "../pieceGetters.mjs";
 import {
   computeMaskForPiece,

@@ -94,7 +94,20 @@ export const getBlackPieces = (bitboards) => {
  * @returns {bigint} bitboards of all pieces
  */
 export const getAllPieces = (bitboards) => {
-  return BigInt(getWhitePieces(bitboards) | getBlackPieces(bitboards));
+  return (
+    bitboards[WHITE_PAWN] |
+    bitboards[WHITE_KNIGHT] |
+    bitboards[WHITE_BISHOP] |
+    bitboards[WHITE_ROOK] |
+    bitboards[WHITE_QUEEN] |
+    bitboards[WHITE_KING] |
+    bitboards[BLACK_PAWN] |
+    bitboards[BLACK_KNIGHT] |
+    bitboards[BLACK_BISHOP] |
+    bitboards[BLACK_ROOK] |
+    bitboards[BLACK_QUEEN] |
+    bitboards[BLACK_KING]
+  );
 };
 
 /**

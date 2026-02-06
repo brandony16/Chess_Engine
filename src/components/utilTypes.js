@@ -45,7 +45,6 @@ export const EngineObjects = {
   BMV4: { name: "BondMonkey V4", description: "Calculates tactics better" },
   BMV5: { name: "BondMonkey V5", description: "Better Evaluation" },
   BMV6: { name: "BondMonkey V6", description: "Values mobility more" },
-  BMV7: { name: "BondMonkey V7", description: "Better exchange searching" },
 };
 
 export const nameToType = {
@@ -55,7 +54,6 @@ export const nameToType = {
   BondMonkeyV4: EngineTypes.BMV4,
   BondMonkeyV5: EngineTypes.BMV5,
   BondMonkeyV6: EngineTypes.BMV6,
-  BondMonkeyV7: EngineTypes.BMV7,
 };
 
 export const BattleModalStates = {
