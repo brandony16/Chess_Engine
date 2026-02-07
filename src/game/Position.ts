@@ -28,7 +28,9 @@ export class Position {
   occupiedWhite: Bitboard;
   occupiedBlack: Bitboard;
   occupied: Bitboard;
+
   pieceAt: Int8Array; // length 64
+  pieceIndexes: number[][];
 
   sideToMove: Player;
   castlingRights: number;
@@ -47,7 +49,9 @@ export class Position {
     this.occupiedWhite = 0n;
     this.occupiedBlack = 0n;
     this.occupied = 0n;
+
     this.pieceAt = new Int8Array(64).fill(NO_PIECE);
+    this.pieceIndexes = new Array(64).fill(new Int8Array());
 
     // ----- Game State -----
     this.sideToMove = WHITE;
@@ -74,6 +78,7 @@ export class Position {
     this.recomputeOccupancy();
     this.computeZobrist();
     this.initializePieceAt();
+    this.initializePieceIndexes();
   }
 
   initializePieceAt(): void {
@@ -84,6 +89,22 @@ export class Position {
       while (bb) {
         const sq = bitScanForward(bb);
         this.pieceAt[sq] = p;
+        bb &= bb - 1n;
+      }
+    }
+  }
+
+  initializePieceIndexes(): void {
+    for (let p = 0; p < NUM_PIECES; p++) {
+      this.pieceIndexes[p].length = 0;
+    }
+
+    for (let p = 0; p < NUM_PIECES; p++) {
+      let bb = this.bitboards[p];
+      const list = this.pieceIndexes[p];
+      while (bb) {
+        const sq = bitScanForward(bb);
+        list.push(sq);
         bb &= bb - 1n;
       }
     }
@@ -181,5 +202,10 @@ export class Position {
     return player === WHITE
       ? this.bitboards[WHITE_BISHOP] | this.bitboards[WHITE_QUEEN]
       : this.bitboards[BLACK_BISHOP] | this.bitboards[BLACK_QUEEN];
+  }
+
+  playerPieceIndexes(player: Player): number[][] {
+    const base = player === WHITE ? 0 : 6;
+    return this.pieceIndexes.slice(base, base + 6);
   }
 }

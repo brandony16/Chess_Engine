@@ -18,7 +18,7 @@ import {
 } from "../coreLogic/moveMaking/makeMoveLogic.mjs";
 import Move from "../game/moveMaking/move.ts";
 import { initializePieceAtArray } from "../game/pieceUtils/pieceGetters.ts";
-import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
+import { initializePieceIndicies } from "../game/pieceIndexUpdators.ts";
 import {
   computeAllAttackMasks,
   individualAttackMasks,

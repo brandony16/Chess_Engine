@@ -2,7 +2,7 @@ import { bitScanForward, isBitSet, popcount } from "../helpers/bbUtils.mjs";
 import * as C from "../constants.mjs";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic.mjs";
 import { pieceAt } from "../../game/pieceUtils/pieceGetters.ts";
-import { getPlayerIndicies, indexArrays } from "../pieceIndicies.mjs";
+import { getPlayerIndicies, indexArrays } from "../../game/pieceIndexUpdators.ts";
 import { getAttackMask } from "../PieceMasks/attackMask.mjs";
 import { getCheckers, getRayBetween } from "./checkersMask.mjs";
 import { computePinned, makePinRayMaskGenerator } from "./computePinned.mjs";

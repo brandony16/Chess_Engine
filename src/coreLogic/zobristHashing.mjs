@@ -5,7 +5,7 @@ import {
   NUM_PIECES,
   WHITE_ROOK,
 } from "./constants.mjs";
-import { getAllIndicies } from "./pieceIndicies.mjs";
+import { getAllIndicies } from "../game/pieceIndexUpdators.ts";
 import { pieceAt } from "../game/pieceUtils/pieceGetters.ts";
 
 /**

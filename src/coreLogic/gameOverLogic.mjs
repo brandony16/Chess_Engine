@@ -13,7 +13,7 @@ import {
   WHITE_ROOK,
 } from "./constants.mjs";
 import { getBlackPieces, getWhitePieces } from "../game/pieceUtils/pieceGetters.ts";
-import { indexArrays } from "./pieceIndicies.mjs";
+import { indexArrays } from "../game/pieceIndexUpdators.ts";
 import { getAttackMask } from "./PieceMasks/attackMask.mjs";
 
 /**

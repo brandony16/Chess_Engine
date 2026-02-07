@@ -1,22 +1,14 @@
-import { bitScanForward } from "./helpers/bbUtils.mjs";
-import {
-  BLACK_ROOK,
-  INITIAL_BITBOARDS,
-  NUM_PIECES,
-  WHITE,
-  WHITE_ROOK,
-} from "./constants.mjs";
+import { BLACK_ROOK, WHITE_ROOK } from "./chessConstants.ts";
+import type Move from "./moveMaking/move.ts";
+import type { Position } from "./Position.ts";
 
-export const indexArrays = Array.from({ length: NUM_PIECES }, () => []);
-
-initializePieceIndicies(INITIAL_BITBOARDS);
-
-export function updateIndexArrays(move) {
+export function updatePieceIndexes(position: Position, move: Move): void {
   const { piece, from, to, captured, promotion, enPassant, castling } = move;
-
-  const pieceArr = indexArrays[piece];
+  const pieceIndexes = position.pieceIndexes;
+  
+  const pieceArr = pieceIndexes[piece];
   if (promotion !== null) {
-    const promoPieceArr = indexArrays[promotion];
+    const promoPieceArr = pieceIndexes[promotion];
     // Add promotion piece and remove piece that promoted
     promoPieceArr.push(to);
     pieceArr.splice(pieceArr.indexOf(from), 1);
@@ -27,7 +19,7 @@ export function updateIndexArrays(move) {
 
   // Remove captured piece
   if (captured !== null) {
-    const capturedArr = indexArrays[captured];
+    const capturedArr = pieceIndexes[captured];
     if (enPassant) {
       const captureSquare = to > from ? to - 8 : to + 8;
       capturedArr.splice(capturedArr.indexOf(captureSquare), 1);
@@ -39,7 +31,7 @@ export function updateIndexArrays(move) {
   if (castling) {
     // White
     if (from === 4) {
-      const rookArr = indexArrays[WHITE_ROOK];
+      const rookArr = pieceIndexes[WHITE_ROOK];
       if (to === 6) {
         rookArr[rookArr.indexOf(7)] = 5;
       } else {
@@ -47,7 +39,7 @@ export function updateIndexArrays(move) {
       }
     } else {
       // Black
-      const rookArr = indexArrays[BLACK_ROOK];
+      const rookArr = pieceIndexes[BLACK_ROOK];
       if (to === 62) {
         rookArr[rookArr.indexOf(63)] = 61;
       } else {
@@ -57,12 +49,13 @@ export function updateIndexArrays(move) {
   }
 }
 
-export function undoIndexArrayUpdate(move) {
+export function undoPieceIndexUpdate(postion: Position, move: Move): void {
   const { piece, from, to, captured, promotion, enPassant, castling } = move;
+  const pieceIndexes = postion.pieceIndexes;
 
-  const pieceArr = indexArrays[piece];
+  const pieceArr = pieceIndexes[piece];
   if (promotion) {
-    const promoPieceArr = indexArrays[promotion];
+    const promoPieceArr = pieceIndexes[promotion];
     // Remove promotion piece and add piece that promoted
     promoPieceArr.splice(promoPieceArr.indexOf(to), 1);
     pieceArr.push(from);
@@ -73,7 +66,7 @@ export function undoIndexArrayUpdate(move) {
 
   // Add captured piece
   if (captured !== null) {
-    const capturedArr = indexArrays[captured];
+    const capturedArr = pieceIndexes[captured];
     if (enPassant) {
       const captureSquare = to > from ? to - 8 : to + 8;
       capturedArr.push(captureSquare);
@@ -85,7 +78,7 @@ export function undoIndexArrayUpdate(move) {
   if (castling) {
     // White
     if (from === 4) {
-      const rookArr = indexArrays[WHITE_ROOK];
+      const rookArr = pieceIndexes[WHITE_ROOK];
       if (to === 6) {
         rookArr[rookArr.indexOf(5)] = 7;
       } else {
@@ -93,46 +86,12 @@ export function undoIndexArrayUpdate(move) {
       }
     } else {
       // Black
-      const rookArr = indexArrays[BLACK_ROOK];
+      const rookArr = pieceIndexes[BLACK_ROOK];
       if (to === 62) {
         rookArr[rookArr.indexOf(61)] = 63;
       } else {
         rookArr[rookArr.indexOf(59)] = 56;
       }
-    }
-  }
-}
-
-export function getPlayerIndicies(player) {
-  const base = player === WHITE ? 0 : 6;
-
-  const result = [];
-  for (let p = base; p < base + 6; p++) {
-    result.push(...indexArrays[p]);
-  }
-  return result;
-}
-
-export function getAllIndicies() {
-  let indicies = [];
-  for (let i = 0; i < NUM_PIECES; i++) {
-    indicies.push(...indexArrays[i]);
-  }
-  return indicies;
-}
-
-export function initializePieceIndicies(bitboards) {
-  for (let p = 0; p < NUM_PIECES; p++) {
-    indexArrays[p].length = 0;
-  }
-
-  for (let p = 0; p < NUM_PIECES; p++) {
-    let bb = bitboards[p];
-    const list = indexArrays[p];
-    while (bb) {
-      const sq = bitScanForward(bb);
-      list.push(sq);
-      bb &= bb - 1n;
     }
   }
 }

@@ -10,7 +10,7 @@ import { updateCastlingRights } from "../coreLogic/moveMaking/castleMoveLogic.mj
 import { getNewEnPassant } from "../coreLogic/bbChessLogic.mjs";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
 import { initializePieceAtArray } from "../game/pieceUtils/pieceGetters.ts";
-import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
+import { initializePieceIndicies } from "../game/pieceIndexUpdators.ts";
 import { EngineTypes, ModalTypes } from "./utilTypes";
 
 const makeInitialState = () => ({

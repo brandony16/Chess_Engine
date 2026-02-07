@@ -17,7 +17,7 @@ import { getCheckers, getRayBetween } from "./moveGeneration/checkersMask.mjs";
 import { getKingMovesForSquare } from "./moveGeneration/majorPieceMoveGeneration.mjs";
 import { getAttackMask } from "./PieceMasks/attackMask.mjs";
 import { kingMasks } from "./PieceMasks/kingMask.mjs";
-import { getPlayerIndicies, indexArrays } from "./pieceIndicies.mjs";
+import { getPlayerIndicies, indexArrays } from "../game/pieceIndexUpdators.ts";
 import { bitboardsToFEN } from "./helpers/FENandUCIHelpers.mjs";
 import { bigIntFullRep } from "./debugFunctions.mjs";
 import { computeAllAttackMasks } from "./PieceMasks/individualAttackMasks.mjs";

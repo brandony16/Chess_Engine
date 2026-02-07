@@ -17,6 +17,7 @@ import {
   WK,
   WQ,
 } from "../chessConstants.ts";
+import { undoPieceIndexUpdate, updatePieceIndexes } from "../pieceIndexUpdators.ts";
 import type { Position } from "../Position.ts";
 import type { Player, Square } from "../types.ts";
 import type Move from "./move.ts";
@@ -127,7 +128,7 @@ export const makeCastleMove = (position: Position, move: Move): void => {
     pieceAt[59] = BLACK_ROOK;
   }
 
-  updateIndexArrays(move);
+  updatePieceIndexes(position, move);
   updateAttackMasks(bitboards, move, oldOccupancy);
 };
 
@@ -181,6 +182,6 @@ export const unMakeCastleMove = (position: Position, move: Move): void => {
     pieceAt[56] = BLACK_ROOK;
   }
 
-  undoIndexArrayUpdate(move);
+  undoPieceIndexUpdate(position, move);
   updateAttackMasks(bitboards, move, oldOccupancy);
 };

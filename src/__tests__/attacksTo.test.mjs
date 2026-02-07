@@ -3,7 +3,7 @@ import {
   getAllPieces,
   initializePieceAtArray,
 } from "../game/pieceUtils/pieceGetters.ts";
-import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
+import { initializePieceIndicies } from "../game/pieceIndexUpdators.ts";
 import { attacksTo } from "../coreLogic/PieceMasks/attacksTo.mjs";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
 

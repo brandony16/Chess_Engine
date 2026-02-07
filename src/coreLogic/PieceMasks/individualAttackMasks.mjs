@@ -18,7 +18,7 @@ import {
   rookAttacks,
 } from "../moveGeneration/magicBitboards/magicBBMoveGen.mjs";
 import { getAllPieces } from "../../game/pieceUtils/pieceGetters.ts";
-import { indexArrays } from "../pieceIndicies.mjs";
+import { indexArrays } from "../../game/pieceIndexUpdators.ts";
 import { kingMasks } from "./kingMask.mjs";
 import { knightMasks } from "./knightMask.mjs";
 import { blackPawnMasks, whitePawnMasks } from "./pawnMask.mjs";

@@ -5,7 +5,7 @@ import {
   getPlayerBoard,
   pieceAt,
 } from "../../../../game/pieceUtils/pieceGetters.ts";
-import { getPlayerIndicies } from "../../../pieceIndicies.mjs";
+import { getPlayerIndicies } from "../../../../game/pieceIndexUpdators.ts";
 import { attacksOf } from "../../../PieceMasks/individualAttackMasks.mjs";
 import { getMobility } from "./mobilityTables.mjs";
 

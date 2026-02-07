@@ -12,7 +12,7 @@ import {
   getAllPieces,
   initializePieceAtArray,
 } from "../game/pieceUtils/pieceGetters.ts";
-import { initializePieceIndicies } from "../coreLogic/pieceIndicies.mjs";
+import { initializePieceIndicies } from "../game/pieceIndexUpdators.ts";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
 
 describe("SEE", () => {
