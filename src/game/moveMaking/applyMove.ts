@@ -1,14 +1,15 @@
+import { updateAttackMasks } from "../attackMasks/attackMaskUpdate.ts";
 import { WHITE_PAWN } from "../chessConstants.ts";
-import { undoPieceIndexUpdate, updatePieceIndexes } from "../pieceIndexUpdators.ts";
+import {
+  undoPieceIndexUpdate,
+  updatePieceIndexes,
+} from "../pieceIndexUpdators.ts";
 import type { Position } from "../Position.ts";
 import { makeCastleMove, unMakeCastleMove } from "./castling.ts";
 import Move from "./move.ts";
 
 /**
  * Makes a move. Directly alters the given bitboards.
- *
- * @param {BigUint64Array} bitboards - the bitboards of the position
- * @param {Move} move - a move object
  */
 export const applyMove = (position: Position, move: Move) => {
   const bitboards = position.bitboards;
@@ -57,16 +58,13 @@ export const applyMove = (position: Position, move: Move) => {
   }
 
   updatePieceIndexes(position, move);
-  updateAttackMasks(bitboards, move);
+  updateAttackMasks(position, move);
 
   position.sideToMove ^= 1;
 };
 
 /**
  * Undoes a move that was made. Directly alters given bitboards.
- *
- * @param {Move} move - the move to be undone
- * @param {BigUint64Array} bitboards - the bitboards of the position
  */
 export const unapplyMove = (position: Position, move: Move) => {
   const bitboards = position.bitboards;
@@ -117,7 +115,7 @@ export const unapplyMove = (position: Position, move: Move) => {
   }
 
   undoPieceIndexUpdate(position, move);
-  updateAttackMasks(bitboards, move);
+  updateAttackMasks(position, move);
 };
 
 // const moveFrom = (from, to, piece, enPassantSquare) => {

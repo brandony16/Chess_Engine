@@ -6,7 +6,7 @@ import { slide } from "../helpers/generalHelpers.mjs";
 import {
   bishopAttacks,
   rookAttacks,
-} from "./magicBitboards/magicBBMoveGen.mjs";
+} from "../../game/moveGen/sliderMoves.ts";
 
 /**
  * Finds all pieces that put a given player's king in check and returns

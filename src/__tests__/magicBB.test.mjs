@@ -9,7 +9,7 @@ import {
 import {
   rookAttacks,
   bishopAttacks,
-} from "../coreLogic/moveGeneration/magicBitboards/magicBBMoveGen.mjs";
+} from "../game/moveGen/sliderMoves.ts";
 
 describe("maskBits", () => {
   it("extracts correct bit positions", () => {

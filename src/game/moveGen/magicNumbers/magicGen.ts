@@ -1,12 +1,18 @@
-import { generateBlockerSubsets } from "./attackTable";
-import { bishopMasks, rookMasks } from "./generateMasks";
-import { bishopMagics, bishopShifts, rookMagics, rookShifts } from "./magicNumbers";
+import { generateBlockerSubsets } from "../../../coreLogic/helpers/bbUtils.mjs";
+import type { Square } from "../../types.ts";
+import { bishopMasks, rookMasks } from "./slidingMasks.ts";
+import {
+  bishopMagics,
+  bishopShifts,
+  rookMagics,
+  rookShifts,
+} from "./magicNumbers.ts";
+import type { CollisionResolution } from "./magicTypes.ts";
 
 /**
  * Generates random magic number candidates with 10 random bits set.
- * @returns {bigint} a random magic candidate
  */
-function randomMagicCandidate() {
+function randomMagicCandidate(): bigint {
   let m = 0n;
   // set 10 random bits
   for (let j = 0; j < 10; j++) {
@@ -20,17 +26,11 @@ function randomMagicCandidate() {
  * Generates a new magic number for a rook using brute-force guess and check. Checks
  * the candidate magic number with every permutation of blockers, ensuring that no
  * collisions occur.
- *
- * @param {number} sq - the square
- * @param {number} maxTries - the maximum number of candidate magics to search through
- * @returns {bigint} a new magic number for a rook at the given square
- * @throws An Error after it reaches maxTries and hasnt found a working magic number
  */
-export function findNewRookMagic(sq, maxTries = 1e6) {
+export function findNewRookMagic(sq: Square, maxTries: number = 1e6): bigint {
   for (let t = 0; t < maxTries; t++) {
     const magic = randomMagicCandidate();
     const collision = findRookCollision(sq, magic);
-
 
     if (collision.collision === false) {
       console.log(`Found new rookMagic for sq ${sq}: 0x${magic.toString(16)}`);
@@ -45,7 +45,7 @@ export function findNewRookMagic(sq, maxTries = 1e6) {
   throw new Error(`No magic found after ${maxTries} tries for sq ${sq}`);
 }
 
-export function recalculateAllRookMagics(maxTries = 1e6) {
+export function recalculateAllRookMagics(maxTries: number = 1e6): bigint[] {
   const newMagics = new Array(64);
   for (let i = 0; i < 64; i++) {
     const magic = findNewRookMagic(i, maxTries);
@@ -58,13 +58,8 @@ export function recalculateAllRookMagics(maxTries = 1e6) {
  * Generates a new magic number for a bishop using brute-force guess and check. Checks
  * the candidate magic number with every permutation of blockers, ensuring that no
  * collisions occur.
- *
- * @param {number} sq - the square
- * @param {number} maxTries - the maximum number of candidate magics to search through
- * @returns {bigint} a new magic number for a bishop at the given square
- * @throws An Error after it reaches maxTries and hasnt found a working magic number
  */
-export function findNewBishopMagic(sq, maxTries = 1e6) {
+export function findNewBishopMagic(sq: Square, maxTries: number = 1e6): bigint {
   for (let t = 0; t < maxTries; t++) {
     const magic = randomMagicCandidate();
     const collision = findBishopCollision(sq, magic);
@@ -84,10 +79,8 @@ export function findNewBishopMagic(sq, maxTries = 1e6) {
 
 /**
  * Recalculates new magic numbers for each square for bishops.
- * @param {number} maxTries - the number of magic candidates to search for each magic
- * @returns {Array<bigint>} - an array of 64 magic numbers for each square
  */
-export function recalculateAllBishopMagics(maxTries = 1e6) {
+export function recalculateAllBishopMagics(maxTries: number = 1e6): bigint[] {
   const newMagics = new Array(64);
   for (let i = 0; i < 64; i++) {
     const magic = findNewBishopMagic(i, maxTries);
@@ -98,19 +91,19 @@ export function recalculateAllBishopMagics(maxTries = 1e6) {
 
 /**
  * Determines if a collision is occuring at a given square for the rook magic numbers
- * @param {number} sq - the square to check for a collition
- * @returns {{collision:boolean, first: number, second: number}} if a collision was found and where
  */
-export function findRookCollision(sq, magic = null) {
+export function findRookCollision(
+  sq: Square,
+  magic: bigint = null,
+): CollisionResolution {
   const mask = rookMasks[sq];
   const seen = new Map();
   const magicNum = magic ? magic : rookMagics[sq];
 
-
   for (const blockers of generateBlockerSubsets(mask)) {
     const idx = Number(
       BigInt.asUintN(64, (blockers & mask) * magicNum) >>
-        BigInt(rookShifts[sq])
+        BigInt(rookShifts[sq]),
     );
     if (seen.has(idx)) {
       return { collision: true, first: seen.get(idx), second: blockers };
@@ -125,16 +118,18 @@ export function findRookCollision(sq, magic = null) {
  * @param {number} sq - the square to check for a collition
  * @returns {{collision:boolean, first: number, second: number}} if a collision was found and where
  */
-export function findBishopCollision(sq, magic = null) {
+export function findBishopCollision(
+  sq: Square,
+  magic: bigint = null,
+): CollisionResolution {
   const mask = bishopMasks[sq];
   const seen = new Map();
   const magicNum = magic ? magic : bishopMagics[sq];
 
-
   for (const blockers of generateBlockerSubsets(mask)) {
     const idx = Number(
       BigInt.asUintN(64, (blockers & mask) * magicNum) >>
-        BigInt(bishopShifts[sq])
+        BigInt(bishopShifts[sq]),
     );
     if (seen.has(idx)) {
       return { collision: true, first: seen.get(idx), second: blockers };

@@ -18,19 +18,7 @@ export const BLACK_ROOK = 9 as const;
 export const BLACK_QUEEN = 10 as const;
 export const BLACK_KING = 11 as const;
 
-export type Piece =
-  | typeof WHITE_PAWN
-  | typeof WHITE_KNIGHT
-  | typeof WHITE_BISHOP
-  | typeof WHITE_ROOK
-  | typeof WHITE_QUEEN
-  | typeof WHITE_KING
-  | typeof BLACK_PAWN
-  | typeof BLACK_KNIGHT
-  | typeof BLACK_BISHOP
-  | typeof BLACK_ROOK
-  | typeof BLACK_QUEEN
-  | typeof BLACK_KING;
+export type Piece = (typeof PIECES)[number];
 export const NO_PIECE = -1 as const;
 
 export type PieceAt = Piece | typeof NO_PIECE;
@@ -49,6 +37,30 @@ export const PIECE = {
   bQ: BLACK_QUEEN,
   bK: BLACK_KING,
 } as const;
+
+export const PIECES = [
+  WHITE_PAWN,
+  WHITE_KNIGHT,
+  WHITE_BISHOP,
+  WHITE_ROOK,
+  WHITE_QUEEN,
+  WHITE_KING,
+  BLACK_PAWN,
+  BLACK_KNIGHT,
+  BLACK_BISHOP,
+  BLACK_ROOK,
+  BLACK_QUEEN,
+  BLACK_KING,
+] as const;
+
+export const SLIDING_PIECES = [
+  WHITE_BISHOP,
+  WHITE_ROOK,
+  WHITE_QUEEN,
+  BLACK_BISHOP,
+  BLACK_ROOK,
+  BLACK_QUEEN,
+];
 
 // Promotion pieces
 export const WHITE_PROMO_PIECES = [
@@ -101,3 +113,48 @@ INITIAL_BITBOARDS[PIECE.bB] = BigInt("0x2400000000000000");
 INITIAL_BITBOARDS[PIECE.bR] = BigInt("0x8100000000000000");
 INITIAL_BITBOARDS[PIECE.bQ] = BigInt("0x0800000000000000");
 INITIAL_BITBOARDS[PIECE.bK] = BigInt("0x1000000000000000");
+
+// ----- FILES / RANKS -----
+export type File = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export const A_FILE = 0;
+export const B_FILE = 1;
+export const C_FILE = 2;
+export const D_FILE = 3;
+export const E_FILE = 4;
+export const F_FILE = 5;
+export const G_FILE = 6;
+export const H_FILE = 7;
+
+export const FILES = [
+  A_FILE,
+  B_FILE,
+  C_FILE,
+  D_FILE,
+  E_FILE,
+  F_FILE,
+  G_FILE,
+  H_FILE,
+];
+
+export type Rank = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+
+export const RANK_1 = 0;
+export const RANK_2 = 1;
+export const RANK_3 = 2;
+export const RANK_4 = 3;
+export const RANK_5 = 4;
+export const RANK_6 = 5;
+export const RANK_7 = 6;
+export const RANK_8 = 7;
+
+export const RANKS = [
+  RANK_1,
+  RANK_2,
+  RANK_3,
+  RANK_4,
+  RANK_5,
+  RANK_6,
+  RANK_7,
+  RANK_8,
+];

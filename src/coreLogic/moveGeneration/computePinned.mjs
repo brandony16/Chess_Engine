@@ -9,7 +9,7 @@ import { BETWEEN } from "./checkersMask.mjs";
 import {
   bishopAttacks,
   rookAttacks,
-} from "./magicBitboards/magicBBMoveGen.mjs";
+} from "../../game/moveGen/sliderMoves.ts";
 
 /**
  * Computes a bitboard of all of a players pinned pieces.

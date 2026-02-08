@@ -27,7 +27,7 @@ import { kingMasks } from "../PieceMasks/kingMask.mjs";
 import {
   bishopAttacks,
   rookAttacks,
-} from "./magicBitboards/magicBBMoveGen.mjs";
+} from "../../game/moveGen/sliderMoves.ts";
 
 /**
  * Gets the move bitboard for a rook.

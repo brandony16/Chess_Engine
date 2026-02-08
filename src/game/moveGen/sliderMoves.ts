@@ -1,11 +1,12 @@
-import { bishopAttackTable, rookAttackTable } from "../../attackTables.mjs";
-import { bishopMasks, rookMasks } from "./generateMasks.mjs";
+import { bishopAttackTable, rookAttackTable } from "../../coreLogic/attackTables.mjs";
+import { bishopMasks, rookMasks } from "./magicNumbers/slidingMasks.ts";
 import {
   bishopMagics,
   bishopShifts,
   rookMagics,
   rookShifts,
-} from "./magicNumbers.mjs";
+} from "./magicNumbers/magicNumbers.ts";
+import type { Square } from "../types.ts";
 
 /**
  * Gets the attack mask for a bishop at a given square using
@@ -15,7 +16,7 @@ import {
  * @param {bigint} occ - the occupancy bitboard
  * @returns {bigint} the attack mask for the bishop
  */
-export function bishopAttacks(sq, occ) {
+export function bishopAttacks(sq: Square, occ: bigint): bigint {
   const mask = occ & bishopMasks[sq];
   const index = Number(
     BigInt.asUintN(64, mask * bishopMagics[sq]) >> BigInt(bishopShifts[sq])
@@ -32,7 +33,7 @@ export function bishopAttacks(sq, occ) {
  * @param {bigint} occ - the occupancy bitboard
  * @returns {bigint} the attack mask for the rook
  */
-export function rookAttacks(sq, occ) {
+export function rookAttacks(sq: Square, occ: bigint): bigint {
   const mask = occ & rookMasks[sq];
 
   const index = Number(

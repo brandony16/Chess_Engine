@@ -1,18 +1,21 @@
+import type { File, Rank } from "../../chessConstants.ts";
+import type { Square } from "../../types.ts";
+
 // Precompute masks
 export const rookMasks = Array.from({ length: 64 }, (_, sq) =>
-  generateRookMask(sq)
+  generateRookMask(sq),
 );
 export const bishopMasks = Array.from({ length: 64 }, (_, sq) =>
-  generateBishopMask(sq)
+  generateBishopMask(sq),
 );
 
 // Convert (file,rank) to bit index 0…63
-function toIndex(file, rank) {
+function toIndex(file: File, rank: Rank): Square {
   return rank * 8 + file;
 }
 
 // Generate rook mask for square sq
-function generateRookMask(sq) {
+function generateRookMask(sq: Square): bigint {
   const file = sq % 8;
   const rank = Math.floor(sq / 8);
 
@@ -34,7 +37,7 @@ function generateRookMask(sq) {
       const nextR = r + dr;
       if (nextF >= 8 || nextF < 0 || nextR >= 8 || nextR < 0) break;
 
-      mask |= 1n << BigInt(toIndex(f, r));
+      mask |= 1n << BigInt(toIndex(f as File, r as Rank));
       f += df;
       r += dr;
     }
@@ -43,7 +46,7 @@ function generateRookMask(sq) {
 }
 
 // Generate bishop mask for square sq
-function generateBishopMask(sq) {
+function generateBishopMask(sq: Square): bigint {
   const file = sq % 8;
   const rank = Math.floor(sq / 8);
 
@@ -60,7 +63,7 @@ function generateBishopMask(sq) {
     let r = rank + dr;
 
     while (f > 0 && f < 7 && r > 0 && r < 7) {
-      mask |= 1n << BigInt(toIndex(f, r));
+      mask |= 1n << BigInt(toIndex(f as File, r as Rank));
       f += df;
       r += dr;
     }

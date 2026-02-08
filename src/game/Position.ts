@@ -1,4 +1,5 @@
 import { bitScanForward } from "../coreLogic/helpers/bbUtils.mjs";
+import { computeMaskForPiece } from "./attackMasks/attackMasks.ts";
 import {
   ALL_CASTLING,
   BLACK,
@@ -8,6 +9,7 @@ import {
   INITIAL_BITBOARDS,
   NO_PIECE,
   NUM_PIECES,
+  PIECES,
   WHITE,
   WHITE_BISHOP,
   WHITE_QUEEN,
@@ -31,6 +33,7 @@ export class Position {
 
   pieceAt: Int8Array; // length 64
   pieceIndexes: number[][];
+  attackMasks: BigUint64Array;
 
   sideToMove: Player;
   castlingRights: number;
@@ -50,8 +53,9 @@ export class Position {
     this.occupiedBlack = 0n;
     this.occupied = 0n;
 
-    this.pieceAt = new Int8Array(64).fill(NO_PIECE);
+    this.pieceAt = new Int8Array(64);
     this.pieceIndexes = new Array(64).fill(new Int8Array());
+    this.attackMasks = new BigUint64Array(NUM_PIECES);
 
     // ----- Game State -----
     this.sideToMove = WHITE;
@@ -71,6 +75,9 @@ export class Position {
 
   loadInitialPosition(): void {
     this.bitboards.set(INITIAL_BITBOARDS);
+
+    this.pieceAt.fill(NO_PIECE);
+    this.attackMasks.fill(0n);
 
     this.kingSq[WHITE] = 4;
     this.kingSq[BLACK] = 60;
@@ -108,6 +115,12 @@ export class Position {
         bb &= bb - 1n;
       }
     }
+  }
+
+  calculateAttackMasks(): void {
+      for (const p of PIECES) {
+        this.attackMasks[p] = computeMaskForPiece(this, p);
+      }
   }
 
   recomputeOccupancy(): void {
