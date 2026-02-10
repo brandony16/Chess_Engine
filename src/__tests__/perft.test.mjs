@@ -1,6 +1,6 @@
 import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
 import { initializePieceAtArray } from "../game/pieceUtils/pieceGetters.ts";
-import { initializePieceIndicies } from "../game/pieceIndexUpdators.ts";
+import { initializePieceIndicies } from "../game/positionStates/pieceIndexUpdators.ts";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
 import { perftDivide } from "./perft.mjs";
 

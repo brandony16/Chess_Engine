@@ -2,7 +2,7 @@ import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers";
 import { getAllLegalMoves } from "../coreLogic/moveGeneration/allMoveGeneration";
 import { getQuiescenceMoves } from "../coreLogic/moveGeneration/quiescenceMoves.mjs";
 import { initializePieceAtArray } from "../coreLogic/pieceGetters";
-import { initializePieceIndicies } from "../game/pieceIndexUpdators.ts";
+import { initializePieceIndicies } from "../game/positionStates/pieceIndexUpdators.ts";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
 
 const cases = [

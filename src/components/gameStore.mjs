@@ -7,10 +7,10 @@ import {
   WHITE_PAWN,
 } from "../coreLogic/constants.mjs";
 import { updateCastlingRights } from "../coreLogic/moveMaking/castleMoveLogic.mjs";
-import { getNewEnPassant } from "../coreLogic/bbChessLogic.mjs";
+import { getNewEnPassant } from "../game/bbChessLogic.mjs";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
 import { initializePieceAtArray } from "../game/pieceUtils/pieceGetters.ts";
-import { initializePieceIndicies } from "../game/pieceIndexUpdators.ts";
+import { initializePieceIndicies } from "../game/positionStates/pieceIndexUpdators.ts";
 import { EngineTypes, ModalTypes } from "./utilTypes";
 
 const makeInitialState = () => ({

@@ -15,7 +15,7 @@ import { getMobility } from "../coreLogic/engines/BMV7/evaluation/mobilityTables
 import { MAX_PHASE } from "../coreLogic/engines/BMV7/evaluation/phase.mjs";
 import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
 import { initializePieceAtArray } from "../game/pieceUtils/pieceGetters.ts";
-import { initializePieceIndicies } from "../game/pieceIndexUpdators.ts";
+import { initializePieceIndicies } from "../game/positionStates/pieceIndexUpdators.ts";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
 
 describe("calculateMobility", () => {

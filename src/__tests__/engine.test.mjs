@@ -7,7 +7,7 @@ import { getAllLegalMoves } from "../coreLogic/moveGeneration/allMoveGeneration"
 import { updateCastlingRights } from "../coreLogic/moveMaking/castleMoveLogic";
 import { makeMove, unMakeMove } from "../coreLogic/moveMaking/makeMoveLogic";
 import { initializePieceAtArray, pieceAt } from "../coreLogic/pieceGetters";
-import { initializePieceIndicies } from "../game/pieceIndexUpdators.ts";
+import { initializePieceIndicies } from "../game/positionStates/pieceIndexUpdators.ts";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks";
 import { computeHash } from "../coreLogic/zobristHashing";
 import { mockEngine } from "./mockEngine";

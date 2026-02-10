@@ -1,13 +1,13 @@
-import { getNewEnPassant } from "../../bbChessLogic.mjs";
+import { getNewEnPassant } from "../../../game/bbChessLogic.mjs";
 import { BLACK, WHITE } from "../../constants.mjs";
-import { checkGameOver } from "../../gameOverLogic.mjs";
+import { checkGameOver } from "../../../game/positionStates/gameOverLogic.mjs";
 import { getQuiescenceMoves } from "../../moveGeneration/quiescenceMoves.mjs";
 import { updateCastlingRights } from "../../moveMaking/castleMoveLogic.mjs";
 import { makeMove, unMakeMove } from "../../moveMaking/makeMoveLogic.mjs";
 import { getQTT, setQTT, TT_FLAG } from "../../transpositionTable.mjs";
 import { updateHash } from "../../zobristHashing.mjs";
 import { evaluate, weights } from "./evaluation/evaluation.mjs";
-import { ENGINE_STATS } from "../../debugFunctions.mjs";
+import { ENGINE_STATS } from "../../../debugFunctions.ts";
 
 // Max depth that quiescence search can go to.
 const maxQDepth = 4;

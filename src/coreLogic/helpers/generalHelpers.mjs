@@ -1,4 +1,4 @@
-import { isInCheck } from "../bbChessLogic.mjs";
+import { isInCheck } from "../../game/bbChessLogic.mjs";
 import {
   BLACK,
   COLUMN_SYMBOLS,

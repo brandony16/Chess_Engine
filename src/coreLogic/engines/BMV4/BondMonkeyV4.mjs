@@ -2,7 +2,7 @@ import { computeHash } from "../../zobristHashing.mjs";
 import { clearQTT, clearTT } from "../../transpositionTable.mjs";
 import { CHECKMATE_VALUE } from "../../constants.mjs";
 import { minimax } from "./minimax.mjs";
-import { ENGINE_STATS } from "../../debugFunctions.mjs";
+import { ENGINE_STATS } from "../../../debugFunctions.ts";
 
 // Root id for transposition table. Helps avoid stale entries
 export let rootId = 0;

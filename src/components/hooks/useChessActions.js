@@ -4,9 +4,9 @@ import {
   movesToBB,
   moveToReadable,
 } from "../../coreLogic/helpers/generalHelpers.mjs";
-import { checkGameOver } from "../../coreLogic/gameOverLogic.mjs";
+import { checkGameOver } from "../../game/positionStates/gameOverLogic.mjs";
 import { computeHash } from "../../coreLogic/zobristHashing.mjs";
-import { getNewEnPassant } from "../../coreLogic/bbChessLogic.mjs";
+import { getNewEnPassant } from "../../game/bbChessLogic.mjs";
 import { makeMove } from "../../coreLogic/moveMaking/makeMoveLogic.mjs";
 import Move from "../../game/moveMaking/move.ts";
 import { BLACK_PAWN, WHITE_PAWN } from "../../coreLogic/constants.mjs";

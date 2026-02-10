@@ -6,7 +6,7 @@ import { getCheckers, getRayBetween } from "./checkersMask.mjs";
 import { bitScanForward, popcount } from "../helpers/bbUtils.mjs";
 import { getKingMovesForSquare } from "./majorPieceMoveGeneration.mjs";
 import { getMovesFromBB } from "../moveMaking/makeMoveLogic.mjs";
-import { getPlayerIndicies, indexArrays } from "../../game/pieceIndexUpdators.ts";
+import { getPlayerIndicies, indexArrays } from "../../game/positionStates/pieceIndexUpdators.ts";
 import { getPieceMoves } from "./allMoveGeneration.mjs";
 import { isKing, isKnight } from "../helpers/pieceUtils.mjs";
 

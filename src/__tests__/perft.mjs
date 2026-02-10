@@ -1,4 +1,4 @@
-import { getNewEnPassant } from "../coreLogic/bbChessLogic.mjs";
+import { getNewEnPassant } from "../game/bbChessLogic.mjs";
 import { getAllLegalMoves } from "../coreLogic/moveGeneration/allMoveGeneration.mjs";
 import { updateCastlingRights } from "../coreLogic/moveMaking/castleMoveLogic.mjs";
 import {

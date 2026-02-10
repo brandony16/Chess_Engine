@@ -1,10 +1,10 @@
-import { getNewEnPassant } from "../../coreLogic/bbChessLogic.mjs";
+import { getNewEnPassant } from "../../game/bbChessLogic.mjs";
 import { BLACK_PAWN, WHITE_PAWN } from "../../coreLogic/constants.mjs";
 import {
   getOpeningMoves,
   squareToIndex,
 } from "../../coreLogic/helpers/FENandUCIHelpers.mjs";
-import { checkGameOver } from "../../coreLogic/gameOverLogic.mjs";
+import { checkGameOver } from "../../game/positionStates/gameOverLogic.mjs";
 import { moveToReadable } from "../../coreLogic/helpers/generalHelpers.mjs";
 import { makeMove } from "../../coreLogic/moveMaking/makeMoveLogic.mjs";
 import Move from "../../game/moveMaking/move.ts";

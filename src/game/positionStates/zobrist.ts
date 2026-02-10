@@ -1,5 +1,4 @@
-import { NUM_PIECES } from "./chessConstants.ts";
-
+import { NUM_PIECES } from "../chessConstants.ts";
 
 /**
  * Generates a random 64 bit integer
@@ -40,7 +39,7 @@ export const EN_PASSANT_ZOBRIST: readonly bigint[] = Array.from(
 // 16 possible castling-rights bitmasks (0–15)
 export const CASTLING_ZOBRIST: readonly bigint[] = Array.from(
   { length: 16 },
-  () => rand64(),
+  (_, i) => (i === 0 ? 0n : rand64()),
 );
 
 /**

@@ -17,7 +17,7 @@ import {
   WK,
   WQ,
 } from "../chessConstants.ts";
-import { undoPieceIndexUpdate, updatePieceIndexes } from "../pieceIndexUpdators.ts";
+import { undoPieceIndexUpdate, updatePieceIndexes } from "../positionStates/pieceIndexUpdators.ts";
 import type { Position } from "../Position.ts";
 import type { Player, Square } from "../types.ts";
 import type Move from "./move.ts";

@@ -1,9 +1,9 @@
-import { updateAttackMasks } from "../attackMasks/attackMaskUpdate.ts";
+import { updateAttackMasks } from "../positionStates/attackMasks/attackMaskUpdate.ts";
 import { WHITE_PAWN } from "../chessConstants.ts";
 import {
   undoPieceIndexUpdate,
   updatePieceIndexes,
-} from "../pieceIndexUpdators.ts";
+} from "../positionStates/pieceIndexUpdators.ts";
 import type { Position } from "../Position.ts";
 import { makeCastleMove, unMakeCastleMove } from "./castling.ts";
 import Move from "./move.ts";

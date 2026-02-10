@@ -1,7 +1,7 @@
 import { computeHash } from "../../zobristHashing.mjs";
 import { CHECKMATE_VALUE } from "../../constants.mjs";
 import { minimax } from "./minimax.mjs";
-import { ENGINE_STATS } from "../../debugFunctions.mjs";
+import { ENGINE_STATS } from "../../../debugFunctions.ts";
 
 /**
  * Gets the best move in a position based purely off of material.

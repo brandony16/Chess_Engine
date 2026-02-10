@@ -1,15 +1,15 @@
 import { updateCastlingRights } from "../../moveMaking/castleMoveLogic.mjs";
 import { makeMove, unMakeMove } from "../../moveMaking/makeMoveLogic.mjs";
 import { updateHash } from "../../zobristHashing.mjs";
-import { checkGameOver } from "../../gameOverLogic.mjs";
-import { getNewEnPassant, isInCheck } from "../../bbChessLogic.mjs";
+import { checkGameOver } from "../../../game/positionStates/gameOverLogic.mjs";
+import { getNewEnPassant, isInCheck } from "../../../game/bbChessLogic.mjs";
 import { getTT, setTT, TT_FLAG } from "../../transpositionTable.mjs";
 import { BLACK, MAX_PLY, WHITE } from "../../constants.mjs";
 import { rootId } from "./BondMonkeyV5.mjs";
 import { evaluate, weights } from "./evaluation.mjs";
 import { quiesce } from "./quiesce.mjs";
 import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
-import { ENGINE_STATS } from "../../debugFunctions.mjs";
+import { ENGINE_STATS } from "../../../debugFunctions.ts";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]
 const killerMoves = Array.from({ length: MAX_PLY }, () => [null, null]);

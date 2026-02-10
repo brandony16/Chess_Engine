@@ -1,5 +1,5 @@
-import { hasLegalMove, isSquareAttacked } from "./bbChessLogic.mjs";
-import { getNumPieces } from "./helpers/bbUtils.mjs";
+import { hasLegalMove, isSquareAttacked } from "../bbChessLogic.mjs";
+import { getNumPieces } from "../../coreLogic/helpers/bbUtils.mjs";
 import {
   BLACK,
   BLACK_KING,
@@ -11,9 +11,9 @@ import {
   WHITE_PAWN,
   WHITE_QUEEN,
   WHITE_ROOK,
-} from "./constants.mjs";
-import { getBlackPieces, getWhitePieces } from "../game/pieceUtils/pieceGetters.ts";
-import { indexArrays } from "../game/pieceIndexUpdators.ts";
+} from "../../coreLogic/constants.mjs";
+import { getBlackPieces, getWhitePieces } from "../pieceUtils/pieceGetters.ts";
+import { indexArrays } from "./pieceIndexUpdators.ts";
 import { getAttackMask } from "./PieceMasks/attackMask.mjs";
 
 /**

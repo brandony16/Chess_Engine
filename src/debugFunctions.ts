@@ -1,13 +1,11 @@
-import { NUM_PIECES, PIECE_SYMBOLS } from "./constants.mjs";
+import { PIECE_SYMBOLS } from "./coreLogic/constants.mjs";
+import { NUM_PIECES } from "./game/chessConstants.ts";
 
 /**
  * Converts a big int to an 8x8 grid of 1s and 0s.
  * Used for debugging to be able to see what bits are and aren't flipped.
- *
- * @param {bigint} bitboard - the bitboard to count the pieces of
- * @returns {string} bitboard as a string in a 8x8 grid
  */
-export function bigIntFullRep(bitboard) {
+export function bigIntFullRep(bitboard: bigint): String {
   let boardStr = "";
 
   for (let rank = 7; rank >= 0; rank--) {
@@ -26,13 +24,11 @@ export function bigIntFullRep(bitboard) {
 
 /**
  * Determines if two bitboard arrays are equal.
- * Mainly used for debugging.
- *
- * @param {BigUint64Array} a - the first set of bitboards
- * @param {BigUint64Array} b - the second set of bitboards
- * @returns {boolean} if they are equal
  */
-export function areBigUint64ArraysEqual(a, b) {
+export function areBigUint64ArraysEqual(
+  a: BigUint64Array,
+  b: BigUint64Array,
+): boolean {
   if (a.length !== b.length) return false;
 
   for (let i = 0; i < a.length; i++) {
@@ -44,15 +40,13 @@ export function areBigUint64ArraysEqual(a, b) {
 
 /**
  * Logs all of the bitboards to the console in a readable format
- * with bigIntFullRep. Used for debugging
- *
- * @param {BigUint64Array} bitboards - the bitboards of the position
+ * with bigIntFullRep.
  */
-export function logAllBitboards(bitboards) {
+export function logAllBitboards(bitboards: BigUint64Array): void {
   for (let i = 0; i < NUM_PIECES; i++) {
     const bitboard = bitboards[i];
-    console.log(PIECE_SYMBOLS[i]);
-    console.log(bigIntFullRep(bitboard));
+    console.log(PIECE_SYMBOLS[i] + "\n");
+    console.log(bigIntFullRep(bitboard) + "\n\n");
   }
 }
 

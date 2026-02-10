@@ -1,6 +1,6 @@
-import { bitScanForward, popcount } from "./helpers/bbUtils.mjs";
-import { getAllPieces, pieceAt } from "../game/pieceUtils/pieceGetters.ts";
-import { getPieceMoves } from "./moveGeneration/allMoveGeneration.mjs";
+import { bitScanForward, popcount } from "../coreLogic/helpers/bbUtils.mjs";
+import { getAllPieces, pieceAt } from "./pieceUtils/pieceGetters.ts";
+import { getPieceMoves } from "../coreLogic/moveGeneration/allMoveGeneration.mjs";
 import {
   BLACK,
   BLACK_KING,
@@ -8,52 +8,20 @@ import {
   WHITE,
   WHITE_KING,
   WHITE_PAWN,
-} from "./constants.mjs";
+} from "../coreLogic/constants.mjs";
 import {
   computePinned,
   makePinRayMaskGenerator,
-} from "./moveGeneration/computePinned.mjs";
-import { getCheckers, getRayBetween } from "./moveGeneration/checkersMask.mjs";
-import { getKingMovesForSquare } from "./moveGeneration/majorPieceMoveGeneration.mjs";
+} from "../coreLogic/moveGeneration/computePinned.mjs";
+import { getCheckers, getRayBetween } from "../coreLogic/moveGeneration/checkersMask.mjs";
+import { getKingMovesForSquare } from "../coreLogic/moveGeneration/majorPieceMoveGeneration.mjs";
 import { getAttackMask } from "./PieceMasks/attackMask.mjs";
 import { kingMasks } from "./PieceMasks/kingMask.mjs";
-import { getPlayerIndicies, indexArrays } from "../game/pieceIndexUpdators.ts";
-import { bitboardsToFEN } from "./helpers/FENandUCIHelpers.mjs";
-import { bigIntFullRep } from "./debugFunctions.mjs";
+import { getPlayerIndicies, indexArrays } from "./positionStates/pieceIndexUpdators.ts";
+import { bitboardsToFEN } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
+import { bigIntFullRep } from "../debugFunctions.ts";
 import { computeAllAttackMasks } from "./PieceMasks/individualAttackMasks.mjs";
-import { isKing, isKnight } from "./helpers/pieceUtils.mjs";
-
-/**
- * Determines whether a given square is attacked by the opponent
- *
- * @param {number} square - square to check if it is attacked
- * @param {bigint} opponentAttackMap - the attack map for the opponent
- * @returns {boolean} if the square is attacked
- */
-export const isSquareAttacked = (square, opponentAttackMap) => {
-  return (opponentAttackMap & (1n << BigInt(square))) !== 0n;
-};
-
-/**
- * Determines whether a given player is in check.
- *
- * @param {BigUint64Array} bitboards - bitboards of the current position
- * @param {number} player - whose move it is (0 for w, 1 for b)
- * @returns {boolean} whether the player is in check
- */
-export const isInCheck = (bitboards, player) => {
-  let kingIndex = WHITE_KING;
-  let opponent = BLACK;
-  if (player === BLACK) {
-    kingIndex = BLACK_KING;
-    opponent = WHITE;
-  }
-
-  const kingSquare = indexArrays[kingIndex][0];
-  const opponentAttackMask = getAttackMask(opponent);
-
-  return isSquareAttacked(kingSquare, opponentAttackMask);
-};
+import { isKing, isKnight } from "../coreLogic/helpers/pieceUtils.mjs";
 
 /**
  * Determines if a player has a legal move. Same logic as getAllLegalMoves, but

@@ -38,6 +38,26 @@ export const PIECE = {
   bK: BLACK_KING,
 } as const;
 
+export const WHITE_PIECES = [
+  WHITE_PAWN,
+  WHITE_KNIGHT,
+  WHITE_BISHOP,
+  WHITE_ROOK,
+  WHITE_QUEEN,
+  WHITE_KING,
+];
+
+export const BLACK_PIECES = [
+  BLACK_PAWN,
+  BLACK_KNIGHT,
+  BLACK_BISHOP,
+  BLACK_ROOK,
+  BLACK_QUEEN,
+  BLACK_KING,
+];
+
+export const PIECES_BY_PLAYER = [WHITE_PIECES, BLACK_PIECES];
+
 export const PIECES = [
   WHITE_PAWN,
   WHITE_KNIGHT,
@@ -158,3 +178,11 @@ export const RANKS = [
   RANK_7,
   RANK_8,
 ];
+
+export const NO_SQUARE = -1;
+
+// ----- MASKS -----
+export const FILE_H_MASK = 0x7f7f7f7f7f7f7f7fn;
+export const FILE_A_MASK = 0xfefefefefefefefen;
+export const RANK_8_MASK = 0x00ffffffffffffffn;
+export const RANK_1_MASK = 0xffffffffffffff00n;

@@ -1,8 +1,8 @@
 import { updateCastlingRights } from "../../moveMaking/castleMoveLogic.mjs";
 import { makeMove, unMakeMove } from "../../moveMaking/makeMoveLogic.mjs";
 import { updateHash } from "../../zobristHashing.mjs";
-import { checkGameOver } from "../../gameOverLogic.mjs";
-import { getNewEnPassant, isInCheck } from "../../bbChessLogic.mjs";
+import { checkGameOver } from "../../../game/positionStates/gameOverLogic.mjs";
+import { getNewEnPassant, isInCheck } from "../../../game/bbChessLogic.mjs";
 import { BLACK, WEIGHTS, WHITE } from "../../constants.mjs";
 import { evaluate } from "./evaluation.mjs";
 import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
