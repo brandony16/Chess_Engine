@@ -1,4 +1,4 @@
-import type { Piece } from "../chessConstants.ts";
+import { type Piece } from "../chessConstants.ts";
 import type { Square } from "../types.ts";
 
 /**

@@ -16,7 +16,6 @@ import {
   WHITE_BISHOP,
   WHITE_QUEEN,
   WHITE_ROOK,
-  type PieceAt,
 } from "./chessConstants.ts";
 import type Move from "./moveMaking/move.ts";
 import type { Bitboard, Player, Square } from "./types.ts";
@@ -42,6 +41,7 @@ export class Position {
   enPassantSquare: number;
   halfmoveClock: number;
   fullmoveNumber: number;
+  gameOver: boolean;
 
   kingSq: Int8Array; // Indexed by player
   zobristKey: bigint;
@@ -65,6 +65,7 @@ export class Position {
     this.enPassantSquare = NO_SQUARE;
     this.halfmoveClock = 0;
     this.fullmoveNumber = 1;
+    this.gameOver = false;
 
     // ----- Cached Info -----
     this.kingSq = new Int8Array(2);
@@ -274,7 +275,6 @@ export class Position {
   }
 
   hasLegalMove(player: Player = this.sideToMove): boolean {
-    
     return false;
   }
 

@@ -1,4 +1,4 @@
-import { bishopAttackTable, rookAttackTable } from "../attackTables.mjs";
+import { bishopAttackTable, rookAttackTable } from "../attackTables.ts";
 import { bishopMasks, rookMasks } from "./magicNumbers/slidingMasks.ts";
 import {
   bishopMagics,

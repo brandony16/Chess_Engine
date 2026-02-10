@@ -13,15 +13,22 @@ import {
   computePinned,
   makePinRayMaskGenerator,
 } from "../coreLogic/moveGeneration/computePinned.mjs";
-import { getCheckers, getRayBetween } from "../coreLogic/moveGeneration/checkersMask.mjs";
+import {
+  getCheckers,
+  getRayBetween,
+} from "../coreLogic/moveGeneration/checkersMask.mjs";
 import { getKingMovesForSquare } from "../coreLogic/moveGeneration/majorPieceMoveGeneration.mjs";
 import { getAttackMask } from "./PieceMasks/attackMask.mjs";
 import { kingMasks } from "./PieceMasks/kingMask.mjs";
-import { getPlayerIndicies, indexArrays } from "./positionStates/pieceIndexUpdators.ts";
+import {
+  getPlayerIndicies,
+  indexArrays,
+} from "./positionStates/pieceIndexUpdators.ts";
 import { bitboardsToFEN } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
 import { bigIntFullRep } from "../debugFunctions.ts";
 import { computeAllAttackMasks } from "./PieceMasks/individualAttackMasks.mjs";
 import { isKing, isKnight } from "../coreLogic/helpers/pieceUtils.mjs";
+import { isPawn } from "./pieceUtils/pieceClassifiers.ts";
 
 /**
  * Determines if a player has a legal move. Same logic as getAllLegalMoves, but
@@ -37,7 +44,7 @@ export const hasLegalMove = (
   bitboards,
   player,
   castlingRights,
-  enPassantSquare
+  enPassantSquare,
 ) => {
   const isWhite = player === WHITE;
   const opponent = isWhite ? BLACK : WHITE;
@@ -48,7 +55,7 @@ export const hasLegalMove = (
   if (kingSq === undefined) {
     console.log(indexArrays[kingIndex], kingIndex);
     console.log(
-      bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare)
+      bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare),
     );
   }
   const kingMask = 1n << BigInt(kingSq);
@@ -76,14 +83,14 @@ export const hasLegalMove = (
         player,
         kingSq,
         oppAttackMask,
-        castlingRights
+        castlingRights,
       );
 
       return kingMoves !== 0n;
     }
     if (numCheck !== 1) {
       console.log(
-        bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare)
+        bitboardsToFEN(bitboards, player, castlingRights, enPassantSquare),
       );
       console.log(bigIntFullRep(oppAttackMask));
       computeAllAttackMasks(bitboards);
@@ -116,7 +123,7 @@ export const hasLegalMove = (
       castlingRights,
       oppAttackMask,
       pinnedMask,
-      getRayMask
+      getRayMask,
     );
 
     const legalMoves = isKing(piece) ? pieceMoves : pieceMoves & kingCheckMask;
@@ -127,23 +134,4 @@ export const hasLegalMove = (
   }
 
   return false;
-};
-
-/**
- * Gets the new en passant square for a move
- *
- * @param {Move} move - the move object
- * @returns the new enPassant square
- */
-export const getNewEnPassant = (move) => {
-  const piece = move.piece;
-  let enPassantSquare = null;
-  if (
-    (piece === WHITE_PAWN || piece === BLACK_PAWN) &&
-    Math.abs(move.to - move.from) === 16
-  ) {
-    const dir = piece === WHITE_PAWN ? -8 : 8;
-    enPassantSquare = move.to + dir;
-  }
-  return enPassantSquare;
 };
