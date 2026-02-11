@@ -4,7 +4,7 @@ import {
   getOpeningMoves,
   squareToIndex,
 } from "../../coreLogic/helpers/FENandUCIHelpers.mjs";
-import { checkGameOver } from "../../game/positionStates/gameOverLogic.mjs";
+import { checkGameOver } from "../../game/positionStates/gameOverLogic.ts";
 import { moveToReadable } from "../../coreLogic/helpers/generalHelpers.mjs";
 import { makeMove } from "../../coreLogic/moveMaking/makeMoveLogic.mjs";
 import Move from "../../game/moveMaking/move.ts";

@@ -186,3 +186,18 @@ export const FILE_H_MASK = 0x7f7f7f7f7f7f7f7fn;
 export const FILE_A_MASK = 0xfefefefefefefefen;
 export const RANK_8_MASK = 0x00ffffffffffffffn;
 export const RANK_1_MASK = 0xffffffffffffff00n;
+
+// ----- GAME END -----
+export type Result = -1 | 0 | 1 | 2;
+
+export const IN_PROGRESS = -1;
+export const WHITE_WIN = 0;
+export const BLACK_WIN = 1;
+export const DRAW = 2;
+
+export type EndState = -1 | 0 | 1 | 2 | 3 | 4;
+export const CHECKMATE = 0;
+export const STALEMATE = 1;
+export const REPETITION = 2;
+export const INSUFFICIENT_MATERIAL = 3;
+export const FIFTY_MOVE_RULE = 4;

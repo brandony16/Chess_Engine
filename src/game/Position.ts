@@ -6,16 +6,27 @@ import {
   BLACK_BISHOP,
   BLACK_QUEEN,
   BLACK_ROOK,
+  BLACK_WIN,
+  CHECKMATE,
+  DRAW,
+  FIFTY_MOVE_RULE,
+  IN_PROGRESS,
   INITIAL_BITBOARDS,
+  INSUFFICIENT_MATERIAL,
   NO_PIECE,
   NO_SQUARE,
   NUM_PIECES,
   PIECES,
   PIECES_BY_PLAYER,
+  REPETITION,
+  STALEMATE,
   WHITE,
   WHITE_BISHOP,
   WHITE_QUEEN,
   WHITE_ROOK,
+  WHITE_WIN,
+  type EndState,
+  type Result,
 } from "./chessConstants.ts";
 import type Move from "./moveMaking/move.ts";
 import type { Bitboard, Player, Square } from "./types.ts";
@@ -25,6 +36,7 @@ import {
   SIDE_TO_MOVE_ZOBRIST,
   zobristTable,
 } from "./positionStates/zobrist.ts";
+import { drawByInsufficientMaterial, drawByRepetition } from "./positionStates/gameOverLogic.ts";
 
 export class Position {
   bitboards: BigUint64Array;
@@ -39,14 +51,17 @@ export class Position {
   sideToMove: Player;
   castlingRights: number;
   enPassantSquare: number;
-  halfmoveClock: number;
   fullmoveNumber: number;
-  gameOver: boolean;
+
+  result: Result;
+  halfmoveClock: number;
+  endState: EndState;
 
   kingSq: Int8Array; // Indexed by player
   zobristKey: bigint;
 
   moveStack: Move[];
+  pastPositions: Map<bigint, number>;
 
   constructor() {
     // ----- Board State -----
@@ -63,15 +78,19 @@ export class Position {
     this.sideToMove = WHITE;
     this.castlingRights = ALL_CASTLING;
     this.enPassantSquare = NO_SQUARE;
-    this.halfmoveClock = 0;
     this.fullmoveNumber = 1;
-    this.gameOver = false;
+
+    // ----- End Game -----
+    this.result = IN_PROGRESS;
+    this.halfmoveClock = 0;
+    this.endState = IN_PROGRESS;
 
     // ----- Cached Info -----
     this.kingSq = new Int8Array(2);
     this.zobristKey = 0n;
 
     this.moveStack = [];
+    this.pastPositions = new Map<bigint, number>();
 
     this.loadInitialPosition();
   }
@@ -278,6 +297,36 @@ export class Position {
     return false;
   }
 
+  checkGameOver() {
+    if (drawByInsufficientMaterial(this.bitboards, this.occupiedWhite, this.occupiedBlack)) {
+      this.result = DRAW;
+      this.endState = INSUFFICIENT_MATERIAL;
+      return;
+    }
+    if (this.halfmoveClock >= 100) {
+      this.result = DRAW;
+      this.endState = FIFTY_MOVE_RULE;
+      return;
+    }
+    if (drawByRepetition(this.pastPositions)) {
+      this.result = DRAW;
+      this.endState = REPETITION;
+      return;
+    }
+
+    // If player has no moves it is stalemate or checkmate
+    if (!this.hasLegalMove()) {
+      const kingSquare = this.kingSq[this.sideToMove ^ 1];
+      if (this.isSquareAttacked(kingSquare, this.sideToMove)) {
+        this.result = this.sideToMove === WHITE ? WHITE_WIN : BLACK_WIN;
+        this.endState = CHECKMATE;
+      }
+
+      this.result = DRAW;
+      this.endState = STALEMATE;
+    }
+  }
+
   // -----------------------
   // Game Info Methods
   // -----------------------
@@ -317,5 +366,9 @@ export class Position {
   isSquareAttacked(square: Square, player: Player): boolean {
     const mask = this.getAttackMask(player);
     return (mask & (1n << BigInt(square))) !== 0n;
+  }
+
+  gameOver() {
+    return this.result !== IN_PROGRESS;
   }
 }

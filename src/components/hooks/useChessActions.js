@@ -4,7 +4,7 @@ import {
   movesToBB,
   moveToReadable,
 } from "../../coreLogic/helpers/generalHelpers.mjs";
-import { checkGameOver } from "../../game/positionStates/gameOverLogic.mjs";
+import { checkGameOver } from "../../game/positionStates/gameOverLogic.ts";
 import { computeHash } from "../../coreLogic/zobristHashing.mjs";
 import { getNewEnPassant } from "../../game/bbChessLogic.mjs";
 import { makeMove } from "../../coreLogic/moveMaking/makeMoveLogic.mjs";

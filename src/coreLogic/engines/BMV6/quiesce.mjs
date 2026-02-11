@@ -1,6 +1,6 @@
 import { getNewEnPassant } from "../../../game/bbChessLogic.mjs";
 import { BLACK, WHITE } from "../../constants.mjs";
-import { checkGameOver } from "../../../game/positionStates/gameOverLogic.mjs";
+import { checkGameOver } from "../../../game/positionStates/gameOverLogic.ts";
 import { getQuiescenceMoves } from "../../moveGeneration/quiescenceMoves.mjs";
 import { updateCastlingRights } from "../../moveMaking/castleMoveLogic.mjs";
 import { makeMove, unMakeMove } from "../../moveMaking/makeMoveLogic.mjs";
