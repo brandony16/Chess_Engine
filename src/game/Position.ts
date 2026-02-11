@@ -1,4 +1,4 @@
-import { bitScanForward } from "../coreLogic/helpers/bbUtils.mjs";
+import { bitScanForward, popcount } from "../coreLogic/helpers/bbUtils.mjs";
 import { computeMaskForPiece } from "./positionStates/attackMasks/attackMasks.ts";
 import {
   ALL_CASTLING,
@@ -45,6 +45,12 @@ import {
 } from "./positionStates/gameOverLogic.ts";
 import { isKing, isKnight, isPawn } from "./pieceUtils/pieceClassifiers.ts";
 import { getPieceMoves } from "./moveGen/moveGeneration.ts";
+import { kingMoves } from "./moveGen/majorPieces.ts";
+import {
+  getCheckers,
+  getRayBetween,
+} from "../coreLogic/moveGeneration/checkersMask.mjs";
+import { opponent } from "./temp.ts";
 
 export class Position {
   bitboards: BigUint64Array;
@@ -273,38 +279,27 @@ export class Position {
   // Core rule methods
   // -----------------------
 
-  generateMoves(): Move[] {
-    let allMoves = [];
+  generatePseudoLegalMoves(): Move[] {
+    let moves = [];
 
     const side = this.sideToMove;
     const isWhite = side === WHITE;
-    const opponent = isWhite ? BLACK : WHITE;
-    const oppAttackMask = this.getAttackMask(opponent);
+    const opp = opponent(side);
 
     const kingSq = this.kingSq[side];
 
-    const pinnedMask = computePinned(this.bitboards, side, kingSq);
-    const getRayMask = makePinRayMaskGenerator(kingSq);
-    let kingCheckMask = ~0n;
-
     // If king is in check
-    const isKingInCheck = oppAttackMask & (1n << BigInt(kingSq));
+    const isKingInCheck = this.isSquareAttacked(kingSq, opp);
     if (isKingInCheck) {
       const checkers = getCheckers(this.bitboards, side, kingSq);
       const numCheck = popcount(checkers);
 
       // Double check, only king moves are possible
       if (numCheck > 1) {
-        const kingMoves = getKingMovesForSquare(
-          this.bitboards,
-          side,
-          kingSq,
-          oppAttackMask,
-          this.castlingRights,
-        );
+        const moves = kingMoves(this, kingSq);
 
         return getMovesFromBB(
-          kingMoves,
+          moves,
           kingSq,
           isWhite ? WHITE_KING : BLACK_KING,
           this.enPassantSquare,
@@ -314,17 +309,6 @@ export class Position {
       if (numCheck !== 1) {
         throw new Error("KING IN CHECK W/O CHECKERS");
       }
-
-      // Single check
-      const oppSq = bitScanForward(checkers);
-
-      // If a knight check, need to capture it (or move king)
-      if (isKnight(this.pieceAt[oppSq])) {
-        kingCheckMask = checkers;
-      } else {
-        const rayMask = getRayBetween(kingSq, oppSq);
-        kingCheckMask = rayMask | checkers;
-      }
     }
 
     const playerIndicies = this.playerPieceIndexes(side);
@@ -332,35 +316,38 @@ export class Position {
       for (const square of pieceIdxArr) {
         const piece = this.pieceAt[square];
 
-        const pieceMoves = getPieceMoves(this, pinnedMask, getRayMask);
-        if (pieceMoves === 0n) continue;
+        const moveBB = getPieceMoves(this, piece, square);
+        if (moveBB === 0n) continue;
 
-        let legalMoves = isKing(piece)
-          ? pieceMoves
-          : pieceMoves & kingCheckMask;
-        if (
-          isKingInCheck &&
-          this.enPassantSquare &&
-          isPawn(piece) &&
-          isBitSet(pieceMoves, this.enPassantSquare)
-        ) {
-          legalMoves = legalMoves | (1n << BigInt(this.enPassantSquare));
-        }
-        if (legalMoves === 0n) continue;
-
-        const legalMoveArr = getMovesFromBB(
-          legalMoves,
+        const moveArr = getMovesFromBB(
+          moveBB,
           square,
           piece,
           this.enPassantSquare,
           side,
         );
 
-        allMoves = allMoves.concat(legalMoveArr);
+        moves = moves.concat(moveArr);
       }
     }
 
-    return allMoves;
+    return moves;
+  }
+
+  generateLegalMoves(): Move[] {
+    const legal = [];
+
+    const movingSide = this.sideToMove;
+    const moves = this.generatePseudoLegalMoves();
+    for (const move of moves) {
+      this.makeMove(move);
+      if (this.isInCheck(movingSide)) {
+        continue;
+      }
+      legal.push(move);
+    }
+
+    return legal;
   }
 
   makeMove(move: Move): void {

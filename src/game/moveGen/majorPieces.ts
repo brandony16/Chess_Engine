@@ -7,27 +7,13 @@ import {
   isKingsideCastleLegal,
   isQueensideCastleLegal,
 } from "../moveMaking/castling.ts";
-import { bitScanForward } from "../../coreLogic/helpers/bbUtils.mjs";
 
 /**
  * Gets all legal rook moves for a given square
  */
-export const rookMoves = (
-  pos: Position,
-  from: Square,
-  pinnedMask: bigint,
-  getRayMask: Function,
-): bigint => {
+export const rookMoves = (pos: Position, from: Square): bigint => {
   const occ = pos.occupied;
-
   let moves = rookAttacks(from, occ);
-
-  // Check if rook is pinned
-  let rook = 1n << BigInt(from);
-  if (rook & pinnedMask) {
-    const mask = getRayMask(from);
-    moves &= mask;
-  }
 
   const friendlyOcc =
     pos.sideToMove === WHITE ? pos.occupiedWhite : pos.occupiedBlack;
@@ -38,22 +24,9 @@ export const rookMoves = (
 /**
  * Gets all legal queen moves for a square
  */
-export const queeenMoves = (
-  pos: Position,
-  from: Square,
-  pinnedMask: bigint,
-  getRayMask: Function,
-) => {
+export const queenMoves = (pos: Position, from: Square) => {
   const occ = pos.occupied;
-
   let moves = bishopAttacks(from, occ) | rookAttacks(from, occ);
-
-  // Check if queen is pinned
-  let queen = 1n << BigInt(from);
-  if (queen & pinnedMask) {
-    const mask = getRayMask(from);
-    moves &= mask;
-  }
 
   const friendlyOcc =
     pos.sideToMove === WHITE ? pos.occupiedWhite : pos.occupiedBlack;
@@ -64,7 +37,7 @@ export const queeenMoves = (
 /**
  * Gets the move bitboard for a king.
  */
-export const getKingMovesForSquare = (pos: Position, from: Square) => {
+export const kingMoves = (pos: Position, from: Square) => {
   const isWhite = pos.sideToMove === WHITE;
   const friendlyOcc = isWhite ? pos.occupiedWhite : pos.occupiedBlack;
   let moves = kingMasks[from] & ~friendlyOcc;
@@ -102,13 +75,6 @@ export const getKingMovesForSquare = (pos: Position, from: Square) => {
         moves |= 1n << 58n;
       }
     }
-  }
-
-  const kingMask = 1n << BigInt(from);
-  if (kingMask & oppAttackMask) {
-    const occWithoutKing = oppAttackMask ^ kingMask;
-    const newAttackMask = 0n; // new mask w/o king
-    return moves & ~newAttackMask;
   }
 
   // Remove squares attacked by the enemy
