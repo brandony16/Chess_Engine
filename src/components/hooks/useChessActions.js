@@ -14,7 +14,7 @@ import {
   isPlayersPieceAtSquare,
   pieceAt,
 } from "../../game/pieceUtils/pieceGetters.ts";
-import { getAllLegalMoves } from "../../coreLogic/moveGeneration/allMoveGeneration.mjs";
+import { getAllLegalMoves } from "../../game/moveGen/moveGeneration.ts";
 import { isKing, isPawn } from "../../coreLogic/helpers/pieceUtils.mjs";
 
 /**

@@ -5,7 +5,7 @@ import {
   GENERAL_SYMBOLS,
   WHITE,
 } from "../constants.mjs";
-import { getAllLegalMoves } from "../moveGeneration/allMoveGeneration.mjs";
+import { getAllLegalMoves } from "../../game/moveGen/moveGeneration.ts";
 import { pieceAt } from "../../game/pieceUtils/pieceGetters.ts";
 
 /**

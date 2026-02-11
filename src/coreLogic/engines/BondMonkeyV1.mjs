@@ -1,4 +1,4 @@
-import { getAllLegalMoves } from "../moveGeneration/allMoveGeneration.mjs";
+import { getAllLegalMoves } from "../../game/moveGen/moveGeneration.ts";
 
 /**
  * Gets the "best" move in the given position. This version simply selects a random move.

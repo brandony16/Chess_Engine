@@ -4,6 +4,7 @@ import {
   ALL_CASTLING,
   BLACK,
   BLACK_BISHOP,
+  BLACK_KING,
   BLACK_QUEEN,
   BLACK_ROOK,
   BLACK_WIN,
@@ -22,10 +23,12 @@ import {
   STALEMATE,
   WHITE,
   WHITE_BISHOP,
+  WHITE_KING,
   WHITE_QUEEN,
   WHITE_ROOK,
   WHITE_WIN,
   type EndState,
+  type Piece,
   type Result,
 } from "./chessConstants.ts";
 import type Move from "./moveMaking/move.ts";
@@ -36,7 +39,12 @@ import {
   SIDE_TO_MOVE_ZOBRIST,
   zobristTable,
 } from "./positionStates/zobrist.ts";
-import { drawByInsufficientMaterial, drawByRepetition } from "./positionStates/gameOverLogic.ts";
+import {
+  drawByInsufficientMaterial,
+  drawByRepetition,
+} from "./positionStates/gameOverLogic.ts";
+import { isKing, isKnight, isPawn } from "./pieceUtils/pieceClassifiers.ts";
+import { getPieceMoves } from "./moveGen/moveGeneration.ts";
 
 export class Position {
   bitboards: BigUint64Array;
@@ -44,7 +52,7 @@ export class Position {
   occupiedBlack: Bitboard;
   occupied: Bitboard;
 
-  pieceAt: Int8Array; // length 64
+  pieceAt: Piece[]; // length 64
   pieceIndexes: number[][];
   attackMasks: BigUint64Array;
 
@@ -70,7 +78,7 @@ export class Position {
     this.occupiedBlack = 0n;
     this.occupied = 0n;
 
-    this.pieceAt = new Int8Array(64);
+    this.pieceAt = new Array(64).fill(NO_PIECE);
     this.pieceIndexes = new Array(64).fill(new Int8Array());
     this.attackMasks = new BigUint64Array(NUM_PIECES);
 
@@ -266,8 +274,93 @@ export class Position {
   // -----------------------
 
   generateMoves(): Move[] {
-    // fills moveList (preallocated array)
-    return [];
+    let allMoves = [];
+
+    const side = this.sideToMove;
+    const isWhite = side === WHITE;
+    const opponent = isWhite ? BLACK : WHITE;
+    const oppAttackMask = this.getAttackMask(opponent);
+
+    const kingSq = this.kingSq[side];
+
+    const pinnedMask = computePinned(this.bitboards, side, kingSq);
+    const getRayMask = makePinRayMaskGenerator(kingSq);
+    let kingCheckMask = ~0n;
+
+    // If king is in check
+    const isKingInCheck = oppAttackMask & (1n << BigInt(kingSq));
+    if (isKingInCheck) {
+      const checkers = getCheckers(this.bitboards, side, kingSq);
+      const numCheck = popcount(checkers);
+
+      // Double check, only king moves are possible
+      if (numCheck > 1) {
+        const kingMoves = getKingMovesForSquare(
+          this.bitboards,
+          side,
+          kingSq,
+          oppAttackMask,
+          this.castlingRights,
+        );
+
+        return getMovesFromBB(
+          kingMoves,
+          kingSq,
+          isWhite ? WHITE_KING : BLACK_KING,
+          this.enPassantSquare,
+          side,
+        );
+      }
+      if (numCheck !== 1) {
+        throw new Error("KING IN CHECK W/O CHECKERS");
+      }
+
+      // Single check
+      const oppSq = bitScanForward(checkers);
+
+      // If a knight check, need to capture it (or move king)
+      if (isKnight(this.pieceAt[oppSq])) {
+        kingCheckMask = checkers;
+      } else {
+        const rayMask = getRayBetween(kingSq, oppSq);
+        kingCheckMask = rayMask | checkers;
+      }
+    }
+
+    const playerIndicies = this.playerPieceIndexes(side);
+    for (const pieceIdxArr of playerIndicies) {
+      for (const square of pieceIdxArr) {
+        const piece = this.pieceAt[square];
+
+        const pieceMoves = getPieceMoves(this, pinnedMask, getRayMask);
+        if (pieceMoves === 0n) continue;
+
+        let legalMoves = isKing(piece)
+          ? pieceMoves
+          : pieceMoves & kingCheckMask;
+        if (
+          isKingInCheck &&
+          this.enPassantSquare &&
+          isPawn(piece) &&
+          isBitSet(pieceMoves, this.enPassantSquare)
+        ) {
+          legalMoves = legalMoves | (1n << BigInt(this.enPassantSquare));
+        }
+        if (legalMoves === 0n) continue;
+
+        const legalMoveArr = getMovesFromBB(
+          legalMoves,
+          square,
+          piece,
+          this.enPassantSquare,
+          side,
+        );
+
+        allMoves = allMoves.concat(legalMoveArr);
+      }
+    }
+
+    return allMoves;
   }
 
   makeMove(move: Move): void {
@@ -298,7 +391,13 @@ export class Position {
   }
 
   checkGameOver() {
-    if (drawByInsufficientMaterial(this.bitboards, this.occupiedWhite, this.occupiedBlack)) {
+    if (
+      drawByInsufficientMaterial(
+        this.bitboards,
+        this.occupiedWhite,
+        this.occupiedBlack,
+      )
+    ) {
       this.result = DRAW;
       this.endState = INSUFFICIENT_MATERIAL;
       return;

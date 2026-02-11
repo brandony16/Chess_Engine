@@ -18,10 +18,8 @@ export const BLACK_ROOK = 9 as const;
 export const BLACK_QUEEN = 10 as const;
 export const BLACK_KING = 11 as const;
 
-export type Piece = (typeof PIECES)[number];
+export type Piece = (typeof PIECES)[number] | typeof NO_PIECE;
 export const NO_PIECE = -1 as const;
-
-export type PieceAt = Piece | typeof NO_PIECE;
 
 export const PIECE = {
   wP: WHITE_PAWN,

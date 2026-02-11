@@ -19,10 +19,10 @@ import {
   getEmptySquares,
   getPlayerBoard,
   getWhitePieces,
-} from "../../game/pieceUtils/pieceGetters.ts";
+} from "../pieceUtils/pieceGetters.ts";
 import { knightMasks } from "../PieceMasks/knightMask.mjs";
 import { blackPawnMasks, whitePawnMasks } from "../PieceMasks/pawnMask.mjs";
-import { bishopAttacks } from "../../game/moveGen/sliderMoves.ts";
+import { bishopAttacks } from "./sliderMoves.ts";
 import { getRookAttacksForSquare } from "./slidingPieceAttacks.mjs";
 
 /**

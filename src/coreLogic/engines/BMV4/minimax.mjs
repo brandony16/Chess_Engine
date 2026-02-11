@@ -8,7 +8,7 @@ import { BLACK, MAX_PLY, WHITE } from "../../constants.mjs";
 import { rootId } from "./BondMonkeyV4.mjs";
 import { evaluate, weights } from "./evaluation.mjs";
 import { quiesce } from "./quiesce.mjs";
-import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
+import { getAllLegalMoves } from "../../../game/moveGen/moveGeneration.ts";
 import { ENGINE_STATS } from "../../../debugFunctions.ts";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]

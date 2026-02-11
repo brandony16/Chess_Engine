@@ -1,6 +1,6 @@
 import { bitScanForward, popcount } from "../coreLogic/helpers/bbUtils.mjs";
 import { getAllPieces, pieceAt } from "./pieceUtils/pieceGetters.ts";
-import { getPieceMoves } from "../coreLogic/moveGeneration/allMoveGeneration.mjs";
+import { getPieceMoves } from "./moveGen/moveGeneration.ts";
 import {
   BLACK,
   BLACK_KING,

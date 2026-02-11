@@ -5,7 +5,7 @@ import { checkGameOver } from "../../../game/positionStates/gameOverLogic.ts";
 import { getNewEnPassant, isInCheck } from "../../../game/bbChessLogic.mjs";
 import { BLACK, WEIGHTS, WHITE } from "../../constants.mjs";
 import { evaluate } from "./evaluation.mjs";
-import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
+import { getAllLegalMoves } from "../../../game/moveGen/moveGeneration.ts";
 
 /**
  * A minimax function that recursively finds the evaluation of the function.

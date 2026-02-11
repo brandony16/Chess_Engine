@@ -7,7 +7,7 @@ import { getTT, setTT, TT_FLAG } from "../../transpositionTable.mjs";
 import { BLACK, MAX_PLY, WEIGHTS, WHITE } from "../../constants.mjs";
 import { rootId } from "./BondMonkeyV3.mjs";
 import { evaluate } from "./evaluation.mjs";
-import { getAllLegalMoves } from "../../moveGeneration/allMoveGeneration.mjs";
+import { getAllLegalMoves } from "../../../game/moveGen/moveGeneration.ts";
 import { ENGINE_STATS } from "../../../debugFunctions.ts";
 
 // killerMoves[ply] = [firstKillerMove, secondKillerMove]

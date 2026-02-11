@@ -11,7 +11,7 @@ import {
   WHITE_KINGSIDE,
   WHITE_QUEENSIDE,
 } from "../constants.mjs";
-import { getAllLegalMoves } from "../moveGeneration/allMoveGeneration.mjs";
+import { getAllLegalMoves } from "../../game/moveGen/moveGeneration.ts";
 import { pieceAt } from "../../game/pieceUtils/pieceGetters.ts";
 
 /**
