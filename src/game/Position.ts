@@ -18,7 +18,7 @@ import {
   NO_SQUARE,
   NUM_PIECES,
   PIECES,
-  PIECES_BY_PLAYER,
+  PLAYER_PIECES,
   REPETITION,
   STALEMATE,
   WHITE,
@@ -43,14 +43,10 @@ import {
   drawByInsufficientMaterial,
   drawByRepetition,
 } from "./positionStates/gameOverLogic.ts";
-import { isKing, isKnight, isPawn } from "./pieceUtils/pieceClassifiers.ts";
 import { getPieceMoves } from "./moveGen/moveGeneration.ts";
 import { kingMoves } from "./moveGen/majorPieces.ts";
-import {
-  getCheckers,
-  getRayBetween,
-} from "../coreLogic/moveGeneration/checkersMask.mjs";
-import { opponent } from "./temp.ts";
+import { getCheckers } from "../coreLogic/moveGeneration/checkersMask.mjs";
+import { getMovesFromBB, opponent } from "./temp.ts";
 
 export class Position {
   bitboards: BigUint64Array;
@@ -127,11 +123,11 @@ export class Position {
   initializePieceAt(): void {
     this.pieceAt.fill(NO_PIECE);
 
-    for (let p = 0; p < NUM_PIECES; p++) {
-      let bb = this.bitboards[p];
+    for (const piece of PIECES) {
+      let bb = this.bitboards[piece];
       while (bb) {
         const sq = bitScanForward(bb);
-        this.pieceAt[sq] = p;
+        this.pieceAt[sq] = piece;
         bb &= bb - 1n;
       }
     }
@@ -304,6 +300,7 @@ export class Position {
           isWhite ? WHITE_KING : BLACK_KING,
           this.enPassantSquare,
           side,
+          this.pieceAt,
         );
       }
       if (numCheck !== 1) {
@@ -325,6 +322,7 @@ export class Position {
           piece,
           this.enPassantSquare,
           side,
+          this.pieceAt,
         );
 
         moves = moves.concat(moveArr);
@@ -442,7 +440,7 @@ export class Position {
 
   getAttackMask(player: Player): bigint {
     let mask = 0n;
-    for (const piece of PIECES_BY_PLAYER[player]) {
+    for (const piece of PLAYER_PIECES[player]) {
       mask |= this.attackMasks[piece];
     }
 

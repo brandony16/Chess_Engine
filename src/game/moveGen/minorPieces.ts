@@ -20,7 +20,7 @@ export const pawnMoves = (pos: Position, from: Square) => {
   const pawnMask = 1n << BigInt(from);
 
   const isWhite = pos.sideToMove === WHITE;
-  const emptySquares = getEmptySquares(bitboards);
+  const emptySquares = ~pos.occupied;
   const enemyPieces = isWhite ? pos.occupiedBlack : pos.occupiedWhite;
 
   let singlePush = 0n;

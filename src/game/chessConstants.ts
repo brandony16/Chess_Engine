@@ -36,7 +36,7 @@ export const PIECE = {
   bK: BLACK_KING,
 } as const;
 
-export const WHITE_PIECES = [
+const WHITE_PIECES = [
   WHITE_PAWN,
   WHITE_KNIGHT,
   WHITE_BISHOP,
@@ -45,7 +45,7 @@ export const WHITE_PIECES = [
   WHITE_KING,
 ];
 
-export const BLACK_PIECES = [
+const BLACK_PIECES = [
   BLACK_PAWN,
   BLACK_KNIGHT,
   BLACK_BISHOP,
@@ -54,7 +54,7 @@ export const BLACK_PIECES = [
   BLACK_KING,
 ];
 
-export const PIECES_BY_PLAYER = [WHITE_PIECES, BLACK_PIECES];
+export const PLAYER_PIECES = [WHITE_PIECES, BLACK_PIECES] as const;
 
 export const PIECES = [
   WHITE_PAWN,
@@ -78,21 +78,23 @@ export const SLIDING_PIECES = [
   BLACK_BISHOP,
   BLACK_ROOK,
   BLACK_QUEEN,
-];
+] as const;
 
 // Promotion pieces
-export const WHITE_PROMO_PIECES = [
+const WHITE_PROMO_PIECES = [
   WHITE_QUEEN,
   WHITE_ROOK,
   WHITE_BISHOP,
   WHITE_KNIGHT,
 ] as const;
-export const BLACK_PROMO_PIECES = [
+const BLACK_PROMO_PIECES = [
   BLACK_QUEEN,
   BLACK_ROOK,
   BLACK_BISHOP,
   BLACK_KNIGHT,
 ] as const;
+
+export const PROMO_PIECES = [WHITE_PROMO_PIECES, BLACK_PROMO_PIECES] as const;
 
 // ----- CASTLING CONSTANTS -----
 export const W_KINGSIDE_EMPTY: bigint = (1n << 5n) | (1n << 6n); // f1, g1
