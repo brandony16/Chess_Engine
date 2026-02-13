@@ -6,7 +6,7 @@ import {
   rookMagics,
   rookShifts,
 } from "./magicNumbers/magicNumbers.ts";
-import type { Square } from "../types.ts";
+import type { Square } from "../chessConstants.ts";
 
 /**
  * Gets the attack mask for a bishop at a given square using
@@ -19,7 +19,7 @@ import type { Square } from "../types.ts";
 export function bishopAttacks(sq: Square, occ: bigint): bigint {
   const mask = occ & bishopMasks[sq];
   const index = Number(
-    BigInt.asUintN(64, mask * bishopMagics[sq]) >> BigInt(bishopShifts[sq])
+    BigInt.asUintN(64, mask * bishopMagics[sq]) >> BigInt(bishopShifts[sq]),
   );
 
   return bishopAttackTable[sq][index];
@@ -37,7 +37,7 @@ export function rookAttacks(sq: Square, occ: bigint): bigint {
   const mask = occ & rookMasks[sq];
 
   const index = Number(
-    BigInt.asUintN(64, mask * rookMagics[sq]) >> BigInt(rookShifts[sq])
+    BigInt.asUintN(64, mask * rookMagics[sq]) >> BigInt(rookShifts[sq]),
   );
 
   return rookAttackTable[sq][index];

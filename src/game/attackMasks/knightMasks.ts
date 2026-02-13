@@ -1,5 +1,5 @@
 import { isOnBoard } from "../../coreLogic/helpers/bbUtils.mjs";
-import type { Square } from "../types.ts";
+import type { Square } from "../chessConstants.ts";
 
 // The square offsets for a knight
 const KNIGHT_OFFSETS = [17, 15, 10, 6, -17, -15, -10, -6];

@@ -3,11 +3,11 @@ import {
   NO_SQUARE,
   WHITE,
   WP_START_ROW,
+  type Square,
 } from "../chessConstants.ts";
 import type { Position } from "../Position.ts";
 import { knightMasks } from "../attackMasks/knightMasks.ts";
 import { blackPawnMasks, whitePawnMasks } from "../attackMasks/pawnMasks.ts";
-import type { Square } from "../types.ts";
 import { bishopAttacks } from "./sliderMoves.ts";
 import { opponent } from "../temp.ts";
 

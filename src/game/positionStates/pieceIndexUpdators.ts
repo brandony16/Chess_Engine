@@ -1,6 +1,5 @@
-import { BLACK_ROOK, WHITE_ROOK } from "../chessConstants.ts";
+import { BLACK_ROOK, WHITE_ROOK, type Square } from "../chessConstants.ts";
 import type Move from "../moveMaking/move.ts";
-import type { Square } from "../types.ts";
 
 export function updatePieceIndexes(pieceIndexes: Square[][], move: Move): void {
   const { piece, from, to, captured, promotion, enPassant, castling } = move;

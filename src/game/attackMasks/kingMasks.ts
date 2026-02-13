@@ -1,5 +1,5 @@
 import { isOnBoard } from "../../coreLogic/helpers/bbUtils.mjs";
-import type { Square } from "../types.ts";
+import type { Square } from "../chessConstants.ts";
 
 // The king square offsets
 const KING_OFFSETS = [1, 7, 8, 9, -1, -7, -8, -9];

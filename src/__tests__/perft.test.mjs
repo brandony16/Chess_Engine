@@ -1,4 +1,4 @@
-import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
+import { getFENData } from "../game/fenAndUCI/FENandUCIHelpers.ts";
 import { initializePieceAtArray } from "../game/pieceUtils/pieceGetters.ts";
 import { initializePieceIndicies } from "../game/positionStates/pieceIndexUpdators.ts";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";

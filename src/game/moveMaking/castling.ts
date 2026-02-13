@@ -16,9 +16,10 @@ import {
   WHITE_ROOK,
   WK,
   WQ,
+  type Player,
+  type Square,
 } from "../chessConstants.ts";
 import type { Position } from "../Position.ts";
-import type { Player, Square } from "../types.ts";
 import type Move from "./move.ts";
 
 export const updateCastlingRights = (

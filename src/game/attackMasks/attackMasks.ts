@@ -17,8 +17,9 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
   type Piece,
+  type Player,
+  type Square,
 } from "../chessConstants.ts";
-import type { Player, Square } from "../types.ts";
 import { bishopAttacks, rookAttacks } from "../moveGen/sliderMoves.ts";
 import {
   bishops,

@@ -1,5 +1,4 @@
 import { generateBlockerSubsets } from "../../../coreLogic/helpers/bbUtils.mjs";
-import type { Square } from "../../types.ts";
 import { bishopMasks, rookMasks } from "./slidingMasks.ts";
 import {
   bishopMagics,
@@ -8,6 +7,7 @@ import {
   rookShifts,
 } from "./magicNumbers.ts";
 import type { CollisionResolution } from "./magicTypes.ts";
+import type { Square } from "../../chessConstants.ts";
 
 /**
  * Generates random magic number candidates with 10 random bits set.

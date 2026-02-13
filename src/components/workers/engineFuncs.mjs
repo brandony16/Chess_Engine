@@ -3,7 +3,7 @@ import { BLACK_PAWN, WHITE_PAWN } from "../../coreLogic/constants.mjs";
 import {
   getOpeningMoves,
   squareToIndex,
-} from "../../coreLogic/helpers/FENandUCIHelpers.mjs";
+} from "../../game/fenAndUCI/FENandUCIHelpers.ts";
 import { checkGameOver } from "../../game/positionStates/gameOverLogic.ts";
 import { moveToReadable } from "../../coreLogic/helpers/generalHelpers.mjs";
 import { makeMove } from "../../coreLogic/moveMaking/makeMoveLogic.mjs";

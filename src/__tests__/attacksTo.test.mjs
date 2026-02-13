@@ -1,4 +1,4 @@
-import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
+import { getFENData } from "../game/fenAndUCI/FENandUCIHelpers.ts";
 import {
   getAllPieces,
   initializePieceAtArray,

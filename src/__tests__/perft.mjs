@@ -5,7 +5,7 @@ import {
   makeMove,
   unMakeMove,
 } from "../coreLogic/moveMaking/makeMoveLogic.mjs";
-import { moveToUCI } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
+import { moveToUCI } from "../game/fenAndUCI/FENandUCIHelpers.ts";
 import { BLACK, WHITE } from "../coreLogic/constants.mjs";
 
 /**

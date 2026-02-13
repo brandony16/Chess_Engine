@@ -1,5 +1,4 @@
-import type { File, Rank } from "../../chessConstants.ts";
-import type { Square } from "../../types.ts";
+import type { File, Rank, Square } from "../../chessConstants.ts";
 
 // Precompute masks
 export const rookMasks = Array.from({ length: 64 }, (_, sq) =>

@@ -7,7 +7,7 @@ import {
   WHITE_ROOK,
 } from "../coreLogic/constants.mjs";
 import { SEE } from "../coreLogic/engines/BMV7/SEE.mjs";
-import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
+import { getFENData } from "../game/fenAndUCI/FENandUCIHelpers.ts";
 import {
   getAllPieces,
   initializePieceAtArray,

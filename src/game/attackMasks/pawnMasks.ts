@@ -1,4 +1,4 @@
-import type { Square } from "../types.ts";
+import type { Square } from "../chessConstants.ts";
 
 /**
  * Computes a white pawn attack mask for a square.

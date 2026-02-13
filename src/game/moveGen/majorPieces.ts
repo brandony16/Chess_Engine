@@ -1,7 +1,6 @@
 import { bishopAttacks, rookAttacks } from "./sliderMoves.ts";
 import type { Position } from "../Position.ts";
-import { BK, BLACK, BQ, WHITE, WK, WQ } from "../chessConstants.ts";
-import type { Square } from "../types.ts";
+import { BK, BQ, WHITE, WK, WQ, type Square } from "../chessConstants.ts";
 import { kingMasks } from "../attackMasks/kingMasks.ts";
 import {
   isKingsideCastleLegal,

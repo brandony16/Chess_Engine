@@ -1,5 +1,5 @@
 import { bitScanForward, popcount } from "../coreLogic/helpers/bbUtils.mjs";
-import { attacksTo, computeMaskForPiece } from "./attackMasks/attackMasks.ts";
+import { attacksTo } from "./attackMasks/attackMasks.ts";
 import {
   ALL_CASTLING,
   BLACK,
@@ -18,7 +18,6 @@ import {
   NO_SQUARE,
   NUM_PIECES,
   PIECES,
-  PLAYER_PIECES,
   REPETITION,
   STALEMATE,
   WHITE,
@@ -27,12 +26,14 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
   WHITE_WIN,
+  type Bitboard,
   type EndState,
   type Piece,
+  type Player,
   type Result,
+  type Square,
 } from "./chessConstants.ts";
 import type Move from "./moveMaking/move.ts";
-import type { Bitboard, Player, Square } from "./types.ts";
 import {
   CASTLING_ZOBRIST,
   EN_PASSANT_ZOBRIST,
@@ -54,6 +55,16 @@ import {
 } from "./positionStates/pieceIndexUpdators.ts";
 import { updateCastlingRights } from "./moveMaking/castling.ts";
 import type { Undo } from "./moveMaking/move.ts";
+import { isPawn } from "./pieceUtils/pieceClassifiers.ts";
+import {
+  buildBitboards,
+  buildCastlingRights,
+  buildEnPassantSquare,
+  buildFenBoard,
+  buildFenCastling,
+  buildFenEnPassant,
+  buildPlayer,
+} from "./fenAndUCI/fenHelpers.ts";
 
 export class Position {
   bitboards: BigUint64Array;
@@ -114,8 +125,15 @@ export class Position {
 
     this.pieceAt.fill(NO_PIECE);
 
-    this.kingSq[WHITE] = 4;
-    this.kingSq[BLACK] = 60;
+    this.initCurrentPosition();
+  }
+
+  initCurrentPosition() {
+    this.kingSq[WHITE] = bitScanForward(this.bitboards[WHITE_KING]);
+    this.kingSq[BLACK] = bitScanForward(this.bitboards[BLACK_KING]);
+
+    this.endState = IN_PROGRESS;
+    this.result = IN_PROGRESS;
 
     this.recomputeOccupancy();
     this.computeZobrist();
@@ -265,14 +283,21 @@ export class Position {
     this.zobristKey = newHash;
   }
 
+  updateHalfmoveClock(move: Move): void {
+    if (move.captured !== NO_PIECE || isPawn(move.piece)) {
+      this.halfmoveClock = 0;
+    } else {
+      this.halfmoveClock++;
+    }
+  }
+
   // -----------------------
   // Core rule methods
   // -----------------------
 
-  generatePseudoLegalMoves(): Move[] {
+  generatePseudoLegalMoves(side: Player = this.sideToMove): Move[] {
     let moves = [];
 
-    const side = this.sideToMove;
     const isWhite = side === WHITE;
     const opp = opponent(side);
 
@@ -326,16 +351,18 @@ export class Position {
     return moves;
   }
 
-  generateLegalMoves(): Move[] {
+  generateLegalMoves(side: Player = this.sideToMove): Move[] {
     const legal = [];
 
-    const movingSide = this.sideToMove;
-    const moves = this.generatePseudoLegalMoves();
+    const movingSide = side;
+    const moves = this.generatePseudoLegalMoves(movingSide);
     for (const move of moves) {
       this.makeMove(move);
       if (this.isInCheck(movingSide)) {
+        this.unmakeMove();
         continue;
       }
+      this.unmakeMove();
       legal.push(move);
     }
 
@@ -343,6 +370,10 @@ export class Position {
   }
 
   makeMove(move: Move): void {
+    if (this.gameOver()) {
+      return;
+    }
+
     const undo: Undo = {
       captured: this.pieceAt[move.to],
       castlingRights: this.castlingRights,
@@ -365,7 +396,15 @@ export class Position {
     this.updateZobrist(move, this.enPassantSquare, rights);
 
     this.enPassantSquare = newEnPassant(move);
+
+    this.updateHalfmoveClock(move);
+    if (this.sideToMove === BLACK) {
+      this.fullmoveNumber++;
+    }
+
     this.sideToMove ^= 1;
+
+    this.checkGameOver();
   }
 
   unmakeMove(): void {
@@ -379,6 +418,15 @@ export class Position {
     this.enPassantSquare = undo.epSquare;
     this.halfmoveClock = undo.halfmoveClock;
     this.zobristKey = undo.zobristKey;
+
+    if (this.sideToMove === WHITE) {
+      this.fullmoveNumber--;
+    }
+
+    // If unmaking a move, the game cant be over (can't move if the game is over)
+    this.result = IN_PROGRESS;
+    this.endState = IN_PROGRESS;
+
     this.sideToMove ^= 1;
   }
 
@@ -389,13 +437,9 @@ export class Position {
     return this.isSquareAttacked(kingSquare, opponent);
   }
 
-  isLegalMove(move: Move): boolean {
-    // optional helper
-    return false;
-  }
-
   hasLegalMove(player: Player = this.sideToMove): boolean {
-    return false;
+    const moves = this.generateLegalMoves(player);
+    return moves.length === 0;
   }
 
   checkGameOver() {
@@ -460,7 +504,38 @@ export class Position {
     return attacksTo(this, square) !== 0n;
   }
 
-  gameOver() {
+  gameOver(): boolean {
     return this.result !== IN_PROGRESS;
+  }
+
+  getFen(): String {
+    const board = buildFenBoard(this.pieceAt);
+
+    const active = this.sideToMove === WHITE ? "w" : "b";
+
+    const castling = buildFenCastling(this.castlingRights);
+    const ep = buildFenEnPassant(this.enPassantSquare);
+
+    const halfmove = this.halfmoveClock;
+    const fullmove = this.fullmoveNumber;
+
+    return `${board} ${active} ${castling} ${ep} ${halfmove} ${fullmove}`;
+  }
+
+  loadFen(fen: String): void {
+    const data = fen.split(" ");
+    const bbStr = data[0];
+    const playerStr = data[1];
+    const castlingStr = data[2];
+    const epStr = data[3];
+    const halfmove = data[4];
+    const fullmove = data[5];
+
+    this.bitboards = buildBitboards(bbStr);
+    this.sideToMove = buildPlayer(playerStr);
+    this.castlingRights = buildCastlingRights(castlingStr);
+    this.enPassantSquare = buildEnPassantSquare(epStr);
+    this.halfmoveClock = parseInt(halfmove);
+    this.fullmoveNumber = parseInt(fullmove);
   }
 }

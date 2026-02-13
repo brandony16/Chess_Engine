@@ -13,10 +13,10 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
   type Piece,
+  type Square,
 } from "../chessConstants.ts";
 import { bishopMoves, knightMoves, pawnMoves } from "./minorPieces.ts";
 import { kingMoves, queenMoves, rookMoves } from "./majorPieces.ts";
-import type { Square } from "../types.ts";
 
 /**
  * Gets the moves for a specific piece. Returns a bitboard of the moves for that piece.

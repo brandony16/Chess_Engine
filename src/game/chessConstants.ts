@@ -1,4 +1,5 @@
 // Players
+export type Player = 0 | 1; // WHITE = 0, BLACK = 1
 export const WHITE = 0 as const;
 export const BLACK = 1 as const;
 
@@ -96,6 +97,37 @@ const BLACK_PROMO_PIECES = [
 
 export const PROMO_PIECES = [WHITE_PROMO_PIECES, BLACK_PROMO_PIECES] as const;
 
+// Piece to String and vice versa
+export const PIECE_SYMBOLS = {
+  0: "P",
+  1: "N",
+  2: "B",
+  3: "R",
+  4: "Q",
+  5: "K",
+  6: "p",
+  7: "n",
+  8: "b",
+  9: "r",
+  10: "q",
+  11: "k",
+};
+
+export const PIECE_INDEXES = {
+  P: WHITE_PAWN,
+  N: WHITE_KNIGHT,
+  B: WHITE_BISHOP,
+  R: WHITE_ROOK,
+  Q: WHITE_QUEEN,
+  K: WHITE_KING,
+  p: BLACK_PAWN,
+  n: BLACK_KNIGHT,
+  b: BLACK_BISHOP,
+  r: BLACK_ROOK,
+  q: BLACK_QUEEN,
+  k: BLACK_KING,
+};
+
 // ----- CASTLING CONSTANTS -----
 export const W_KINGSIDE_EMPTY: bigint = (1n << 5n) | (1n << 6n); // f1, g1
 export const W_QUEENSIDE_EMPTY: bigint = (1n << 1n) | (1n << 2n) | (1n << 3n); // b1, c1, d1
@@ -116,6 +148,7 @@ export const BQ = 1 << 3; // black queenside
 export const ALL_CASTLING = WK | WQ | BK | BQ;
 
 // ----- BITBOARDS -----
+export type Bitboard = bigint;
 export const INITIAL_BITBOARDS: BigUint64Array = new BigUint64Array(NUM_PIECES);
 
 // white
@@ -135,6 +168,7 @@ INITIAL_BITBOARDS[PIECE.bQ] = 0x0800000000000000n;
 INITIAL_BITBOARDS[PIECE.bK] = 0x1000000000000000n;
 
 // ----- FILES / RANKS -----
+export type Square = number; // 0–63
 export type File = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export const A_FILE = 0;
@@ -180,6 +214,28 @@ export const RANKS = [
 ];
 
 export const NO_SQUARE = -1;
+
+export const COLUMN_SYMBOLS = {
+  0: "a",
+  1: "b",
+  2: "c",
+  3: "d",
+  4: "e",
+  5: "f",
+  6: "g",
+  7: "h",
+};
+
+export const COLUMN_INDEXES = {
+  a: 0,
+  b: 1,
+  c: 2,
+  d: 3,
+  e: 4,
+  f: 5,
+  g: 6,
+  h: 7,
+};
 
 // ----- MASKS -----
 export const FILE_H_MASK = 0x7f7f7f7f7f7f7f7fn;

@@ -1,5 +1,5 @@
 import { BLACK, WHITE } from "../coreLogic/constants.mjs";
-import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers.mjs";
+import { getFENData } from "../game/fenAndUCI/FENandUCIHelpers.ts";
 import { getLeastValuableBit } from "../coreLogic/leastValuableBit.mjs";
 import {
   getAllPieces,

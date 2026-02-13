@@ -1,4 +1,4 @@
-import { getOpeningMoves } from "../../coreLogic/helpers/FENandUCIHelpers.mjs";
+import { getOpeningMoves } from "../../game/fenAndUCI/FENandUCIHelpers.ts";
 import { useGameStore } from "../gameStore.mjs";
 import { makeEngineMove, playRandomOpening } from "./engineFuncs.mjs";
 
