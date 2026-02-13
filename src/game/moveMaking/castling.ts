@@ -17,7 +17,6 @@ import {
   WK,
   WQ,
 } from "../chessConstants.ts";
-import { undoPieceIndexUpdate, updatePieceIndexes } from "../positionStates/pieceIndexUpdators.ts";
 import type { Position } from "../Position.ts";
 import type { Player, Square } from "../types.ts";
 import type Move from "./move.ts";
@@ -127,9 +126,6 @@ export const makeCastleMove = (position: Position, move: Move): void => {
     pieceAt[56] = null;
     pieceAt[59] = BLACK_ROOK;
   }
-
-  updatePieceIndexes(position, move);
-  updateAttackMasks(bitboards, move, oldOccupancy);
 };
 
 export const unMakeCastleMove = (position: Position, move: Move): void => {
@@ -138,7 +134,6 @@ export const unMakeCastleMove = (position: Position, move: Move): void => {
 
   const from = move.from;
   const to = move.to;
-  const oldOccupancy = position.occupied;
 
   if (from === 4 && to === 6) {
     // White kingside castling
@@ -181,7 +176,4 @@ export const unMakeCastleMove = (position: Position, move: Move): void => {
     pieceAt[59] = null;
     pieceAt[56] = BLACK_ROOK;
   }
-
-  undoPieceIndexUpdate(position, move);
-  updateAttackMasks(bitboards, move, oldOccupancy);
 };

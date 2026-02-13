@@ -1,9 +1,4 @@
-import { updateAttackMasks } from "../positionStates/attackMasks/attackMaskUpdate.ts";
 import { WHITE_PAWN } from "../chessConstants.ts";
-import {
-  undoPieceIndexUpdate,
-  updatePieceIndexes,
-} from "../positionStates/pieceIndexUpdators.ts";
 import type { Position } from "../Position.ts";
 import { makeCastleMove, unMakeCastleMove } from "./castling.ts";
 import Move from "./move.ts";
@@ -56,9 +51,6 @@ export const applyMove = (position: Position, move: Move) => {
 
     pieceAt[move.to + dir] = null;
   }
-
-  updatePieceIndexes(position, move);
-  updateAttackMasks(position, move);
 
   position.sideToMove ^= 1;
 };
@@ -113,7 +105,4 @@ export const unapplyMove = (position: Position, move: Move) => {
     bitboards[captured] |= one << BigInt(capturedPawnSquare);
     pieceAt[capturedPawnSquare] = captured;
   }
-
-  undoPieceIndexUpdate(position, move);
-  updateAttackMasks(position, move);
 };

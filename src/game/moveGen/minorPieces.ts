@@ -5,13 +5,11 @@ import {
   WP_START_ROW,
 } from "../chessConstants.ts";
 import type { Position } from "../Position.ts";
-import { knightMasks } from "../positionStates/attackMasks/knightMasks.ts";
-import {
-  blackPawnMasks,
-  whitePawnMasks,
-} from "../positionStates/attackMasks/pawnMasks.ts";
+import { knightMasks } from "../attackMasks/knightMasks.ts";
+import { blackPawnMasks, whitePawnMasks } from "../attackMasks/pawnMasks.ts";
 import type { Square } from "../types.ts";
 import { bishopAttacks } from "./sliderMoves.ts";
+import { opponent } from "../temp.ts";
 
 /**
  * Gets the move bitboard for a pawn.
@@ -21,7 +19,7 @@ export const pawnMoves = (pos: Position, from: Square) => {
 
   const isWhite = pos.sideToMove === WHITE;
   const emptySquares = ~pos.occupied;
-  const enemyPieces = isWhite ? pos.occupiedBlack : pos.occupiedWhite;
+  const enemyPieces = pos.playerOcc[opponent(pos.sideToMove)];
 
   let singlePush = 0n;
   let doublePush = 0n;
@@ -60,18 +58,15 @@ export const pawnMoves = (pos: Position, from: Square) => {
  */
 export const knightMoves = (pos: Position, from: Square) => {
   const moves = knightMasks[from];
-  const friendlyPieces =
-    pos.sideToMove === WHITE ? pos.occupiedWhite : pos.occupiedBlack;
 
-  // Remove moves that land on friendly pieces
-  return moves & ~friendlyPieces;
+  return moves & ~pos.playerOcc[pos.sideToMove];
 };
 
+/**
+ * Gets the move bitboard for a bishop
+ */
 export const bishopMoves = (pos: Position, from: Square) => {
-  // Get occupied squares
   const moves = bishopAttacks(from, pos.occupied);
-  const friendlyPieces =
-    pos.sideToMove === WHITE ? pos.occupiedWhite : pos.occupiedBlack;
 
-  return moves & ~friendlyPieces;
+  return moves & ~pos.playerOcc[pos.sideToMove];
 };

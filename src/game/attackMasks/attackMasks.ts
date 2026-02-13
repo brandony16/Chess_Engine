@@ -1,34 +1,32 @@
 import { kingMasks } from "./kingMasks.ts";
 import { knightMasks } from "./knightMasks.ts";
 import { blackPawnMasks, whitePawnMasks } from "./pawnMasks.ts";
-import type { Position } from "../../Position.ts";
+import type { Position } from "../Position.ts";
 import {
   BLACK_BISHOP,
   BLACK_KING,
   BLACK_KNIGHT,
   BLACK_PAWN,
-  BLACK_PIECES,
   BLACK_QUEEN,
   BLACK_ROOK,
-  WHITE,
+  PLAYER_PIECES,
   WHITE_BISHOP,
   WHITE_KING,
   WHITE_KNIGHT,
   WHITE_PAWN,
-  WHITE_PIECES,
   WHITE_QUEEN,
   WHITE_ROOK,
   type Piece,
-} from "../../chessConstants.ts";
-import type { Player, Square } from "../../types.ts";
-import { bishopAttacks, rookAttacks } from "../../moveGen/sliderMoves.ts";
+} from "../chessConstants.ts";
+import type { Player, Square } from "../types.ts";
+import { bishopAttacks, rookAttacks } from "../moveGen/sliderMoves.ts";
 import {
   bishops,
   kings,
   knights,
   queens,
   rooks,
-} from "../../pieceUtils/pieceGetters.ts";
+} from "../pieceUtils/pieceGetters.ts";
 
 /**
  * Generates the attack bitboard of a piece at a square
@@ -110,18 +108,10 @@ export function computeMaskForPiece(position: Position, piece: Piece): bigint {
   return mask;
 }
 
-/**
- * Computes an attack mask for a player given a custom occupancy.
- */
-export function computeCustomMask(pos: Position, player: Player, occ: bigint): bigint {
+export function playerAttackMask(pos: Position, player: Player) {
   let mask = 0n;
-
-  const pieces = player === WHITE ? WHITE_PIECES : BLACK_PIECES;
-  for (const piece of pieces) {
-    const indicies = pos.pieceIndexes[piece];
-    for (const square of indicies) {
-      mask |= attacksOf(piece, square, occ);
-    }
+  for (const piece of PLAYER_PIECES[player]) {
+    mask |= computeMaskForPiece(pos, piece);
   }
 
   return mask;

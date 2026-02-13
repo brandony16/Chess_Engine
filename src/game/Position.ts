@@ -1,5 +1,5 @@
 import { bitScanForward, popcount } from "../coreLogic/helpers/bbUtils.mjs";
-import { computeMaskForPiece } from "./positionStates/attackMasks/attackMasks.ts";
+import { attacksTo, computeMaskForPiece } from "./attackMasks/attackMasks.ts";
 import {
   ALL_CASTLING,
   BLACK,
@@ -46,17 +46,22 @@ import {
 import { getPieceMoves } from "./moveGen/moveGeneration.ts";
 import { kingMoves } from "./moveGen/majorPieces.ts";
 import { getCheckers } from "../coreLogic/moveGeneration/checkersMask.mjs";
-import { getMovesFromBB, opponent } from "./temp.ts";
+import { getMovesFromBB, newEnPassant, opponent } from "./temp.ts";
+import { applyMove, unapplyMove } from "./moveMaking/applyMove.ts";
+import {
+  undoPieceIndexUpdate,
+  updatePieceIndexes,
+} from "./positionStates/pieceIndexUpdators.ts";
+import { updateCastlingRights } from "./moveMaking/castling.ts";
+import type { Undo } from "./moveMaking/move.ts";
 
 export class Position {
   bitboards: BigUint64Array;
-  occupiedWhite: Bitboard;
-  occupiedBlack: Bitboard;
+  playerOcc: Bitboard[];
   occupied: Bitboard;
 
   pieceAt: Piece[]; // length 64
-  pieceIndexes: number[][];
-  attackMasks: BigUint64Array;
+  pieceIndexes: Square[][];
 
   sideToMove: Player;
   castlingRights: number;
@@ -71,18 +76,17 @@ export class Position {
   zobristKey: bigint;
 
   moveStack: Move[];
+  undoStack: Undo[];
   pastPositions: Map<bigint, number>;
 
   constructor() {
     // ----- Board State -----
     this.bitboards = new BigUint64Array(NUM_PIECES);
-    this.occupiedWhite = 0n;
-    this.occupiedBlack = 0n;
+    this.playerOcc = new Array(2).fill(0n);
     this.occupied = 0n;
 
     this.pieceAt = new Array(64).fill(NO_PIECE);
     this.pieceIndexes = new Array(64).fill(new Int8Array());
-    this.attackMasks = new BigUint64Array(NUM_PIECES);
 
     // ----- Game State -----
     this.sideToMove = WHITE;
@@ -109,7 +113,6 @@ export class Position {
     this.bitboards.set(INITIAL_BITBOARDS);
 
     this.pieceAt.fill(NO_PIECE);
-    this.attackMasks.fill(0n);
 
     this.kingSq[WHITE] = 4;
     this.kingSq[BLACK] = 60;
@@ -149,22 +152,18 @@ export class Position {
     }
   }
 
-  calculateAttackMasks(): void {
-    for (const p of PIECES) {
-      this.attackMasks[p] = computeMaskForPiece(this, p);
-    }
-  }
-
   recomputeOccupancy(): void {
-    this.occupiedWhite = 0n;
-    this.occupiedBlack = 0n;
+    let whiteOcc = 0n;
+    let blackOcc = 0n;
 
     for (let p = 0; p < 6; p++) {
-      this.occupiedWhite |= this.bitboards[p];
-      this.occupiedBlack |= this.bitboards[p + 6];
+      whiteOcc |= this.bitboards[p];
+      blackOcc |= this.bitboards[p + 6];
     }
 
-    this.occupied = this.occupiedWhite | this.occupiedBlack;
+    this.occupied = whiteOcc | blackOcc;
+    this.playerOcc[WHITE] = whiteOcc;
+    this.playerOcc[BLACK] = blackOcc;
   }
 
   computeZobrist(): bigint {
@@ -202,13 +201,8 @@ export class Position {
    * needs to for the new hash. Compute hash redoes every calculation every time, which is
    * inefficient, especially when only a few things have changed since the last position.
    */
-  updateZobrist(
-    prevHash: bigint,
-    move: Move,
-    prevEpSq: Square,
-    prevCastling: number,
-  ): bigint {
-    let newHash = prevHash;
+  updateZobrist(move: Move, prevEpSq: Square, prevCastling: number): void {
+    let newHash = this.zobristKey;
     const from = move.from;
     const to = move.to;
     const captured = move.captured;
@@ -268,7 +262,7 @@ export class Position {
     newHash ^= CASTLING_ZOBRIST[prevCastling];
     newHash ^= CASTLING_ZOBRIST[this.castlingRights];
 
-    return newHash;
+    this.zobristKey = newHash;
   }
 
   // -----------------------
@@ -349,14 +343,43 @@ export class Position {
   }
 
   makeMove(move: Move): void {
-    // push undo info
-    // mutate bitboards
-    // update castling, EP, zobrist
-    // toggle sideToMove
+    const undo: Undo = {
+      captured: this.pieceAt[move.to],
+      castlingRights: this.castlingRights,
+      epSquare: this.enPassantSquare,
+      halfmoveClock: this.halfmoveClock,
+      zobristKey: this.zobristKey,
+    };
+    this.undoStack.push(undo);
+
+    applyMove(this, move);
+
+    updatePieceIndexes(this.pieceIndexes, move);
+
+    const rights = this.castlingRights;
+    this.castlingRights = updateCastlingRights(
+      move.from,
+      move.to,
+      this.castlingRights,
+    );
+    this.updateZobrist(move, this.enPassantSquare, rights);
+
+    this.enPassantSquare = newEnPassant(move);
+    this.sideToMove ^= 1;
   }
 
   unmakeMove(): void {
-    // restore from stack
+    const undo = this.undoStack.pop();
+    const move = this.moveStack.pop();
+    unapplyMove(this, move);
+
+    undoPieceIndexUpdate(this.pieceIndexes, move);
+
+    this.castlingRights = undo.castlingRights;
+    this.enPassantSquare = undo.epSquare;
+    this.halfmoveClock = undo.halfmoveClock;
+    this.zobristKey = undo.zobristKey;
+    this.sideToMove ^= 1;
   }
 
   isInCheck(player: Player = this.sideToMove): boolean {
@@ -376,13 +399,7 @@ export class Position {
   }
 
   checkGameOver() {
-    if (
-      drawByInsufficientMaterial(
-        this.bitboards,
-        this.occupiedWhite,
-        this.occupiedBlack,
-      )
-    ) {
+    if (drawByInsufficientMaterial(this.bitboards, this.playerOcc)) {
       this.result = DRAW;
       this.endState = INSUFFICIENT_MATERIAL;
       return;
@@ -400,7 +417,7 @@ export class Position {
 
     // If player has no moves it is stalemate or checkmate
     if (!this.hasLegalMove()) {
-      const kingSquare = this.kingSq[this.sideToMove ^ 1];
+      const kingSquare = this.kingSq[opponent(this.sideToMove)];
       if (this.isSquareAttacked(kingSquare, this.sideToMove)) {
         this.result = this.sideToMove === WHITE ? WHITE_WIN : BLACK_WIN;
         this.endState = CHECKMATE;
@@ -438,18 +455,9 @@ export class Position {
     return this.pieceIndexes.slice(base, base + 6);
   }
 
-  getAttackMask(player: Player): bigint {
-    let mask = 0n;
-    for (const piece of PLAYER_PIECES[player]) {
-      mask |= this.attackMasks[piece];
-    }
-
-    return mask;
-  }
-
   isSquareAttacked(square: Square, player: Player): boolean {
-    const mask = this.getAttackMask(player);
-    return (mask & (1n << BigInt(square))) !== 0n;
+    const occ = this.playerOcc[player];
+    return attacksTo(this, square) !== 0n;
   }
 
   gameOver() {

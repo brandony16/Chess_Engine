@@ -1,11 +1,10 @@
 import { BLACK_ROOK, WHITE_ROOK } from "../chessConstants.ts";
 import type Move from "../moveMaking/move.ts";
-import type { Position } from "../Position.ts";
+import type { Square } from "../types.ts";
 
-export function updatePieceIndexes(position: Position, move: Move): void {
+export function updatePieceIndexes(pieceIndexes: Square[][], move: Move): void {
   const { piece, from, to, captured, promotion, enPassant, castling } = move;
-  const pieceIndexes = position.pieceIndexes;
-  
+
   const pieceArr = pieceIndexes[piece];
   if (promotion !== null) {
     const promoPieceArr = pieceIndexes[promotion];
@@ -49,9 +48,11 @@ export function updatePieceIndexes(position: Position, move: Move): void {
   }
 }
 
-export function undoPieceIndexUpdate(postion: Position, move: Move): void {
+export function undoPieceIndexUpdate(
+  pieceIndexes: Square[][],
+  move: Move,
+): void {
   const { piece, from, to, captured, promotion, enPassant, castling } = move;
-  const pieceIndexes = postion.pieceIndexes;
 
   const pieceArr = pieceIndexes[piece];
   if (promotion) {

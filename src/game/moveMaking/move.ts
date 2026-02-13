@@ -52,4 +52,12 @@ class Move {
   }
 }
 
+export interface Undo {
+  captured: Piece;
+  castlingRights: number;
+  epSquare: Square;
+  halfmoveClock: number;
+  zobristKey: bigint;
+}
+
 export default Move;

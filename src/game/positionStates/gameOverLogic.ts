@@ -1,8 +1,10 @@
 import { getNumPieces } from "../../coreLogic/helpers/bbUtils.mjs";
 import {
+  BLACK,
   BLACK_PAWN,
   BLACK_QUEEN,
   BLACK_ROOK,
+  WHITE,
   WHITE_PAWN,
   WHITE_QUEEN,
   WHITE_ROOK,
@@ -14,8 +16,7 @@ import {
  */
 export const drawByInsufficientMaterial = (
   bitboards: BigUint64Array,
-  whiteOcc: bigint,
-  blackOcc: bigint,
+  playerOcc: bigint[], // indexed by player
 ): boolean => {
   const queens = bitboards[WHITE_QUEEN] | bitboards[BLACK_QUEEN];
   const rooks = bitboards[WHITE_ROOK] | bitboards[BLACK_ROOK];
@@ -26,7 +27,10 @@ export const drawByInsufficientMaterial = (
     return false;
   }
 
-  if (getNumPieces(whiteOcc) <= 2 && getNumPieces(blackOcc) <= 2) {
+  if (
+    getNumPieces(playerOcc[WHITE]) <= 2 &&
+    getNumPieces(playerOcc[BLACK]) <= 2
+  ) {
     return true;
   }
 
