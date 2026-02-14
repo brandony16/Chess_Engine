@@ -97,7 +97,7 @@ export class Position {
     this.occupied = 0n;
 
     this.pieceAt = new Array(64).fill(NO_PIECE);
-    this.pieceIndexes = new Array(64).fill(new Int8Array());
+    this.pieceIndexes = Array.from({ length: 64 }, () => new Array());
 
     // ----- Game State -----
     this.sideToMove = WHITE;
@@ -537,5 +537,99 @@ export class Position {
     this.enPassantSquare = buildEnPassantSquare(epStr);
     this.halfmoveClock = parseInt(halfmove);
     this.fullmoveNumber = parseInt(fullmove);
+  }
+
+  validate(): boolean {
+    // ----- Recompute Occupancy from Bitboards -----
+    let union = 0n;
+
+    for (let i = 0; i < this.bitboards.length; i++) {
+      union |= this.bitboards[i];
+    }
+
+    if (union !== this.occupied) {
+      console.error("Occupied mismatch");
+      return false;
+    }
+
+    // ----- Player Occupancy -----
+    const whiteOcc = this.playerOcc[WHITE];
+    const blackOcc = this.playerOcc[BLACK];
+
+    if ((whiteOcc & blackOcc) !== 0n) {
+      console.error("Overlapping player occupancy");
+      return false;
+    }
+
+    if ((whiteOcc | blackOcc) !== this.occupied) {
+      console.error("Player occupancy mismatch");
+      return false;
+    }
+
+    // ----- pieceAt[] matches bitboards -----
+    for (let sq = 0; sq < 64; sq++) {
+      const mask = 1n << BigInt(sq);
+      const piece = this.pieceAt[sq];
+
+      let found: Piece = NO_PIECE;
+
+      for (const p of PIECES) {
+        if (this.bitboards[p] & mask) {
+          found = p;
+          break;
+        }
+      }
+
+      if (found !== piece) {
+        console.error(`pieceAt mismatch at square ${sq}`);
+        return false;
+      }
+    }
+
+    // ----- No overlapping piece bitboards -----
+    for (let i = 0; i < this.bitboards.length; i++) {
+      for (let j = i + 1; j < this.bitboards.length; j++) {
+        if ((this.bitboards[i] & this.bitboards[j]) !== 0n) {
+          console.error("Overlapping piece bitboards");
+          return false;
+        }
+      }
+    }
+
+    // ----- Exactly One King Per Side -----
+    const whiteKingBB = this.bitboards[WHITE_KING];
+    const blackKingBB = this.bitboards[BLACK_KING];
+
+    if (popcount(whiteKingBB) !== 1) {
+      console.error("Invalid white king count");
+      return false;
+    }
+
+    if (popcount(blackKingBB) !== 1) {
+      console.error("Invalid black king count");
+      return false;
+    }
+
+    // ----- -kingSq matches king bitboard -----
+    const whiteKingSq = bitScanForward(whiteKingBB);
+    const blackKingSq = bitScanForward(blackKingBB);
+
+    if (this.kingSq[WHITE] !== whiteKingSq) {
+      console.error("White king square mismatch");
+      return false;
+    }
+
+    if (this.kingSq[BLACK] !== blackKingSq) {
+      console.error("Black king square mismatch");
+      return false;
+    }
+
+    // ----- Side to Move sanity -----
+    if (this.sideToMove !== WHITE && this.sideToMove !== BLACK) {
+      console.error("Invalid sideToMove");
+      return false;
+    }
+
+    return true;
   }
 }

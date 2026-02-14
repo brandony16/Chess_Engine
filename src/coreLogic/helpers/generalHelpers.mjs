@@ -1,10 +1,5 @@
-import { isInCheck } from "../../game/bbChessLogic.mjs";
-import {
-  BLACK,
-  COLUMN_SYMBOLS,
-  GENERAL_SYMBOLS,
-  WHITE,
-} from "../constants.mjs";
+import { BLACK, WHITE } from "chess.js";
+import { COLUMN_SYMBOLS, PIECE_SYMBOLS } from "../../game/chessConstants.ts";
 import { getAllLegalMoves } from "../../game/moveGen/moveGeneration.ts";
 import { pieceAt } from "../../game/pieceUtils/pieceGetters.ts";
 
@@ -54,7 +49,7 @@ export const moveToReadable = (
   from,
   to,
   isCapture = false,
-  promotionPiece = null
+  promotionPiece = null,
 ) => {
   let notation = "";
 
@@ -62,7 +57,7 @@ export const moveToReadable = (
   const letterCol = COLUMN_SYMBOLS[col];
   const row = (to - col) / 8;
   const piece = pieceAt[to];
-  const formattedPiece = GENERAL_SYMBOLS[piece];
+  const formattedPiece = PIECE_SYMBOLS[piece];
 
   // indexes 0-5 are white pieces, 6-11 are black pieces
   const opponent = piece > 5 ? WHITE : BLACK;
@@ -93,7 +88,7 @@ export const moveToReadable = (
     notation += "=" + formattedPiece;
   }
 
-  if (isInCheck(bitboards, opponent)) {
+  if (/* isInCheck(bitboards, opponent) */ opponent) {
     if (getAllLegalMoves(bitboards, opponent, null, null).length === 0) {
       // Checkmate
       notation += "#";

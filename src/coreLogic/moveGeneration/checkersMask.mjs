@@ -1,13 +1,12 @@
-import { blackPawnMasks, whitePawnMasks } from "../PieceMasks/pawnMask.mjs";
-import { getAllPieces } from "../../game/pieceUtils/pieceGetters.ts";
-import * as C from "../constants.mjs";
-import { knightMasks } from "../PieceMasks/knightMask.mjs";
-import { slide } from "../helpers/generalHelpers.mjs";
+import { knightMasks } from "../../game/attackMasks/knightMasks.ts";
 import {
-  bishopAttacks,
-  rookAttacks,
-} from "../../game/moveGen/sliderMoves.ts";
-
+  blackPawnMasks,
+  whitePawnMasks,
+} from "../../game/attackMasks/pawnMasks.ts";
+import * as C from "../../game/chessConstants.ts";
+import { bishopAttacks, rookAttacks } from "../../game/moveGen/sliderMoves.ts";
+import { DIRECTIONS } from "../constants.mjs";
+import { slide } from "../helpers/generalHelpers.mjs";
 /**
  * Finds all pieces that put a given player's king in check and returns
  * them all on a bitboard.
@@ -30,11 +29,20 @@ export function getCheckers(bitboards, player, kingSq) {
   const slidingMask = slidingCheckMask(
     bitboards,
     kingSq,
-    getAllPieces(bitboards),
-    isWhite
+    occ(bitboards),
+    isWhite,
   );
 
   return pawnCheckMask | knightCheckMask | slidingMask;
+}
+
+function occ(bbs) {
+  let occ = 0n;
+  for (const bb of bbs) {
+    occ |= bb;
+  }
+
+  return occ;
 }
 
 /**
@@ -108,7 +116,7 @@ export function getRayBetween(sq1, sq2) {
     bb1,
     BigInt(normDr * 8 + normDf),
     rowMask & fileMask,
-    occ
+    occ,
   );
 
   return diagMask & ~bb2;
@@ -125,7 +133,7 @@ for (let a = 0; a < 64; a++) {
   const fileA = a % 8;
   const rowA = Math.floor(a / 8);
 
-  for (const { df, dr } of C.DIRECTIONS) {
+  for (const { df, dr } of DIRECTIONS) {
     let newFile = fileA + df;
     let newRow = rowA + dr;
     let mask = 0n;
