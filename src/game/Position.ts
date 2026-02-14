@@ -97,7 +97,7 @@ export class Position {
     this.occupied = 0n;
 
     this.pieceAt = new Array(64).fill(NO_PIECE);
-    this.pieceIndexes = Array.from({ length: 64 }, () => new Array());
+    this.pieceIndexes = Array.from({ length: NUM_PIECES }, () => new Array());
 
     // ----- Game State -----
     this.sideToMove = WHITE;
@@ -115,6 +115,7 @@ export class Position {
     this.zobristKey = 0n;
 
     this.moveStack = [];
+    this.undoStack = [];
     this.pastPositions = new Map<bigint, number>();
 
     this.loadInitialPosition();
@@ -537,6 +538,8 @@ export class Position {
     this.enPassantSquare = buildEnPassantSquare(epStr);
     this.halfmoveClock = parseInt(halfmove);
     this.fullmoveNumber = parseInt(fullmove);
+
+    this.initCurrentPosition();
   }
 
   validate(): boolean {
