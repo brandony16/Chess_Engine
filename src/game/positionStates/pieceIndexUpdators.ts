@@ -70,7 +70,7 @@ export function undoPieceIndexUpdate(
   }
 
   // Add captured piece
-  if (captured !== null) {
+  if (captured !== NO_PIECE) {
     const capturedArr = pieceIndexes[captured];
     if (enPassant) {
       const captureSquare = to > from ? to - 8 : to + 8;

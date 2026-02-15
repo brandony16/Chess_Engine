@@ -44,7 +44,7 @@ export const pawnMoves = (pos: Position, from: Square) => {
     capture = blackPawnMasks[from] & enemyPieces;
 
     // En Passant for black
-    if (pos.enPassantSquare !== null) {
+    if (pos.enPassantSquare !== NO_SQUARE) {
       const epMask = 1n << BigInt(pos.enPassantSquare);
       enPassantCapture = blackPawnMasks[from] & epMask;
     }

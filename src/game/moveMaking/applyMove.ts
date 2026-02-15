@@ -78,7 +78,7 @@ export const unapplyMove = (position: Position, move: Move) => {
     return;
   }
 
-  pieceAt[to] = null;
+  pieceAt[to] = NO_PIECE;
   pieceAt[from] = piece;
 
   // Undo promotion
@@ -91,7 +91,7 @@ export const unapplyMove = (position: Position, move: Move) => {
   }
 
   // Restore captured piece
-  if (captured !== null && !enPassant) {
+  if (captured !== NO_PIECE && !enPassant) {
     bitboards[captured] |= maskTo;
     pieceAt[to] = captured;
   }

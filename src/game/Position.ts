@@ -55,7 +55,7 @@ import {
 } from "./positionStates/pieceIndexUpdators.ts";
 import { updateCastlingRights } from "./moveMaking/castling.ts";
 import type { Undo } from "./moveMaking/move.ts";
-import { isPawn } from "./pieceUtils/pieceClassifiers.ts";
+import { isKing, isPawn } from "./pieceUtils/pieceClassifiers.ts";
 import {
   buildBitboards,
   buildCastlingRights,
@@ -388,6 +388,10 @@ export class Position {
     updatePieceIndexes(this.pieceIndexes, move);
     updateOccupancy(this, move);
 
+    if (isKing(move.piece)) {
+      this.kingSq[this.sideToMove] = move.to;
+    }
+
     const rights = this.castlingRights;
     this.castlingRights = updateCastlingRights(
       move.from,
@@ -583,6 +587,7 @@ export class Position {
       }
 
       if (found !== piece) {
+        console.log(piece, found);
         console.error(`pieceAt mismatch at square ${sq}`);
         return false;
       }
