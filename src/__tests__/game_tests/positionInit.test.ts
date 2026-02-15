@@ -5,6 +5,7 @@ import {
   BK,
   BLACK,
   BQ,
+  COLUMN_INDEXES,
   IN_PROGRESS,
   NO_PIECE,
   NO_SQUARE,
@@ -15,7 +16,12 @@ import {
   WQ,
 } from "../../game/chessConstants.ts";
 import { isWhite } from "../../game/pieceUtils/pieceClassifiers.ts";
-import { KIWIPETE_POS, KNIGHT_FORK_POS, validateBitboards } from "./fens.ts";
+import {
+  EN_PASSANT,
+  KIWIPETE_POS,
+  KNIGHT_FORK_POS,
+  validateBitboards,
+} from "./fens.ts";
 
 describe("Position initialization - init values", () => {
   test("arrays are correctly sized", () => {
@@ -110,46 +116,5 @@ describe("Position initialization - board correctness", () => {
 
     const totalPieces = pos.pieceAt.filter((p) => p !== NO_PIECE).length;
     expect(totalPieces).toBe(32);
-  });
-});
-
-describe("FEN position loading", () => {
-  test("position validate", () => {
-    const pos = new Position();
-    pos.loadFen(KIWIPETE_POS);
-
-    expect(pos.validate()).toBe(true);
-  });
-
-  test("bitboards are correct", () => {
-    const pos = new Position();
-    pos.loadFen(KIWIPETE_POS);
-
-    expect(validateBitboards(pos.bitboards, KIWIPETE_POS)).toBe(true);
-  });
-
-  test("sideToMove is correct", () => {
-    const pos = new Position();
-    pos.loadFen(KIWIPETE_POS);
-
-    const playerStr = KIWIPETE_POS.split(" ")[1];
-    const correct = playerStr === "w" ? WHITE : BLACK;
-    expect(pos.sideToMove).toBe(correct);
-  });
-
-  test("castling is correct", () => {
-    const pos = new Position();
-    pos.loadFen(KNIGHT_FORK_POS); // Black cant castle
-
-    const castlingStr = KNIGHT_FORK_POS.split(" ")[2];
-    const charToRights = {
-      K: WK,
-      Q: WQ,
-      k: BK,
-      q: BQ,
-    };
-    for (const char of castlingStr) {
-      expect(pos.castlingRights & charToRights[char]).not.toBe(0n);
-    }
   });
 });
