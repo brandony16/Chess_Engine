@@ -1,8 +1,18 @@
 import { describe, expect, test } from "vitest";
 import { Position } from "../../game/Position.ts";
-import { KIWIPETE_POS, START_POS } from "./fens.ts";
+import {
+  ACTIVE_KING_ENDGAME,
+  ALT_PERFT,
+  EN_PASSANT_BLACK,
+  EN_PASSANT_WHITE,
+  KIWIPETE_POS,
+  OPEN_MIDGAME,
+  PINNED_POS,
+  START_POS,
+} from "./fens.ts";
 import Move from "../../game/moveMaking/move.ts";
 import {
+  BLACK,
   BLACK_BISHOP,
   BLACK_KING,
   BLACK_KNIGHT,
@@ -11,6 +21,7 @@ import {
   BLACK_ROOK,
   NO_PIECE,
   sq,
+  WHITE,
   WHITE_BISHOP,
   WHITE_KING,
   WHITE_KNIGHT,
@@ -28,11 +39,13 @@ describe("makeMove - movement", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    expect(pos.sideToMove).toBe(BLACK);
 
     const moveB = new Move(sq.D7, sq.D6, BLACK_PAWN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    expect(pos.sideToMove).toBe(WHITE);
   });
 
   test("pawn - double move", () => {
@@ -43,11 +56,13 @@ describe("makeMove - movement", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    expect(pos.sideToMove).toBe(BLACK);
 
     const moveB = new Move(sq.H7, sq.H5, BLACK_PAWN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    expect(pos.sideToMove).toBe(WHITE);
   });
 
   test("knight", () => {
@@ -58,11 +73,13 @@ describe("makeMove - movement", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    expect(pos.sideToMove).toBe(BLACK);
 
     const moveB = new Move(sq.G8, sq.F6, BLACK_KNIGHT);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    expect(pos.sideToMove).toBe(WHITE);
   });
 
   test("bishop", () => {
@@ -143,8 +160,127 @@ describe("makeMove - movement", () => {
   });
 });
 
-// describe("makeMove - captures", () => {});
+describe("makeMove - captures", () => {
+  test("pawn - normal", () => {
+    const pos = new Position();
+    pos.loadFen(KIWIPETE_POS);
 
-// describe("makeMove - checks", () => {});
+    const moveW = new Move(sq.D5, sq.E6, WHITE_PAWN, BLACK_PAWN);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.B4, sq.C3, BLACK_PAWN, WHITE_KNIGHT);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("pawn - en passant", () => {
+    const pos = new Position();
+    pos.loadFen(EN_PASSANT_WHITE);
+
+    const moveW = new Move(
+      sq.E5,
+      sq.D6,
+      WHITE_PAWN,
+      BLACK_PAWN,
+      NO_PIECE,
+      false,
+      true,
+    );
+    pos.makeMove(moveW);
+    expect(pos.validate()).toBe(true);
+
+    pos.loadFen(EN_PASSANT_BLACK);
+    const moveB = new Move(
+      sq.E4,
+      sq.D3,
+      BLACK_PAWN,
+      WHITE_PAWN,
+      NO_PIECE,
+      false,
+      true,
+    );
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("knight", () => {
+    const pos = new Position();
+    pos.loadFen(KIWIPETE_POS);
+
+    const moveW = new Move(sq.E5, sq.G6, WHITE_KNIGHT, BLACK_PAWN);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.B6, sq.D5, BLACK_KNIGHT, WHITE_PAWN);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("bishop", () => {
+    const pos = new Position();
+    pos.loadFen(ALT_PERFT);
+
+    const moveW = new Move(sq.G5, sq.F6, WHITE_BISHOP, BLACK_KNIGHT);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.C5, sq.F2, BLACK_BISHOP, WHITE_PAWN);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("rook", () => {
+    const pos = new Position();
+    pos.loadFen(OPEN_MIDGAME);
+
+    const moveW = new Move(sq.D1, sq.D8, WHITE_ROOK, BLACK_ROOK);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.H8, sq.D8, BLACK_ROOK, WHITE_ROOK);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("queen", () => {
+    const pos = new Position();
+    pos.loadFen(KIWIPETE_POS);
+
+    const moveW = new Move(sq.F3, sq.F6, WHITE_QUEEN, BLACK_KNIGHT);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.E7, sq.F6, BLACK_QUEEN, WHITE_QUEEN);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("king", () => {
+    const pos = new Position();
+    pos.loadFen(ACTIVE_KING_ENDGAME);
+
+    const moveW = new Move(sq.D5, sq.C5, WHITE_KING, BLACK_PAWN);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.F4, sq.G4, BLACK_KING, WHITE_PAWN);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+});
 
 // describe("makeMove - promotion", () => {});

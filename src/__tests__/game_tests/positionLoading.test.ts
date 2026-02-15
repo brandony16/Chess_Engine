@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import { Position } from "../../game/Position.ts";
 import {
-  EN_PASSANT,
+  EN_PASSANT_WHITE,
   KIWIPETE_POS,
   KNIGHT_FORK_POS,
   validateBitboards,
@@ -51,9 +51,9 @@ describe("FEN position loading", () => {
 
   test("en passant is correct", () => {
     const pos = new Position();
-    pos.loadFen(EN_PASSANT);
+    pos.loadFen(EN_PASSANT_WHITE);
 
-    const epStr = EN_PASSANT.split(" ")[3];
+    const epStr = EN_PASSANT_WHITE.split(" ")[3];
 
     const row = parseInt(epStr[1]) - 1; // Make row 0 indexed
     const col = COLUMN_INDEXES[epStr[0]];

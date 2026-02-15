@@ -2,26 +2,15 @@ import { describe, expect, test } from "vitest";
 import { Position } from "../../game/Position.ts";
 import {
   ALL_CASTLING,
-  BK,
   BLACK,
-  BQ,
-  COLUMN_INDEXES,
   IN_PROGRESS,
   NO_PIECE,
   NO_SQUARE,
   NUM_PIECES,
   PIECES,
   WHITE,
-  WK,
-  WQ,
 } from "../../game/chessConstants.ts";
 import { isWhite } from "../../game/pieceUtils/pieceClassifiers.ts";
-import {
-  EN_PASSANT,
-  KIWIPETE_POS,
-  KNIGHT_FORK_POS,
-  validateBitboards,
-} from "./fens.ts";
 
 describe("Position initialization - init values", () => {
   test("arrays are correctly sized", () => {
