@@ -1,5 +1,4 @@
-import { type Piece } from "../chessConstants.ts";
-import type { Square } from "../types.ts";
+import { type Piece, type Square } from "../chessConstants.ts";
 
 /**
  * Stores values for a move

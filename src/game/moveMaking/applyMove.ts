@@ -1,4 +1,4 @@
-import { WHITE_PAWN } from "../chessConstants.ts";
+import { NO_PIECE, WHITE_PAWN } from "../chessConstants.ts";
 import type { Position } from "../Position.ts";
 import { makeCastleMove, unMakeCastleMove } from "./castling.ts";
 import Move from "./move.ts";
@@ -29,14 +29,14 @@ export const applyMove = (position: Position, move: Move) => {
   bitboards[piece] &= ~maskFrom;
 
   // Remove captured piece
-  if (move.captured !== null && !enPassant) {
+  if (move.captured !== NO_PIECE && !enPassant) {
     bitboards[captured] &= ~maskTo;
   }
 
-  pieceAt[move.from] = null;
+  pieceAt[move.from] = NO_PIECE;
 
   // Handles promotions
-  if (promotion) {
+  if (promotion !== NO_PIECE) {
     bitboards[promotion] |= maskTo; // Add promoted piece
     pieceAt[move.to] = promotion;
   } else {
@@ -49,10 +49,8 @@ export const applyMove = (position: Position, move: Move) => {
     // Remove the captured pawn from the opposing pawn bitboard
     bitboards[captured] &= ~(one << BigInt(move.to + dir));
 
-    pieceAt[move.to + dir] = null;
+    pieceAt[move.to + dir] = NO_PIECE;
   }
-
-  position.sideToMove ^= 1;
 };
 
 /**

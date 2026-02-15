@@ -1,11 +1,16 @@
-import { BLACK_ROOK, WHITE_ROOK, type Square } from "../chessConstants.ts";
+import {
+  BLACK_ROOK,
+  NO_PIECE,
+  WHITE_ROOK,
+  type Square,
+} from "../chessConstants.ts";
 import type Move from "../moveMaking/move.ts";
 
 export function updatePieceIndexes(pieceIndexes: Square[][], move: Move): void {
   const { piece, from, to, captured, promotion, enPassant, castling } = move;
 
   const pieceArr = pieceIndexes[piece];
-  if (promotion !== null) {
+  if (promotion !== NO_PIECE) {
     const promoPieceArr = pieceIndexes[promotion];
     // Add promotion piece and remove piece that promoted
     promoPieceArr.push(to);
@@ -16,7 +21,7 @@ export function updatePieceIndexes(pieceIndexes: Square[][], move: Move): void {
   }
 
   // Remove captured piece
-  if (captured !== null) {
+  if (captured !== NO_PIECE) {
     const capturedArr = pieceIndexes[captured];
     if (enPassant) {
       const captureSquare = to > from ? to - 8 : to + 8;

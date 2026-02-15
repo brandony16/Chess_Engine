@@ -65,6 +65,7 @@ import {
   buildFenEnPassant,
   buildPlayer,
 } from "./fenAndUCI/fenHelpers.ts";
+import { updateOccupancy } from "./positionStates/occupancy.ts";
 
 export class Position {
   bitboards: BigUint64Array;
@@ -216,9 +217,7 @@ export class Position {
   }
 
   /**
-   * Updates the previous hash. Is more efficient than computeHash as it only changes what it
-   * needs to for the new hash. Compute hash redoes every calculation every time, which is
-   * inefficient, especially when only a few things have changed since the last position.
+   * Creates new zobrist key for the position by updating the old hash
    */
   updateZobrist(move: Move, prevEpSq: Square, prevCastling: number): void {
     let newHash = this.zobristKey;
@@ -231,12 +230,12 @@ export class Position {
     newHash ^= zobristFrom;
 
     // XOR the pieces new location
-    const pieceTo = move.promotion ? move.promotion : move.piece;
+    const pieceTo = move.promotion === NO_PIECE ? move.piece : move.promotion;
     const zobristTo = zobristTable[pieceTo * 64 + to];
     newHash ^= zobristTo;
 
     // if a capture, XOR to remove captured piece
-    if (captured !== null) {
+    if (captured !== NO_PIECE) {
       const zobristCaptured = zobristTable[captured * 64 + to];
       newHash ^= zobristCaptured;
     }
@@ -387,6 +386,7 @@ export class Position {
     applyMove(this, move);
 
     updatePieceIndexes(this.pieceIndexes, move);
+    updateOccupancy(this, move);
 
     const rights = this.castlingRights;
     this.castlingRights = updateCastlingRights(
@@ -404,8 +404,6 @@ export class Position {
     }
 
     this.sideToMove ^= 1;
-
-    this.checkGameOver();
   }
 
   unmakeMove(): void {
@@ -502,7 +500,8 @@ export class Position {
 
   isSquareAttacked(square: Square, player: Player): boolean {
     const occ = this.playerOcc[player];
-    return attacksTo(this, square) !== 0n;
+    const allAttacks = attacksTo(this, square);
+    return (occ & allAttacks) !== 0n;
   }
 
   gameOver(): boolean {
