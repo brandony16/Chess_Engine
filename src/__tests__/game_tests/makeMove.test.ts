@@ -8,6 +8,7 @@ import {
   KIWIPETE_POS,
   OPEN_MIDGAME,
   PINNED_POS,
+  PROMOTION_ENDGAME,
   START_POS,
 } from "./fens.ts";
 import Move from "../../game/moveMaking/move.ts";
@@ -283,4 +284,124 @@ describe("makeMove - captures", () => {
   });
 });
 
-// describe("makeMove - promotion", () => {});
+describe("makeMove - promotion", () => {
+  test("knight promo", () => {
+    const pos = new Position();
+    pos.loadFen(PROMOTION_ENDGAME);
+
+    const moveW = new Move(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_KNIGHT);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_KNIGHT);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("bishop promo", () => {
+    const pos = new Position();
+    pos.loadFen(PROMOTION_ENDGAME);
+
+    const moveW = new Move(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_BISHOP);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_BISHOP);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("rook promo", () => {
+    const pos = new Position();
+    pos.loadFen(PROMOTION_ENDGAME);
+
+    const moveW = new Move(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_ROOK);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_ROOK);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("queen promo", () => {
+    const pos = new Position();
+    pos.loadFen(PROMOTION_ENDGAME);
+
+    const moveW = new Move(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_QUEEN);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_QUEEN);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("knight promo - capture", () => {
+    const pos = new Position();
+    pos.loadFen(PROMOTION_ENDGAME);
+
+    const moveW = new Move(sq.C7, sq.D8, WHITE_PAWN, BLACK_KNIGHT, WHITE_KNIGHT);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_KNIGHT);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("bishop promo - capture", () => {
+    const pos = new Position();
+    pos.loadFen(PROMOTION_ENDGAME);
+
+    const moveW = new Move(sq.C7, sq.D8, WHITE_PAWN, BLACK_KNIGHT, WHITE_BISHOP);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_BISHOP);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("rook promo - capture", () => {
+    const pos = new Position();
+    pos.loadFen(PROMOTION_ENDGAME);
+
+    const moveW = new Move(sq.C7, sq.D8, WHITE_PAWN, BLACK_KNIGHT, WHITE_ROOK);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_ROOK);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("queen promo - capture", () => {
+    const pos = new Position();
+    pos.loadFen(PROMOTION_ENDGAME);
+
+    const moveW = new Move(sq.C7, sq.D8, WHITE_PAWN, BLACK_KNIGHT, WHITE_QUEEN);
+    pos.makeMove(moveW);
+
+    expect(pos.validate()).toBe(true);
+
+    const moveB = new Move(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_QUEEN);
+    pos.makeMove(moveB);
+
+    expect(pos.validate()).toBe(true);
+  });
+});

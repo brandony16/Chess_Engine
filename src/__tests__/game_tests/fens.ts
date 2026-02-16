@@ -11,9 +11,12 @@ export const KNIGHT_FORK_POS =
 export const EN_PASSANT_WHITE = "k7/8/8/3pP3/8/8/8/4K3 w - d6 0 1";
 export const EN_PASSANT_BLACK =
   "rnbqkbnr/pppp1ppp/8/8/3Pp3/1PN5/P1P1PPPP/R1BQKBNR b KQkq d3 0 1";
-export const ALT_PERFT = "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10"
-export const OPEN_MIDGAME = "2kr3r/pbp1qppp/1pn1pn2/8/1b2PP2/1PN2N2/PBP1Q1PP/2KR1B1R w - - 0 1" 
+export const ALT_PERFT =
+  "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10";
+export const OPEN_MIDGAME =
+  "2kr3r/pbp1qppp/1pn1pn2/8/1b2PP2/1PN2N2/PBP1Q1PP/2KR1B1R w - - 0 1";
 export const ACTIVE_KING_ENDGAME = "8/8/p6p/1ppK2p1/2P2kP1/PP6/8/8 w - - 0 1";
+export const PROMOTION_ENDGAME = "3n4/2P5/1K6/8/8/5k2/6p1/5N2 w - - 0 1";
 
 export const validateBitboards = (
   bitboards: BigUint64Array,
