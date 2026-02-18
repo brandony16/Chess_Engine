@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { Position } from "../../game/Position.ts";
+import { Position } from "../../../game/Position.ts";
 import {
   ACTIVE_KING_ENDGAME,
   ALT_PERFT,
@@ -7,11 +7,10 @@ import {
   EN_PASSANT_WHITE,
   KIWIPETE_POS,
   OPEN_MIDGAME,
-  PINNED_POS,
   PROMOTION_ENDGAME,
   START_POS,
-} from "./fens.ts";
-import Move from "../../game/moveMaking/move.ts";
+} from "../fens.ts";
+import Move from "../../../game/moveMaking/move.ts";
 import {
   BLACK,
   BLACK_BISHOP,
@@ -29,7 +28,30 @@ import {
   WHITE_PAWN,
   WHITE_QUEEN,
   WHITE_ROOK,
-} from "../../game/chessConstants.ts";
+} from "../../../game/chessConstants.ts";
+import { isRook } from "../../../game/pieceUtils/pieceClassifiers.ts";
+
+const confirmMove = (pos: Position, move: Move) => {
+  expect(pos.pieceAt[move.from]).toBe(NO_PIECE);
+
+  if (move.promotion === NO_PIECE) {
+    expect(pos.pieceAt[move.to]).toBe(move.piece);
+  } else {
+    expect(pos.pieceAt[move.to]).toBe(move.promotion);
+  }
+
+  if (move.castling) {
+    if (move.from > move.to) {
+      // Queenside
+      expect(pos.pieceAt[move.from - 4]).toBe(NO_PIECE);
+      expect(isRook(pos.pieceAt[move.from - 1])).toBe(true);
+    } else {
+      // Kingside
+      expect(pos.pieceAt[move.from + 3]).toBe(NO_PIECE);
+      expect(isRook(pos.pieceAt[move.from + 1])).toBe(true);
+    }
+  }
+};
 
 describe("makeMove - movement", () => {
   test("pawn - single move", () => {
@@ -41,12 +63,14 @@ describe("makeMove - movement", () => {
 
     expect(pos.validate()).toBe(true);
     expect(pos.sideToMove).toBe(BLACK);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.D7, sq.D6, BLACK_PAWN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
     expect(pos.sideToMove).toBe(WHITE);
+    confirmMove(pos, moveB);
   });
 
   test("pawn - double move", () => {
@@ -58,12 +82,14 @@ describe("makeMove - movement", () => {
 
     expect(pos.validate()).toBe(true);
     expect(pos.sideToMove).toBe(BLACK);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.H7, sq.H5, BLACK_PAWN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
     expect(pos.sideToMove).toBe(WHITE);
+    confirmMove(pos, moveB);
   });
 
   test("knight", () => {
@@ -75,12 +101,14 @@ describe("makeMove - movement", () => {
 
     expect(pos.validate()).toBe(true);
     expect(pos.sideToMove).toBe(BLACK);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.G8, sq.F6, BLACK_KNIGHT);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
     expect(pos.sideToMove).toBe(WHITE);
+    confirmMove(pos, moveB);
   });
 
   test("bishop", () => {
@@ -91,11 +119,13 @@ describe("makeMove - movement", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.G7, sq.H6, BLACK_BISHOP);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("rook", () => {
@@ -106,11 +136,13 @@ describe("makeMove - movement", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.A8, sq.B8, BLACK_ROOK);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("queen", () => {
@@ -121,11 +153,13 @@ describe("makeMove - movement", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.E7, sq.C5, BLACK_QUEEN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("king - base movement", () => {
@@ -136,11 +170,13 @@ describe("makeMove - movement", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.E8, sq.D8, BLACK_KING);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("king - castling", () => {
@@ -152,12 +188,14 @@ describe("makeMove - movement", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     // Black queenside
     const moveB = new Move(sq.E8, sq.C8, BLACK_KING, NO_PIECE, NO_PIECE, true);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 });
 
@@ -170,11 +208,13 @@ describe("makeMove - captures", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.B4, sq.C3, BLACK_PAWN, WHITE_KNIGHT);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("pawn - en passant", () => {
@@ -191,7 +231,9 @@ describe("makeMove - captures", () => {
       true,
     );
     pos.makeMove(moveW);
+
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     pos.loadFen(EN_PASSANT_BLACK);
     const moveB = new Move(
@@ -206,6 +248,7 @@ describe("makeMove - captures", () => {
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("knight", () => {
@@ -216,11 +259,13 @@ describe("makeMove - captures", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.B6, sq.D5, BLACK_KNIGHT, WHITE_PAWN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("bishop", () => {
@@ -231,11 +276,13 @@ describe("makeMove - captures", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.C5, sq.F2, BLACK_BISHOP, WHITE_PAWN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("rook", () => {
@@ -246,11 +293,13 @@ describe("makeMove - captures", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.H8, sq.D8, BLACK_ROOK, WHITE_ROOK);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("queen", () => {
@@ -261,11 +310,13 @@ describe("makeMove - captures", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.E7, sq.F6, BLACK_QUEEN, WHITE_QUEEN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("king", () => {
@@ -276,11 +327,13 @@ describe("makeMove - captures", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.F4, sq.G4, BLACK_KING, WHITE_PAWN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 });
 
@@ -293,11 +346,13 @@ describe("makeMove - promotion", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_KNIGHT);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("bishop promo", () => {
@@ -308,11 +363,13 @@ describe("makeMove - promotion", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_BISHOP);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("rook promo", () => {
@@ -323,11 +380,13 @@ describe("makeMove - promotion", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_ROOK);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("queen promo", () => {
@@ -338,41 +397,71 @@ describe("makeMove - promotion", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_QUEEN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("knight promo - capture", () => {
     const pos = new Position();
     pos.loadFen(PROMOTION_ENDGAME);
 
-    const moveW = new Move(sq.C7, sq.D8, WHITE_PAWN, BLACK_KNIGHT, WHITE_KNIGHT);
+    const moveW = new Move(
+      sq.C7,
+      sq.D8,
+      WHITE_PAWN,
+      BLACK_KNIGHT,
+      WHITE_KNIGHT,
+    );
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_KNIGHT);
+    const moveB = new Move(
+      sq.G2,
+      sq.F1,
+      BLACK_PAWN,
+      WHITE_KNIGHT,
+      BLACK_KNIGHT,
+    );
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("bishop promo - capture", () => {
     const pos = new Position();
     pos.loadFen(PROMOTION_ENDGAME);
 
-    const moveW = new Move(sq.C7, sq.D8, WHITE_PAWN, BLACK_KNIGHT, WHITE_BISHOP);
+    const moveW = new Move(
+      sq.C7,
+      sq.D8,
+      WHITE_PAWN,
+      BLACK_KNIGHT,
+      WHITE_BISHOP,
+    );
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_BISHOP);
+    const moveB = new Move(
+      sq.G2,
+      sq.F1,
+      BLACK_PAWN,
+      WHITE_KNIGHT,
+      BLACK_BISHOP,
+    );
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("rook promo - capture", () => {
@@ -383,11 +472,13 @@ describe("makeMove - promotion", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_ROOK);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("queen promo - capture", () => {
@@ -398,10 +489,12 @@ describe("makeMove - promotion", () => {
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveW);
 
     const moveB = new Move(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_QUEEN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 });

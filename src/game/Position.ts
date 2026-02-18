@@ -478,7 +478,6 @@ export class Position {
   // -----------------------
   // Game Info Methods
   // -----------------------
-
   isPlayersPieceAt(square: number, player: Player): boolean {
     const p = this.pieceAt[square];
     if (p === NO_PIECE) return false;
