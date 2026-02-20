@@ -63,9 +63,8 @@ export const unapplyMove = (position: Position, move: Move) => {
   const from = move.from;
   const to = move.to;
 
-  const one = 1n;
-  const maskFrom = one << BigInt(from);
-  const maskTo = one << BigInt(to);
+  const maskFrom = 1n << BigInt(from);
+  const maskTo = 1n << BigInt(to);
 
   const piece = move.piece;
   const captured = move.captured;
@@ -82,7 +81,7 @@ export const unapplyMove = (position: Position, move: Move) => {
   pieceAt[from] = piece;
 
   // Undo promotion
-  if (promotion) {
+  if (promotion !== NO_PIECE) {
     bitboards[promotion] &= ~maskTo;
     bitboards[piece] |= maskFrom;
   } else {
@@ -100,7 +99,7 @@ export const unapplyMove = (position: Position, move: Move) => {
   if (enPassant) {
     const dir = piece === WHITE_PAWN ? -8 : 8;
     const capturedPawnSquare = to + dir;
-    bitboards[captured] |= one << BigInt(capturedPawnSquare);
+    bitboards[captured] |= 1n << BigInt(capturedPawnSquare);
     pieceAt[capturedPawnSquare] = captured;
   }
 };

@@ -59,7 +59,7 @@ export function undoPieceIndexUpdate(
   const { piece, from, to, captured, promotion, enPassant, castling } = move;
 
   const pieceArr = pieceIndexes[piece];
-  if (promotion) {
+  if (promotion !== NO_PIECE) {
     const promoPieceArr = pieceIndexes[promotion];
     // Remove promotion piece and add piece that promoted
     promoPieceArr.splice(promoPieceArr.indexOf(to), 1);

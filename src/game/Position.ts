@@ -382,6 +382,7 @@ export class Position {
       zobristKey: this.zobristKey,
     };
     this.undoStack.push(undo);
+    this.moveStack.push(move);
 
     applyMove(this, move);
 
@@ -407,6 +408,9 @@ export class Position {
       this.fullmoveNumber++;
     }
 
+    const prev = this.pastPositions.get(this.zobristKey) ?? 0;
+    this.pastPositions.set(this.zobristKey, prev + 1);
+
     this.sideToMove ^= 1;
   }
 
@@ -416,6 +420,13 @@ export class Position {
     unapplyMove(this, move);
 
     undoPieceIndexUpdate(this.pieceIndexes, move);
+
+    const prev = this.pastPositions.get(this.zobristKey);
+    if (prev === 1) {
+      this.pastPositions.delete(this.zobristKey);
+    } else {
+      this.pastPositions.set(this.zobristKey, prev - 1);
+    }
 
     this.castlingRights = undo.castlingRights;
     this.enPassantSquare = undo.epSquare;
@@ -637,5 +648,49 @@ export class Position {
     }
 
     return true;
+  }
+
+  copy(): Position {
+    const cpy = new Position();
+    for (const piece of PIECES) {
+      cpy.bitboards[piece] = this.bitboards[piece];
+    }
+
+    cpy.sideToMove = this.sideToMove;
+    cpy.castlingRights = this.castlingRights;
+    cpy.enPassantSquare = this.enPassantSquare;
+
+    cpy.fullmoveNumber = this.fullmoveNumber;
+    cpy.halfmoveClock = this.halfmoveClock;
+
+    cpy.initCurrentPosition();
+
+    const moveStack: Move[] = [];
+    for (const move of this.moveStack) {
+      const moveCpy = move.copyWith({});
+      moveStack.push(moveCpy);
+    }
+    cpy.moveStack = moveStack;
+
+    const undoStack: Undo[] = [];
+    for (const undo of this.undoStack) {
+      const undoCpy = {
+        captured: undo.captured,
+        castlingRights: undo.castlingRights,
+        epSquare: undo.epSquare,
+        halfmoveClock: undo.halfmoveClock,
+        zobristKey: undo.zobristKey,
+      };
+      undoStack.push(undoCpy);
+    }
+    cpy.undoStack = undoStack;
+
+    const pastPositions = new Map<bigint, number>();
+    for (const key of this.pastPositions.keys()) {
+      pastPositions.set(key, this.pastPositions.get(key));
+    }
+    cpy.pastPositions = pastPositions;
+
+    return cpy;
   }
 }

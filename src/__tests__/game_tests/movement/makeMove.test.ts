@@ -51,6 +51,10 @@ const confirmMove = (pos: Position, move: Move) => {
       expect(isRook(pos.pieceAt[move.from + 1])).toBe(true);
     }
   }
+
+  expect(pos.moveStack[pos.moveStack.length - 1]).toBe(move);
+  expect(pos.pastPositions.get(pos.zobristKey)).not.toBeFalsy();
+  expect(pos.pastPositions.get(pos.zobristKey)).toBeGreaterThan(0);
 };
 
 describe("makeMove - movement", () => {
