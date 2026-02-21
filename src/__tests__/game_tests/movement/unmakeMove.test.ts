@@ -1,6 +1,13 @@
 import { describe, expect, test } from "vitest";
 import { Position } from "../../../game/Position.ts";
-import { KIWIPETE_POS, START_POS } from "../fens.ts";
+import {
+  ALT_PERFT,
+  EN_PASSANT_BLACK,
+  EN_PASSANT_WHITE,
+  KIWIPETE_POS,
+  OPEN_MIDGAME,
+  START_POS,
+} from "../fens.ts";
 import Move from "../../../game/moveMaking/move.ts";
 import {
   BLACK_BISHOP,
@@ -43,178 +50,169 @@ function areEqual(pos1: Position, pos2: Position): void {
   mapsEqual(pos1.pastPositions, pos2.pastPositions);
 }
 
+function testUndo(fen: String, move1: Move, move2: Move) {
+  const pos = new Position();
+  pos.loadFen(fen);
+
+  pos.makeMove(move1);
+
+  const pos2 = pos.copy();
+
+  pos.makeMove(move2);
+
+  pos.unmakeMove(); // Unmake black move
+  areEqual(pos, pos2);
+  expect(pos.validate()).toBe(true);
+
+  pos.unmakeMove(); // Unmake white move - back to initial pos
+
+  const pos3 = new Position();
+  pos3.loadFen(fen);
+  areEqual(pos, pos3);
+  expect(pos.validate()).toBe(true);
+}
+
 describe("unmakeMove - movement", () => {
   test("pawn - single move", () => {
-    const pos = new Position();
-    pos.loadFen(START_POS);
-
     const moveW = new Move(sq.A2, sq.A3, WHITE_PAWN);
-    pos.makeMove(moveW);
-
-    const pos2 = pos.copy();
-
     const moveB = new Move(sq.D7, sq.D6, BLACK_PAWN);
-    pos.makeMove(moveB);
 
-    pos.unmakeMove(); // Unmake black move
-    areEqual(pos, pos2);
-
-    pos.unmakeMove(); // Unmake white move - back to initial pos
-    const pos3 = new Position();
-    pos3.loadFen(START_POS);
-    areEqual(pos, pos3);
+    testUndo(START_POS, moveW, moveB);
   });
 
   test("pawn - double move", () => {
-    const pos = new Position();
-    pos.loadFen(START_POS);
-
     const moveW = new Move(sq.E2, sq.E4, WHITE_PAWN);
-    pos.makeMove(moveW);
-
-    const pos2 = pos.copy();
-
     const moveB = new Move(sq.H7, sq.H5, BLACK_PAWN);
-    pos.makeMove(moveB);
 
-    pos.unmakeMove(); // Unmake black move
-    areEqual(pos, pos2);
-
-    pos.unmakeMove(); // Unmake white move - back to initial pos
-    const pos3 = new Position();
-    pos3.loadFen(START_POS);
-    areEqual(pos, pos3);
+    testUndo(START_POS, moveW, moveB);
   });
 
   test("knight", () => {
-    const pos = new Position();
-    pos.loadFen(START_POS);
-
     const moveW = new Move(sq.B1, sq.C3, WHITE_KNIGHT);
-    pos.makeMove(moveW);
-
-    const pos2 = pos.copy();
-
     const moveB = new Move(sq.G8, sq.F6, BLACK_KNIGHT);
-    pos.makeMove(moveB);
 
-    pos.unmakeMove(); // Unmake black move
-    areEqual(pos, pos2);
-
-    pos.unmakeMove(); // Unmake white move - back to initial pos
-    const pos3 = new Position();
-    pos3.loadFen(START_POS);
-    areEqual(pos, pos3);
+    testUndo(START_POS, moveW, moveB);
   });
 
   test("bishop", () => {
-    const pos = new Position();
-    pos.loadFen(KIWIPETE_POS);
-
     const moveW = new Move(sq.E2, sq.C4, WHITE_BISHOP);
-    pos.makeMove(moveW);
-
-    const pos2 = pos.copy();
-
     const moveB = new Move(sq.G7, sq.H6, BLACK_BISHOP);
-    pos.makeMove(moveB);
 
-    pos.unmakeMove(); // Unmake black move
-    areEqual(pos, pos2);
-
-    pos.unmakeMove(); // Unmake white move - back to initial pos
-    const pos3 = new Position();
-    pos3.loadFen(KIWIPETE_POS);
-    areEqual(pos, pos3);
+    testUndo(KIWIPETE_POS, moveW, moveB);
   });
 
   test("rook", () => {
-    const pos = new Position();
-    pos.loadFen(KIWIPETE_POS);
-
     const moveW = new Move(sq.A1, sq.C1, WHITE_ROOK);
-    pos.makeMove(moveW);
-
-    const pos2 = pos.copy();
-
     const moveB = new Move(sq.A8, sq.B8, BLACK_ROOK);
-    pos.makeMove(moveB);
 
-    pos.unmakeMove(); // Unmake black move
-    areEqual(pos, pos2);
-
-    pos.unmakeMove(); // Unmake white move - back to initial pos
-    const pos3 = new Position();
-    pos3.loadFen(KIWIPETE_POS);
-    areEqual(pos, pos3);
+    testUndo(KIWIPETE_POS, moveW, moveB);
   });
 
   test("queen", () => {
-    const pos = new Position();
-    pos.loadFen(KIWIPETE_POS);
-
     const moveW = new Move(sq.F3, sq.G3, WHITE_QUEEN);
-    pos.makeMove(moveW);
-
-    const pos2 = pos.copy();
-
     const moveB = new Move(sq.E7, sq.C5, BLACK_QUEEN);
-    pos.makeMove(moveB);
 
-    pos.unmakeMove(); // Unmake black move
-    areEqual(pos, pos2);
-
-    pos.unmakeMove(); // Unmake white move - back to initial pos
-    const pos3 = new Position();
-    pos3.loadFen(KIWIPETE_POS);
-    areEqual(pos, pos3);
+    testUndo(KIWIPETE_POS, moveW, moveB);
   });
 
   test("king - base movement", () => {
-    const pos = new Position();
-    pos.loadFen(KIWIPETE_POS);
-
     const moveW = new Move(sq.E1, sq.F1, WHITE_KING);
-    pos.makeMove(moveW);
-
-    const pos2 = pos.copy();
-
     const moveB = new Move(sq.E8, sq.D8, BLACK_KING);
-    pos.makeMove(moveB);
 
-    pos.unmakeMove(); // Unmake black move
-    areEqual(pos, pos2);
-
-    pos.unmakeMove(); // Unmake white move - back to initial pos
-    const pos3 = new Position();
-    pos3.loadFen(KIWIPETE_POS);
-    areEqual(pos, pos3);
+    testUndo(KIWIPETE_POS, moveW, moveB);
   });
 
   test("king - castling", () => {
-    const pos = new Position();
-    pos.loadFen(KIWIPETE_POS);
-
-    // White kingside
+    // White kingside and black queenside
     const moveW = new Move(sq.E1, sq.G1, WHITE_KING, NO_PIECE, NO_PIECE, true);
-    pos.makeMove(moveW);
-
-    const pos2 = pos.copy();
-
-    // Black queenside
     const moveB = new Move(sq.E8, sq.C8, BLACK_KING, NO_PIECE, NO_PIECE, true);
-    pos.makeMove(moveB);
 
-    pos.unmakeMove(); // Unmake black move
-    areEqual(pos, pos2);
-
-    pos.unmakeMove(); // Unmake white move - back to initial pos
-    const pos3 = new Position();
-    pos3.loadFen(KIWIPETE_POS);
-    areEqual(pos, pos3);
+    testUndo(KIWIPETE_POS, moveW, moveB);
   });
 });
 
-// describe("unmakeMove - captures", () => {});
+describe("unmakeMove - captures", () => {
+  test("pawn - normal", () => {
+    const moveW = new Move(sq.D5, sq.E6, WHITE_PAWN, BLACK_PAWN);
+    const moveB = new Move(sq.B4, sq.C3, BLACK_PAWN, WHITE_KNIGHT);
+
+    testUndo(KIWIPETE_POS, moveW, moveB);
+  });
+
+  test("pawn - en passant", () => {
+    const pos = new Position();
+    pos.loadFen(EN_PASSANT_WHITE);
+
+    const moveW = new Move(
+      sq.E5,
+      sq.D6,
+      WHITE_PAWN,
+      BLACK_PAWN,
+      NO_PIECE,
+      false,
+      true,
+    );
+    pos.makeMove(moveW);
+    pos.unmakeMove();
+
+    const posW = new Position();
+    posW.loadFen(EN_PASSANT_WHITE);
+    areEqual(pos, posW);
+    expect(pos.validate()).toBe(true);
+
+    pos.loadFen(EN_PASSANT_BLACK);
+    const moveB = new Move(
+      sq.E4,
+      sq.D3,
+      BLACK_PAWN,
+      WHITE_PAWN,
+      NO_PIECE,
+      false,
+      true,
+    );
+    pos.makeMove(moveB);
+    pos.unmakeMove();
+
+    const posB = new Position();
+    posB.loadFen(EN_PASSANT_WHITE);
+    areEqual(pos, posB);
+    expect(pos.validate()).toBe(true);
+  });
+
+  test("knight", () => {
+    const moveW = new Move(sq.E5, sq.G6, WHITE_KNIGHT, BLACK_PAWN);
+    const moveB = new Move(sq.B6, sq.D5, BLACK_KNIGHT, WHITE_PAWN);
+
+    testUndo(KIWIPETE_POS, moveW, moveB);
+  });
+
+  test("bishop", () => {
+    const moveW = new Move(sq.G5, sq.F6, WHITE_BISHOP, BLACK_KNIGHT);
+    const moveB = new Move(sq.C5, sq.F2, BLACK_BISHOP, WHITE_PAWN);
+
+    testUndo(ALT_PERFT, moveW, moveB);
+  });
+
+  test("rook", () => {
+    const moveW = new Move(sq.D1, sq.D8, WHITE_ROOK, BLACK_ROOK);
+    const moveB = new Move(sq.H8, sq.D8, BLACK_ROOK, WHITE_ROOK);
+
+    testUndo(OPEN_MIDGAME, moveW, moveB);
+  });
+
+  test("queen", () => {
+    const moveW = new Move(sq.F3, sq.F6, WHITE_QUEEN, BLACK_KNIGHT);
+    const moveB = new Move(sq.E7, sq.F6, BLACK_QUEEN, WHITE_QUEEN);
+
+    testUndo(KIWIPETE_POS, moveW, moveB);
+  });
+
+  test("king", () => {
+    const moveW = new Move(sq.D5, sq.C5, WHITE_KING, BLACK_PAWN);
+    const moveB = new Move(sq.F4, sq.G4, BLACK_KING, WHITE_PAWN);
+
+    testUndo(KIWIPETE_POS, moveW, moveB);
+  });
+});
 
 // describe("unmakeMove - promotions", () => {});

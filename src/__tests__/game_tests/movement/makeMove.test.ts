@@ -52,6 +52,10 @@ const confirmMove = (pos: Position, move: Move) => {
     }
   }
 
+  const zobrist = pos.zobristKey;
+  pos.computeZobrist();
+  expect(pos.zobristKey).toBe(zobrist);
+
   expect(pos.moveStack[pos.moveStack.length - 1]).toBe(move);
   expect(pos.pastPositions.get(pos.zobristKey)).not.toBeFalsy();
   expect(pos.pastPositions.get(pos.zobristKey)).toBeGreaterThan(0);

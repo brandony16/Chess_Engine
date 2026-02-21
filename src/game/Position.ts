@@ -65,7 +65,10 @@ import {
   buildFenEnPassant,
   buildPlayer,
 } from "./fenAndUCI/fenHelpers.ts";
-import { updateOccupancy } from "./positionStates/occupancy.ts";
+import {
+  undoOccupancyUpdate,
+  updateOccupancy,
+} from "./positionStates/occupancy.ts";
 
 export class Position {
   bitboards: BigUint64Array;
@@ -236,7 +239,11 @@ export class Position {
 
     // if a capture, XOR to remove captured piece
     if (captured !== NO_PIECE) {
-      const zobristCaptured = zobristTable[captured * 64 + to];
+      let captSq = to;
+      if (move.enPassant) {
+        captSq = move.piece < 6 ? captSq - 8 : captSq + 8;
+      }
+      const zobristCaptured = zobristTable[captured * 64 + captSq];
       newHash ^= zobristCaptured;
     }
 
@@ -393,15 +400,15 @@ export class Position {
       this.kingSq[this.sideToMove] = move.to;
     }
 
+    const epSq = this.enPassantSquare;
     const rights = this.castlingRights;
+    this.enPassantSquare = newEnPassant(move);
     this.castlingRights = updateCastlingRights(
       move.from,
       move.to,
       this.castlingRights,
     );
-    this.updateZobrist(move, this.enPassantSquare, rights);
-
-    this.enPassantSquare = newEnPassant(move);
+    this.updateZobrist(move, epSq, rights);
 
     this.updateHalfmoveClock(move);
     if (this.sideToMove === BLACK) {
@@ -419,7 +426,14 @@ export class Position {
     const move = this.moveStack.pop();
     unapplyMove(this, move);
 
+    this.sideToMove ^= 1;
+
     undoPieceIndexUpdate(this.pieceIndexes, move);
+    undoOccupancyUpdate(this, move);
+
+    if (isKing(move.piece)) {
+      this.kingSq[this.sideToMove] = move.from;
+    }
 
     const prev = this.pastPositions.get(this.zobristKey);
     if (prev === 1) {
@@ -433,15 +447,13 @@ export class Position {
     this.halfmoveClock = undo.halfmoveClock;
     this.zobristKey = undo.zobristKey;
 
-    if (this.sideToMove === WHITE) {
+    if (this.sideToMove === BLACK) {
       this.fullmoveNumber--;
     }
 
     // If unmaking a move, the game cant be over (can't move if the game is over)
     this.result = IN_PROGRESS;
     this.endState = IN_PROGRESS;
-
-    this.sideToMove ^= 1;
   }
 
   isInCheck(player: Player = this.sideToMove): boolean {
