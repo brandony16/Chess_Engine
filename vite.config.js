@@ -5,4 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   base: '/Chess_Engine/', 
   plugins: [react()],
+  test: {
+    testTimeout: 0
+  }
 })

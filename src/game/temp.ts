@@ -2,6 +2,7 @@ import Move from "./moveMaking/move.ts";
 import { isKing, isPawn } from "./pieceUtils/pieceClassifiers.ts";
 import {
   BLACK_PAWN,
+  NO_PIECE,
   NO_SQUARE,
   PROMO_PIECES,
   WHITE,
@@ -58,7 +59,7 @@ export const getMovesFromBB = (
       to,
       piece,
       captured,
-      null,
+      NO_PIECE,
       castling,
       enPassant,
     );

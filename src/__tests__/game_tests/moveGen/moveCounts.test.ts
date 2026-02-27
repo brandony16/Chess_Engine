@@ -1,8 +1,5 @@
-import { getFENData } from "../coreLogic/helpers/FENandUCIHelpers";
-import { getAllLegalMoves } from "../coreLogic/moveGeneration/allMoveGeneration";
-import { initializePieceAtArray } from "../coreLogic/pieceGetters";
-import { initializePieceIndicies } from "../coreLogic/pieceIndicies";
-import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks";
+import { describe, expect, test } from "vitest";
+import { Position } from "../../../game/Position.ts";
 
 const cases = [
   [
@@ -32,20 +29,13 @@ const cases = [
 describe("GetAllLegalMoves", () => {
   test.each(cases)(
     "%s should generate %i moves",
-    (_description, expectedCount, fen) => {
-      const state = getFENData(fen);
-      const bitboards = state.bitboards;
-      const player = state.player;
-      const castling = state.castling;
-      const ep = state.ep;
+    (_description: string, expectedCount: number, fen: string) => {
+      const pos = new Position();
+      pos.loadFen(fen);
 
-      initializePieceIndicies(bitboards);
-      computeAllAttackMasks(bitboards);
-      initializePieceAtArray(bitboards);
-
-      const moves = getAllLegalMoves(bitboards, player, castling, ep);
+      const moves = pos.generateLegalMoves();
 
       expect(moves.length).toBe(expectedCount);
-    }
+    },
   );
 });

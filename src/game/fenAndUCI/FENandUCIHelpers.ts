@@ -33,21 +33,6 @@ export function uciToMove(uciMove, bitboards, player, casRights, epSquare) {
 }
 
 /**
- * Converts a move object into UCI notation
- * @param {Move} move - the move
- * @returns {string} - the move in uci form
- */
-export function moveToUCI(move) {
-  const from = indexToSquare(move.from);
-  const to = indexToSquare(move.to);
-  const promo = move.promotion
-    ? GENERAL_SYMBOLS[move.promotion].toLowerCase()
-    : "";
-
-  return from + to + promo;
-}
-
-/**
  * Converts a string square into the index of that square.
  *
  * @param {string} square - string rep of the square (a3)

@@ -1,8 +1,6 @@
-import { getFENData } from "../game/fenAndUCI/FENandUCIHelpers.ts";
-import { initializePieceAtArray } from "../game/pieceUtils/pieceGetters.ts";
-import { initializePieceIndicies } from "../game/positionStates/pieceIndexUpdators.ts";
-import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
-import { perftDivide } from "./perft.mjs";
+import { perftDivide } from "./perft.ts";
+import { describe, expect, test } from "vitest";
+import { Position } from "../../../game/Position.ts";
 
 const cases = [
   // [ description, depth, expected node count, FEN ]
@@ -93,22 +91,20 @@ const cases = [
 ];
 
 describe("perft node counts", () => {
-  test.each(cases)("%s depth %i → %i nodes", (_desc, depth, expected, fen) => {
-    const fenData = getFENData(fen);
-    const bitboards = fenData.bitboards;
-    const player = fenData.player;
-    const castling = fenData.castling;
-    const ep = fenData.ep;
+  test.each(cases)(
+    "%s depth %i → %i nodes",
+    (_desc: string, depth: number, expected: number, fen: string) => {
+      const pos = new Position();
+      pos.loadFen(fen);
 
-    initializePieceIndicies(bitboards);
-    computeAllAttackMasks(bitboards);
-    initializePieceAtArray(bitboards);
+      const div = perftDivide(pos, depth);
+      console.table(div);
 
-    // const nodes = perft(bitboards, player, castling, ep, depth)
-    const div = perftDivide(bitboards, player, castling, ep, depth);
-    console.table(div);
-
-    const nodes = Object.values(div).reduce((a, b) => a + b, 0);
-    expect(nodes).toBe(expected);
-  });
+      const nodes = Object.values(div).reduce(
+        (a: number, b: number) => a + b,
+        0,
+      );
+      expect(nodes).toBe(expected);
+    },
+  );
 });
