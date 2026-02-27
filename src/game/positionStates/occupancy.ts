@@ -24,7 +24,6 @@ export function updateOccupancy(pos: Position, move: Move): void {
   if (move.captured !== NO_PIECE) {
     if (move.enPassant) {
       const target = pos.sideToMove === WHITE ? move.to - 8 : move.to + 8;
-      console.log(target);
       pos.playerOcc[opponent(pos.sideToMove)] ^= 1n << BigInt(target);
     } else {
       pos.playerOcc[opponent(pos.sideToMove)] ^= maskTo;
@@ -90,7 +89,6 @@ export function undoOccupancyUpdate(pos: Position, move: Move): void {
   if (move.captured !== NO_PIECE) {
     if (move.enPassant) {
       const target = pos.sideToMove === WHITE ? move.to - 8 : move.to + 8;
-      console.log(target);
       pos.playerOcc[opponent(pos.sideToMove)] |= 1n << BigInt(target);
     } else {
       pos.playerOcc[opponent(pos.sideToMove)] |= maskTo;

@@ -1,12 +1,15 @@
 import { describe, expect, test } from "vitest";
 import { Position } from "../../../game/Position.ts";
 import {
+  ACTIVE_KING_ENDGAME,
   ALT_PERFT,
   EN_PASSANT_BLACK,
   EN_PASSANT_WHITE,
   KIWIPETE_POS,
   OPEN_MIDGAME,
+  PROMOTION_ENDGAME,
   START_POS,
+  validateBitboards,
 } from "../fens.ts";
 import Move from "../../../game/moveMaking/move.ts";
 import {
@@ -17,6 +20,7 @@ import {
   BLACK_QUEEN,
   BLACK_ROOK,
   NO_PIECE,
+  PIECES,
   sq,
   WHITE_BISHOP,
   WHITE_KING,
@@ -174,7 +178,7 @@ describe("unmakeMove - captures", () => {
     pos.unmakeMove();
 
     const posB = new Position();
-    posB.loadFen(EN_PASSANT_WHITE);
+    posB.loadFen(EN_PASSANT_BLACK);
     areEqual(pos, posB);
     expect(pos.validate()).toBe(true);
   });
@@ -211,8 +215,87 @@ describe("unmakeMove - captures", () => {
     const moveW = new Move(sq.D5, sq.C5, WHITE_KING, BLACK_PAWN);
     const moveB = new Move(sq.F4, sq.G4, BLACK_KING, WHITE_PAWN);
 
-    testUndo(KIWIPETE_POS, moveW, moveB);
+    testUndo(ACTIVE_KING_ENDGAME, moveW, moveB);
   });
 });
 
-// describe("unmakeMove - promotions", () => {});
+describe("unmakeMove - promotions", () => {
+  test("knight promo", () => {
+    const moveW = new Move(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_KNIGHT);
+    const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_KNIGHT);
+
+    testUndo(PROMOTION_ENDGAME, moveW, moveB);
+  });
+  test("bishop promo", () => {
+    const moveW = new Move(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_BISHOP);
+    const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_BISHOP);
+
+    testUndo(PROMOTION_ENDGAME, moveW, moveB);
+  });
+
+  test("rook promo", () => {
+    const moveW = new Move(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_ROOK);
+    const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_ROOK);
+
+    testUndo(PROMOTION_ENDGAME, moveW, moveB);
+  });
+
+  test("queen promo", () => {
+    const moveW = new Move(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_QUEEN);
+    const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_QUEEN);
+
+    testUndo(PROMOTION_ENDGAME, moveW, moveB);
+  });
+
+  test("knight promo - capture", () => {
+    const moveW = new Move(
+      sq.C7,
+      sq.D8,
+      WHITE_PAWN,
+      BLACK_KNIGHT,
+      WHITE_KNIGHT,
+    );
+    const moveB = new Move(
+      sq.G2,
+      sq.F1,
+      BLACK_PAWN,
+      WHITE_KNIGHT,
+      BLACK_KNIGHT,
+    );
+
+    testUndo(PROMOTION_ENDGAME, moveW, moveB);
+  });
+
+  test("bishop promo - capture", () => {
+    const moveW = new Move(
+      sq.C7,
+      sq.D8,
+      WHITE_PAWN,
+      BLACK_KNIGHT,
+      WHITE_BISHOP,
+    );
+    const moveB = new Move(
+      sq.G2,
+      sq.F1,
+      BLACK_PAWN,
+      WHITE_KNIGHT,
+      BLACK_BISHOP,
+    );
+
+    testUndo(PROMOTION_ENDGAME, moveW, moveB);
+  });
+
+  test("rook promo - capture", () => {
+    const moveW = new Move(sq.C7, sq.D8, WHITE_PAWN, BLACK_KNIGHT, WHITE_ROOK);
+    const moveB = new Move(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_ROOK);
+
+    testUndo(PROMOTION_ENDGAME, moveW, moveB);
+  });
+
+  test("queen promo - capture", () => {
+    const moveW = new Move(sq.C7, sq.D8, WHITE_PAWN, BLACK_KNIGHT, WHITE_QUEEN);
+    const moveB = new Move(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_QUEEN);
+
+    testUndo(PROMOTION_ENDGAME, moveW, moveB);
+  });
+});

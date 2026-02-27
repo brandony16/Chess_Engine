@@ -457,10 +457,10 @@ export class Position {
   }
 
   isInCheck(player: Player = this.sideToMove): boolean {
-    const opponent = player === WHITE ? BLACK : WHITE;
+    const opp = opponent(player);
     const kingSquare = this.kingSq[player];
 
-    return this.isSquareAttacked(kingSquare, opponent);
+    return this.isSquareAttacked(kingSquare, opp);
   }
 
   hasLegalMove(player: Player = this.sideToMove): boolean {

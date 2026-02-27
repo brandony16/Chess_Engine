@@ -1,4 +1,3 @@
-import type { Player, Square } from "./types.ts";
 import Move from "./moveMaking/move.ts";
 import { isKing, isPawn } from "./pieceUtils/pieceClassifiers.ts";
 import {
@@ -8,6 +7,8 @@ import {
   WHITE,
   WHITE_PAWN,
   type Piece,
+  type Player,
+  type Square,
 } from "./chessConstants.ts";
 import { bitScanForward } from "../coreLogic/helpers/bbUtils.mjs";
 
