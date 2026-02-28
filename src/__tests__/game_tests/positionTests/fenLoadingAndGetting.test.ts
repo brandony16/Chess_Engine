@@ -1,0 +1,30 @@
+import { describe, expect, test } from "vitest";
+import { Position } from "../../../game/Position.ts";
+
+describe("FEN - Board Conversions", () => {
+  const fens = [
+    // [ description, FEN string ]
+    [
+      "Start position",
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    ],
+    ["Empty board", "8/8/8/8/8/8/8/8 w - - 0 1"],
+    [
+      "Kiwipete position",
+      "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+    ],
+    ["Underpromotion test", "4k3/1pP5/8/8/8/8/8/4K3 w - - 0 1"],
+    ["En passant available", "k7/8/8/3pP3/8/8/8/4K3 w - d6 0 1"],
+  ];
+
+  test.each(fens)(
+    "%s round-trips through fenToBoard to boardToFEN",
+    (_desc, fen) => {
+      const pos = new Position();
+      pos.loadFen(fen);
+      const result = pos.getFen();
+
+      expect(result).toBe(fen);
+    },
+  );
+});
