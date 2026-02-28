@@ -1,4 +1,4 @@
-import { getNumPieces } from "../../coreLogic/helpers/bbUtils.mjs";
+import { getNumPieces } from "../helpers/bbUtils.ts";
 import {
   BLACK,
   BLACK_PAWN,

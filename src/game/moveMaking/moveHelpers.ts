@@ -1,5 +1,4 @@
-import Move from "./moveMaking/move.ts";
-import { isKing, isPawn } from "./pieceUtils/pieceClassifiers.ts";
+import { bitScanForward } from "../helpers/bbUtils.ts";
 import {
   BLACK_PAWN,
   NO_PIECE,
@@ -10,8 +9,9 @@ import {
   type Piece,
   type Player,
   type Square,
-} from "./chessConstants.ts";
-import { bitScanForward } from "../coreLogic/helpers/bbUtils.mjs";
+} from "../chessConstants.ts";
+import { isKing, isPawn } from "../pieceUtils/pieceClassifiers.ts";
+import Move from "./move.ts";
 
 export function newEnPassant(move: Move): Square {
   const piece = move.piece;
@@ -22,10 +22,6 @@ export function newEnPassant(move: Move): Square {
   const dir = piece === WHITE_PAWN ? -8 : 8;
   return move.to + dir;
 }
-
-export const opponent = (player: Player): Player => {
-  return (player ^ 1) as Player;
-};
 
 /**
  * Converts a move bitboard into an array of moves.

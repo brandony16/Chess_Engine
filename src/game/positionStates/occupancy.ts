@@ -1,7 +1,7 @@
 import { BLACK, NO_PIECE, WHITE } from "../chessConstants.ts";
 import Move from "../moveMaking/move.ts";
 import type { Position } from "../Position.ts";
-import { opponent } from "../temp.ts";
+import { opponent } from "../helpers/opponent.ts";
 
 export function updateOccupancy(pos: Position, move: Move): void {
   let occ = pos.playerOcc[pos.sideToMove];

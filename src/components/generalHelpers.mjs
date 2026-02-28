@@ -1,37 +1,7 @@
 import { BLACK, WHITE } from "chess.js";
-import { COLUMN_SYMBOLS, PIECE_SYMBOLS } from "../../game/chessConstants.ts";
-import { getAllLegalMoves } from "../../game/moveGen/moveGeneration.ts";
-import { pieceAt } from "../../game/pieceUtils/pieceGetters.ts";
-
-/**
- * Slides a specified direction until it hits a piece.
- *
- * @param {bigint} pieceBitboard - the bitboard with a 1 where the piece is. Only 1 bit should be set
- * @param {bigint} shift - the number of bits to shift. Left: -1, Right: 1, Up: 8, Down: -8
- * @param {bigint} mask - the mask to apply to ensure the moves stay on the board and don't loop around to the other side
- * @param {bigint} allPieces - a bitboard of all the pieces.
- * @returns {bigint} moves along the given ray
- */
-export function slide(pieceBitboard, shift, mask, allPieces) {
-  let attack = 0n;
-  let pos = pieceBitboard;
-
-  while (true) {
-    pos = (pos & mask) << shift;
-
-    if (!pos || pos === 0n) break; // Stop if no valid position remains
-
-    if (pos & allPieces) {
-      // Stop at the first occupied square
-      attack |= pos;
-      break;
-    }
-
-    attack |= pos;
-  }
-
-  return attack;
-}
+import { COLUMN_SYMBOLS, PIECE_SYMBOLS } from "../game/chessConstants.ts";
+import { getAllLegalMoves } from "../game/moveGen/moveGeneration.ts";
+import { pieceAt } from "../game/pieceUtils/pieceGetters.ts";
 
 /**
  * Turns a move into normal, readable chess notation. Currently does NOT disambiguate,

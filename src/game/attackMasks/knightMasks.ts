@@ -1,4 +1,4 @@
-import { isOnBoard } from "../../coreLogic/helpers/bbUtils.mjs";
+import { isOnBoard } from "../helpers/bbUtils.ts";
 import type { Square } from "../chessConstants.ts";
 
 // The square offsets for a knight

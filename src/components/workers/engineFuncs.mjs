@@ -5,7 +5,7 @@ import {
   squareToIndex,
 } from "../../game/fenAndUCI/FENandUCIHelpers.ts";
 import { checkGameOver } from "../../game/positionStates/gameOverLogic.ts";
-import { moveToReadable } from "../../coreLogic/helpers/generalHelpers.mjs";
+import { moveToReadable } from "../generalHelpers.mjs";
 import { makeMove } from "../../coreLogic/moveMaking/makeMoveLogic.mjs";
 import Move from "../../game/moveMaking/move.ts";
 import { pieceAt } from "../../game/pieceUtils/pieceGetters.ts";

@@ -1,4 +1,3 @@
-import { generateBlockerSubsets } from "../../../coreLogic/helpers/bbUtils.mjs";
 import { bishopMasks, rookMasks } from "./slidingMasks.ts";
 import {
   bishopMagics,
@@ -137,4 +136,21 @@ export function findBishopCollision(
     seen.set(idx, blockers);
   }
   return { collision: false };
+}
+
+/**
+ * Generates all blocker permutations for a given mask of moves for a peice.
+ * For example, a rook on a1 can see the whole first row and first file. This
+ * function generates all possible blocker permutations on the first row and file.
+ * This will be 2^(N-1), with N being the number of set bits in the initial mask.
+ *
+ * @param {bigint} mask - the mask
+ * @returns {BigUint64Array} the blocker subsets
+ */
+function* generateBlockerSubsets(mask: bigint): Generator<bigint> {
+  // Iterate submasks of mask: from mask, then (mask−1)&mask, ... down to 0
+  for (let sub = mask; ; sub = (sub - 1n) & mask) {
+    yield sub;
+    if (sub === 0n) break;
+  }
 }

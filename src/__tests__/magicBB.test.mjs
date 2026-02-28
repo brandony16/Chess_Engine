@@ -1,7 +1,7 @@
 import {
   maskBits,
   generateBlockerSubsets,
-} from "../coreLogic/helpers/bbUtils.mjs";
+} from "../game/helpers/bbUtils.ts";
 import {
   getBishopAttacksForSquare,
   getRookAttacksForSquare,

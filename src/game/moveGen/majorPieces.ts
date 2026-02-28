@@ -7,7 +7,7 @@ import {
   isQueensideCastleLegal,
 } from "../moveMaking/castling.ts";
 import { playerAttackMask } from "../attackMasks/attackMasks.ts";
-import { opponent } from "../temp.ts";
+import { opponent } from "../helpers/opponent.ts";
 
 /**
  * Gets all legal rook moves for a given square

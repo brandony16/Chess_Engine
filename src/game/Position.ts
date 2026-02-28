@@ -1,4 +1,4 @@
-import { bitScanForward, popcount } from "../coreLogic/helpers/bbUtils.mjs";
+import { bitScanForward, popcount } from "./helpers/bbUtils.ts";
 import { attacksTo } from "./attackMasks/attackMasks.ts";
 import {
   ALL_CASTLING,
@@ -47,7 +47,7 @@ import {
 import { getPieceMoves } from "./moveGen/moveGeneration.ts";
 import { kingMoves } from "./moveGen/majorPieces.ts";
 import { getCheckers } from "../coreLogic/moveGeneration/checkersMask.mjs";
-import { getMovesFromBB, newEnPassant, opponent } from "./temp.ts";
+import { opponent } from "./helpers/opponent.ts";
 import { applyMove, unapplyMove } from "./moveMaking/applyMove.ts";
 import {
   undoPieceIndexUpdate,
@@ -69,6 +69,7 @@ import {
   undoOccupancyUpdate,
   updateOccupancy,
 } from "./positionStates/occupancy.ts";
+import { getMovesFromBB, newEnPassant } from "./moveMaking/moveHelpers.ts";
 
 export class Position {
   bitboards: BigUint64Array;

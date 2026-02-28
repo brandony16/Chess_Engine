@@ -9,7 +9,7 @@ import type { Position } from "../Position.ts";
 import { knightMasks } from "../attackMasks/knightMasks.ts";
 import { blackPawnMasks, whitePawnMasks } from "../attackMasks/pawnMasks.ts";
 import { bishopAttacks } from "./sliderMoves.ts";
-import { opponent } from "../temp.ts";
+import { opponent } from "../helpers/opponent.ts";
 
 /**
  * Gets the move bitboard for a pawn.
