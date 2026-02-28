@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { Position } from "../../game/Position.ts";
+import { Position } from "../../../game/Position.ts";
 import {
   ALL_CASTLING,
   BLACK,
@@ -9,8 +9,8 @@ import {
   NUM_PIECES,
   PIECES,
   WHITE,
-} from "../../game/chessConstants.ts";
-import { isWhite } from "../../game/pieceUtils/pieceClassifiers.ts";
+} from "../../../game/chessConstants.ts";
+import { isWhite } from "../../../game/pieceUtils/pieceClassifiers.ts";
 
 describe("Position initialization - init values", () => {
   test("arrays are correctly sized", () => {

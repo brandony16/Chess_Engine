@@ -1,8 +1,8 @@
 import { describe, expect, test } from "vitest";
-import { Position } from "../../game/Position.ts";
-import { KIWIPETE_POS } from "./fens.ts";
-import { playerAttackMask } from "../../game/attackMasks/attackMasks.ts";
-import { BLACK, WHITE } from "../../game/chessConstants.ts";
+import { Position } from "../../../game/Position.ts";
+import { KIWIPETE_POS } from "../fens.ts";
+import { playerAttackMask } from "../../../game/attackMasks/attackMasks.ts";
+import { BLACK, WHITE } from "../../../game/chessConstants.ts";
 
 describe("isSquareAttacked", () => {
   test("works for white", () => {

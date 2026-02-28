@@ -1,12 +1,12 @@
 import { describe, expect, test } from "vitest";
-import { Position } from "../../game/Position.ts";
+import { Position } from "../../../game/Position.ts";
 import {
   EN_PASSANT_WHITE,
   KIWIPETE_POS,
   KNIGHT_FORK_POS,
   validateBitboards,
-} from "./fens.ts";
-import { BK, BQ, COLUMN_INDEXES, WK, WQ } from "../../game/chessConstants.ts";
+} from "../fens.ts";
+import { BK, BQ, COLUMN_INDEXES, WK, WQ } from "../../../game/chessConstants.ts";
 import { BLACK, WHITE } from "chess.js";
 
 describe("FEN position loading", () => {

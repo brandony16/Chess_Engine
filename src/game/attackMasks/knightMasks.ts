@@ -1,5 +1,5 @@
-import { isOnBoard } from "../helpers/bbUtils.ts";
 import type { Square } from "../chessConstants.ts";
+import { isOnBoard } from "../helpers/boardUtils.ts";
 
 // The square offsets for a knight
 const KNIGHT_OFFSETS = [17, 15, 10, 6, -17, -15, -10, -6];

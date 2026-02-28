@@ -46,7 +46,6 @@ import {
 } from "./positionStates/gameOverLogic.ts";
 import { getPieceMoves } from "./moveGen/moveGeneration.ts";
 import { kingMoves } from "./moveGen/majorPieces.ts";
-import { getCheckers } from "../coreLogic/moveGeneration/checkersMask.mjs";
 import { opponent } from "./helpers/opponent.ts";
 import { applyMove, unapplyMove } from "./moveMaking/applyMove.ts";
 import {
@@ -70,6 +69,7 @@ import {
   updateOccupancy,
 } from "./positionStates/occupancy.ts";
 import { getMovesFromBB, newEnPassant } from "./moveMaking/moveHelpers.ts";
+import { getCheckers } from "./moveGen/getCheckers.ts";
 
 export class Position {
   bitboards: BigUint64Array;
@@ -314,7 +314,7 @@ export class Position {
     // If king is in check
     const isKingInCheck = this.isSquareAttacked(kingSq, opp);
     if (isKingInCheck) {
-      const checkers = getCheckers(this.bitboards, side, kingSq);
+      const checkers = getCheckers(this, side, kingSq);
       const numCheck = popcount(checkers);
 
       // Double check, only king moves are possible

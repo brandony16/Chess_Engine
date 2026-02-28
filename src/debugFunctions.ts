@@ -1,5 +1,4 @@
-import { PIECE_SYMBOLS } from "./coreLogic/constants.mjs";
-import { NUM_PIECES } from "./game/chessConstants.ts";
+import { NUM_PIECES, PIECE_SYMBOLS } from "./game/chessConstants.ts";
 
 /**
  * Converts a big int to an 8x8 grid of 1s and 0s.

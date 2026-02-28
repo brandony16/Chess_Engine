@@ -1,5 +1,5 @@
-import { isOnBoard } from "../helpers/bbUtils.ts";
 import type { Square } from "../chessConstants.ts";
+import { isOnBoard } from "../helpers/boardUtils.ts";
 
 // The king square offsets
 const KING_OFFSETS = [1, 7, 8, 9, -1, -7, -8, -9];
