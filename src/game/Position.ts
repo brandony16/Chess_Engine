@@ -3,9 +3,7 @@ import { attacksTo } from "./attackMasks/attackMasks.ts";
 import {
   ALL_CASTLING,
   BLACK,
-  BLACK_BISHOP,
   BLACK_KING,
-  BLACK_QUEEN,
   BLACK_ROOK,
   BLACK_WIN,
   CHECKMATE,
@@ -21,9 +19,7 @@ import {
   REPETITION,
   STALEMATE,
   WHITE,
-  WHITE_BISHOP,
   WHITE_KING,
-  WHITE_QUEEN,
   WHITE_ROOK,
   WHITE_WIN,
   type Bitboard,
@@ -377,11 +373,16 @@ export class Position {
     return legal;
   }
 
-  makeMove(move: Move): void {
+  playMove(move: Move): void {
     if (this.gameOver()) {
       return;
     }
 
+    this.makeMove(move);
+    this.checkGameOver();
+  }
+
+  makeMove(move: Move): void {
     const undo: Undo = {
       captured: this.pieceAt[move.to],
       castlingRights: this.castlingRights,
@@ -507,18 +508,6 @@ export class Position {
     const p = this.pieceAt[square];
     if (p === NO_PIECE) return false;
     return player === WHITE ? p < 6 : p >= 6;
-  }
-
-  orthogonalAttackers(player: Player): bigint {
-    return player === WHITE
-      ? this.bitboards[WHITE_ROOK] | this.bitboards[WHITE_QUEEN]
-      : this.bitboards[BLACK_ROOK] | this.bitboards[BLACK_QUEEN];
-  }
-
-  diagonalAttackers(player: Player): bigint {
-    return player === WHITE
-      ? this.bitboards[WHITE_BISHOP] | this.bitboards[WHITE_QUEEN]
-      : this.bitboards[BLACK_BISHOP] | this.bitboards[BLACK_QUEEN];
   }
 
   playerPieceIndexes(player: Player): number[][] {
