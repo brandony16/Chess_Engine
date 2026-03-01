@@ -5,8 +5,13 @@ import {
   rookMagics,
   rookShifts,
 } from "./magicNumbers.ts";
-import type { CollisionResolution } from "./magicTypes.ts";
 import type { Square } from "../../chessConstants.ts";
+
+type CollisionResolution = {
+  collision: boolean;
+  first?: number;
+  second?: bigint;
+};
 
 /**
  * Generates random magic number candidates with 10 random bits set.
@@ -147,7 +152,7 @@ export function findBishopCollision(
  * @param {bigint} mask - the mask
  * @returns {BigUint64Array} the blocker subsets
  */
-function* generateBlockerSubsets(mask: bigint): Generator<bigint> {
+export function* generateBlockerSubsets(mask: bigint): Generator<bigint> {
   // Iterate submasks of mask: from mask, then (mask−1)&mask, ... down to 0
   for (let sub = mask; ; sub = (sub - 1n) & mask) {
     yield sub;

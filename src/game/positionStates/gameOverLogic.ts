@@ -1,4 +1,3 @@
-import { getNumPieces } from "../helpers/bbUtils.ts";
 import {
   BLACK,
   BLACK_PAWN,
@@ -9,6 +8,7 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../chessConstants.ts";
+import { popcount } from "../helpers/bbUtils.ts";
 
 /**
  * Determines if the game is a draw because neither side has sufficient checkmating material.
@@ -28,8 +28,8 @@ export const drawByInsufficientMaterial = (
   }
 
   if (
-    getNumPieces(playerOcc[WHITE]) <= 2 &&
-    getNumPieces(playerOcc[BLACK]) <= 2
+    popcount(playerOcc[WHITE]) <= 2 &&
+    popcount(playerOcc[BLACK]) <= 2
   ) {
     return true;
   }

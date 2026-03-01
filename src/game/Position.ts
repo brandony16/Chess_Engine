@@ -314,7 +314,7 @@ export class Position {
     // If king is in check
     const isKingInCheck = this.isSquareAttacked(kingSq, opp);
     if (isKingInCheck) {
-      const checkers = getCheckers(this, side, kingSq);
+      const checkers = getCheckers(this, side);
       const numCheck = popcount(checkers);
 
       // Double check, only king moves are possible
@@ -466,7 +466,7 @@ export class Position {
 
   hasLegalMove(player: Player = this.sideToMove): boolean {
     const moves = this.generateLegalMoves(player);
-    return moves.length === 0;
+    return moves.length !== 0;
   }
 
   checkGameOver() {
@@ -488,10 +488,11 @@ export class Position {
 
     // If player has no moves it is stalemate or checkmate
     if (!this.hasLegalMove()) {
-      const kingSquare = this.kingSq[opponent(this.sideToMove)];
-      if (this.isSquareAttacked(kingSquare, this.sideToMove)) {
-        this.result = this.sideToMove === WHITE ? WHITE_WIN : BLACK_WIN;
+      const kingSquare = this.kingSq[this.sideToMove];
+      if (this.isSquareAttacked(kingSquare, opponent(this.sideToMove))) {
+        this.result = this.sideToMove === WHITE ? BLACK_WIN : WHITE_WIN;
         this.endState = CHECKMATE;
+        return;
       }
 
       this.result = DRAW;

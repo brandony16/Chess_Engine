@@ -9,13 +9,13 @@ import {
   WHITE_KNIGHT,
   WHITE_QUEEN,
   WHITE_ROOK,
-} from "../coreLogic/constants.mjs";
+} from "../../coreLogic/constants.mjs";
 import { calculateMobility } from "../coreLogic/engines/BMV7/evaluation/mobility.mjs";
 import { getMobility } from "../coreLogic/engines/BMV7/evaluation/mobilityTables.mjs";
 import { MAX_PHASE } from "../coreLogic/engines/BMV7/evaluation/phase.mjs";
-import { getFENData } from "../game/fenAndUCI/FENandUCIHelpers.ts";
-import { initializePieceAtArray } from "../game/pieceUtils/pieceGetters.ts";
-import { initializePieceIndicies } from "../game/positionStates/pieceIndexUpdators.ts";
+import { getFENData } from "../../game/fenAndUCI/FENandUCIHelpers.ts";
+import { initializePieceAtArray } from "../../game/pieceUtils/pieceGetters.ts";
+import { initializePieceIndicies } from "../../game/positionStates/pieceIndexUpdators.ts";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
 
 describe("calculateMobility", () => {
