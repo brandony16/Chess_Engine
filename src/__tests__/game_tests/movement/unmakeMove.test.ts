@@ -9,7 +9,6 @@ import {
   OPEN_MIDGAME,
   PROMOTION_ENDGAME,
   START_POS,
-  validateBitboards,
 } from "../fens.ts";
 import Move from "../../../game/moveMaking/move.ts";
 import {
@@ -20,7 +19,6 @@ import {
   BLACK_QUEEN,
   BLACK_ROOK,
   NO_PIECE,
-  PIECES,
   sq,
   WHITE_BISHOP,
   WHITE_KING,
@@ -54,7 +52,7 @@ function areEqual(pos1: Position, pos2: Position): void {
   mapsEqual(pos1.pastPositions, pos2.pastPositions);
 }
 
-function testUndo(fen: String, move1: Move, move2: Move) {
+function testUndo(fen: string, move1: Move, move2: Move) {
   const pos = new Position();
   pos.loadFen(fen);
 

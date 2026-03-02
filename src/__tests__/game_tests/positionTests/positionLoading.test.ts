@@ -6,8 +6,16 @@ import {
   KNIGHT_FORK_POS,
   validateBitboards,
 } from "../fens.ts";
-import { BK, BQ, COLUMN_INDEXES, WK, WQ } from "../../../game/chessConstants.ts";
-import { BLACK, WHITE } from "chess.js";
+import {
+  BK,
+  BLACK,
+  BQ,
+  COLUMN_INDEXES,
+  isValidColChar,
+  WHITE,
+  WK,
+  WQ,
+} from "../../../game/chessConstants.ts";
 
 describe("FEN position loading", () => {
   test("position validate", () => {
@@ -44,7 +52,13 @@ describe("FEN position loading", () => {
       k: BK,
       q: BQ,
     };
+
+    function isValidCastlingChar(c: string): c is keyof typeof charToRights {
+      return c in charToRights;
+    }
     for (const char of castlingStr) {
+      if (!isValidCastlingChar(char))
+        throw new Error(`Invalid castling char: ${char}`);
       expect(pos.castlingRights & charToRights[char]).not.toBe(0n);
     }
   });
@@ -55,8 +69,11 @@ describe("FEN position loading", () => {
 
     const epStr = EN_PASSANT_WHITE.split(" ")[3];
 
+    const colChar = epStr[0];
+    if (!isValidColChar(colChar)) throw new Error(`Invalid col ${colChar}`);
+
     const row = parseInt(epStr[1]) - 1; // Make row 0 indexed
-    const col = COLUMN_INDEXES[epStr[0]];
+    const col = COLUMN_INDEXES[colChar];
     const sq = row * 8 + col;
 
     expect(pos.enPassantSquare).toBe(sq);

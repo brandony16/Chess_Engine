@@ -25,8 +25,11 @@ export function perft(pos: Position, depth: number): number {
   return nodes;
 }
 
-export function perftDivide(pos: Position, depth: number): {} {
-  const divide = {};
+export function perftDivide(
+  pos: Position,
+  depth: number,
+): Record<string, number> {
+  const divide: Record<string, number> = {};
 
   const moves = pos.generateLegalMoves();
 

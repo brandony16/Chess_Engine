@@ -128,6 +128,12 @@ export const PIECE_INDEXES = {
   k: BLACK_KING,
 };
 
+type PieceChar = keyof typeof PIECE_INDEXES;
+
+export function isPieceChar(c: string): c is PieceChar {
+  return c in PIECE_INDEXES;
+}
+
 // ----- CASTLING CONSTANTS -----
 export const W_KINGSIDE_EMPTY: bigint = (1n << 5n) | (1n << 6n); // f1, g1
 export const W_QUEENSIDE_EMPTY: bigint = (1n << 1n) | (1n << 2n) | (1n << 3n); // b1, c1, d1
@@ -295,6 +301,12 @@ export const COLUMN_INDEXES = {
   g: 6,
   h: 7,
 };
+
+type ColChar = keyof typeof COLUMN_INDEXES;
+
+export function isValidColChar(c: string): c is ColChar {
+  return c in COLUMN_INDEXES;
+}
 
 // ----- MASKS -----
 export const FILE_H_MASK = 0x7f7f7f7f7f7f7f7fn;

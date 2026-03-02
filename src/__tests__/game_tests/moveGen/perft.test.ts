@@ -2,7 +2,13 @@ import { perftDivide } from "./perft.ts";
 import { describe, expect, test } from "vitest";
 import { Position } from "../../../game/Position.ts";
 
-const cases = [
+type PerftTestCase = [
+  description: string,
+  depthToSearch: number,
+  expectedCount: number,
+  fen: string,
+];
+const cases: PerftTestCase[] = [
   // [ description, depth, expected node count, FEN ]
   [
     "Start pos",
@@ -100,10 +106,7 @@ describe("perft node counts", () => {
       const div = perftDivide(pos, depth);
       console.table(div);
 
-      const nodes = Object.values(div).reduce(
-        (a: number, b: number) => a + b,
-        0,
-      );
+      const nodes = Object.values(div).reduce((a, b) => a + b, 0);
       expect(nodes).toBe(expected);
     },
   );

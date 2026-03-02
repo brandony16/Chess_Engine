@@ -1,4 +1,4 @@
-import { PIECE_INDEXES } from "../../game/chessConstants.ts";
+import { isPieceChar, PIECE_INDEXES } from "../../game/chessConstants.ts";
 
 // Fens mostly got from chess programming wiki. Created some specific ones like the ep positions
 export const START_POS =
@@ -20,7 +20,7 @@ export const PROMOTION_ENDGAME = "3n4/2P5/1K6/8/8/5k2/6p1/5N2 w - - 0 1";
 
 export const validateBitboards = (
   bitboards: BigUint64Array,
-  fen: String,
+  fen: string,
 ): boolean => {
   const bbString = fen.split(" ")[0];
 
@@ -33,7 +33,11 @@ export const validateBitboards = (
       continue;
     }
 
+    if (!isPieceChar(ch)) {
+      throw new Error(`Invalid piece character ${ch}`);
+    }
     const piece = PIECE_INDEXES[ch];
+
     const mask = 1n << BigInt(sq);
     if ((bitboards[piece] & mask) === 0n) {
       console.error(`Piece ${piece} at square ${sq} is wrong`);

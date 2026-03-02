@@ -1,7 +1,13 @@
 import { describe, expect, test } from "vitest";
 import { Position } from "../../../game/Position.ts";
 
-const cases = [
+type MoveCountTestCase = [
+  description: string,
+  expectedCount: number,
+  fen: string,
+];
+
+const cases: MoveCountTestCase[] = [
   [
     "Initial position",
     20,
