@@ -38,7 +38,7 @@
     "noEmit": true,
     "allowJs": true,
     "checkJs": false,
-    "strict": false,
+    "strict": true,
     "allowImportingTsExtensions": true
   },
   "include": ["src/**/*"],

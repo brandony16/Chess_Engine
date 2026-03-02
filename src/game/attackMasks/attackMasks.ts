@@ -16,6 +16,7 @@ import {
   WHITE_PAWN,
   WHITE_QUEEN,
   WHITE_ROOK,
+  type Bitboard,
   type Piece,
   type Player,
   type Square,
@@ -35,8 +36,8 @@ import {
 export function attacksOf(
   piece: Piece,
   square: Square,
-  occupancy: bigint,
-): bigint {
+  occupancy: Bitboard,
+): Bitboard {
   switch (piece) {
     case WHITE_PAWN:
       return whitePawnMasks[square];
@@ -68,7 +69,7 @@ export function attacksOf(
 /**
  * Gets all of the pieces that attack a given square.
  */
-export function attacksTo(position: Position, toSq: Square): bigint {
+export function attacksTo(position: Position, toSq: Square): Bitboard {
   const bitboards = position.bitboards;
   const occ = position.occupied;
   let attackers = 0n;
@@ -99,7 +100,7 @@ export function attacksTo(position: Position, toSq: Square): bigint {
 /**
  * Computes the attack mask for a piece
  */
-export function computeMaskForPiece(position: Position, piece: Piece): bigint {
+export function computeMaskForPiece(position: Position, piece: Piece): Bitboard {
   let mask = 0n;
   const indicies = position.pieceIndexes[piece];
   for (const square of indicies) {

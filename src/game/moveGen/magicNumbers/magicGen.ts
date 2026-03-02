@@ -98,11 +98,11 @@ export function recalculateAllBishopMagics(maxTries: number = 1e6): bigint[] {
  */
 export function findRookCollision(
   sq: Square,
-  magic: bigint = null,
+  magic: bigint = 0n,
 ): CollisionResolution {
   const mask = rookMasks[sq];
   const seen = new Map();
-  const magicNum = magic ? magic : rookMagics[sq];
+  const magicNum = magic !== 0n ? magic : rookMagics[sq];
 
   for (const blockers of generateBlockerSubsets(mask)) {
     const idx = Number(
@@ -124,11 +124,11 @@ export function findRookCollision(
  */
 export function findBishopCollision(
   sq: Square,
-  magic: bigint = null,
+  magic: bigint = 0n,
 ): CollisionResolution {
   const mask = bishopMasks[sq];
   const seen = new Map();
-  const magicNum = magic ? magic : bishopMagics[sq];
+  const magicNum = magic !== 0n ? magic : bishopMagics[sq];
 
   for (const blockers of generateBlockerSubsets(mask)) {
     const idx = Number(

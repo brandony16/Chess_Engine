@@ -67,6 +67,8 @@ import {
 import { getMovesFromBB, newEnPassant } from "./moveMaking/moveHelpers.ts";
 import { getCheckers } from "./moveGen/getCheckers.ts";
 
+type MoveList = Move[];
+
 export class Position {
   bitboards: BigUint64Array;
   playerOcc: Bitboard[];
@@ -87,7 +89,7 @@ export class Position {
   kingSq: Int8Array; // Indexed by player
   zobristKey: bigint;
 
-  moveStack: Move[];
+  moveStack: MoveList;
   undoStack: Undo[];
   pastPositions: Map<bigint, number>;
 
@@ -130,7 +132,7 @@ export class Position {
     this.initCurrentPosition();
   }
 
-  initCurrentPosition() {
+  initCurrentPosition(): void {
     this.kingSq[WHITE] = bitScanForward(this.bitboards[WHITE_KING]);
     this.kingSq[BLACK] = bitScanForward(this.bitboards[BLACK_KING]);
 
@@ -299,8 +301,8 @@ export class Position {
   // Core rule methods
   // -----------------------
 
-  generatePseudoLegalMoves(side: Player = this.sideToMove): Move[] {
-    let moves = [];
+  generatePseudoLegalMoves(side: Player = this.sideToMove): MoveList {
+    let moves: Move[] = [];
 
     const isWhite = side === WHITE;
     const opp = opponent(side);
@@ -315,10 +317,10 @@ export class Position {
 
       // Double check, only king moves are possible
       if (numCheck > 1) {
-        const moves = kingMoves(this, kingSq);
+        const kingMoveBB = kingMoves(this, kingSq);
 
         return getMovesFromBB(
-          moves,
+          kingMoveBB,
           kingSq,
           isWhite ? WHITE_KING : BLACK_KING,
           this.enPassantSquare,
@@ -348,14 +350,14 @@ export class Position {
           this.pieceAt,
         );
 
-        moves = moves.concat(moveArr);
+        moves.push(...moveArr);
       }
     }
 
     return moves;
   }
 
-  generateLegalMoves(side: Player = this.sideToMove): Move[] {
+  generateLegalMoves(side: Player = this.sideToMove): MoveList {
     const legal = [];
 
     const movingSide = side;
@@ -426,6 +428,11 @@ export class Position {
   unmakeMove(): void {
     const undo = this.undoStack.pop();
     const move = this.moveStack.pop();
+
+    if (!undo || !move) {
+      throw new Error("Unmake with empty stack");
+    }
+
     unapplyMove(this, move);
 
     this.sideToMove ^= 1;
@@ -438,6 +445,9 @@ export class Position {
     }
 
     const prev = this.pastPositions.get(this.zobristKey);
+    if (prev === undefined) {
+      throw new Error("Zobrist key missing in pastPositions");
+    }
     if (prev === 1) {
       this.pastPositions.delete(this.zobristKey);
     } else {
@@ -525,7 +535,7 @@ export class Position {
     return this.result !== IN_PROGRESS;
   }
 
-  getFen(): String {
+  getFen(): string {
     const board = buildFenBoard(this.pieceAt);
 
     const active = this.sideToMove === WHITE ? "w" : "b";
@@ -539,7 +549,7 @@ export class Position {
     return `${board} ${active} ${castling} ${ep} ${halfmove} ${fullmove}`;
   }
 
-  loadFen(fen: String): void {
+  loadFen(fen: string): void {
     const data = fen.split(" ");
     const bbStr = data[0];
     const playerStr = data[1];
@@ -688,11 +698,7 @@ export class Position {
     }
     cpy.undoStack = undoStack;
 
-    const pastPositions = new Map<bigint, number>();
-    for (const key of this.pastPositions.keys()) {
-      pastPositions.set(key, this.pastPositions.get(key));
-    }
-    cpy.pastPositions = pastPositions;
+    cpy.pastPositions = new Map(this.pastPositions);
 
     return cpy;
   }

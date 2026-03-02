@@ -283,16 +283,7 @@ export const RANKS = [
 
 export const NO_SQUARE = -1;
 
-export const COLUMN_SYMBOLS = {
-  0: "a",
-  1: "b",
-  2: "c",
-  3: "d",
-  4: "e",
-  5: "f",
-  6: "g",
-  7: "h",
-};
+export const COLUMN_SYMBOLS = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
 export const COLUMN_INDEXES = {
   a: 0,

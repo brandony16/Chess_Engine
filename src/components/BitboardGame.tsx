@@ -1,13 +1,13 @@
 import { useGameStore } from "./gameStore.mjs";
 
-import PromotionModal from "./modals/promotionModal/PromotionModal";
-import Sidebar from "./sidebar/Sidebar";
-import BitboardBoard from "./boardComponents/BitboardBoard";
-import Modal from "./modals/Modal";
+import PromotionModal from "./modals/promotionModal/PromotionModal.jsx";
+import Sidebar from "./sidebar/Sidebar.jsx";
+import BitboardBoard from "./boardComponents/BitboardBoard.jsx";
+import Modal from "./modals/Modal.jsx";
 
-import useEngineWorker from "./hooks/useEngineWorker";
-import useChessActions from "./hooks/useChessActions";
-import useMoveTrigger from "./hooks/useMoveTrigger";
+import useEngineWorker from "./hooks/useEngineWorker.js";
+import useChessActions from "./hooks/useChessActions.js";
+import useMoveTrigger from "./hooks/useMoveTrigger.js";
 
 import "./UI.css";
 

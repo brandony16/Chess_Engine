@@ -87,6 +87,9 @@ export function buildBitboards(bbString: String): BigUint64Array {
         // Skip digits (empty squares)
         file += parseInt(ch, 10);
       } else {
+        if (!isValidPieceChar(ch)) {
+          throw new Error(`Invalid piece character ${ch}`);
+        }
         const piece = PIECE_INDEXES[ch];
         // Fen is rank 8 first
         const square = BigInt(8 * (7 - i) + file);
@@ -97,6 +100,10 @@ export function buildBitboards(bbString: String): BigUint64Array {
   }
 
   return bitboards;
+}
+
+function isValidPieceChar(c: string): c is keyof typeof PIECE_INDEXES {
+  return c in PIECE_INDEXES;
 }
 
 /**
@@ -113,9 +120,15 @@ export function buildCastlingRights(rights: String): number {
     k: BK,
     q: BQ,
   };
+  function isValidCastlingChar(c: string): c is keyof typeof charToRights {
+    return c in charToRights;
+  }
 
   for (let i = 0; i < rights.length; i++) {
     const char = rights.charAt(i);
+    if (!isValidCastlingChar(char)) {
+      throw new Error(`Invalid castling char ${char}`);
+    }
     castlingRights |= charToRights[char];
   }
   return castlingRights;
@@ -130,10 +143,18 @@ export function buildEnPassantSquare(algebraicEp: String): Square {
   const col = algebraicEp.charAt(0);
   const row = algebraicEp.charAt(1);
 
+  if (!isValidColChar(col)) {
+    throw new Error(`Invalid column ${col}`);
+  }
+  
   const rowNum = parseInt(row) - 1; // Make row 0 indexed
   const colNum = COLUMN_INDEXES[col];
 
   return rowNum * 8 + colNum;
+}
+
+function isValidColChar(c: string): c is keyof typeof COLUMN_INDEXES {
+  return c in COLUMN_INDEXES;
 }
 
 /**
