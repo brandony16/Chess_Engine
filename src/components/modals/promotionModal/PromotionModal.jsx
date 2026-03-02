@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import "./PromotionModal.css";
 import { WHITE } from "../../../coreLogic/constants.mjs";
 import { useCallback } from "react";
-import { useGameStore } from "../../gameStore.mjs";
+import { useGameStore } from "../../gameStore.ts";
 
 const path = "./src/assets/pieces/";
 

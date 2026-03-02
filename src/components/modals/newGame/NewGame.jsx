@@ -1,7 +1,7 @@
 import { useCallback, useReducer } from "react";
 
 import { EngineTypes } from "../../utilTypes";
-import { useGameStore } from "../../gameStore.mjs";
+import { useGameStore } from "../../gameStore.ts";
 import { BLACK, WHITE } from "../../../coreLogic/constants.mjs";
 
 import SideSelector from "./SideSelector";

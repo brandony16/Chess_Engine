@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { useGameStore } from "../gameStore.mjs";
+import { useGameStore } from "../gameStore.ts";
 import PropTypes from "prop-types";
 
 const MoveEntry = ({

@@ -375,15 +375,6 @@ export class Position {
     return legal;
   }
 
-  playMove(move: Move): void {
-    if (this.gameOver()) {
-      return;
-    }
-
-    this.makeMove(move);
-    this.checkGameOver();
-  }
-
   makeMove(move: Move): void {
     const undo: Undo = {
       captured: this.pieceAt[move.to],

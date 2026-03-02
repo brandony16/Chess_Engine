@@ -10,7 +10,7 @@ import { makeMove } from "../../coreLogic/moveMaking/makeMoveLogic.mjs";
 import Move from "../../game/moveMaking/move.ts";
 import { pieceAt } from "../../game/pieceUtils/pieceGetters.ts";
 import { computeHash } from "../../coreLogic/zobristHashing.mjs";
-import { useGameStore } from "../gameStore.mjs";
+import { useGameStore } from "../gameStore.ts";
 import { engineRegistry } from "./engineRegistry.mjs";
 import { isKing } from "../../coreLogic/helpers/pieceUtils";
 

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import { BattleModalStates, nameToType } from "../../utilTypes";
-import { useGameStore } from "../../gameStore.mjs";
+import { useGameStore } from "../../gameStore.ts";
 
 import Setting from "./Setting";
 import Loading from "./Loading";

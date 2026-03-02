@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 
 import { BLACK, PIECE_SYMBOLS, WHITE } from "../../coreLogic/constants.mjs";
 import { getPieceAtSquare } from "../../game/pieceUtils/pieceGetters.ts";
-import { useGameStore } from "../gameStore.mjs";
+import { useGameStore } from "../gameStore.ts";
 import Cell from "./Cell";
 
 import "./Board.css";

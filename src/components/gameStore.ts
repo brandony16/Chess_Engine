@@ -11,55 +11,53 @@ import { getNewEnPassant } from "../game/bbChessLogic.mjs";
 import { computeAllAttackMasks } from "../coreLogic/PieceMasks/individualAttackMasks.mjs";
 import { initializePieceAtArray } from "../game/pieceUtils/pieceGetters.ts";
 import { initializePieceIndicies } from "../game/positionStates/pieceIndexUpdators.ts";
-import { EngineTypes, ModalTypes } from "./utilTypes";
+import { EngineTypes, ModalTypes } from "./utilTypes.js";
+import type Move from "../game/moveMaking/move.ts";
+import { Game } from "./game.ts";
 
-const makeInitialState = () => ({
-  // -----BOARD STATE-----
-  bitboards: INITIAL_BITBOARDS.slice(),
-  pastBitboards: [],
-  pastMoves: [],
-  pastPositions: new Map(),
-  currPlayer: WHITE,
-  boardViewSide: WHITE,
-  enPassantSquare: null,
-  castlingRights: [true, true, true, true], // WK, WQ, BK, BQ
-  fiftyMoveRuleCounter: 0,
-  promotion: false,
-  promotionMove: null,
+type FEN = string;
 
-  // -----GAME META-----
-  isGameOver: false,
-  result: null,
-  gameHistory: [],
-  userSide: WHITE,
-  selectedEngine: EngineTypes.BMV7,
-  engineDepth: 5,
-  engineTimeLimitMs: 5000,
+interface GameStoreState {
+  game: Game;
+  userSide: "w" | "b";
 
-  // -----UI STATE-----
-  displayedBitboards: INITIAL_BITBOARDS.slice(),
+  // ----- UI -----
+  selectedSquare: number | null;
+  legalMovesForSelected: Move[];
+  
+  isModalOpen: boolean;
+  modalType: string | null;
+  boardPerspective: "w" | "b";
+
+  // ----- ENGINE INFO -----
+  selectedEngine: string;
+  searchDepth: number;
+  maxSearchTimeMs: number;
+
+  pastPositions: FEN[];
+  currIdxOfDisplayed: number;
+}
+
+export const useGameStore = create<GameStoreState>((set, get) => ({
+  game: new Game(),
+  userSide: "w",
+
+  // ----- UI -----
   selectedSquare: null,
-  moveBitboard: null,
-  isCurrPositionShown: true,
-  currIndexOfDisplayed: -1,
-
-  // -----MODAL STATE-----
+  legalMovesForSelected: [],
+  
   isModalOpen: false,
-  modalType: ModalTypes.NONE,
+  modalType: null,
+  boardPerspective: "w",
 
-  // -----TERMINATE MOVE-----
-  breakBattleLoop: false,
-});
+  // ----- ENGINE INFO -----
+  selectedEngine: EngineTypes.BMV1,
+  searchDepth: 5,
+  maxSearchTimeMs: 5000,
 
-export const useGameStore = create((set, get) => {
-  initializePieceIndicies(INITIAL_BITBOARDS);
-  computeAllAttackMasks(INITIAL_BITBOARDS);
-  initializePieceAtArray(INITIAL_BITBOARDS);
-  const initialState = makeInitialState();
-  set(initialState);
+  pastPositions: [],
+  currIdxOfDisplayed: -1,
 
-  return {
-    ...initialState,
 
     // ACTIONS / UPDATER FUNCTIONS
     updateStates: (moveNotation, move, gameOverObj) => {
@@ -218,6 +216,5 @@ export const useGameStore = create((set, get) => {
       set((state) => ({
         gameHistory: [...state.gameHistory, entry],
       }));
-    },
-  };
-});
+    };
+}));

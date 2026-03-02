@@ -1,5 +1,5 @@
 import GameHistory from "./gameHistory/GameHistory";
-import { useGameStore } from "../gameStore.mjs";
+import { useGameStore } from "../gameStore.ts";
 import "./Modal.css";
 import BattleEngines from "./battleEngines/BattleEngines";
 import NewGame from "./newGame/NewGame";

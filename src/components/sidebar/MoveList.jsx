@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useMemo, useRef } from "react";
-import { useGameStore } from "../gameStore.mjs";
+import { useGameStore } from "../gameStore.ts";
 
 import MoveEntry from "./MoveEntry";
 

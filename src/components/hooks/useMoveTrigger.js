@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useGameStore } from "../gameStore.mjs";
+import { useGameStore } from "../gameStore.ts";
 
 /**
  * Custom hook that handles the engine moving after the player does.

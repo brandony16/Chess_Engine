@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useGameStore } from "../gameStore.mjs";
+import { useGameStore } from "../gameStore.ts";
 import {
   movesToBB,
   moveToReadable,

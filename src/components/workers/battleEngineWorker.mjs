@@ -1,5 +1,5 @@
 import { getOpeningMoves } from "../../game/fenAndUCI/FENandUCIHelpers.ts";
-import { useGameStore } from "../gameStore.mjs";
+import { useGameStore } from "../gameStore.ts";
 import { makeEngineMove, playRandomOpening } from "./engineFuncs.mjs";
 
 self.onmessage = async (e) => {

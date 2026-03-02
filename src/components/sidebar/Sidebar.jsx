@@ -2,7 +2,7 @@ import MoveArrows from "./MoveArrows";
 import MoveList from "./MoveList";
 import SidebarActions from "./SidebarActions";
 
-import { useGameStore } from "../gameStore.mjs";
+import { useGameStore } from "../gameStore.ts";
 import { WHITE } from "../../coreLogic/constants.mjs";
 import React, { useMemo } from "react";
 

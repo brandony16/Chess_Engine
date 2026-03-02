@@ -1,4 +1,4 @@
-import { useGameStore } from "../gameStore.mjs";
+import { useGameStore } from "../gameStore.ts";
 import { ModalTypes } from "../utilTypes";
 
 import newGame from "../../assets/new.svg";

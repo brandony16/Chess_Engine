@@ -1,4 +1,4 @@
-import { useGameStore } from "./gameStore.mjs";
+import { useGameStore } from "./gameStore.ts";
 
 import PromotionModal from "./modals/promotionModal/PromotionModal.jsx";
 import Sidebar from "./sidebar/Sidebar.jsx";
@@ -8,11 +8,12 @@ import Modal from "./modals/Modal.jsx";
 import useEngineWorker from "./hooks/useEngineWorker.js";
 import useChessActions from "./hooks/useChessActions.js";
 import useMoveTrigger from "./hooks/useMoveTrigger.js";
+import type { ReactNode } from "react";
 
 import "./UI.css";
 
 // Runs the game
-const BitboardGame = () => {
+const BitboardGame = (): ReactNode => {
   // Get states
   const promotion = useGameStore((state) => state.promotion);
   const promotionMove = useGameStore((state) => state.promotionMove);

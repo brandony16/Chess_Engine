@@ -1,4 +1,4 @@
-import { useGameStore } from "../../gameStore.mjs";
+import { useGameStore } from "../../gameStore.ts";
 import "./GameHistory.css";
 import PastGame from "./PastGame";
 

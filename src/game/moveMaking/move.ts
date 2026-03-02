@@ -33,6 +33,18 @@ class Move {
     this.enPassant = enPassant;
   }
 
+  equals(other: Move): boolean {
+    return (
+      this.from === other.from &&
+      this.to === other.to &&
+      this.piece === other.piece &&
+      this.captured === other.captured &&
+      this.promotion === other.promotion &&
+      this.castling === other.castling &&
+      this.enPassant === other.enPassant
+    );
+  }
+
   /**
    * Copies the current move and changes any fields to what fields are given.
    * Helpful for promotion moves when you need 4 different moves each with

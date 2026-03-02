@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import PropTypes from "prop-types";
 
-import { useGameStore } from "../../gameStore.mjs";
+import { useGameStore } from "../../gameStore.ts";
 
 const playerMap = { 0: "w", 1: "b" };
 

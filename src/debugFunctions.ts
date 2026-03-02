@@ -1,4 +1,4 @@
-import { NUM_PIECES, PIECE_SYMBOLS } from "./game/chessConstants.ts";
+import { NUM_PIECES, PIECE_SYMBOLS, PIECES } from "./game/chessConstants.ts";
 
 /**
  * Converts a big int to an 8x8 grid of 1s and 0s.
@@ -42,9 +42,9 @@ export function areBigUint64ArraysEqual(
  * with bigIntFullRep.
  */
 export function logAllBitboards(bitboards: BigUint64Array): void {
-  for (let i = 0; i < NUM_PIECES; i++) {
-    const bitboard = bitboards[i];
-    console.log(PIECE_SYMBOLS[i] + "\n");
+  for (const piece of PIECES) {
+    const bitboard = bitboards[piece];
+    console.log(PIECE_SYMBOLS[piece] + "\n");
     console.log(bigIntFullRep(bitboard) + "\n\n");
   }
 }
