@@ -62,6 +62,14 @@ export class Game implements GameView {
     return this.position.getFen();
   }
 
+  pgn(): string {
+    if (!this.position.gameOver()) {
+      return "";
+    }
+
+    return this.position.getPGN();
+  }
+
   loadFen(fen: string) {
     this.position.loadFen(fen);
   }
@@ -73,6 +81,11 @@ export class Game implements GameView {
 
   generateLegalMoves(): Move[] {
     return this.position.generateLegalMoves();
+  }
+
+  legalMovesFrom(square: Square): Move[] {
+    const all = this.position.generateLegalMoves();
+    return all.filter((move) => move.from === square);
   }
 
   isOver(): boolean {
