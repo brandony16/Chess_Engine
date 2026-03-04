@@ -2,7 +2,7 @@ import { useGameStore } from "./gameStore.ts";
 
 import PromotionModal from "./modals/promotionModal/PromotionModal.jsx";
 import Sidebar from "./sidebar/Sidebar.jsx";
-import BitboardBoard from "./boardComponents/BitboardBoard.jsx";
+import BitboardBoard from "./boardComponents/Board.tsx";
 import Modal from "./modals/Modal.jsx";
 
 import useEngineWorker from "./hooks/useEngineWorker.js";
@@ -17,7 +17,7 @@ const BitboardGame = (): ReactNode => {
   // Get states
   const promotion = useGameStore((state) => state.promotion);
   const promotionMove = useGameStore((state) => state.promotionMove);
-  const isModalOpen = useGameStore((state) => state.isModalOpen);
+  const modalState = useGameStore((state) => state.modalState);
 
   // Handler for chess actions
   const { processMove, handleSquareClick, handlePromotion } = useChessActions();
@@ -40,7 +40,7 @@ const BitboardGame = (): ReactNode => {
         )}
         <Sidebar />
       </section>
-      {isModalOpen && <Modal />}
+      {modalState.isOpen && <Modal />}
     </main>
   );
 };

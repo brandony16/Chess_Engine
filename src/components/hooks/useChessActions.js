@@ -3,7 +3,7 @@ import { useGameStore } from "../gameStore.ts";
 import {
   movesToBB,
   moveToReadable,
-} from "../generalHelpers.mjs";
+} from "../generalHelpers.ts";
 import { checkGameOver } from "../../game/positionStates/gameOverLogic.ts";
 import { computeHash } from "../../coreLogic/zobristHashing.mjs";
 import { getNewEnPassant } from "../../game/bbChessLogic.mjs";

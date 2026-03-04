@@ -2,24 +2,26 @@ import {
   CHECKMATE,
   DRAW,
   NO_PIECE,
-  WHITE,
   type Piece,
+  type Player,
   type Square,
 } from "../game/chessConstants.ts";
 import type Move from "../game/moveMaking/move.ts";
 import { Position } from "../game/Position.ts";
+import { Snapshot } from "./Snapshot.ts";
 
 interface GameView {
-  readonly sideToMove: "w" | "b";
+  readonly sideToMove: Player;
   playMove(move: Move): boolean;
   undoMove(): boolean;
   fen(): string;
   loadFen(fen: string): void;
-  getPiece(square: Square): Piece | null;
+  getPiece(square: Square): Piece;
   generateLegalMoves(): Move[];
   isOver(): boolean;
   isCheckmate(): boolean;
   isDraw(): boolean;
+  getSnapshot(): Snapshot;
 }
 
 export class Game implements GameView {
@@ -32,8 +34,8 @@ export class Game implements GameView {
     }
   }
 
-  get sideToMove(): "w" | "b" {
-    return this.position.sideToMove === WHITE ? "w" : "b";
+  get sideToMove(): Player {
+    return this.position.sideToMove;
   }
 
   playMove(move: Move): boolean {
@@ -74,9 +76,8 @@ export class Game implements GameView {
     this.position.loadFen(fen);
   }
 
-  getPiece(square: Square): Piece | null {
-    const piece = this.position.pieceAt[square];
-    return piece === NO_PIECE ? null : piece;
+  getPiece(square: Square): Piece {
+    return this.position.pieceAt[square];
   }
 
   generateLegalMoves(): Move[] {
@@ -98,5 +99,12 @@ export class Game implements GameView {
 
   isDraw(): boolean {
     throw this.position.result === DRAW;
+  }
+
+  getSnapshot(): Snapshot {
+    return new Snapshot(
+      this.position.sideToMove,
+      this.position.pieceAt.slice(),
+    );
   }
 }

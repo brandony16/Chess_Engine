@@ -1,11 +1,16 @@
-import PropTypes from "prop-types";
 import React from "react";
-import { PIECE_IMAGES, PIECE_NAMES } from "../utilTypes";
+import { PIECE_IMAGES, PIECE_NAMES } from "../utilTypes.ts";
+
+type PieceType = keyof typeof PIECE_IMAGES;
+
+interface PieceProps {
+  type: PieceType;
+}
 
 /* 
   Returns an image of the piece specified
 */
-const Piece = ({ type }) => {
+const Piece = ({ type }: PieceProps) => {
   return (
     <img
       src={PIECE_IMAGES[type]}
@@ -14,10 +19,6 @@ const Piece = ({ type }) => {
       draggable={true}
     />
   );
-};
-
-Piece.propTypes = {
-  type: PropTypes.oneOf(Object.keys(PIECE_IMAGES)).isRequired,
 };
 
 const MemoizedPiece = React.memo(Piece);

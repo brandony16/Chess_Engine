@@ -2,30 +2,36 @@ import { create } from "zustand";
 import { EngineTypes } from "./utilTypes.js";
 import type Move from "../game/moveMaking/move.ts";
 import { Game } from "./Game.ts";
-import { NO_SQUARE, type Square } from "../game/chessConstants.ts";
+import {
+  NO_SQUARE,
+  WHITE,
+  type Player,
+  type Square,
+} from "../game/chessConstants.ts";
+import { opponent } from "../game/helpers/opponent.ts";
+import { Snapshot } from "./Snapshot.ts";
 
-type FEN = string;
 type HistoryEntry = { pgn: string; engineGame: boolean };
 type ModalType = "history" | "battle" | "new";
 type ModalState = { isOpen: false } | { isOpen: true; type: ModalType };
 
-interface GameStoreState {
+export interface GameStoreState {
   game: Game;
-  userSide: "w" | "b";
+  userSide: Player;
 
   // ----- UI -----
   selectedSquare: number | null;
   legalMovesForSelected: Move[];
 
   modalState: ModalState;
-  boardPerspective: "w" | "b";
+  boardPerspective: Player;
 
   // ----- ENGINE INFO -----
   selectedEngine: string;
   searchDepth: number;
   maxSearchTimeMs: number;
 
-  pastPositions: FEN[];
+  pastPositions: Snapshot[];
   currIdxOfDisplayed: number;
 
   pastGames: HistoryEntry[];
@@ -33,14 +39,14 @@ interface GameStoreState {
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
   game: new Game(),
-  userSide: "w",
+  userSide: WHITE,
 
   // ----- UI -----
   selectedSquare: null,
   legalMovesForSelected: [],
 
   modalState: { isOpen: false },
-  boardPerspective: "w",
+  boardPerspective: WHITE,
 
   // ----- ENGINE INFO -----
   selectedEngine: EngineTypes.BMV1,
@@ -63,7 +69,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       game,
       selectedSquare: null,
       legalMovesForSelected: [],
-      pastPositions: [...pastPositions, game.fen()],
+      pastPositions: [...pastPositions, game.getSnapshot()],
       currIdxOfDisplayed: pastPositions.length - 1,
     });
   },
@@ -109,7 +115,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   flipBoard: () => {
     set((state) => ({
-      boardPerspective: state.boardPerspective === "w" ? "b" : "w",
+      boardPerspective: opponent(state.boardPerspective),
     }));
   },
 
@@ -125,76 +131,43 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
   },
 
-
   showNextMove: () => {
-    const { pastPositions, currIdxOfDisplayed } = get();
+    set((state) => {
+      if (state.currIdxOfDisplayed === state.pastPositions.length - 1) {
+        return state;
+      }
 
-    if (currIdxOfDisplayed === pastPositions.length - 1) {
-      return;
-    }
+      const newIdx = state.currIdxOfDisplayed + 1;
 
-    const newIdx = currIdxOfDisplayed + 1;
-    // some snapshot of fen at pastPositions[newIdx]
-  }
+      return {
+        currIdxOfDisplayed: newIdx,
+      };
+    });
+  },
 
-  // goToMove: (moveNumber, moveID) => {
-  //   set((state) => {
-  //     let index = moveNumber * 2 + moveID;
-  //     const isCurrPos = index === state.pastBitboards.length - 1;
-  //     return {
-  //       displayedBitboards: isCurrPos
-  //         ? state.bitboards.slice()
-  //         : state.pastBitboards[index],
-  //       isCurrPositionShown: isCurrPos,
-  //       currIndexOfDisplayed: index,
-  //     };
-  //   });
-  // },
+  showPreviousMove: () => {
+    set((state) => {
+      if (state.currIdxOfDisplayed === 0) {
+        return state;
+      }
 
-  // openModal(type) {
-  //   if (!Object.values(ModalTypes).includes(type)) {
-  //     console.warn(`Invalid modal type: ${type}`);
-  //     return;
-  //   }
-  //   set(() => ({
-  //     isModalOpen: true,
-  //     modalType: type,
-  //   }));
-  // },
+      const newIdx = state.currIdxOfDisplayed - 1;
 
-  // closeModal: () => {
-  //   set(() => ({
-  //     isModalOpen: false,
-  //     modalType: ModalTypes.NONE,
-  //   }));
-  // },
+      return {
+        currIdxOfDisplayed: newIdx,
+      };
+    });
+  },
 
-  
-  // changeViewedMove: (direction) => {
-  //   const state = get();
-  //   const index = state.currIndexOfDisplayed + direction;
+  goToMove: (halfmoveNumber: number) => {
+    set((state) => {
+      if (halfmoveNumber < 0 || halfmoveNumber >= state.pastPositions.length) {
+        throw new Error(`Invalid jump to halfmove ${halfmoveNumber}`);
+      }
 
-  //   if (index < 0 || index >= state.pastBitboards.length) return;
-
-  //   set((state) => ({
-  //     displayedBitboards: state.pastBitboards[index],
-  //     currIndexOfDisplayed: state.currIndexOfDisplayed + direction,
-  //   }));
-
-  //   if (index === state.pastBitboards.length - 1) {
-  //     set(() => ({ isCurrPositionShown: true }));
-  //   } else {
-  //     set(() => ({
-  //       isCurrPositionShown: false,
-  //       selectedSquare: null,
-  //       moveBitboard: null,
-  //     }));
-  //   }
-  // },
-
-  // addHistoryEntry: (entry) => {
-  //   set((state) => ({
-  //     gameHistory: [...state.gameHistory, entry],
-  //   }));
-  // };
+      return {
+        currIdxOfDisplayed: halfmoveNumber,
+      };
+    });
+  },
 }));
