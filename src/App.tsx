@@ -1,5 +1,5 @@
 import "./App.css";
-import BitboardGame from "./components/BitboardGame.tsx";
+import BitboardGame from "./UI/BitboardGame.tsx";
 
 function App() {
   return <BitboardGame />;
