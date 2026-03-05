@@ -1,16 +1,15 @@
 import React from "react";
 import { PIECE_IMAGES, PIECE_NAMES } from "../utilTypes.ts";
-
-type PieceType = keyof typeof PIECE_IMAGES;
+import type { Piece } from "../../game/chessConstants.ts";
 
 interface PieceProps {
-  type: PieceType;
+  type: Exclude<Piece, -1>; // Exclude NO_PIECE
 }
 
 /* 
   Returns an image of the piece specified
 */
-const Piece = ({ type }: PieceProps) => {
+const PieceImg = ({ type }: PieceProps) => {
   return (
     <img
       src={PIECE_IMAGES[type]}
@@ -21,8 +20,8 @@ const Piece = ({ type }: PieceProps) => {
   );
 };
 
-const MemoizedPiece = React.memo(Piece);
+const MemoizedPiece = React.memo(PieceImg);
 
-MemoizedPiece.displayName = "Piece";
+MemoizedPiece.displayName = "PieceImg";
 
 export default MemoizedPiece;

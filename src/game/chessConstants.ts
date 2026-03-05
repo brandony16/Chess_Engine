@@ -97,22 +97,6 @@ const BLACK_PROMO_PIECES = [
 
 export const PROMO_PIECES = [WHITE_PROMO_PIECES, BLACK_PROMO_PIECES] as const;
 
-// Piece to String and vice versa
-export const PIECE_SYMBOLS = {
-  0: "P",
-  1: "N",
-  2: "B",
-  3: "R",
-  4: "Q",
-  5: "K",
-  6: "p",
-  7: "n",
-  8: "b",
-  9: "r",
-  10: "q",
-  11: "k",
-};
-
 export const PIECE_INDEXES = {
   P: WHITE_PAWN,
   N: WHITE_KNIGHT,

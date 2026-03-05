@@ -10,6 +10,20 @@ import bB_img from "../assets/pieces/bB.svg";
 import bR_img from "../assets/pieces/bR.svg";
 import bQ_img from "../assets/pieces/bQ.svg";
 import bK_img from "../assets/pieces/bK.svg";
+import {
+  BLACK_BISHOP,
+  BLACK_KING,
+  BLACK_KNIGHT,
+  BLACK_PAWN,
+  BLACK_QUEEN,
+  BLACK_ROOK,
+  WHITE_BISHOP,
+  WHITE_KING,
+  WHITE_KNIGHT,
+  WHITE_PAWN,
+  WHITE_QUEEN,
+  WHITE_ROOK,
+} from "../game/chessConstants.ts";
 
 export const EngineTypes = {
   BMV1: "BMV1",
@@ -56,33 +70,33 @@ export const BattleModalStates = {
 } as const;
 
 export const PIECE_IMAGES = {
-  wP: wP_img,
-  wN: wN_img,
-  wB: wB_img,
-  wR: wR_img,
-  wQ: wQ_img,
-  wK: wK_img,
-  bP: bP_img,
-  bN: bN_img,
-  bB: bB_img,
-  bR: bR_img,
-  bQ: bQ_img,
-  bK: bK_img,
+  [WHITE_PAWN]: wP_img,
+  [WHITE_KNIGHT]: wN_img,
+  [WHITE_BISHOP]: wB_img,
+  [WHITE_ROOK]: wR_img,
+  [WHITE_QUEEN]: wQ_img,
+  [WHITE_KING]: wK_img,
+  [BLACK_PAWN]: bP_img,
+  [BLACK_KNIGHT]: bN_img,
+  [BLACK_BISHOP]: bB_img,
+  [BLACK_ROOK]: bR_img,
+  [BLACK_QUEEN]: bQ_img,
+  [BLACK_KING]: bK_img,
 } as const;
 
 export const PIECE_NAMES = {
-  wP: "white pawn",
-  wN: "white knight",
-  wB: "white bishop",
-  wR: "white rook",
-  wQ: "white queen",
-  wK: "white king",
-  bP: "black pawn",
-  bN: "black knight",
-  bB: "black bishop",
-  bR: "black rook",
-  bQ: "black queen",
-  bK: "black king",
+  [WHITE_PAWN]: "white pawn",
+  [WHITE_KNIGHT]: "white knight",
+  [WHITE_BISHOP]: "white bishop",
+  [WHITE_ROOK]: "white rook",
+  [WHITE_QUEEN]: "white queen",
+  [WHITE_KING]: "white king",
+  [BLACK_PAWN]: "black pawn",
+  [BLACK_KNIGHT]: "black knight",
+  [BLACK_BISHOP]: "black bishop",
+  [BLACK_ROOK]: "black rook",
+  [BLACK_QUEEN]: "black queen",
+  [BLACK_KING]: "black king",
 } as const;
 
-export type PieceChar = keyof typeof PIECE_NAMES; 
+export type PieceChar = keyof typeof PIECE_NAMES;

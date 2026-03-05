@@ -1,44 +1,71 @@
 import React, { useCallback, useRef, useState } from "react";
 import PropTypes from "prop-types";
 
-import { BLACK, COLUMN_SYMBOLS, WHITE } from "../../coreLogic/constants.mjs";
-import Piece from "./Piece";
+import PieceImg from "./PieceImg.tsx";
+import type { CellEntry } from "./Board.tsx";
+import {
+  COLUMN_SYMBOLS,
+  NO_PIECE,
+  WHITE,
+  type Piece,
+  type Player,
+} from "../../game/chessConstants.ts";
 
+interface CellProps {
+  cellInfo: CellEntry;
+  onSquareClick: (row: number, col: number) => void;
+  boardPerspecive: Player;
+
+  dragStart: (
+    e: React.DragEvent<HTMLButtonElement>,
+    row: number,
+    col: number,
+    piece: Piece,
+    currRef: HTMLDivElement,
+  ) => void;
+
+  dragOver: (e: React.DragEvent<HTMLButtonElement>) => void;
+
+  drop: (
+    e: React.DragEvent<HTMLButtonElement>,
+    row: number,
+    col: number,
+  ) => void;
+}
 // A board cell
 const Cell = ({
-  piece,
-  row,
-  col,
+  cellInfo,
   onSquareClick,
-  isSelected,
-  isMove,
-  boardViewSide,
-  handleDragStart,
-  handleDragOver,
-  handleDrop,
-}) => {
+  boardPerspecive,
+  dragStart,
+  dragOver,
+  drop,
+}: CellProps) => {
   const [isPieceVisible, setIsPieceVisible] = useState(true);
-  const pieceRef = useRef(null);
+  const pieceRef = useRef<HTMLDivElement | null>(null);
 
   const style = {
-    backgroundColor: isSelected
+    backgroundColor: cellInfo.isSelected
       ? "rgba(255, 191, 89, 0.4)"
-      : isMove
-      ? "rgba(255, 100, 100, 0.3)"
-      : "transparent",
+      : cellInfo.isMove
+        ? "rgba(255, 100, 100, 0.3)"
+        : "transparent",
   };
 
+  const row = cellInfo.relRow;
+  const col = cellInfo.relCol;
+
   const squareColor = (row + col) % 2 === 0 ? "dark" : "light";
-  const isWhite = boardViewSide === WHITE;
+  const isWhite = boardPerspecive === WHITE;
 
   const handleClick = useCallback(
     () => onSquareClick(row, col),
-    [onSquareClick, row, col]
+    [onSquareClick, row, col],
   );
 
   const startDrag = useCallback(
-    (e) => {
-      handleDragStart(e, row, col, piece, pieceRef.current);
+    (e: React.DragEvent<HTMLButtonElement>) => {
+      dragStart(e, row, col, cellInfo.piece, pieceRef.current!);
 
       // Handle piece visibility
       setIsPieceVisible(false);
@@ -49,22 +76,22 @@ const Cell = ({
       };
       document.addEventListener("dragend", onDragEnd);
     },
-    [handleDragStart, row, col, piece]
+    [dragStart, row, col, cellInfo],
   );
 
   const endDrag = useCallback(
-    (e) => {
-      handleDrop(e, row, col);
+    (e: React.DragEvent<HTMLButtonElement>) => {
+      drop(e, row, col);
     },
-    [handleDrop, row, col]
+    [drop, row, col],
   );
 
   // Build class name
   const className = [
     "cell",
     squareColor,
-    isSelected && "selected",
-    !isSelected && isMove && "move",
+    cellInfo.isSelected && "selected",
+    !cellInfo.isSelected && cellInfo.isMove && "move",
   ]
     .filter(Boolean)
     .join(" ");
@@ -73,10 +100,10 @@ const Cell = ({
     <button
       className={className}
       onClick={handleClick}
-      onDragOver={handleDragOver}
+      onDragOver={dragOver}
       onDrop={endDrag}
       onDragStart={startDrag}
-      draggable={piece !== "-"}
+      draggable={cellInfo.piece !== NO_PIECE}
       role="gridcell"
     >
       {isWhite && row === 0 && (
@@ -91,41 +118,14 @@ const Cell = ({
       {!isWhite && col === 7 && (
         <div className={`colId ${squareColor}`}>{row + 1}</div>
       )}
-      {piece !== "-" && isPieceVisible && (
+      {cellInfo.piece !== NO_PIECE && isPieceVisible && (
         <div className="pieceWrapper" ref={pieceRef}>
-          <Piece type={piece} />
+          <PieceImg type={cellInfo.piece} />
         </div>
       )}
       <div className="selectedCover" style={style}></div>
     </button>
   );
-};
-
-Cell.propTypes = {
-  piece: PropTypes.oneOf([
-    "P",
-    "p",
-    "N",
-    "n",
-    "B",
-    "b",
-    "R",
-    "r",
-    "Q",
-    "q",
-    "K",
-    "k",
-    "-",
-  ]).isRequired,
-  row: PropTypes.number.isRequired,
-  col: PropTypes.number.isRequired,
-  onSquareClick: PropTypes.func.isRequired,
-  isSelected: PropTypes.bool.isRequired,
-  isMove: PropTypes.bool.isRequired,
-  boardViewSide: PropTypes.oneOf([WHITE, BLACK]).isRequired,
-  handleDragStart: PropTypes.func.isRequired,
-  handleDragOver: PropTypes.func.isRequired,
-  handleDrop: PropTypes.func.isRequired,
 };
 
 const MemoizedCell = React.memo(Cell);

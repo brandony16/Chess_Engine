@@ -1,11 +1,15 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useRef, type ReactNode } from "react";
+import { NO_PIECE, type Piece } from "../../game/chessConstants.ts";
+import { PIECE_NAMES } from "../utilTypes.ts";
 
-export default function useDragDrop(onSquareClick) {
-  const dragElRef = useRef(null);
+export default function useDragDrop(
+  onSquareClick: (row: number, col: number) => void,
+) {
+  const dragElRef = useRef<HTMLDivElement | null>(null);
   const lastPos = useRef({ x: 0, y: 0 });
-  const rafRef = useRef(null);
+  const rafRef = useRef<number | null>(null);
 
-  const ensureDragElement = useCallback((pieceNode) => {
+  const ensureDragElement = useCallback((pieceNode: HTMLDivElement) => {
     if (dragElRef.current) {
       dragElRef.current.style.visibility = "visible";
       return dragElRef.current;
@@ -52,18 +56,24 @@ export default function useDragDrop(onSquareClick) {
   }, [dragElRef]);
 
   const schedulePositionUpdate = useCallback(
-    (e) => {
+    (e: React.DragEvent | DragEvent) => {
       lastPos.current = { x: e.clientX, y: e.clientY };
       if (!rafRef.current) {
         rafRef.current = requestAnimationFrame(updatePosition);
       }
     },
-    [updatePosition]
+    [updatePosition],
   );
 
   const handleDragStart = useCallback(
-    (e, row, col, piece, pieceNode = null) => {
-      if (!piece || piece === "-") {
+    (
+      e: React.DragEvent,
+      row: number,
+      col: number,
+      piece: Piece,
+      pieceNode: HTMLDivElement,
+    ) => {
+      if (piece === NO_PIECE) {
         e.preventDefault();
         return;
       }
@@ -73,6 +83,9 @@ export default function useDragDrop(onSquareClick) {
       canvas.height = 1;
 
       const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Issue with drag start. No canvas context");
+      }
       ctx.clearRect(0, 0, 1, 1);
 
       e.dataTransfer.setDragImage(canvas, 0, 0);
@@ -82,18 +95,18 @@ export default function useDragDrop(onSquareClick) {
 
       if (pieceNode) {
         try {
-          const cloned = pieceNode.cloneNode(true);
+          const cloned = pieceNode.cloneNode(true) as HTMLDivElement;
 
           cloned.style.pointerEvents = "none";
           dragEl.appendChild(cloned);
         } catch {
           console.warn("issue with cloning piece");
-          dragEl.textContent = piece;
+          dragEl.textContent = PIECE_NAMES[piece];
         }
       } else {
         // fallback: render piece text
         const span = document.createElement("div");
-        span.textContent = piece;
+        span.textContent = PIECE_NAMES[piece];
         span.style.pointerEvents = "none";
         span.style.fontSize = "28px";
         span.style.lineHeight = "1";
@@ -102,7 +115,7 @@ export default function useDragDrop(onSquareClick) {
 
       schedulePositionUpdate(e);
 
-      const onWindowDragOver = (e) => {
+      const onWindowDragOver = (e: DragEvent) => {
         schedulePositionUpdate(e);
       };
       window.addEventListener("dragover", onWindowDragOver);
@@ -122,19 +135,19 @@ export default function useDragDrop(onSquareClick) {
       ensureDragElement,
       schedulePositionUpdate,
       removeDragElement,
-    ]
+    ],
   );
 
-  const handleDragOver = useCallback((e) => {
+  const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
   }, []);
 
   const handleDrop = useCallback(
-    (e, row, col) => {
+    (e: React.DragEvent, row: number, col: number) => {
       e.preventDefault();
       onSquareClick(row, col);
     },
-    [onSquareClick]
+    [onSquareClick],
   );
 
   return {
