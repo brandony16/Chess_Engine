@@ -20,3 +20,11 @@ export function getRank(sq: Square): Rank {
 export function getFile(sq: Square): File {
   return (sq % 8) as File;
 }
+
+/**
+ * Helper to turn a Rank and File into a square
+ */
+export function getSquare(r: Rank, f: File): Square {
+  const sq = r * 8 + f;
+  return sq as Square;
+}

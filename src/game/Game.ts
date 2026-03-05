@@ -1,13 +1,12 @@
 import {
   CHECKMATE,
   DRAW,
-  NO_PIECE,
   type Piece,
   type Player,
   type Square,
-} from "../game/chessConstants.ts";
-import type Move from "../game/moveMaking/move.ts";
-import { Position } from "../game/Position.ts";
+} from "./chessConstants.ts";
+import type Move from "./moveMaking/move.ts";
+import { Position } from "./Position.ts";
 import { Snapshot } from "./Snapshot.ts";
 
 interface GameView {

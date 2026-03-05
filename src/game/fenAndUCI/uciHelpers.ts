@@ -1,6 +1,7 @@
 import {
-  COLUMN_INDEXES,
-  COLUMN_SYMBOLS,
+  FILE_INDEXES,
+  FILE_SYMBOLS,
+  isValidFileChar,
   NO_PIECE,
   PIECE_INDEXES,
   PIECE_SYMBOLS,
@@ -8,8 +9,10 @@ import {
   type Piece,
   type Square,
 } from "../chessConstants.ts";
+import { getFile, getRank } from "../helpers/boardUtils.ts";
 import type Move from "../moveMaking/move.ts";
 import type { Position } from "../Position.ts";
+import { isAlgebraicSquare } from "./fenHelpers.ts";
 
 /**
  * Converts a move object into UCI notation
@@ -28,12 +31,12 @@ export function moveToUCI(move: Move): string {
 }
 
 function indexToSquare(index: Square): string {
-  const col = index % 8;
-  const row = Math.floor(index / 8);
+  const file = getFile(index);
+  const rank = getRank(index);
 
-  const colSymbol = COLUMN_SYMBOLS[col];
+  const fileSymbol = FILE_SYMBOLS[file];
 
-  return colSymbol + (row + 1);
+  return fileSymbol + (rank + 1);
 }
 
 /**
@@ -41,6 +44,17 @@ function indexToSquare(index: Square): string {
  *
  */
 export function uciToMove(uciMove: string, pos: Position) {
+  if (uciMove.length < 4 || uciMove.length > 5) {
+    throw new Error(`Invalid uciMove: ${uciMove}`);
+  }
+
+  const sq1 = uciMove.slice(0, 2);
+  const sq2 = uciMove.slice(2, 4);
+  
+  if (!isAlgebraicSquare(sq1) || !isAlgebraicSquare(sq2)) {
+    throw new Error(`Ivalid uciMove: ${uciMove}`);
+  }
+
   const from = squareToIndex(uciMove.slice(0, 2));
   const to = squareToIndex(uciMove.slice(2, 4));
 
@@ -70,19 +84,17 @@ function isValidPieceChar(c: string): c is keyof typeof PIECE_INDEXES {
 }
 
 function squareToIndex(square: string) {
-  const col = square.charAt(0);
-  const row = square.charAt(1);
+  const file = square.charAt(0);
+  const rank = square.charAt(1);
 
-  if (!isValidColChar(col)) {
-    throw new Error(`Invalid column ${col}`);
+  if (!isValidFileChar(file)) {
+    throw new Error(`Invalid file: ${file}`);
   }
 
-  const rowNum = parseInt(row) - 1; // Rows arent 0 indexed
-  const colNum = COLUMN_INDEXES[col];
+  const rankNum = parseInt(rank) - 1;
+  const fileNum = FILE_INDEXES[file];
 
-  return rowNum * 8 + colNum;
+  return rankNum * 8 + fileNum;
 }
 
-function isValidColChar(c: string): c is keyof typeof COLUMN_INDEXES {
-  return c in COLUMN_INDEXES;
-}
+

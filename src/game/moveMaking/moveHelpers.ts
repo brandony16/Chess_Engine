@@ -4,6 +4,7 @@ import {
   NO_PIECE,
   NO_SQUARE,
   PROMO_PIECES,
+  PROMO_RANK,
   WHITE,
   WHITE_PAWN,
   type Piece,
@@ -12,6 +13,7 @@ import {
 } from "../chessConstants.ts";
 import { isKing, isPawn } from "../pieceUtils/pieceClassifiers.ts";
 import Move from "./move.ts";
+import { getRank } from "../helpers/boardUtils.ts";
 
 export function newEnPassant(move: Move): Square {
   const piece = move.piece;
@@ -36,9 +38,8 @@ export const getMovesFromBB = (
 ) => {
   const moveArr = [];
 
-  const promotionFromRank = player === WHITE ? 6 : 1;
-  const row = Math.floor(from / 8);
-  const isPromotion = row === promotionFromRank && isPawn(piece);
+  const rank = getRank(from);
+  const isPromotion = rank === PROMO_RANK[player] && isPawn(piece);
   const oppPawn = piece <= 5 ? BLACK_PAWN : WHITE_PAWN;
 
   let moves = bitboard;

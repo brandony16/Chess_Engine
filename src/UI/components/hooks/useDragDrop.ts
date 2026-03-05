@@ -1,9 +1,14 @@
 import { useCallback, useRef, type ReactNode } from "react";
-import { NO_PIECE, type Piece } from "../../../game/chessConstants.ts";
+import {
+  NO_PIECE,
+  type File,
+  type Piece,
+  type Rank,
+} from "../../../game/chessConstants.ts";
 import { PIECE_NAMES } from "../../utilTypes.ts";
 
 export default function useDragDrop(
-  onSquareClick: (row: number, col: number) => void,
+  onSquareClick: (rank: Rank, file: File) => void,
 ) {
   const dragElRef = useRef<HTMLDivElement | null>(null);
   const lastPos = useRef({ x: 0, y: 0 });
@@ -68,8 +73,8 @@ export default function useDragDrop(
   const handleDragStart = useCallback(
     (
       e: React.DragEvent,
-      row: number,
-      col: number,
+      rank: Rank,
+      file: File,
       piece: Piece,
       pieceNode: HTMLDivElement,
     ) => {
@@ -120,7 +125,7 @@ export default function useDragDrop(
       };
       window.addEventListener("dragover", onWindowDragOver);
 
-      onSquareClick(row, col);
+      onSquareClick(rank, file);
 
       const currentTarget = e.currentTarget;
       const onDragEnd = () => {
@@ -143,9 +148,9 @@ export default function useDragDrop(
   }, []);
 
   const handleDrop = useCallback(
-    (e: React.DragEvent, row: number, col: number) => {
+    (e: React.DragEvent, rank: Rank, file: File) => {
       e.preventDefault();
-      onSquareClick(row, col);
+      onSquareClick(rank, file);
     },
     [onSquareClick],
   );

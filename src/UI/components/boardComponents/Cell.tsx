@@ -4,22 +4,24 @@ import PropTypes from "prop-types";
 import PieceImg from "./PieceImg.tsx";
 import type { CellEntry } from "./Board.tsx";
 import {
-  COLUMN_SYMBOLS,
+  FILE_SYMBOLS,
   NO_PIECE,
   WHITE,
+  type File,
   type Piece,
   type Player,
+  type Rank,
 } from "../../../game/chessConstants.ts";
 
 interface CellProps {
   cellInfo: CellEntry;
-  onSquareClick: (row: number, col: number) => void;
+  onSquareClick: (rank: Rank, file: File) => void;
   boardPerspecive: Player;
 
   dragStart: (
     e: React.DragEvent<HTMLButtonElement>,
-    row: number,
-    col: number,
+    rank: Rank,
+    file: File,
     piece: Piece,
     currRef: HTMLDivElement,
   ) => void;
@@ -28,8 +30,8 @@ interface CellProps {
 
   drop: (
     e: React.DragEvent<HTMLButtonElement>,
-    row: number,
-    col: number,
+    rank: Rank,
+    file: File,
   ) => void;
 }
 // A board cell
@@ -52,20 +54,20 @@ const Cell = ({
         : "transparent",
   };
 
-  const row = cellInfo.relRow;
-  const col = cellInfo.relCol;
+  const rank = cellInfo.relRank;
+  const file = cellInfo.relFile;
 
-  const squareColor = (row + col) % 2 === 0 ? "dark" : "light";
+  const squareColor = (rank + file) % 2 === 0 ? "dark" : "light";
   const isWhite = boardPerspecive === WHITE;
 
   const handleClick = useCallback(
-    () => onSquareClick(row, col),
-    [onSquareClick, row, col],
+    () => onSquareClick(rank, file),
+    [onSquareClick, rank, file],
   );
 
   const startDrag = useCallback(
     (e: React.DragEvent<HTMLButtonElement>) => {
-      dragStart(e, row, col, cellInfo.piece, pieceRef.current!);
+      dragStart(e, rank, file, cellInfo.piece, pieceRef.current!);
 
       // Handle piece visibility
       setIsPieceVisible(false);
@@ -76,14 +78,14 @@ const Cell = ({
       };
       document.addEventListener("dragend", onDragEnd);
     },
-    [dragStart, row, col, cellInfo],
+    [dragStart, rank, file, cellInfo],
   );
 
   const endDrag = useCallback(
     (e: React.DragEvent<HTMLButtonElement>) => {
-      drop(e, row, col);
+      drop(e, rank, file);
     },
-    [drop, row, col],
+    [drop, rank, file],
   );
 
   // Build class name
@@ -106,17 +108,17 @@ const Cell = ({
       draggable={cellInfo.piece !== NO_PIECE}
       role="gridcell"
     >
-      {isWhite && row === 0 && (
-        <div className={`rowId ${squareColor}`}>{COLUMN_SYMBOLS[col]}</div>
+      {isWhite && rank === 0 && (
+        <div className={`rankId ${squareColor}`}>{FILE_SYMBOLS[file]}</div>
       )}
-      {!isWhite && row === 7 && (
-        <div className={`rowId ${squareColor}`}>{COLUMN_SYMBOLS[col]}</div>
+      {!isWhite && rank === 7 && (
+        <div className={`rankId ${squareColor}`}>{FILE_SYMBOLS[file]}</div>
       )}
-      {isWhite && col === 0 && (
-        <div className={`colId ${squareColor}`}>{row + 1}</div>
+      {isWhite && file === 0 && (
+        <div className={`colId ${squareColor}`}>{rank + 1}</div>
       )}
-      {!isWhite && col === 7 && (
-        <div className={`colId ${squareColor}`}>{row + 1}</div>
+      {!isWhite && file === 7 && (
+        <div className={`colId ${squareColor}`}>{rank + 1}</div>
       )}
       {cellInfo.piece !== NO_PIECE && isPieceVisible && (
         <div className="pieceWrapper" ref={pieceRef}>

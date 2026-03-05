@@ -10,8 +10,9 @@ import {
   BK,
   BLACK,
   BQ,
-  COLUMN_INDEXES,
-  isValidColChar,
+  FILE_INDEXES,
+  FILE_SYMBOLS,
+  isValidFileChar,
   WHITE,
   WK,
   WQ,
@@ -69,12 +70,13 @@ describe("FEN position loading", () => {
 
     const epStr = EN_PASSANT_WHITE.split(" ")[3];
 
-    const colChar = epStr[0];
-    if (!isValidColChar(colChar)) throw new Error(`Invalid col ${colChar}`);
+    const fileChar = epStr[0];
+    console.log(fileChar === FILE_SYMBOLS[3])
+    if (!isValidFileChar(fileChar)) throw new Error(`Invalid file: ${fileChar}`);
 
-    const row = parseInt(epStr[1]) - 1; // Make row 0 indexed
-    const col = COLUMN_INDEXES[colChar];
-    const sq = row * 8 + col;
+    const rank = parseInt(epStr[1]) - 1; // Make row 0 indexed
+    const file = FILE_INDEXES[fileChar];
+    const sq = rank * 8 + file;
 
     expect(pos.enPassantSquare).toBe(sq);
   });

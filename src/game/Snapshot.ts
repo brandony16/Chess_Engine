@@ -1,4 +1,4 @@
-import type { Piece, Player, Square } from "../game/chessConstants.ts";
+import type { Piece, Player, Square } from "./chessConstants.ts";
 
 interface SnapshotView {
   readonly sideToMove: Player;

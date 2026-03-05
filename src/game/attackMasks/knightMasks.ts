@@ -31,7 +31,7 @@ const isValidKnightMove = (source: Square, dest: Square): boolean => {
   const fileDiff = Math.abs(sourceFile - destFile);
 
   // Knights can move one or two files.
-  // Row wrapping is handled by isOnBoard
+  // Rank wrapping is handled by isOnBoard
   if (fileDiff !== 1 && fileDiff !== 2) {
     return false;
   }

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { EngineTypes } from "./utilTypes.ts";
 import type Move from "../game/moveMaking/move.ts";
-import { Game } from "./Game.ts";
+import { Game } from "../game/Game.ts";
 import {
   NO_SQUARE,
   WHITE,
@@ -9,7 +9,7 @@ import {
   type Square,
 } from "../game/chessConstants.ts";
 import { opponent } from "../game/helpers/opponent.ts";
-import { Snapshot } from "./Snapshot.ts";
+import { Snapshot } from "../game/Snapshot.ts";
 
 type HistoryEntry = { pgn: string; engineGame: boolean };
 type ModalType = "history" | "battle" | "new";

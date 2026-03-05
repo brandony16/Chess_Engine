@@ -367,10 +367,10 @@ export class Position {
       this.makeMove(move);
       if (this.isInCheck(movingSide)) {
         this.unmakeMove();
-        continue;
+      } else {
+        this.unmakeMove();
+        legal.push(move);
       }
-      this.unmakeMove();
-      legal.push(move);
     }
 
     return legal;

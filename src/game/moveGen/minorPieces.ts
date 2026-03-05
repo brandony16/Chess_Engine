@@ -1,8 +1,8 @@
 import {
-  BP_START_ROW,
+  BP_START_RANK,
   NO_SQUARE,
   WHITE,
-  WP_START_ROW,
+  WP_START_RANK,
   type Square,
 } from "../chessConstants.ts";
 import type { Position } from "../Position.ts";
@@ -29,7 +29,7 @@ export const pawnMoves = (pos: Position, from: Square) => {
   if (isWhite) {
     singlePush = (pawnMask << 8n) & emptySquares;
     doublePush =
-      ((pawnMask & WP_START_ROW) << 16n) & emptySquares & (emptySquares << 8n);
+      ((pawnMask & WP_START_RANK) << 16n) & emptySquares & (emptySquares << 8n);
     capture = whitePawnMasks[from] & enemyPieces;
 
     // En Passant for white
@@ -40,7 +40,7 @@ export const pawnMoves = (pos: Position, from: Square) => {
   } else {
     singlePush = (pawnMask >> 8n) & emptySquares;
     doublePush =
-      ((pawnMask & BP_START_ROW) >> 16n) & emptySquares & (emptySquares >> 8n);
+      ((pawnMask & BP_START_RANK) >> 16n) & emptySquares & (emptySquares >> 8n);
     capture = blackPawnMasks[from] & enemyPieces;
 
     // En Passant for black

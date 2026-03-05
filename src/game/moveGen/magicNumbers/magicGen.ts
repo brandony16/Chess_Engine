@@ -145,12 +145,9 @@ export function findBishopCollision(
 
 /**
  * Generates all blocker permutations for a given mask of moves for a peice.
- * For example, a rook on a1 can see the whole first row and first file. This
- * function generates all possible blocker permutations on the first row and file.
+ * For example, a rook on a1 can see the whole first rank and first file. This
+ * function generates all possible blocker permutations on the first rank and file.
  * This will be 2^(N-1), with N being the number of set bits in the initial mask.
- *
- * @param {bigint} mask - the mask
- * @returns {BigUint64Array} the blocker subsets
  */
 export function* generateBlockerSubsets(mask: bigint): Generator<bigint> {
   // Iterate submasks of mask: from mask, then (mask−1)&mask, ... down to 0

@@ -2,7 +2,7 @@ import {
   BK,
   BLACK,
   BQ,
-  COLUMN_SYMBOLS,
+  FILE_SYMBOLS,
   isCastlingNumber,
   NO_PIECE,
   NO_SQUARE,
@@ -18,11 +18,12 @@ import {
   type Player,
   type Square,
 } from "../chessConstants.ts";
+import { getFile, getRank } from "../helpers/boardUtils.ts";
 
-type AlgebraicSquare = keyof typeof sq;
+export type AlgebraicSquare = keyof typeof sq;
 
-function isAlgebraicSquare(s: string): s is AlgebraicSquare {
-  return s in sq;
+export function isAlgebraicSquare(s: string): s is AlgebraicSquare {
+  return s.toUpperCase() in sq;
 }
 
 function isValidPieceChar(c: string): c is keyof typeof PIECE_INDEXES {
@@ -74,10 +75,10 @@ export const buildFenEnPassant = (epSquare: Square): String => {
   if (epSquare === NO_SQUARE) return "-";
 
   // Rank starts at 1, so add one
-  const rank = Math.floor(epSquare / 8) + 1;
-  const col = epSquare % 8;
+  const rank = getRank(epSquare) + 1;
+  const file = getFile(epSquare);
 
-  return "" + COLUMN_SYMBOLS[col] + rank;
+  return "" + FILE_SYMBOLS[file] + rank;
 };
 
 // ----- POSITION FROM FEN STRING -----
@@ -87,14 +88,14 @@ export const buildFenEnPassant = (epSquare: Square): String => {
 export function buildBitboards(bbString: String): BigUint64Array {
   let bitboards = new BigUint64Array(NUM_PIECES).fill(0n);
 
-  const rows = bbString.split("/");
+  const ranks = bbString.split("/");
 
   for (let i = 0; i < 8; i++) {
-    const row = rows[i];
+    const rank = ranks[i];
     let file = 0;
 
-    for (let j = 0; j < row.length; j++) {
-      const ch = row.charAt(j);
+    for (let j = 0; j < rank.length; j++) {
+      const ch = rank.charAt(j);
       if (/\d/.test(ch)) {
         // Skip digits (empty squares)
         file += parseInt(ch, 10);

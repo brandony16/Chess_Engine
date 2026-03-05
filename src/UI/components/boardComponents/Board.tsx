@@ -5,18 +5,29 @@ import Cell from "./Cell.tsx";
 
 import "./Board.css";
 import useDragDrop from "../hooks/useDragDrop.ts";
-import { BLACK, WHITE, type Piece } from "../../../game/chessConstants.ts";
+import {
+  FILES,
+  RANKS,
+  REVERSED_FILES,
+  REVERSED_RANKS,
+  WHITE,
+  type File,
+  type Piece,
+  type Rank,
+  type Square,
+} from "../../../game/chessConstants.ts";
 import { getShownMove } from "../../stateUtils.ts";
 import { movesToBB } from "../../generalHelpers.ts";
+import { getSquare } from "../../../game/helpers/boardUtils.ts";
 
 interface BoardProps {
-  onSquareClick: (row: number, col: number) => void;
+  onSquareClick: (rank: Rank, file: File) => void;
 }
 
 export type CellEntry = {
-  square: number;
-  relRow: number;
-  relCol: number;
+  square: Square;
+  relRank: Rank;
+  relFile: File;
   piece: Piece;
   isSelected: boolean;
   isMove: boolean;
@@ -37,18 +48,17 @@ const Board = ({ onSquareClick }: BoardProps) => {
 
   const cells = useMemo(() => {
     const list: CellEntry[] = [];
-    for (let row = 0; row < 8; row++) {
-      const actualRow = boardPerspective === BLACK ? row : 7 - row; // Flip row order for Black
-
-      for (let col = 0; col < 8; col++) {
-        const actualCol = boardPerspective === WHITE ? col : 7 - col; // Flips columns if viewing from Black
-        const square = actualRow * 8 + actualCol; // Flip columns per row
+    const ranks = boardPerspective === WHITE ? REVERSED_RANKS : RANKS;
+    const files = boardPerspective === WHITE ? FILES : REVERSED_FILES;
+    for (const rank of ranks) {
+      for (const file of files) {
+        const square = getSquare(rank, file); // Flip columns per row
         const isMove = Boolean(moveBB & (1n << BigInt(square)));
 
         list.push({
           square,
-          relRow: actualRow,
-          relCol: actualCol,
+          relRank: rank,
+          relFile: file,
           piece: displayed.getPiece(square),
           isSelected: selectedSquare === square,
           isMove: isMove,

@@ -30,7 +30,7 @@ const isValidKingMove = (source: Square, dest: Square): boolean => {
   const fileDiff = Math.abs(sourceFile - destFile);
 
   // King can move one or two files.
-  // Row wrapping is handled by isOnBoard
+  // Rank wrapping is handled by isOnBoard
   if (fileDiff !== 1 && fileDiff !== 0) {
     return false;
   }
