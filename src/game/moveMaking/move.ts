@@ -1,4 +1,4 @@
-import { type Piece, type Square } from "../chessConstants.ts";
+import { type CastlingNumber, type Piece, type Square } from "../chessConstants.ts";
 
 /**
  * Stores values for a move
@@ -65,7 +65,7 @@ class Move {
 
 export interface Undo {
   captured: Piece;
-  castlingRights: number;
+  castlingRights: CastlingNumber;
   epSquare: Square;
   halfmoveClock: number;
   zobristKey: bigint;

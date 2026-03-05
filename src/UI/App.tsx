@@ -1,22 +1,17 @@
-import { useGameStore } from "./gameStore.ts";
-
+import type { ReactNode } from "react";
+import "./App.css";
+import Board from "./components/boardComponents/Board.tsx";
+import useChessActions from "./components/hooks/useChessActions.js";
+import useEngineWorker from "./components/hooks/useEngineWorker.js";
+import useMoveTrigger from "./components/hooks/useMoveTrigger.js";
+import Modal from "./components/modals/Modal.jsx";
 import PromotionModal from "./components/modals/promotionModal/PromotionModal.jsx";
 import Sidebar from "./components/sidebar/Sidebar.jsx";
-import BitboardBoard from "./components/boardComponents/Board.tsx";
-import Modal from "./components/modals/Modal.jsx";
+import { useGameStore } from "./gameStore.ts";
 
-import useEngineWorker from "./components/hooks/useEngineWorker.js";
-import useChessActions from "./components/hooks/useChessActions.js";
-import useMoveTrigger from "./components/hooks/useMoveTrigger.js";
-import type { ReactNode } from "react";
-
-import "./UI.css";
-
-// Runs the game
-const BitboardGame = (): ReactNode => {
+function App(): ReactNode {
   // Get states
   const promotion = useGameStore((state) => state.promotion);
-  const promotionMove = useGameStore((state) => state.promotionMove);
   const modalState = useGameStore((state) => state.modalState);
 
   // Handler for chess actions
@@ -31,11 +26,11 @@ const BitboardGame = (): ReactNode => {
   return (
     <main className="body">
       <section className="gameWrap" role="application">
-        <BitboardBoard onSquareClick={handleSquareClick} />
-        {promotion && (
+        <Board onSquareClick={handleSquareClick} />
+        {promotion.isHappening && (
           <PromotionModal
             onPromote={handlePromotion}
-            square={promotionMove.to}
+            square={promotion.square}
           />
         )}
         <Sidebar />
@@ -43,6 +38,6 @@ const BitboardGame = (): ReactNode => {
       {modalState.isOpen && <Modal />}
     </main>
   );
-};
+}
 
-export default BitboardGame;
+export default App;

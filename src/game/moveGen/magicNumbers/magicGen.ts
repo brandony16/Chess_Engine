@@ -5,7 +5,7 @@ import {
   rookMagics,
   rookShifts,
 } from "./magicNumbers.ts";
-import type { Square } from "../../chessConstants.ts";
+import { sq, type Square } from "../../chessConstants.ts";
 
 type CollisionResolution = {
   collision: boolean;
@@ -51,7 +51,7 @@ export function findNewRookMagic(sq: Square, maxTries: number = 1e6): bigint {
 
 export function recalculateAllRookMagics(maxTries: number = 1e6): bigint[] {
   const newMagics = new Array(64);
-  for (let i = 0; i < 64; i++) {
+  for (const i of Object.values(sq)) {
     const magic = findNewRookMagic(i, maxTries);
     newMagics[i] = `0x${magic.toString(16)}`;
   }
@@ -86,7 +86,7 @@ export function findNewBishopMagic(sq: Square, maxTries: number = 1e6): bigint {
  */
 export function recalculateAllBishopMagics(maxTries: number = 1e6): bigint[] {
   const newMagics = new Array(64);
-  for (let i = 0; i < 64; i++) {
+  for (const i of Object.values(sq)) {
     const magic = findNewBishopMagic(i, maxTries);
     newMagics[i] = `0x${magic.toString(16)}`;
   }

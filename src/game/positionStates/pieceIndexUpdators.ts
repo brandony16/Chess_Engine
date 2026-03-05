@@ -24,8 +24,9 @@ export function updatePieceIndexes(pieceIndexes: Square[][], move: Move): void {
   if (captured !== NO_PIECE) {
     const capturedArr = pieceIndexes[captured];
     if (enPassant) {
-      const captureSquare = to > from ? to - 8 : to + 8;
-      capturedArr.splice(capturedArr.indexOf(captureSquare), 1);
+      const captureSquare = (to > from ? to - 8 : to + 8) as Square;
+      const idx = capturedArr.indexOf(captureSquare);
+      capturedArr.splice(idx, 1);
     } else {
       capturedArr.splice(capturedArr.indexOf(to), 1);
     }
@@ -73,7 +74,7 @@ export function undoPieceIndexUpdate(
   if (captured !== NO_PIECE) {
     const capturedArr = pieceIndexes[captured];
     if (enPassant) {
-      const captureSquare = to > from ? to - 8 : to + 8;
+      const captureSquare = (to > from ? to - 8 : to + 8) as Square;
       capturedArr.push(captureSquare);
     } else {
       capturedArr.push(to);

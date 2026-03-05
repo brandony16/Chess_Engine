@@ -17,6 +17,7 @@ import {
   WHITE_ROOK,
   WK,
   WQ,
+  type CastlingNumber,
   type Player,
   type Square,
 } from "../chessConstants.ts";
@@ -26,8 +27,8 @@ import type Move from "./move.ts";
 export const updateCastlingRights = (
   from: Square,
   to: Square,
-  prevRights: number,
-): number => {
+  prevRights: CastlingNumber,
+): CastlingNumber => {
   let rights = prevRights;
 
   // White king moved
@@ -48,14 +49,14 @@ export const updateCastlingRights = (
   if (from === 56 || to === 56) rights &= ~BQ; // a8 rook
   if (from === 63 || to === 63) rights &= ~BK; // h8 rook
 
-  return rights;
+  return rights as CastlingNumber;
 };
 
 /**
  * Determines whether a given player can castle kingside
  */
 export function isKingsideCastleLegal(
-  player: number,
+  player: Player,
   attackMask: bigint,
   occ: bigint,
 ): boolean {

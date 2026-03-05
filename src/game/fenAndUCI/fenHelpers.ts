@@ -2,20 +2,32 @@ import {
   BK,
   BLACK,
   BQ,
-  COLUMN_INDEXES,
   COLUMN_SYMBOLS,
+  isCastlingNumber,
   NO_PIECE,
   NO_SQUARE,
   NUM_PIECES,
   PIECE_INDEXES,
   PIECE_SYMBOLS,
+  sq,
   WHITE,
   WK,
   WQ,
+  type CastlingNumber,
   type Piece,
   type Player,
   type Square,
 } from "../chessConstants.ts";
+
+type AlgebraicSquare = keyof typeof sq;
+
+function isAlgebraicSquare(s: string): s is AlgebraicSquare {
+  return s in sq;
+}
+
+function isValidPieceChar(c: string): c is keyof typeof PIECE_INDEXES {
+  return c in PIECE_INDEXES;
+}
 
 // ---- FEN STRING FROM POSITION -----
 export const buildFenBoard = (pieceAt: Piece[]): String => {
@@ -102,14 +114,10 @@ export function buildBitboards(bbString: String): BigUint64Array {
   return bitboards;
 }
 
-function isValidPieceChar(c: string): c is keyof typeof PIECE_INDEXES {
-  return c in PIECE_INDEXES;
-}
-
 /**
  * Converts the castling rights section of a FEN into a 4 bit number.
  */
-export function buildCastlingRights(rights: String): number {
+export function buildCastlingRights(rights: String): CastlingNumber {
   if (rights === "-") return 0;
 
   let castlingRights = 0;
@@ -131,35 +139,32 @@ export function buildCastlingRights(rights: String): number {
     }
     castlingRights |= charToRights[char];
   }
+
+  if (!isCastlingNumber(castlingRights)) {
+    throw new Error("Castling rights overflowed 4 bits");
+  }
+
   return castlingRights;
 }
 
 /**
  * Converts the en passant section of a FEN into the index of the sqare (0-63).
  */
-export function buildEnPassantSquare(algebraicEp: String): Square {
+export function buildEnPassantSquare(algebraicEp: string): Square {
   if (algebraicEp === "-") return NO_SQUARE;
 
-  const col = algebraicEp.charAt(0);
-  const row = algebraicEp.charAt(1);
+  const upper = algebraicEp.toUpperCase();
 
-  if (!isValidColChar(col)) {
-    throw new Error(`Invalid column ${col}`);
+  if (!isAlgebraicSquare(upper)) {
+    throw new Error(`Invalid square: ${algebraicEp}`);
   }
-  
-  const rowNum = parseInt(row) - 1; // Make row 0 indexed
-  const colNum = COLUMN_INDEXES[col];
 
-  return rowNum * 8 + colNum;
-}
-
-function isValidColChar(c: string): c is keyof typeof COLUMN_INDEXES {
-  return c in COLUMN_INDEXES;
+  return sq[upper];
 }
 
 /**
  * Gets the player from the player section of a FEN string
  */
-export function buildPlayer(player: String): Player {
+export function buildPlayer(player: string): Player {
   return player === "w" ? WHITE : BLACK;
 }

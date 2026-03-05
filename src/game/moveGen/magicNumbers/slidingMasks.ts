@@ -2,15 +2,15 @@ import type { File, Rank, Square } from "../../chessConstants.ts";
 
 // Precompute masks
 export const rookMasks = Array.from({ length: 64 }, (_, sq) =>
-  generateRookMask(sq),
+  generateRookMask(sq as Square),
 );
 export const bishopMasks = Array.from({ length: 64 }, (_, sq) =>
-  generateBishopMask(sq),
+  generateBishopMask(sq as Square),
 );
 
 // Convert (file,rank) to bit index 0…63
 function toIndex(file: File, rank: Rank): Square {
-  return rank * 8 + file;
+  return (rank * 8 + file) as Square;
 }
 
 // Generate rook mask for square sq

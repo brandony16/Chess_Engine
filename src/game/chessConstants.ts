@@ -112,6 +112,21 @@ export const PIECE_INDEXES = {
   k: BLACK_KING,
 };
 
+export const PIECE_SYMBOLS = {
+  [WHITE_PAWN]: "P",
+  [WHITE_KNIGHT]: "N",
+  [WHITE_BISHOP]: "B",
+  [WHITE_ROOK]: "R",
+  [WHITE_QUEEN]: "Q",
+  [WHITE_KING]: "K",
+  [BLACK_PAWN]: "p",
+  [BLACK_KNIGHT]: "n",
+  [BLACK_BISHOP]: "b",
+  [BLACK_ROOK]: "r",
+  [BLACK_QUEEN]: "q",
+  [BLACK_KING]: "k",
+};
+
 type PieceChar = keyof typeof PIECE_INDEXES;
 
 export function isPieceChar(c: string): c is PieceChar {
@@ -119,23 +134,36 @@ export function isPieceChar(c: string): c is PieceChar {
 }
 
 // ----- CASTLING CONSTANTS -----
+// 4 bits, any permutation: range 0-15
+
+export const CASTLING_VALUES = [
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+] as const;
+export type CastlingNumber = (typeof CASTLING_VALUES)[number];
+
+export function isCastlingNumber(n: number): n is CastlingNumber {
+  return n >= 0 && n <= 15 && Number.isInteger(n);
+}
+
+export const WK = (1 << 0) as CastlingNumber; // white kingside
+export const WQ = (1 << 1) as CastlingNumber; // white queenside
+export const BK = (1 << 2) as CastlingNumber; // black kingside
+export const BQ = (1 << 3) as CastlingNumber; // black queenside
+
+export const ALL_CASTLING = (WK | WQ | BK | BQ) as CastlingNumber;
+
+// These squares must be empty for castling to be legal
 export const W_KINGSIDE_EMPTY: bigint = (1n << 5n) | (1n << 6n); // f1, g1
 export const W_QUEENSIDE_EMPTY: bigint = (1n << 1n) | (1n << 2n) | (1n << 3n); // b1, c1, d1
 export const B_KINGSIDE_EMPTY: bigint = (1n << 61n) | (1n << 62n); // f8, g8
 export const B_QUEENSIDE_EMPTY: bigint =
   (1n << 57n) | (1n << 58n) | (1n << 59n); // b8, c8, d8
 
+// These squares must not be occupied for castling to be legal
 export const W_KINGSIDE_SAFE: bigint = (1n << 4n) | (1n << 5n) | (1n << 6n); // e1, f1, g1
 export const W_QUEENSIDE_SAFE: bigint = (1n << 4n) | (1n << 3n) | (1n << 2n); // e1, d1, c1
 export const B_KINGSIDE_SAFE: bigint = (1n << 60n) | (1n << 61n) | (1n << 62n); // e8, f8, g8
 export const B_QUEENSIDE_SAFE: bigint = (1n << 60n) | (1n << 59n) | (1n << 58n); // e8, d8, c8
-
-export const WK = 1 << 0; // white kingside
-export const WQ = 1 << 1; // white queenside
-export const BK = 1 << 2; // black kingside
-export const BQ = 1 << 3; // black queenside
-
-export const ALL_CASTLING = WK | WQ | BK | BQ;
 
 // ----- BITBOARDS -----
 export type Bitboard = bigint;
@@ -158,7 +186,8 @@ INITIAL_BITBOARDS[PIECE.bQ] = 0x0800000000000000n;
 INITIAL_BITBOARDS[PIECE.bK] = 0x1000000000000000n;
 
 // ----- SQUARES -----
-export type Square = number; // 0–63
+export const NO_SQUARE = -1;
+
 export const sq = {
   A1: 0,
   B1: 1,
@@ -224,7 +253,13 @@ export const sq = {
   F8: 61,
   G8: 62,
   H8: 63,
-};
+} as const;
+
+export type Square = (typeof sq)[keyof typeof sq] | typeof NO_SQUARE; // 0–63
+
+export function isSquare(n: number): n is Square {
+  return n >= 0 && n <= 63 && Number.isInteger(n);
+}
 
 // ----- FILES / RANKS -----
 export type File = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
@@ -270,8 +305,6 @@ export const RANKS = [
   RANK_7,
   RANK_8,
 ];
-
-export const NO_SQUARE = -1;
 
 export const COLUMN_SYMBOLS = ["a", "b", "c", "d", "e", "f", "g", "h"];
 

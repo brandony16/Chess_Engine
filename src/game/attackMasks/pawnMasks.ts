@@ -1,4 +1,4 @@
-import type { Square } from "../chessConstants.ts";
+import { sq, type Square } from "../chessConstants.ts";
 
 /**
  * Computes a white pawn attack mask for a square.
@@ -41,8 +41,8 @@ const computeBlackPawnMask = (square: Square): bigint => {
  */
 const initializeWPawnAttackMasks = (): bigint[] => {
   const whitePawnMasks = new Array(64);
-  for (let sq = 0; sq < 64; sq++) {
-    whitePawnMasks[sq] = computeWhitePawnMask(sq);
+  for (const s of Object.values(sq)) {
+    whitePawnMasks[s] = computeWhitePawnMask(s);
   }
 
   return whitePawnMasks;
@@ -56,8 +56,8 @@ export const whitePawnMasks = initializeWPawnAttackMasks();
  */
 const initializeBPawnAttackMasks = (): bigint[] => {
   const blackPawnMasks = new Array(64);
-  for (let sq = 0; sq < 64; sq++) {
-    blackPawnMasks[sq] = computeBlackPawnMask(sq);
+  for (const s of Object.values(sq)) {
+    blackPawnMasks[s] = computeBlackPawnMask(s);
   }
 
   return blackPawnMasks;

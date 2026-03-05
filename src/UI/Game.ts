@@ -17,6 +17,7 @@ interface GameView {
   fen(): string;
   loadFen(fen: string): void;
   getPiece(square: Square): Piece;
+  isPlayersPieceAt(square: Square, player: Player): boolean;
   generateLegalMoves(): Move[];
   isOver(): boolean;
   isCheckmate(): boolean;
@@ -78,6 +79,11 @@ export class Game implements GameView {
 
   getPiece(square: Square): Piece {
     return this.position.pieceAt[square];
+  }
+
+  isPlayersPieceAt(square: Square, player: Player): boolean {
+    const mask = 1n << BigInt(square);
+    return (mask & this.position.playerOcc[player]) !== 0n;
   }
 
   generateLegalMoves(): Move[] {

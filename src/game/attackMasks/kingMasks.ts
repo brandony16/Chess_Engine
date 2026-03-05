@@ -1,4 +1,4 @@
-import type { Square } from "../chessConstants.ts";
+import { sq, type Square } from "../chessConstants.ts";
 import { isOnBoard } from "../helpers/boardUtils.ts";
 
 // The king square offsets
@@ -12,7 +12,7 @@ const computeKingMask = (square: Square): bigint => {
 
   for (const offset of KING_OFFSETS) {
     const target = square + offset;
-    if (isOnBoard(target) && isValidKingMove(square, target)) {
+    if (isOnBoard(target) && isValidKingMove(square, target as Square)) {
       mask |= 1n << BigInt(target);
     }
   }
@@ -43,8 +43,8 @@ const isValidKingMove = (source: Square, dest: Square): boolean => {
 const initializeKingMasks = (): bigint[] => {
   const kingMasks = new Array(64);
 
-  for (let sq = 0; sq < 64; sq++) {
-    kingMasks[sq] = computeKingMask(sq);
+  for (const s of Object.values(sq)) {
+    kingMasks[s] = computeKingMask(s);
   }
 
   return kingMasks;

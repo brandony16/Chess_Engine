@@ -14,17 +14,22 @@ import { Snapshot } from "./Snapshot.ts";
 type HistoryEntry = { pgn: string; engineGame: boolean };
 type ModalType = "history" | "battle" | "new";
 type ModalState = { isOpen: false } | { isOpen: true; type: ModalType };
+type PromotionState =
+  | { isHappening: false }
+  | { isHappening: true; square: number };
 
 export interface GameStoreState {
   game: Game;
   userSide: Player;
 
   // ----- UI -----
-  selectedSquare: number | null;
+  selectedSquare: Square;
   legalMovesForSelected: Move[];
 
   modalState: ModalState;
   boardPerspective: Player;
+
+  promotion: PromotionState;
 
   // ----- ENGINE INFO -----
   selectedEngine: string;
@@ -47,6 +52,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   modalState: { isOpen: false },
   boardPerspective: WHITE,
+
+  promotion: { isHappening: false },
 
   // ----- ENGINE INFO -----
   selectedEngine: EngineTypes.BMV1,

@@ -6,7 +6,7 @@ import Cell from "./Cell.tsx";
 import "./Board.css";
 import useDragDrop from "../hooks/useDragDrop.ts";
 import { BLACK, WHITE, type Piece } from "../../../game/chessConstants.ts";
-import { selectShownMove } from "../../stateUtils.ts";
+import { getShownMove } from "../../stateUtils.ts";
 import { movesToBB } from "../../generalHelpers.ts";
 
 interface BoardProps {
@@ -27,7 +27,7 @@ const Board = ({ onSquareClick }: BoardProps) => {
   const boardRef = useRef(null);
 
   const boardPerspective = useGameStore((state) => state.boardPerspective);
-  const displayed = useGameStore(selectShownMove);
+  const displayed = useGameStore(getShownMove);
   const selectedSquare = useGameStore((state) => state.selectedSquare);
   const legalMoves = useGameStore((state) => state.legalMovesForSelected);
   const moveBB = movesToBB(legalMoves);

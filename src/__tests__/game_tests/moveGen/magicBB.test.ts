@@ -1,8 +1,11 @@
 import { describe, expect, test } from "vitest";
 import { maskBits } from "../../../game/helpers/bbUtils.ts";
-import { rookAttacks, bishopAttacks } from "../../../game/moveGen/sliderMoves.ts";
+import {
+  rookAttacks,
+  bishopAttacks,
+} from "../../../game/moveGen/sliderMoves.ts";
 import { generateBlockerSubsets } from "../../../game/moveGen/magicNumbers/magicGen.ts";
-import type { Square } from "../../../game/chessConstants.ts";
+import { sq, type Square } from "../../../game/chessConstants.ts";
 import { getFile, getRank } from "../../../game/helpers/boardUtils.ts";
 
 describe("maskBits", () => {
@@ -46,18 +49,18 @@ describe("generateBlockerSubsets", () => {
 describe("rookAttacks vs brute force", () => {
   test("matches brute-force for empty occupancy on all squares", () => {
     const occ = 0n;
-    for (let sq = 0; sq < 64; sq++) {
-      const m = rookAttacks(sq, occ);
-      expect(m).toBe(rookBruteForce(sq, occ));
+    for (const s of Object.values(sq)) {
+      const m = rookAttacks(s, occ);
+      expect(m).toBe(rookBruteForce(s, occ));
     }
   });
 
   test("matches brute-force for single blocker anywhere", () => {
     for (let blocker = 0; blocker < 64; blocker++) {
       const occ = 1n << BigInt(blocker);
-      for (let sq = 0; sq < 64; sq++) {
-        const m = rookAttacks(sq, occ);
-        expect(m).toBe(rookBruteForce(sq, occ));
+      for (const s of Object.values(sq)) {
+        const m = rookAttacks(s, occ);
+        expect(m).toBe(rookBruteForce(s, occ));
       }
     }
   });
@@ -66,16 +69,16 @@ describe("rookAttacks vs brute force", () => {
 describe("bishopAttacks vs brute force", () => {
   test("matches brute-force for empty occupancy on all squares", () => {
     const occ = 0n;
-    for (let sq = 0; sq < 64; sq++) {
-      expect(bishopAttacks(sq, occ)).toBe(bishopBruteForce(sq, occ));
+    for (const s of Object.values(sq)) {
+      expect(bishopAttacks(s, occ)).toBe(bishopBruteForce(s, occ));
     }
   });
 
   test("matches brute-force for single blocker anywhere", () => {
     for (let blocker = 0; blocker < 64; blocker++) {
       const occ = 1n << BigInt(blocker);
-      for (let sq = 0; sq < 64; sq++) {
-        expect(bishopAttacks(sq, occ)).toBe(bishopBruteForce(sq, occ));
+      for (const s of Object.values(sq)) {
+        expect(bishopAttacks(s, occ)).toBe(bishopBruteForce(s, occ));
       }
     }
   });

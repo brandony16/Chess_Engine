@@ -1,7 +1,7 @@
 import type { GameStoreState } from "./gameStore.ts";
 
-export const selectShownMove = (state: GameStoreState) =>
+export const getShownMove = (state: GameStoreState) =>
   state.pastPositions[state.currIdxOfDisplayed];
 
-export const selectIsCurrPosShown = (state: GameStoreState) =>
+export const isCurrPosShown = (state: GameStoreState) =>
   state.currIdxOfDisplayed === state.pastPositions.length - 1;

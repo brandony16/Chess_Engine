@@ -20,7 +20,7 @@ export function newEnPassant(move: Move): Square {
   }
 
   const dir = piece === WHITE_PAWN ? -8 : 8;
-  return move.to + dir;
+  return (move.to + dir) as Square;
 }
 
 /**

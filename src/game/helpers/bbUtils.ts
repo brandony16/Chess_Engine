@@ -1,8 +1,10 @@
+import type { Square } from "../chessConstants.ts";
+
 // De Brujin Lookup
 const DEBRUIJN64 = 0x03f79d71b4cb0a89n;
 
 // Maps a 6-bit pattern to an index
-const INDEX64 = [
+const INDEX64: Square[] = [
   0, 1, 48, 2, 57, 49, 28, 3, 61, 58, 50, 42, 38, 29, 17, 4, 62, 55, 59, 36, 53,
   51, 43, 22, 45, 39, 33, 30, 24, 18, 12, 5, 63, 47, 56, 27, 60, 41, 37, 16, 54,
   35, 52, 21, 44, 32, 23, 11, 46, 26, 40, 15, 34, 20, 31, 10, 25, 14, 19, 9, 13,
@@ -12,7 +14,7 @@ const INDEX64 = [
 /**
  * Finds the index of the first square that is a 1 (least significant bit) using De Brujin lookup.
  */
-export const bitScanForward = (bitboard: bigint): number => {
+export const bitScanForward = (bitboard: bigint): Square => {
   if (bitboard === 0n) return -1;
 
   const lsb = bitboard & -bitboard;

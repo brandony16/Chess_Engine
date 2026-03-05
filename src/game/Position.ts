@@ -23,6 +23,7 @@ import {
   WHITE_ROOK,
   WHITE_WIN,
   type Bitboard,
+  type CastlingNumber,
   type EndState,
   type Piece,
   type Player,
@@ -78,15 +79,15 @@ export class Position {
   pieceIndexes: Square[][];
 
   sideToMove: Player;
-  castlingRights: number;
-  enPassantSquare: number;
+  castlingRights: CastlingNumber;
+  enPassantSquare: Square;
   fullmoveNumber: number;
 
   result: Result;
   halfmoveClock: number;
   endState: EndState;
 
-  kingSq: Int8Array; // Indexed by player
+  kingSq: Square[]; // Indexed by player, len 2
   zobristKey: bigint;
 
   moveStack: MoveList;
@@ -114,7 +115,7 @@ export class Position {
     this.endState = IN_PROGRESS;
 
     // ----- Cached Info -----
-    this.kingSq = new Int8Array(2);
+    this.kingSq = [];
     this.zobristKey = 0n;
 
     this.moveStack = [];
@@ -238,7 +239,7 @@ export class Position {
 
     // if a capture, XOR to remove captured piece
     if (captured !== NO_PIECE) {
-      let captSq = to;
+      let captSq = to as number;
       if (move.enPassant) {
         captSq = move.piece < 6 ? captSq - 8 : captSq + 8;
       }
@@ -505,13 +506,13 @@ export class Position {
   // -----------------------
   // Game Info Methods
   // -----------------------
-  isPlayersPieceAt(square: number, player: Player): boolean {
+  isPlayersPieceAt(square: Square, player: Player): boolean {
     const p = this.pieceAt[square];
     if (p === NO_PIECE) return false;
     return player === WHITE ? p < 6 : p >= 6;
   }
 
-  playerPieceIndexes(player: Player): number[][] {
+  playerPieceIndexes(player: Player): Square[][] {
     const base = player === WHITE ? 0 : 6;
     return this.pieceIndexes.slice(base, base + 6);
   }
