@@ -16,7 +16,7 @@ type ModalType = "history" | "battle" | "new";
 type ModalState = { isOpen: false } | { isOpen: true; type: ModalType };
 type PromotionState =
   | { isHappening: false }
-  | { isHappening: true; square: number };
+  | { isHappening: true; square: Square };
 
 export interface GameStoreState {
   game: Game;
@@ -40,6 +40,17 @@ export interface GameStoreState {
   currIdxOfDisplayed: number;
 
   pastGames: HistoryEntry[];
+
+  // ----- ACTIONS -----
+  playMove: (move: Move) => void;
+  selectSquare: (square: Square) => void;
+  resetGame: (fen?: string, isEngineGame?: boolean) => void;
+  flipBoard: () => void;
+  openModal: (type: Exclude<ModalType, null>) => void;
+  closeModal: () => void;
+  showNextMove: () => void;
+  showPreviousMove: () => void;
+  goToMove: (halfmoveNumber: number) => void;
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
@@ -47,7 +58,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   userSide: WHITE,
 
   // ----- UI -----
-  selectedSquare: null,
+  selectedSquare: NO_SQUARE,
   legalMovesForSelected: [],
 
   modalState: { isOpen: false },
@@ -74,7 +85,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     set({
       game,
-      selectedSquare: null,
+      selectedSquare: NO_SQUARE,
       legalMovesForSelected: [],
       pastPositions: [...pastPositions, game.getSnapshot()],
       currIdxOfDisplayed: pastPositions.length - 1,
@@ -85,7 +96,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const { game } = get();
 
     if (square === NO_SQUARE) {
-      set({ selectedSquare: null, legalMovesForSelected: [] });
+      set({ selectedSquare: NO_SQUARE, legalMovesForSelected: [] });
     }
 
     const moves = game.legalMovesFrom(square);
@@ -96,7 +107,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
   },
 
-  resetGame: (fen?: string, isEngineGame: boolean = false) => {
+  resetGame: (fen?: string, isEngineGame: boolean = false): void => {
     const { game, pastGames } = get();
 
     const gamePGN = game.pgn();
@@ -109,7 +120,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     set({
       game: newGame,
-      selectedSquare: null,
+      selectedSquare: NO_SQUARE,
       legalMovesForSelected: [],
       pastGames: updatedPast,
       pastPositions: [],

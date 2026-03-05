@@ -1,24 +1,24 @@
 import { useCallback, useEffect, useRef } from "react";
+import { useGameStore } from "../../gameStore.ts";
 
 /**
  * Hook that creates an engine worker to make a move.
- *
- * @param {func} onMove - what to do on a move
  */
-export default function useEngineWorker(onMove) {
+export default function useEngineWorker() {
   const workerRef = useRef(null);
+  const playMove = useGameStore((state) => state.playMove);
 
   // Create engine worker
   useEffect(() => {
     const EngineWorker = new URL(
       "../workers/engineWorker.mjs",
-      import.meta.url
+      import.meta.url,
     );
     const w = new Worker(EngineWorker, { type: "module" });
 
     w.onmessage = (e) => {
       const { move } = e.data;
-      onMove(move.from, move.to, move.promotion);
+      playMove(move.from, move.to, move.promotion);
     };
     workerRef.current = w;
 
@@ -28,7 +28,7 @@ export default function useEngineWorker(onMove) {
         e.message,
         e.filename,
         e.lineno,
-        e.colno
+        e.colno,
       );
     };
 
@@ -36,7 +36,7 @@ export default function useEngineWorker(onMove) {
       w.terminate();
       workerRef.current = null;
     };
-  }, [onMove]);
+  }, [playMove]);
 
   // Post function
   const post = useCallback((msg) => {

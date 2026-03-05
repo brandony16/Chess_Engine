@@ -15,10 +15,10 @@ function App(): ReactNode {
   const modalState = useGameStore((state) => state.modalState);
 
   // Handler for chess actions
-  const { processMove, handleSquareClick, handlePromotion } = useChessActions();
+  const { handleSquareClick, handlePromotion } = useChessActions();
 
   // Handler for creating and using an engine worker
-  const { post: postToEngine } = useEngineWorker(processMove);
+  const { post: postToEngine } = useEngineWorker();
 
   // Handles engine moving after the player moves
   useMoveTrigger(postToEngine);
