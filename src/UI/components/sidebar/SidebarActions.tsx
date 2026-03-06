@@ -1,24 +1,24 @@
 import { useGameStore } from "../../gameStore.ts";
-import { ModalTypes } from "../../utilTypes.ts";
 
 import newGame from "../../assets/new.svg";
 import battle from "../../assets/battle.svg";
 import history from "../../assets/history.svg";
-import flipBoard from "../../assets/flip.svg";
+import flipBoardImg from "../../assets/flip.svg";
 import React, { useCallback } from "react";
+import { ModalTypes } from "../../utilTypes.ts";
 
 const SidebarActions = () => {
   const openModal = useGameStore((state) => state.openModal);
-  const flipBoardView = useGameStore((state) => state.flipBoardView);
+  const flipBoard = useGameStore((state) => state.flipBoard);
 
   const openNew = useCallback(() => openModal(ModalTypes.NEW), [openModal]);
   const openBattle = useCallback(
     () => openModal(ModalTypes.BATTLE),
-    [openModal]
+    [openModal],
   );
   const openHistory = useCallback(
     () => openModal(ModalTypes.HISTORY),
-    [openModal]
+    [openModal],
   );
 
   return (
@@ -47,9 +47,9 @@ const SidebarActions = () => {
       <button
         title="Flip board orientation"
         className="flipBoard sidebarIconBtn"
-        onClick={flipBoardView}
+        onClick={flipBoard}
       >
-        <img className="sidebarIcon" src={flipBoard} alt="flip board" />
+        <img className="sidebarIcon" src={flipBoardImg} alt="flip board" />
       </button>
     </div>
   );

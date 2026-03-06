@@ -24,6 +24,7 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../game/chessConstants.ts";
+import type { ModalType } from "./gameStore.ts";
 
 export const EngineTypes = {
   BMV1: "BMV1",
@@ -100,3 +101,9 @@ export const PIECE_NAMES = {
 } as const;
 
 export type PieceChar = keyof typeof PIECE_NAMES;
+
+export const ModalTypes: { [key: string]: ModalType } = {
+  NEW: "new",
+  BATTLE: "battle",
+  HISTORY: "history",
+} as const;

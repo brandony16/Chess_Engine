@@ -1,24 +1,25 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useGameStore } from "../../gameStore.ts";
+import type { EnginePost } from "../workers/engineWorkerTypes.ts";
 
 /**
  * Hook that creates an engine worker to make a move.
  */
 export default function useEngineWorker() {
-  const workerRef = useRef(null);
+  const workerRef = useRef<Worker | null>(null);
   const playMove = useGameStore((state) => state.playMove);
 
   // Create engine worker
   useEffect(() => {
     const EngineWorker = new URL(
-      "../workers/engineWorker.mjs",
+      "../workers/engineWorker.ts",
       import.meta.url,
     );
     const w = new Worker(EngineWorker, { type: "module" });
 
     w.onmessage = (e) => {
       const { move } = e.data;
-      playMove(move.from, move.to, move.promotion);
+      playMove(move);
     };
     workerRef.current = w;
 
@@ -39,7 +40,7 @@ export default function useEngineWorker() {
   }, [playMove]);
 
   // Post function
-  const post = useCallback((msg) => {
+  const post = useCallback((msg: EnginePost) => {
     if (workerRef.current) {
       workerRef.current.postMessage(msg);
     }

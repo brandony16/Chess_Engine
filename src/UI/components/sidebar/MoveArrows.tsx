@@ -6,24 +6,22 @@ import chevronLeft from "../../assets/chevronLeft.svg";
 import chevronRight from "../../assets/chevronRight.svg";
 
 const MoveArrows = () => {
-  const changeViewedMove = useGameStore((state) => state.changeViewedMove);
-
-  const goBack = useCallback(() => changeViewedMove(-1), [changeViewedMove]);
-  const goForward = useCallback(() => changeViewedMove(1), [changeViewedMove]);
+  const nextMove = useGameStore((state) => state.showNextMove);
+  const prevMove = useGameStore((state) => state.showPreviousMove);
 
   return (
     <div className="moveArrows">
       <button
         aria-label="Go back one move"
         className="prevMove sidebarIconBtn moveArrow"
-        onClick={goBack}
+        onClick={prevMove}
       >
         <img className="sidebarIcon" src={chevronLeft} alt="go back one move" />
       </button>
       <button
         aria-label="Go forward one move"
         className="nextMove sidebarIconBtn moveArrow"
-        onClick={goForward}
+        onClick={nextMove}
       >
         <img
           className="sidebarIcon"

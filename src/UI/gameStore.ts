@@ -11,8 +11,8 @@ import {
 import { opponent } from "../game/helpers/opponent.ts";
 import { Snapshot } from "../game/Snapshot.ts";
 
+export type ModalType = "history" | "battle" | "new";
 type HistoryEntry = { pgn: string; engineGame: boolean };
-type ModalType = "history" | "battle" | "new";
 type ModalState = { isOpen: false } | { isOpen: true; type: ModalType };
 type PromotionState =
   | { isHappening: false }

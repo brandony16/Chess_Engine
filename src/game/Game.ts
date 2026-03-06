@@ -1,13 +1,20 @@
 import {
   CHECKMATE,
   DRAW,
+  type EndState,
   type Piece,
   type Player,
+  type Result,
   type Square,
 } from "./chessConstants.ts";
 import type Move from "./moveMaking/move.ts";
 import { Position } from "./Position.ts";
 import { Snapshot } from "./Snapshot.ts";
+
+type GameResult = {
+  winner: Result;
+  method: EndState;
+};
 
 interface GameView {
   readonly sideToMove: Player;
@@ -19,8 +26,7 @@ interface GameView {
   isPlayersPieceAt(square: Square, player: Player): boolean;
   generateLegalMoves(): Move[];
   isOver(): boolean;
-  isCheckmate(): boolean;
-  isDraw(): boolean;
+  result(): GameResult;
   getSnapshot(): Snapshot;
 }
 
@@ -98,12 +104,8 @@ export class Game implements GameView {
     return this.position.gameOver();
   }
 
-  isCheckmate(): boolean {
-    return this.position.endState === CHECKMATE;
-  }
-
-  isDraw(): boolean {
-    throw this.position.result === DRAW;
+  result(): GameResult {
+    return { winner: this.position.result, method: this.position.endState };
   }
 
   getSnapshot(): Snapshot {
