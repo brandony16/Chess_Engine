@@ -10,6 +10,7 @@ import {
 } from "../game/chessConstants.ts";
 import { opponent } from "../game/helpers/opponent.ts";
 import { Snapshot } from "../game/Snapshot.ts";
+import { moveToAlgebraic } from "./generalHelpers.ts";
 
 export type ModalType = "history" | "battle" | "new";
 type HistoryEntry = { pgn: string; engineGame: boolean };
@@ -37,6 +38,7 @@ export interface GameStoreState {
   maxSearchTimeMs: number;
 
   pastPositions: Snapshot[];
+  algebraicMoves: string[];
   currIdxOfDisplayed: number;
 
   pastGames: HistoryEntry[];
@@ -72,21 +74,25 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   maxSearchTimeMs: 5000,
 
   pastPositions: [],
+  algebraicMoves: [],
   currIdxOfDisplayed: -1,
 
   pastGames: [],
 
   // ACTIONS / UPDATER FUNCTIONS
   playMove: (move: Move) => {
-    const { game, pastPositions } = get();
+    const { game, pastPositions, algebraicMoves } = get();
 
     const success = game.playMove(move);
     if (!success) return;
+
+    const algebraic = moveToAlgebraic(move, game.isInCheck(), game.isOver());
 
     set({
       game,
       selectedSquare: NO_SQUARE,
       legalMovesForSelected: [],
+      algebraicMoves: [...algebraicMoves, algebraic],
       pastPositions: [...pastPositions, game.getSnapshot()],
       currIdxOfDisplayed: pastPositions.length - 1,
     });
@@ -124,6 +130,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       legalMovesForSelected: [],
       pastGames: updatedPast,
       pastPositions: [],
+      algebraicMoves: [],
 
       modalState: { isOpen: false },
 

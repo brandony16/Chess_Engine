@@ -1,65 +1,73 @@
-import { buildBitboards } from "../game/fenAndUCI/fenHelpers.ts";
-import type Move from "../game/moveMaking/move.ts";
+import {
+  BLACK,
+  FILE_SYMBOLS,
+  NO_PIECE,
+  PIECE_SYMBOLS,
+  WHITE,
+} from "../game/chessConstants.ts";
+import { getFile, getRank } from "../game/helpers/boardUtils.ts";
+import Move from "../game/moveMaking/move.ts";
+import { isPawn } from "../game/pieceUtils/pieceClassifiers.ts";
 
 /**
  * Turns a move into normal, readable chess notation. Currently does NOT disambiguate,
  * which is when two or more of the same piece can move to the same square.
  */
-// export const moveToReadable = (
-//   bitboards,
-//   from,
-//   to,
-//   isCapture = false,
-//   promotionPiece = null,
-// ) => {
-//   let notation = "";
+export const moveToAlgebraic = (
+  move: Move,
+  oppInCheck?: boolean,
+  oppMated?: boolean,
+) => {
+  let notation = "";
 
-//   const col = to % 8;
-//   const letterCol = COLUMN_SYMBOLS[col];
-//   const row = (to - col) / 8;
-//   const piece = pieceAt[to];
-//   const formattedPiece = PIECE_SYMBOLS[piece];
+  const { from, to } = move;
 
-//   // indexes 0-5 are white pieces, 6-11 are black pieces
-//   const opponent = piece > 5 ? WHITE : BLACK;
+  const rank = getRank(to);
+  const file = getFile(to);
+  const fileSymbol = FILE_SYMBOLS[file];
 
-//   if (formattedPiece === "P" || promotionPiece) {
-//     // Pawns notation omits the p identifier. a3 instead of Pa3, dxe5 instead of pxe5
-//     if (isCapture) {
-//       const fromCol = from % 8;
-//       notation += COLUMN_SYMBOLS[fromCol] + "x";
-//     }
-//     notation += letterCol + (row + 1);
-//   } else if (formattedPiece === "K" && Math.abs(from - to) === 2) {
-//     // Caslting case
-//     if (from - to === 2) {
-//       notation = "O-O-O";
-//     } else {
-//       notation = "O-O";
-//     }
-//   } else {
-//     notation += formattedPiece;
+  const piece = move.piece;
+  const pieceSymbol = PIECE_SYMBOLS[piece];
 
-//     if (isCapture) notation += "x";
+  // Caslting case
+  if (move.castling) {
+    if (from - to === 2) {
+      return "O-O-O";
+    } else {
+      return "O-O";
+    }
+  }
 
-//     notation += letterCol + (row + 1);
-//   }
+  if (isPawn(piece)) {
+    // Pawns notation omits the p identifier. a3 instead of Pa3, dxe5 instead of pxe5
+    if (move.captured !== NO_PIECE) {
+      const fileFrom = getFile(from);
+      notation += FILE_SYMBOLS[fileFrom] + "x";
+    }
+    notation += fileSymbol + (rank + 1); // +1 so rank is not 0-indexed (start at rank 1, not 0)
 
-//   if (promotionPiece) {
-//     notation += "=" + formattedPiece;
-//   }
+    if (move.promotion !== NO_PIECE) {
+      notation += "=" + PIECE_SYMBOLS[move.promotion];
+    }
+  } else {
+    notation += pieceSymbol;
 
-//   if (/* isInCheck(bitboards, opponent) */ opponent) {
-//     if (getAllLegalMoves(bitboards, opponent, null, null).length === 0) {
-//       // Checkmate
-//       notation += "#";
-//       return notation;
-//     }
-//     notation += "+";
-//   }
+    if (move.captured !== NO_PIECE) notation += "x";
 
-//   return notation;
-// };
+    notation += fileSymbol + (rank + 1);
+  }
+
+  if (oppInCheck) {
+    if (oppMated) {
+      // Checkmate
+      notation += "#";
+      return notation;
+    }
+    notation += "+";
+  }
+
+  return notation;
+};
 
 /**
  * Converts an array of moves into a bitboard showing all moves.

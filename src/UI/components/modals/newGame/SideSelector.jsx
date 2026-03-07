@@ -1,8 +1,8 @@
 import PropTypes from "prop-types";
 
-import wK from "../../../assets/pieces/wK.svg";
-import bK from "../../../assets/pieces/bK.svg";
-import random from "../../../assets/random.svg";
+import wK from "../../../../assets/pieces/wK.svg";
+import bK from "../../../../assets/pieces/bK.svg";
+import random from "../../../../assets/random.svg";
 import React from "react";
 
 const SideSelector = ({ value, onChange }) => (

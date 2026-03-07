@@ -258,20 +258,20 @@ export const PIECE_INDEXES = {
   k: BLACK_KING,
 };
 
-export const PIECE_SYMBOLS = {
-  [WHITE_PAWN]: "P",
-  [WHITE_KNIGHT]: "N",
-  [WHITE_BISHOP]: "B",
-  [WHITE_ROOK]: "R",
-  [WHITE_QUEEN]: "Q",
-  [WHITE_KING]: "K",
-  [BLACK_PAWN]: "p",
-  [BLACK_KNIGHT]: "n",
-  [BLACK_BISHOP]: "b",
-  [BLACK_ROOK]: "r",
-  [BLACK_QUEEN]: "q",
-  [BLACK_KING]: "k",
-};
+export const PIECE_SYMBOLS = [
+  "P",
+  "N",
+  "B",
+  "R",
+  "Q",
+  "K",
+  "p",
+  "n",
+  "b",
+  "r",
+  "q",
+  "k",
+];
 
 type PieceChar = keyof typeof PIECE_INDEXES;
 

@@ -25,6 +25,7 @@ interface GameView {
   getPiece(square: Square): Piece;
   isPlayersPieceAt(square: Square, player: Player): boolean;
   generateLegalMoves(): Move[];
+  isInCheck(player?: Player): boolean;
   isOver(): boolean;
   result(): GameResult;
   getSnapshot(): Snapshot;
@@ -98,6 +99,10 @@ export class Game implements GameView {
   legalMovesFrom(square: Square): Move[] {
     const all = this.position.generateLegalMoves();
     return all.filter((move) => move.from === square);
+  }
+
+  isInCheck(player?: Player): boolean {
+    return this.position.isInCheck(player);
   }
 
   isOver(): boolean {
