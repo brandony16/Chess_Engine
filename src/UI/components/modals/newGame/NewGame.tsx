@@ -1,27 +1,29 @@
 import { useCallback, useReducer } from "react";
 
-import { EngineTypes } from "../../../utilTypes.ts";
-import { useGameStore } from "../../../gameStore.ts";
-import { BLACK, WHITE } from "../../../../coreLogic/constants.mjs";
+import { INITIAL_STATE, useGameStore } from "../../../gameStore.ts";
 
 import SideSelector from "./SideSelector.jsx";
 import EngineSelector from "./EngineSelector.jsx";
 
 import "./NewGame.css";
+import { BLACK, WHITE, type Player } from "../../../../game/chessConstants.ts";
 
-const initialState = {
-  userSide: "W",
-  engine: EngineTypes.BMV7,
-  depth: 5,
-  timeLimit: 5000,
+type StateInfo = {
+  userSide: Player | null;
+  engine: string;
+  depth: number;
+  timeLimit: number;
 };
 
-function reducer(state, action) {
+function reducer(
+  state: StateInfo,
+  action: { type: string; field: string; value: any },
+) {
   switch (action.type) {
     case "SET_FIELD":
       return { ...state, [action.field]: action.value };
     case "RESET":
-      return { ...initialState };
+      return { ...INITIAL_STATE };
     default:
       return state;
   }
@@ -31,27 +33,28 @@ const NewGame = () => {
   const resetGame = useGameStore((s) => s.resetGame);
   const closeModal = useGameStore((s) => s.closeModal);
 
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
   const { userSide, engine, depth, timeLimit } = state;
 
   const onEngineChange = useCallback(
-    (newEngine) =>
+    (newEngine: string) =>
       dispatch({ type: "SET_FIELD", field: "engine", value: newEngine }),
-    []
+    [],
   );
 
   const onSideChange = useCallback(
-    (newSide) =>
+    (newSide: Player) =>
       dispatch({ type: "SET_FIELD", field: "userSide", value: newSide }),
-    []
+    [],
   );
 
-  const getSide = useCallback(() => {
-    if (userSide[0] === "W") return WHITE;
+  const getSide = useCallback((): Player => {
+    if (!userSide) {
+      const rand = Math.floor(Math.random() * 2);
+      return rand < 1 ? WHITE : BLACK;
+    }
 
-    if (userSide[0] === "B") return BLACK;
-
-    return Math.floor(Math.random() * 2);
+    return userSide;
   }, [userSide]);
 
   const handleStart = useCallback(() => {

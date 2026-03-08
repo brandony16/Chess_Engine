@@ -13,11 +13,19 @@ import { Snapshot } from "../game/Snapshot.ts";
 import { moveToAlgebraic } from "./generalHelpers.ts";
 
 export type ModalType = "history" | "battle" | "new";
-type HistoryEntry = { pgn: string; engineGame: boolean };
+export type HistoryEntry = { pgn: string; engineGame: boolean };
 type ModalState = { isOpen: false } | { isOpen: true; type: ModalType };
 type PromotionState =
   | { isHappening: false }
   | { isHappening: true; square: Square };
+
+
+export const INITIAL_STATE = {
+  userSide: WHITE,
+  engine: "none",
+  depth: 5,
+  timeLimit: 5000,
+} as const;
 
 export interface GameStoreState {
   game: Game;
@@ -53,11 +61,13 @@ export interface GameStoreState {
   showNextMove: () => void;
   showPreviousMove: () => void;
   goToMove: (halfmoveNumber: number) => void;
+
+  updateShownGame: (entry: HistoryEntry) => void;
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
   game: new Game(),
-  userSide: WHITE,
+  userSide: INITIAL_STATE.userSide,
 
   // ----- UI -----
   selectedSquare: NO_SQUARE,
@@ -69,9 +79,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   promotion: { isHappening: false },
 
   // ----- ENGINE INFO -----
-  selectedEngine: EngineTypes.BMV1,
-  searchDepth: 5,
-  maxSearchTimeMs: 5000,
+  selectedEngine: INITIAL_STATE.engine,
+  searchDepth: INITIAL_STATE.depth,
+  maxSearchTimeMs: INITIAL_STATE.timeLimit,
 
   pastPositions: [],
   algebraicMoves: [],
@@ -194,5 +204,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         currIdxOfDisplayed: halfmoveNumber,
       };
     });
+  },
+
+  updateShownGame: (entry: HistoryEntry) => {
+    // update stuff idk
+    console.log(entry);
   },
 }));
