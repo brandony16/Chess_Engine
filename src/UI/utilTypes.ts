@@ -24,7 +24,6 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../game/chessConstants.ts";
-import type { ModalType } from "./gameStore.ts";
 
 export const EngineTypes = {
   BMV1: "BMV1",
@@ -36,6 +35,8 @@ export const EngineTypes = {
   BMV7: "BMV7",
 } as const;
 
+export type Engine = keyof typeof EngineTypes;
+
 export const engineStrings = [
   "BondMonkeyV1",
   "BondMonkeyV2",
@@ -46,13 +47,17 @@ export const engineStrings = [
   "BondMonkeyV7",
 ] as const;
 
-export const EngineObjects = {
+export const EngineObjects: Record<
+  Engine,
+  { name: string; description: string }
+> = {
   BMV1: { name: "BondMonkey V1", description: "Plays random moves" },
   BMV2: { name: "BondMonkey V2", description: "Basic searching" },
   BMV3: { name: "BondMonkey V3", description: "More efficient searching" },
   BMV4: { name: "BondMonkey V4", description: "Calculates tactics better" },
   BMV5: { name: "BondMonkey V5", description: "Better Evaluation" },
   BMV6: { name: "BondMonkey V6", description: "Values mobility more" },
+  BMV7: { name: "BondMonkey V7", description: "In progress" },
 } as const;
 
 export const nameToType = {

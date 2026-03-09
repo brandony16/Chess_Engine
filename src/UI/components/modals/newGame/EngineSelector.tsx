@@ -1,13 +1,16 @@
-import PropTypes from "prop-types";
 import React from "react";
-
 import { EngineTypes } from "../../../utilTypes.ts";
 
 import EngineOption from "./EngineOption.jsx";
 
+type EngineSelectorProps = {
+  engine: string;
+  onChange: (type: string) => void;
+};
+
 const engineOptions = Object.values(EngineTypes).reverse();
 
-const EngineSelector = ({ engine, onChange }) => {
+const EngineSelector = ({ engine, onChange }: EngineSelectorProps) => {
   return (
     <fieldset className="engine-selector">
       <legend>Choose your opponent</legend>
@@ -23,11 +26,6 @@ const EngineSelector = ({ engine, onChange }) => {
       </div>
     </fieldset>
   );
-};
-
-EngineSelector.propTypes = {
-  engine: PropTypes.string.isRequired,
-  onChange: PropTypes.func.isRequired,
 };
 
 const MemoizedEngineSelector = React.memo(EngineSelector);

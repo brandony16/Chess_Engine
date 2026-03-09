@@ -58,7 +58,7 @@ export interface GameStoreState {
   // ----- ACTIONS -----
   playMove: (move: Move) => void;
   selectSquare: (square: Square) => void;
-  resetGame: (fen?: string, isEngineGame?: boolean) => void;
+  resetGame: (fen?: string, wasEngineGame?: boolean) => void;
   flipBoard: () => void;
   openModal: (type: Exclude<ModalType, null>) => void;
   closeModal: () => void;
@@ -127,14 +127,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
   },
 
-  resetGame: (fen?: string, isEngineGame: boolean = false): void => {
+  resetGame: (fen?: string, wasEngineGame: boolean = false): void => {
     const { game, pastGames, algebraicMoves, userSide } = get();
 
     let updatedPast = pastGames;
     if (game.isOver()) {
       const result = game.result();
       const gamePGN = buildPGN(algebraicMoves, {
-        Event: isEngineGame ? "Engine Game" : "Normal Battle",
+        Event: wasEngineGame ? "Engine Game" : "Normal Battle",
         White: userSide === WHITE ? "User" : "Engine",
         Black: userSide === WHITE ? "Engine" : "User",
         Result:
@@ -144,7 +144,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
               ? "1-0"
               : "0-1",
       });
-      const entry: HistoryEntry = { pgn: gamePGN, engineGame: isEngineGame };
+      const entry: HistoryEntry = { pgn: gamePGN, engineGame: wasEngineGame };
       updatedPast = [...pastGames, entry];
     }
 

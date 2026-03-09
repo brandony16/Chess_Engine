@@ -1,9 +1,15 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-import { EngineObjects } from "../../../utilTypes.ts";
+import { EngineObjects, type Engine } from "../../../utilTypes.ts";
 
-function EngineOption({ type, selected, onSelect }) {
+type EngineOptionProps = {
+  type: Engine,
+  selected: boolean,
+  onSelect: (type: Engine) => void;
+}
+
+function EngineOption({ type, selected, onSelect }: EngineOptionProps) {
   const id = `engine-${type}`;
   return (
     <label

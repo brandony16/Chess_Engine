@@ -8,6 +8,10 @@ import EngineSelector from "./EngineSelector.jsx";
 import "./NewGame.css";
 import { BLACK, WHITE, type Player } from "../../../../game/chessConstants.ts";
 
+
+const START_POS =
+  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+  
 type StateInfo = {
   userSide: Player | null;
   engine: string;
@@ -43,7 +47,7 @@ const NewGame = () => {
   );
 
   const onSideChange = useCallback(
-    (newSide: Player) =>
+    (newSide: Player | null) =>
       dispatch({ type: "SET_FIELD", field: "userSide", value: newSide }),
     [],
   );
@@ -58,13 +62,7 @@ const NewGame = () => {
   }, [userSide]);
 
   const handleStart = useCallback(() => {
-    resetGame({
-      isEngineGame: false,
-      userSide: getSide(),
-      engine: engine,
-      depth: depth,
-      timeLimitMs: timeLimit,
-    });
+    resetGame(START_POS);
   }, [resetGame, getSide, engine, depth, timeLimit]);
 
   return (
@@ -113,7 +111,7 @@ const NewGame = () => {
       </div>
 
       <div className="bottomRowWrap">
-        <SideSelector value={userSide} onChange={onSideChange} />
+        <SideSelector initialValue={userSide} onChange={onSideChange} />
         <div className="modal-actions">
           <button onClick={closeModal} className="btn cancel">
             Cancel
