@@ -1,9 +1,3 @@
-import { computeHash } from "../../zobristHashing.mjs";
-import { clearQTT, clearTT } from "../../transpositionTable.mjs";
-import { CHECKMATE_VALUE } from "../../constants.mjs";
-import { minimax } from "./minimax.mjs";
-import { ENGINE_STATS } from "../../../debugFunctions.ts";
-
 // Root id for transposition table. Helps avoid stale entries
 export let rootId = 0;
 
@@ -29,50 +23,51 @@ export function BMV5(
   maxDepth,
   timeLimit = Infinity
 ) {
-  clearTT(); // Clears transposition table
-  clearQTT();
+  // clearTT(); // Clears transposition table
+  // clearQTT();
 
-  const start = performance.now();
+  // const start = performance.now();
 
-  let bestMove = null;
-  let bestEval = null;
+  // let bestMove = null;
+  // let bestEval = null;
 
-  const epFile = enPassantSquare ? enPassantSquare % 8 : -1;
-  const rootHash = computeHash(bitboards, player, epFile, castlingRights);
+  // const epFile = enPassantSquare ? enPassantSquare % 8 : -1;
+  // const rootHash = computeHash(bitboards, player, epFile, castlingRights);
 
-  const searchStats = structuredClone(ENGINE_STATS);
+  // const searchStats = structuredClone(ENGINE_STATS);
 
-  rootId = 0;
-  for (let depth = 1; depth <= maxDepth; depth++) {
-    const { score, move } = minimax(
-      bitboards,
-      player,
-      castlingRights,
-      enPassantSquare,
-      prevPositions,
-      rootHash,
-      0,
-      depth,
-      -Infinity,
-      Infinity,
-      searchStats
-    );
+  // rootId = 0;
+  // for (let depth = 1; depth <= maxDepth; depth++) {
+  //   const { score, move } = minimax(
+  //     bitboards,
+  //     player,
+  //     castlingRights,
+  //     enPassantSquare,
+  //     prevPositions,
+  //     rootHash,
+  //     0,
+  //     depth,
+  //     -Infinity,
+  //     Infinity,
+  //     searchStats
+  //   );
 
-    if (move !== null) {
-      bestEval = score;
-      bestMove = move;
-    }
+  //   if (move !== null) {
+  //     bestEval = score;
+  //     bestMove = move;
+  //   }
 
-    if (Math.abs(score) > CHECKMATE_VALUE - depth && move) {
-      break;
-    }
+  //   if (Math.abs(score) > CHECKMATE_VALUE - depth && move) {
+  //     break;
+  //   }
 
-    if (performance.now() - start > timeLimit) {
-      break;
-    }
+  //   if (performance.now() - start > timeLimit) {
+  //     break;
+  //   }
 
-    rootId++;
-  }
+  //   rootId++;
+  // }
 
-  return { ...bestMove, bestEval, searchStats };
+  // return { ...bestMove, bestEval, searchStats };
+  return null;
 }

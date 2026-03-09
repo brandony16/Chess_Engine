@@ -1,8 +1,3 @@
-import { computeHash } from "../../zobristHashing.mjs";
-import { CHECKMATE_VALUE } from "../../constants.mjs";
-import { minimax } from "./minimax.mjs";
-import { ENGINE_STATS } from "../../../debugFunctions.ts";
-
 /**
  * Gets the best move in a position based purely off of material.
  * V2: Adds minimax function with alpha-beta pruning and basic move sorting
@@ -25,43 +20,44 @@ export function BMV2(
   maxDepth,
   timeLimit = Infinity
 ) {
-  const start = performance.now();
+  // const start = performance.now();
 
-  let bestMove = null;
-  let bestEval = null;
+  // let bestMove = null;
+  // let bestEval = null;
 
-  const epFile = enPassantSquare ? enPassantSquare % 8 : -1;
-  const rootHash = computeHash(bitboards, player, epFile, castlingRights);
+  // const epFile = enPassantSquare ? enPassantSquare % 8 : -1;
+  // const rootHash = computeHash(bitboards, player, epFile, castlingRights);
 
-  const searchStats = structuredClone(ENGINE_STATS);
+  // const searchStats = structuredClone(ENGINE_STATS);
 
-  for (let depth = 1; depth <= maxDepth; depth++) {
-    const { score, move } = minimax(
-      bitboards,
-      player,
-      castlingRights,
-      enPassantSquare,
-      prevPositions,
-      rootHash,
-      0,
-      depth,
-      -Infinity,
-      Infinity,
-      searchStats
-    );
+  // for (let depth = 1; depth <= maxDepth; depth++) {
+  //   const { score, move } = minimax(
+  //     bitboards,
+  //     player,
+  //     castlingRights,
+  //     enPassantSquare,
+  //     prevPositions,
+  //     rootHash,
+  //     0,
+  //     depth,
+  //     -Infinity,
+  //     Infinity,
+  //     searchStats
+  //   );
 
-    if (move != null) {
-      bestMove = move;
-      bestEval = score;
-    }
+  //   if (move != null) {
+  //     bestMove = move;
+  //     bestEval = score;
+  //   }
 
-    if (Math.abs(score) > CHECKMATE_VALUE - depth && move) {
-      break;
-    }
+  //   if (Math.abs(score) > CHECKMATE_VALUE - depth && move) {
+  //     break;
+  //   }
 
-    if (performance.now() - start > timeLimit) {
-      break;
-    }
-  }
-  return { ...bestMove, bestEval, searchStats };
+  //   if (performance.now() - start > timeLimit) {
+  //     break;
+  //   }
+  // }
+  // return { ...bestMove, bestEval, searchStats };
+  return null;
 }

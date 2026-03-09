@@ -1,7 +1,3 @@
-import { CHECKMATE_VALUE, WHITE } from "../../constants.mjs";
-import { pieceAt } from "../../../game/pieceUtils/pieceGetters.ts";
-import { getAllIndicies } from "../../../game/positionStates/pieceIndexUpdators.ts";
-
 /**
  * Gets the evaluation of the given position. Determines the eval using pure material.
  * Weights are slightly tweaked to be better in this version.

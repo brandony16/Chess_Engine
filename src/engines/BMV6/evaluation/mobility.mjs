@@ -1,14 +1,3 @@
-import { popcount } from "../../../helpers/bbUtils.mjs";
-import { isKing, isPawn } from "../../../helpers/pieceUtils.mjs";
-import {
-  getAllPieces,
-  getPlayerBoard,
-  pieceAt,
-} from "../../../../game/pieceUtils/pieceGetters.ts";
-import { getPlayerIndicies } from "../../../../game/positionStates/pieceIndexUpdators.ts";
-import { attacksOf } from "../../../PieceMasks/individualAttackMasks.mjs";
-import { getMobility } from "./mobilityTables.mjs";
-
 /**
  * Calculates the mobility score for a given player.
  *

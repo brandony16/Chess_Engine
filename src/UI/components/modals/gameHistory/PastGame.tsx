@@ -13,12 +13,21 @@ const PastGame = ({ historyEntry, index }: PastGameProps) => {
   const updateShownGame = useGameStore((state) => state.updateShownGame);
   const closeModal = useGameStore((state) => state.closeModal);
 
+  const result = historyEntry.pgn.trim().split(/\s+/).pop();
+
   const getResultClass = useCallback((entry: HistoryEntry) => {
     if (entry.engineGame) return "engine-game";
-    const text = entry.result.toLowerCase();
-    if (text.charAt(0) === "d") return "Draw";
-    if (text.charAt(0) === playerMap[game.userSide]) return "Win";
-    return "Loss";
+
+    if (result === "1/2-1/2") return "draw";
+
+    if (
+      (result === "1-0" && entry.white === "user") ||
+      (result === "0-1" && entry.black === "user")
+    ) {
+      return "win";
+    }
+
+    return "loss";
   }, []);
 
   const handleGameSelect = useCallback(
@@ -33,11 +42,15 @@ const PastGame = ({ historyEntry, index }: PastGameProps) => {
     <div className="game-card" onClick={() => handleGameSelect(historyEntry)}>
       <div className="game-info">
         <p className="game-title">Game {index + 1}</p>
-        <p className={`game-result ${getResultClass(historyEntry)}`}>{something.result}</p>
+        <p className={`game-result ${getResultClass(historyEntry)}`}>
+          {result}
+        </p>
       </div>
 
       <div className="game-meta">
-        <p className="game-moves">Moves: {Math.ceil(getthemoves.moves.length / 2)}</p>
+        <p className="game-moves">
+          Moves: {Math.ceil(historyEntry.plyCount / 2)}
+        </p>
         {historyEntry.engineGame ? (
           <span className="engine-flag">Engine Game</span>
         ) : (
@@ -47,6 +60,5 @@ const PastGame = ({ historyEntry, index }: PastGameProps) => {
     </div>
   );
 };
-
 
 export default PastGame;

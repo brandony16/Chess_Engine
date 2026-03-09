@@ -1,5 +1,3 @@
-import { getAllLegalMoves } from "../../game/moveGen/moveGeneration.ts";
-
 /**
  * Gets the "best" move in the given position. This version simply selects a random move.
  *
@@ -23,16 +21,18 @@ export const BMV1 = (
   maxDepth = 0,
   timeLimit = Infinity
 ) => {
-  const moves = getAllLegalMoves(
-    bitboards,
-    player,
-    castlingRights,
-    enPassantSquare
-  );
+  // const moves = getAllLegalMoves(
+  //   bitboards,
+  //   player,
+  //   castlingRights,
+  //   enPassantSquare
+  // );
 
-  const searchStats = { nodes: 0 }; // No nodes are searched in this version
+  // const searchStats = { nodes: 0 }; // No nodes are searched in this version
 
-  const randMove = moves[Math.floor(Math.random() * moves.length)];
+  // const randMove = moves[Math.floor(Math.random() * moves.length)];
 
-  return { ...randMove, searchStats };
+  // return { ...randMove, searchStats };
+
+  return null;
 };

@@ -35,7 +35,7 @@ export type CellEntry = {
 
 // Creates the board out of Cells
 const Board = ({ onSquareClick }: BoardProps) => {
-  const boardRef = useRef(null);
+  const boardRef = useRef<HTMLDivElement | null>(null);
 
   const boardPerspective = useGameStore((state) => state.boardPerspective);
   const displayed = useGameStore(getShownMove);

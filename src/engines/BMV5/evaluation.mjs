@@ -1,8 +1,3 @@
-import { CHECKMATE_VALUE, WHITE } from "../../constants.mjs";
-import { pieceAt } from "../../../game/pieceUtils/pieceGetters.ts";
-import { getAllIndicies } from "../../../game/positionStates/pieceIndexUpdators.ts";
-import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
-
 /**
  * Gets the evaluation of the given position.
  * V5: Adds piece sqaure tables (PSQT) for improved evaluation and positioning.

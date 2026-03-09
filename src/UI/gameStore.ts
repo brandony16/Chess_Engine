@@ -1,14 +1,12 @@
 import { create } from "zustand";
-import { EngineTypes } from "./utilTypes.ts";
+import { type Engine } from "./utilTypes.ts";
 import type Move from "../game/moveMaking/move.ts";
 import { Game } from "../game/Game.ts";
 import {
-  BLACK_WIN,
+  BLACK,
   DRAW,
-  IN_PROGRESS,
   NO_SQUARE,
   WHITE,
-  WHITE_WIN,
   type Player,
   type Square,
 } from "../game/chessConstants.ts";
@@ -18,15 +16,22 @@ import { moveToAlgebraic } from "./generalHelpers.ts";
 import { buildPGN } from "../game/fenAndUCI/pgn.ts";
 
 export type ModalType = "history" | "battle" | "new";
-export type HistoryEntry = { pgn: string; engineGame: boolean };
+export type HistoryEntry = {
+  pgn: string;
+  engineGame: boolean;
+  white: Engine | "user";
+  black: Engine | "user";
+  plyCount: number;
+};
 type ModalState = { isOpen: false } | { isOpen: true; type: ModalType };
 type PromotionState =
   | { isHappening: false }
   | { isHappening: true; square: Square };
 
 export const INITIAL_STATE = {
+  fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   userSide: WHITE,
-  engine: "none",
+  engine: "BMV1",
   depth: 5,
   timeLimit: 5000,
 } as const;
@@ -45,7 +50,7 @@ export interface GameStoreState {
   promotion: PromotionState;
 
   // ----- ENGINE INFO -----
-  selectedEngine: string;
+  selectedEngine: Engine;
   searchDepth: number;
   maxSearchTimeMs: number;
 
@@ -69,161 +74,179 @@ export interface GameStoreState {
   updateShownGame: (entry: HistoryEntry) => void;
 }
 
-export const useGameStore = create<GameStoreState>((set, get) => ({
-  game: new Game(),
-  userSide: INITIAL_STATE.userSide,
+export const useGameStore = create<GameStoreState>((set, get) => {
+  const game = new Game();
 
-  // ----- UI -----
-  selectedSquare: NO_SQUARE,
-  legalMovesForSelected: [],
+  return {
+    game: game,
+    userSide: INITIAL_STATE.userSide,
 
-  modalState: { isOpen: false },
-  boardPerspective: WHITE,
+    // ----- UI -----
+    selectedSquare: NO_SQUARE,
+    legalMovesForSelected: [],
 
-  promotion: { isHappening: false },
+    modalState: { isOpen: false },
+    boardPerspective: WHITE,
 
-  // ----- ENGINE INFO -----
-  selectedEngine: INITIAL_STATE.engine,
-  searchDepth: INITIAL_STATE.depth,
-  maxSearchTimeMs: INITIAL_STATE.timeLimit,
+    promotion: { isHappening: false },
 
-  pastPositions: [],
-  algebraicMoves: [],
-  currIdxOfDisplayed: -1,
+    // ----- ENGINE INFO -----
+    selectedEngine: INITIAL_STATE.engine,
+    searchDepth: INITIAL_STATE.depth,
+    maxSearchTimeMs: INITIAL_STATE.timeLimit,
 
-  pastGames: [],
+    pastPositions: [game.getSnapshot()],
+    algebraicMoves: [],
+    currIdxOfDisplayed: 0,
 
-  // ACTIONS / UPDATER FUNCTIONS
-  playMove: (move: Move) => {
-    const { game, pastPositions, algebraicMoves } = get();
+    pastGames: [],
 
-    const success = game.playMove(move);
-    if (!success) return;
+    // ACTIONS / UPDATER FUNCTIONS
+    playMove: (move: Move) => {
+      const { game, pastPositions, algebraicMoves } = get();
 
-    const algebraic = moveToAlgebraic(move, game.isInCheck(), game.isOver());
+      const success = game.playMove(move);
+      if (!success) return;
 
-    set({
-      game,
-      selectedSquare: NO_SQUARE,
-      legalMovesForSelected: [],
-      algebraicMoves: [...algebraicMoves, algebraic],
-      pastPositions: [...pastPositions, game.getSnapshot()],
-      currIdxOfDisplayed: pastPositions.length - 1,
-    });
-  },
+      const algebraic = moveToAlgebraic(move, game.isInCheck(), game.isOver());
 
-  selectSquare: (square: Square) => {
-    const { game } = get();
-
-    if (square === NO_SQUARE) {
-      set({ selectedSquare: NO_SQUARE, legalMovesForSelected: [] });
-    }
-
-    const moves = game.legalMovesFrom(square);
-
-    set({
-      selectedSquare: square,
-      legalMovesForSelected: moves,
-    });
-  },
-
-  resetGame: (fen?: string, wasEngineGame: boolean = false): void => {
-    const { game, pastGames, algebraicMoves, userSide } = get();
-
-    let updatedPast = pastGames;
-    if (game.isOver()) {
-      const result = game.result();
-      const gamePGN = buildPGN(algebraicMoves, {
-        Event: wasEngineGame ? "Engine Game" : "Normal Battle",
-        White: userSide === WHITE ? "User" : "Engine",
-        Black: userSide === WHITE ? "Engine" : "User",
-        Result:
-          result.winner === DRAW
-            ? "1/2-1/2"
-            : result.winner === WHITE
-              ? "1-0"
-              : "0-1",
+      set({
+        game,
+        selectedSquare: NO_SQUARE,
+        legalMovesForSelected: [],
+        algebraicMoves: [...algebraicMoves, algebraic],
+        pastPositions: [...pastPositions, game.getSnapshot()],
+        currIdxOfDisplayed: pastPositions.length,
       });
-      const entry: HistoryEntry = { pgn: gamePGN, engineGame: wasEngineGame };
-      updatedPast = [...pastGames, entry];
-    }
+    },
 
-    const newGame = new Game(fen);
+    selectSquare: (square: Square) => {
+      const { game } = get();
 
-    set({
-      game: newGame,
-      selectedSquare: NO_SQUARE,
-      legalMovesForSelected: [],
-      pastGames: updatedPast,
-      pastPositions: [],
-      algebraicMoves: [],
-
-      modalState: { isOpen: false },
-
-      currIdxOfDisplayed: -1,
-    });
-  },
-
-  flipBoard: () => {
-    set((state) => ({
-      boardPerspective: opponent(state.boardPerspective),
-    }));
-  },
-
-  openModal: (type: Exclude<ModalType, null>) => {
-    set({
-      modalState: { isOpen: true, type },
-    });
-  },
-
-  closeModal: () => {
-    set({
-      modalState: { isOpen: false },
-    });
-  },
-
-  showNextMove: () => {
-    set((state) => {
-      if (state.currIdxOfDisplayed === state.pastPositions.length - 1) {
-        return state;
+      if (square === NO_SQUARE) {
+        set({ selectedSquare: NO_SQUARE, legalMovesForSelected: [] });
       }
 
-      const newIdx = state.currIdxOfDisplayed + 1;
+      const moves = game.legalMovesFrom(square);
 
-      return {
-        currIdxOfDisplayed: newIdx,
-      };
-    });
-  },
+      set({
+        selectedSquare: square,
+        legalMovesForSelected: moves,
+      });
+    },
 
-  showPreviousMove: () => {
-    set((state) => {
-      if (state.currIdxOfDisplayed === 0) {
-        return state;
+    resetGame: (fen?: string, wasEngineGame: boolean = false): void => {
+      const { game, pastGames, algebraicMoves, userSide, selectedEngine } =
+        get();
+
+      let updatedPast = pastGames;
+      if (game.isOver()) {
+        const result = game.result();
+
+        const whiteSide = userSide === WHITE ? "user" : selectedEngine;
+        const blackSide = userSide === BLACK ? "user" : selectedEngine;
+
+        const gamePGN = buildPGN(algebraicMoves, {
+          Event: wasEngineGame ? "Engine Game" : "Normal Battle",
+          White: whiteSide,
+          Black: blackSide,
+          Result:
+            result.winner === DRAW
+              ? "1/2-1/2"
+              : result.winner === WHITE
+                ? "1-0"
+                : "0-1",
+        });
+        const entry: HistoryEntry = {
+          pgn: gamePGN,
+          engineGame: wasEngineGame,
+          white: whiteSide,
+          black: blackSide,
+          plyCount: algebraicMoves.length,
+        };
+        updatedPast = [...pastGames, entry];
       }
 
-      const newIdx = state.currIdxOfDisplayed - 1;
+      const newGame = new Game(fen);
 
-      return {
-        currIdxOfDisplayed: newIdx,
-      };
-    });
-  },
+      set({
+        game: newGame,
+        selectedSquare: NO_SQUARE,
+        legalMovesForSelected: [],
+        pastGames: updatedPast,
+        pastPositions: [],
+        algebraicMoves: [],
 
-  goToMove: (halfmoveNumber: number) => {
-    set((state) => {
-      if (halfmoveNumber < 0 || halfmoveNumber >= state.pastPositions.length) {
-        throw new Error(`Invalid jump to halfmove ${halfmoveNumber}`);
-      }
+        modalState: { isOpen: false },
 
-      return {
-        currIdxOfDisplayed: halfmoveNumber,
-      };
-    });
-  },
+        currIdxOfDisplayed: -1,
+      });
+    },
 
-  updateShownGame: (entry: HistoryEntry) => {
-    // update stuff idk
-    console.log(entry);
-  },
-}));
+    flipBoard: () => {
+      set((state) => ({
+        boardPerspective: opponent(state.boardPerspective),
+      }));
+    },
+
+    openModal: (type: Exclude<ModalType, null>) => {
+      set({
+        modalState: { isOpen: true, type },
+      });
+    },
+
+    closeModal: () => {
+      set({
+        modalState: { isOpen: false },
+      });
+    },
+
+    showNextMove: () => {
+      set((state) => {
+        if (state.currIdxOfDisplayed === state.pastPositions.length - 1) {
+          return state;
+        }
+
+        const newIdx = state.currIdxOfDisplayed + 1;
+
+        return {
+          currIdxOfDisplayed: newIdx,
+        };
+      });
+    },
+
+    showPreviousMove: () => {
+      set((state) => {
+        if (state.currIdxOfDisplayed === 0) {
+          return state;
+        }
+
+        const newIdx = state.currIdxOfDisplayed - 1;
+
+        return {
+          currIdxOfDisplayed: newIdx,
+        };
+      });
+    },
+
+    goToMove: (halfmoveNumber: number) => {
+      set((state) => {
+        if (
+          halfmoveNumber < 0 ||
+          halfmoveNumber >= state.pastPositions.length
+        ) {
+          throw new Error(`Invalid jump to halfmove ${halfmoveNumber}`);
+        }
+
+        return {
+          currIdxOfDisplayed: halfmoveNumber,
+        };
+      });
+    },
+
+    updateShownGame: (entry: HistoryEntry) => {
+      // update stuff idk
+      console.log(entry);
+    },
+  };
+});

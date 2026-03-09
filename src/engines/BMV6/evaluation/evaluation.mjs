@@ -1,9 +1,3 @@
-import { BLACK, CHECKMATE_VALUE, WHITE } from "../../../constants.mjs";
-import { pieceAt } from "../../../../game/pieceUtils/pieceGetters.ts";
-import { getAllIndicies } from "../../../../game/positionStates/pieceIndexUpdators.ts";
-import { calculateMobility } from "./mobility.mjs";
-import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.mjs";
-
 /**
  * Gets the evaluation of the given position relative to the passed player.
  * Positive if winning, negative if losing.

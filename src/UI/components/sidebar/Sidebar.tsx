@@ -18,17 +18,18 @@ import {
 const Sidebar = () => {
   // States
   const game = useGameStore((state) => state.game);
+  const sideToMove = useGameStore((state) => state.game.sideToMove);
 
   const turnText = useMemo(
-    () => (game.sideToMove === WHITE ? "White's Turn" : "Black's Turn"),
-    [game],
+    () => (sideToMove === WHITE ? "White's Turn" : "Black's Turn"),
+    [sideToMove],
   );
 
   const endText = useMemo((): string => {
     const res = game.result();
 
     if (res.winner === IN_PROGRESS) {
-      throw new Error(`End text called when game is not over`);
+      return "";
     }
 
     if (res.winner === DRAW) {

@@ -1,12 +1,3 @@
-import { updateCastlingRights } from "../../moveMaking/castleMoveLogic.mjs";
-import { makeMove, unMakeMove } from "../../moveMaking/makeMoveLogic.mjs";
-import { updateHash } from "../../zobristHashing.mjs";
-import { checkGameOver } from "../../../game/positionStates/gameOverLogic.ts";
-import { getNewEnPassant, isInCheck } from "../../../game/bbChessLogic.mjs";
-import { BLACK, WEIGHTS, WHITE } from "../../constants.mjs";
-import { evaluate } from "./evaluation.mjs";
-import { getAllLegalMoves } from "../../../game/moveGen/moveGeneration.ts";
-
 /**
  * A minimax function that recursively finds the evaluation of the function.
  * This version implements minimax with alpha beta pruning and basic move sorting.

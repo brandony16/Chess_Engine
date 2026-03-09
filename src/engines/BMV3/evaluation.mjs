@@ -1,7 +1,3 @@
-import { CHECKMATE_VALUE, WEIGHTS, WHITE } from "../../constants.mjs";
-import { pieceAt } from "../../../game/pieceUtils/pieceGetters.ts";
-import { getAllIndicies } from "../../../game/positionStates/pieceIndexUpdators.ts";
-
 /**
  * Gets the evaluation of the given position based purely off of the material in the position.
  * @param {number} player - the opposite player. If black plays checkmate, this is white.

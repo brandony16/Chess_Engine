@@ -21,15 +21,6 @@
  *  };
  */
 
-import {
-  isBishop,
-  isKing,
-  isKnight,
-  isPawn,
-  isQueen,
-  isRook,
-} from "../../../helpers/pieceUtils.mjs";
-
 // Knight has at most 8 moves
 const KNIGHT_MOBILITY = [-75, -56, -9, -2, 6, 15, 22, 30, 36];
 
