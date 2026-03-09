@@ -3,14 +3,19 @@ import { EngineTypes } from "./utilTypes.ts";
 import type Move from "../game/moveMaking/move.ts";
 import { Game } from "../game/Game.ts";
 import {
+  BLACK_WIN,
+  DRAW,
+  IN_PROGRESS,
   NO_SQUARE,
   WHITE,
+  WHITE_WIN,
   type Player,
   type Square,
 } from "../game/chessConstants.ts";
 import { opponent } from "../game/helpers/opponent.ts";
 import { Snapshot } from "../game/Snapshot.ts";
 import { moveToAlgebraic } from "./generalHelpers.ts";
+import { buildPGN } from "../game/fenAndUCI/pgn.ts";
 
 export type ModalType = "history" | "battle" | "new";
 export type HistoryEntry = { pgn: string; engineGame: boolean };
@@ -18,7 +23,6 @@ type ModalState = { isOpen: false } | { isOpen: true; type: ModalType };
 type PromotionState =
   | { isHappening: false }
   | { isHappening: true; square: Square };
-
 
 export const INITIAL_STATE = {
   userSide: WHITE,
@@ -124,13 +128,25 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   resetGame: (fen?: string, isEngineGame: boolean = false): void => {
-    const { game, pastGames } = get();
+    const { game, pastGames, algebraicMoves, userSide } = get();
 
-    const gamePGN = game.pgn();
-    const entry: HistoryEntry = { pgn: gamePGN, engineGame: isEngineGame };
-
-    // only add to history if the game is over
-    const updatedPast = game.isOver() ? [...pastGames, entry] : pastGames;
+    let updatedPast = pastGames;
+    if (game.isOver()) {
+      const result = game.result();
+      const gamePGN = buildPGN(algebraicMoves, {
+        Event: isEngineGame ? "Engine Game" : "Normal Battle",
+        White: userSide === WHITE ? "User" : "Engine",
+        Black: userSide === WHITE ? "Engine" : "User",
+        Result:
+          result.winner === DRAW
+            ? "1/2-1/2"
+            : result.winner === WHITE
+              ? "1-0"
+              : "0-1",
+      });
+      const entry: HistoryEntry = { pgn: gamePGN, engineGame: isEngineGame };
+      updatedPast = [...pastGames, entry];
+    }
 
     const newGame = new Game(fen);
 

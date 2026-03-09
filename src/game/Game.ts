@@ -71,14 +71,6 @@ export class Game implements GameView {
     return this.position.getFen();
   }
 
-  pgn(): string {
-    if (!this.position.gameOver()) {
-      return "";
-    }
-
-    return this.position.getPGN();
-  }
-
   loadFen(fen: string) {
     this.position.loadFen(fen);
   }

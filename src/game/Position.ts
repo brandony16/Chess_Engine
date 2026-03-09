@@ -559,11 +559,7 @@ export class Position {
 
     this.initCurrentPosition();
   }
-
-  getPGN(): string {
-    return "";
-  }
-
+  
   validate(): boolean {
     // ----- Recompute Occupancy from Bitboards -----
     let union = 0n;
