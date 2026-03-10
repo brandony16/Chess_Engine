@@ -1,5 +1,5 @@
 import { EngineTypes } from "../../utilTypes.ts";
-import { BMV1 } from "../../../engines/BondMonkeyV1.mjs";
+import { BMV1 } from "../../../engines/old/BondMonkeyV1.mjs";
 import { BMV2 } from "../../../engines/BMV2/BondMonkeyV2.mjs";
 import { BMV3 } from "../../../engines/BMV3/BondMonkeyV3.mjs";
 import { BMV4 } from "../../../engines/BMV4/BondMonkeyV4.mjs";

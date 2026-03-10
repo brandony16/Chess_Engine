@@ -1,36 +1,19 @@
 import { getNewEnPassant } from "../../game/bbChessLogic.mjs";
-import { BLACK_PAWN, WHITE_PAWN } from "../../../coreLogic/constants.mjs";
+import { BLACK_PAWN, WHITE_PAWN } from "../coreLogic/constants.mjs";
 import {
   getOpeningMoves,
   squareToIndex,
-} from "../../../game/fenAndUCI/FENandUCIHelpers.ts";
-import { checkGameOver } from "../../../game/positionStates/gameOverLogic.ts";
-import { moveToReadable } from "../../generalHelpers.ts";
+} from "../../../engines/FENandUCIHelpers.ts";
+import { checkGameOver } from "../game/positionStates/gameOverLogic.ts";
+import { moveToReadable } from "../UI/generalHelpers.ts";
 import { makeMove } from "../../coreLogic/moveMaking/makeMoveLogic.mjs";
-import Move from "../../../game/moveMaking/move.ts";
-import { pieceAt } from "../../../game/pieceUtils/pieceGetters.ts";
+import Move from "../game/moveMaking/move.ts";
+import { pieceAt } from "../game/pieceUtils/pieceGetters.ts";
 import { computeHash } from "../../coreLogic/zobristHashing.mjs";
-import { useGameStore } from "../../gameStore.ts";
-import { engineRegistry } from "./engineRegistry.mjs";
+import { useGameStore } from "../UI/gameStore.ts";
+import { engineRegistry } from "../UI/components/workers/engineRegistry.mjs";
 import { isKing } from "../../coreLogic/helpers/pieceUtils";
 
-/**
- * Plays a random 4 move (8 ply) opening
- */
-export const playRandomOpening = async (moves = null) => {
-  // Fetches an 8ply opening from openings.json
-  if (!moves) {
-    moves = await getOpeningMoves();
-  }
-
-  for (const uciMove of moves) {
-    const from = squareToIndex(uciMove.slice(0, 2));
-    const to = squareToIndex(uciMove.slice(2, 4));
-    const promotion = null; // Cant have a promotion in 4 moves
-
-    processMove(from, to, promotion);
-  }
-};
 
 /**
  * Makes a move with the given engine

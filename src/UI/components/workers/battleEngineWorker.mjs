@@ -1,6 +1,6 @@
-import { getOpeningMoves } from "../../../game/fenAndUCI/FENandUCIHelpers.ts";
+import { getOpeningMoves } from "../../../engines/FENandUCIHelpers.ts";
 import { useGameStore } from "../../gameStore.ts";
-import { makeEngineMove, playRandomOpening } from "./engineFuncs.mjs";
+import { makeEngineMove, playRandomOpening } from "../../../engines/engineFuncs.mjs";
 
 self.onmessage = async (e) => {
   const { engine1, eng1Depth, engine2, eng2Depth, games } = e.data;

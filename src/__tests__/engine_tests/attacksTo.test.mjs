@@ -1,4 +1,4 @@
-import { getFENData } from "../../game/fenAndUCI/FENandUCIHelpers.ts";
+import { getFENData } from "../../engines/FENandUCIHelpers.ts";
 import {
   getAllPieces,
   initializePieceAtArray,
