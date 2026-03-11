@@ -1,9 +1,5 @@
 import { getNewEnPassant } from "../../game/bbChessLogic.mjs";
 import { BLACK_PAWN, WHITE_PAWN } from "../coreLogic/constants.mjs";
-import {
-  getOpeningMoves,
-  squareToIndex,
-} from "../../../engines/FENandUCIHelpers.ts";
 import { checkGameOver } from "../game/positionStates/gameOverLogic.ts";
 import { moveToReadable } from "../UI/generalHelpers.ts";
 import { makeMove } from "../../coreLogic/moveMaking/makeMoveLogic.mjs";
