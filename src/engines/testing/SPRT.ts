@@ -1,12 +1,12 @@
 import { DRAW, WHITE_WIN, type Result } from "../../game/chessConstants.ts";
 import { Position } from "../../game/Position.ts";
-import type { Engine } from "./fullMatches.ts";
+import type { Engine } from "../Engine.ts";
 import {
   fetchOpenings,
   getRandomOpening,
   playOpeningMoves,
 } from "./openings.ts";
-import { mulberry32 } from "./random.ts";
+import { mulberry32 } from "../../random.ts";
 
 type Stats = {
   wins: number;
@@ -80,7 +80,7 @@ export const sprt = async (
     );
 
     llr = updateLLR(llr, result1, engine1, engine1);
-    updateStats(stats, result1, engine1, engine2);
+    updateStats(stats, result1, engine1, engine2, engine1);
 
     if (llr >= BOUNDS.upper) return buildResult("ACCEPTED", stats);
     if (llr <= BOUNDS.lower) return buildResult("REJECTED", stats);
@@ -93,7 +93,7 @@ export const sprt = async (
     );
 
     llr = updateLLR(llr, result2, engine2, engine1);
-    updateStats(stats, result2, engine2, engine1);
+    updateStats(stats, result2, engine2, engine1, engine1);
 
     if (llr >= BOUNDS.upper) return buildResult("ACCEPTED", stats);
     if (llr <= BOUNDS.lower) return buildResult("REJECTED", stats);
@@ -176,6 +176,7 @@ function updateStats(
   result: Result,
   white: Engine,
   black: Engine,
+  engine1: Engine,
 ) {
   if (result === DRAW) {
     stats.draws++;
@@ -184,6 +185,6 @@ function updateStats(
 
   const winner = result === WHITE_WIN ? white : black;
 
-  if (winner.name === "engine1") stats.wins++;
+  if (winner === engine1) stats.wins++;
   else stats.losses++;
 }

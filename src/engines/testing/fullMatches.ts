@@ -1,14 +1,12 @@
 import { DRAW, WHITE_WIN, type Result } from "../../game/chessConstants.ts";
-import { uciToMove } from "../../game/fenAndUCI/uciHelpers.ts";
-import type Move from "../../game/moveMaking/move.ts";
 import { Position } from "../../game/Position.ts";
-import { fetchOpenings, getRandomOpening, playOpeningMoves } from "./openings.ts";
-import { mulberry32 } from "./random.ts";
-
-export type Engine = {
-  name: string;
-  search(pos: Position, maxTimeMs: number): Move;
-};
+import type { Engine } from "../Engine.ts";
+import {
+  fetchOpenings,
+  getRandomOpening,
+  playOpeningMoves,
+} from "./openings.ts";
+import { mulberry32 } from "../../random.ts";
 
 type MatchResult = {
   games: number;
