@@ -468,8 +468,20 @@ export class Position {
   }
 
   hasLegalMove(player: Player = this.sideToMove): boolean {
-    const moves = this.generateLegalMoves(player);
-    return moves.length !== 0;
+    const movingSide = player;
+    const moves = this.generatePseudoLegalMoves(movingSide);
+    for (const move of moves) {
+      this.makeMove(move);
+
+      if (!this.isInCheck(movingSide)) {
+        this.unmakeMove();
+        return true;
+      }
+
+      this.unmakeMove();
+    }
+
+    return false;
   }
 
   checkGameOver() {
@@ -559,7 +571,7 @@ export class Position {
 
     this.initCurrentPosition();
   }
-  
+
   validate(): boolean {
     // ----- Recompute Occupancy from Bitboards -----
     let union = 0n;

@@ -48,6 +48,10 @@ export const runMatch = async (
   };
 
   for (let i = 0; i < numGames; i += 2) {
+    if (i % 10 === 0) {
+      console.log(`Game ${i} started`);
+    }
+    
     const gameSeed = Math.floor(rng() * 1e9);
     const openingMoves = await getRandomOpening(openings, gameSeed);
 

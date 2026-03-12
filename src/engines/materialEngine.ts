@@ -1,6 +1,6 @@
 import type Move from "../game/moveMaking/move.ts";
-import type { Engine } from "./Engine.ts";
 import { Position } from "../game/Position.ts";
+import type { Engine } from "./Engine.ts";
 import { evaluateMaterial } from "./evaluation/materialEvaluation.ts";
 
 export function createMaterialEngine(): Engine {

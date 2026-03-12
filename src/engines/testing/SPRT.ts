@@ -42,6 +42,8 @@ const BOUNDS: sprtBounds = {
   upper: Math.log((1 - BETA) / ALPHA),
 };
 
+const MAX_GAMES = 1000;
+
 export const sprt = async (
   engine1: Engine,
   engine2: Engine,
@@ -67,7 +69,8 @@ export const sprt = async (
   };
 
   let llr = 0;
-  while (true) {
+  let games = 0;
+  while (games < MAX_GAMES) {
     const gameSeed = Math.floor(rng() * 1e9);
     const openingMoves = await getRandomOpening(openings, gameSeed);
 
@@ -97,7 +100,11 @@ export const sprt = async (
 
     if (llr >= BOUNDS.upper) return buildResult("ACCEPTED", stats);
     if (llr <= BOUNDS.lower) return buildResult("REJECTED", stats);
+
+    games += 2;
   }
+
+  return buildResult("INCONCLUSIVE", stats);
 };
 
 async function playSingleGame(
