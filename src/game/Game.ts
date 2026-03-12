@@ -7,7 +7,7 @@ import {
   type Result,
   type Square,
 } from "./chessConstants.ts";
-import type Move from "./moveMaking/move.ts";
+import { moveFrom, type Move } from "./moveMaking/move.ts";
 import { Position } from "./Position.ts";
 import { Snapshot } from "./Snapshot.ts";
 
@@ -24,7 +24,7 @@ interface GameView {
   loadFen(fen: string): void;
   getPiece(square: Square): Piece;
   isPlayersPieceAt(square: Square, player: Player): boolean;
-  generateLegalMoves(): Move[];
+  generateLegalMoves(): Uint32Array;
   isInCheck(player?: Player): boolean;
   isOver(): boolean;
   result(): GameResult;
@@ -49,8 +49,16 @@ export class Game implements GameView {
     if (this.position.gameOver()) {
       return false;
     }
-    const legal = this.position.generateLegalMoves();
-    const isLegal = legal.some((m) => m.equals(move));
+    const legalCount = this.position.generateLegalMoves();
+    let isLegal = false;
+    for (let i = 0; i < legalCount; i++) {
+      const m = this.position.moveBuffer[i];
+      if (move === m) {
+        isLegal = true;
+        break;
+      }
+    }
+
     if (!isLegal) return false;
 
     this.position.makeMove(move);
@@ -84,13 +92,27 @@ export class Game implements GameView {
     return (mask & this.position.playerOcc[player]) !== 0n;
   }
 
-  generateLegalMoves(): Move[] {
-    return this.position.generateLegalMoves();
+  generateLegalMoves(): Uint32Array {
+    const numLegal = this.position.generateLegalMoves();
+    const arr = new Uint32Array(numLegal);
+    for (let i = 0; i < numLegal; i++) {
+      arr[i] = this.position.moveBuffer[i];
+    }
+
+    return arr;
   }
 
   legalMovesFrom(square: Square): Move[] {
-    const all = this.position.generateLegalMoves();
-    return all.filter((move) => move.from === square);
+    const moves: Move[] = [];
+    const all = this.generateLegalMoves();
+
+    for (const move of all) {
+      if (moveFrom(move) === square) {
+        moves.push(move);
+      }
+    }
+
+    return moves;
   }
 
   isInCheck(player?: Player): boolean {

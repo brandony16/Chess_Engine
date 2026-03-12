@@ -39,9 +39,9 @@ describe("GetAllLegalMoves", () => {
       const pos = new Position();
       pos.loadFen(fen);
 
-      const moves = pos.generateLegalMoves();
+      const moveCount = pos.generateLegalMoves();
 
-      expect(moves.length).toBe(expectedCount);
+      expect(moveCount).toBe(expectedCount);
     },
   );
 });

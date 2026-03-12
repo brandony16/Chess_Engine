@@ -10,21 +10,24 @@ import {
   type Square,
 } from "../chessConstants.ts";
 import { getFile, getRank } from "../helpers/boardUtils.ts";
-import type Move from "../moveMaking/move.ts";
+import {
+  moveFrom,
+  movePromotion,
+  moveTo,
+  type Move,
+} from "../moveMaking/move.ts";
 import type { Position } from "../Position.ts";
 import { isAlgebraicSquare } from "./fenHelpers.ts";
 
 /**
  * Converts a move object into UCI notation
- * @param {Move} move - the move
- * @returns {string} - the move in uci form
  */
 export function moveToUCI(move: Move): string {
-  const from = indexToSquare(move.from);
-  const to = indexToSquare(move.to);
+  const from = indexToSquare(moveFrom(move));
+  const to = indexToSquare(moveTo(move));
   const promo =
-    move.promotion !== NO_PIECE
-      ? PIECE_SYMBOLS[move.promotion].toLowerCase()
+    movePromotion(move) !== NO_PIECE
+      ? PIECE_SYMBOLS[movePromotion(move)].toLowerCase()
       : "";
 
   return from + to + promo;
@@ -50,7 +53,7 @@ export function uciToMove(uciMove: string, pos: Position) {
 
   const sq1 = uciMove.slice(0, 2);
   const sq2 = uciMove.slice(2, 4);
-  
+
   if (!isAlgebraicSquare(sq1) || !isAlgebraicSquare(sq2)) {
     throw new Error(`Ivalid uciMove: ${uciMove}`);
   }
@@ -68,10 +71,14 @@ export function uciToMove(uciMove: string, pos: Position) {
     promotion = PIECE_INDEXES[pieceChar];
   }
 
-  const legalMoves = pos.generateLegalMoves();
-
-  for (const move of legalMoves) {
-    if (from === move.from && to === move.to && promotion === move.promotion) {
+  const numLegal = pos.generateLegalMoves();
+  for (let i = 0; i < numLegal; i++) {
+    const move = pos.moveBuffer[i];
+    if (
+      from === moveFrom(move) &&
+      to === moveTo(move) &&
+      promotion === movePromotion(move)
+    ) {
       return move;
     }
   }
@@ -96,5 +103,3 @@ function squareToIndex(square: string) {
 
   return rankNum * 8 + fileNum;
 }
-
-

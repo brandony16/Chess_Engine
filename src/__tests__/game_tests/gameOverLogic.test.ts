@@ -1,7 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { Position } from "../../game/Position.ts";
 import {
-  BLACK_QUEEN,
   BLACK_WIN,
   CHECKMATE,
   DRAW,
@@ -9,13 +8,8 @@ import {
   IN_PROGRESS,
   INSUFFICIENT_MATERIAL,
   REPETITION,
-  sq,
   STALEMATE,
-  WHITE_KING,
-  WHITE_PAWN,
-  WHITE_QUEEN,
 } from "../../game/chessConstants.ts";
-import Move from "../../game/moveMaking/move.ts";
 
 describe("checkGameOver", () => {
   test("draw by insufficient material (only kings)", () => {

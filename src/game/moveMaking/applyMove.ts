@@ -1,7 +1,16 @@
 import { NO_PIECE, WHITE_PAWN } from "../chessConstants.ts";
 import type { Position } from "../Position.ts";
 import { makeCastleMove, unMakeCastleMove } from "./castling.ts";
-import Move from "./move.ts";
+import {
+  isCastling,
+  isEnPassant,
+  moveCaptured,
+  moveFrom,
+  movePiece,
+  movePromotion,
+  moveTo,
+  type Move,
+} from "./move.ts";
 
 /**
  * Makes a move. Directly alters the given bitboards.
@@ -10,17 +19,19 @@ export const applyMove = (position: Position, move: Move) => {
   const bitboards = position.bitboards;
   const pieceAt = position.pieceAt;
 
-  const one = 1n;
-  const maskFrom = one << BigInt(move.from);
-  const maskTo = one << BigInt(move.to);
+  const from = moveFrom(move);
+  const to = moveTo(move);
 
-  const piece = move.piece;
-  const captured = move.captured;
-  const promotion = move.promotion;
-  const enPassant = move.enPassant;
+  const maskFrom = 1n << BigInt(from);
+  const maskTo = 1n << BigInt(to);
+
+  const piece = movePiece(move);
+  const captured = moveCaptured(move);
+  const promotion = movePromotion(move);
+  const enPassant = isEnPassant(move);
 
   // Handle castle case
-  if (move.castling) {
+  if (isCastling(move)) {
     makeCastleMove(position, move);
     return;
   }
@@ -29,27 +40,27 @@ export const applyMove = (position: Position, move: Move) => {
   bitboards[piece] &= ~maskFrom;
 
   // Remove captured piece
-  if (move.captured !== NO_PIECE && !enPassant) {
+  if (captured !== NO_PIECE && !enPassant) {
     bitboards[captured] &= ~maskTo;
   }
 
-  pieceAt[move.from] = NO_PIECE;
+  pieceAt[from] = NO_PIECE;
 
   // Handles promotions
   if (promotion !== NO_PIECE) {
     bitboards[promotion] |= maskTo; // Add promoted piece
-    pieceAt[move.to] = promotion;
+    pieceAt[to] = promotion;
   } else {
     bitboards[piece] |= maskTo;
-    pieceAt[move.to] = piece;
+    pieceAt[to] = piece;
   }
 
   if (enPassant) {
     const dir = piece === WHITE_PAWN ? -8 : 8;
     // Remove the captured pawn from the opposing pawn bitboard
-    bitboards[captured] &= ~(one << BigInt(move.to + dir));
+    bitboards[captured] &= ~(1n << BigInt(to + dir));
 
-    pieceAt[move.to + dir] = NO_PIECE;
+    pieceAt[to + dir] = NO_PIECE;
   }
 };
 
@@ -60,19 +71,19 @@ export const unapplyMove = (position: Position, move: Move) => {
   const bitboards = position.bitboards;
   const pieceAt = position.pieceAt;
 
-  const from = move.from;
-  const to = move.to;
+  const from = moveFrom(move);
+  const to = moveTo(move);
 
   const maskFrom = 1n << BigInt(from);
   const maskTo = 1n << BigInt(to);
 
-  const piece = move.piece;
-  const captured = move.captured;
-  const promotion = move.promotion;
-  const enPassant = move.enPassant;
+  const piece = movePiece(move);
+  const captured = moveCaptured(move);
+  const promotion = movePromotion(move);
+  const enPassant = isEnPassant(move);
 
   // Undo castle
-  if (move.castling) {
+  if (isCastling(move)) {
     unMakeCastleMove(position, move);
     return;
   }

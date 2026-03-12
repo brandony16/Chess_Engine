@@ -4,12 +4,24 @@ import {
   WHITE_ROOK,
   type Square,
 } from "../chessConstants.ts";
-import type Move from "../moveMaking/move.ts";
+import {
+  isCastling,
+  isEnPassant,
+  moveCaptured,
+  moveFrom,
+  movePiece,
+  movePromotion,
+  moveTo,
+  type Move,
+} from "../moveMaking/move.ts";
 
 export function updatePieceIndexes(pieceIndexes: Square[][], move: Move): void {
-  const { piece, from, to, captured, promotion, enPassant, castling } = move;
+  const from = moveFrom(move);
+  const to = moveTo(move);
+  const captured = moveCaptured(move);
+  const promotion = movePromotion(move);
 
-  const pieceArr = pieceIndexes[piece];
+  const pieceArr = pieceIndexes[movePiece(move)];
   if (promotion !== NO_PIECE) {
     const promoPieceArr = pieceIndexes[promotion];
     // Add promotion piece and remove piece that promoted
@@ -23,7 +35,7 @@ export function updatePieceIndexes(pieceIndexes: Square[][], move: Move): void {
   // Remove captured piece
   if (captured !== NO_PIECE) {
     const capturedArr = pieceIndexes[captured];
-    if (enPassant) {
+    if (isEnPassant(move)) {
       const captureSquare = (to > from ? to - 8 : to + 8) as Square;
       const idx = capturedArr.indexOf(captureSquare);
       capturedArr.splice(idx, 1);
@@ -32,7 +44,7 @@ export function updatePieceIndexes(pieceIndexes: Square[][], move: Move): void {
     }
   }
 
-  if (castling) {
+  if (isCastling(move)) {
     // White
     if (from === 4) {
       const rookArr = pieceIndexes[WHITE_ROOK];
@@ -57,9 +69,12 @@ export function undoPieceIndexUpdate(
   pieceIndexes: Square[][],
   move: Move,
 ): void {
-  const { piece, from, to, captured, promotion, enPassant, castling } = move;
+  const from = moveFrom(move);
+  const to = moveTo(move);
+  const captured = moveCaptured(move);
+  const promotion = movePromotion(move);
 
-  const pieceArr = pieceIndexes[piece];
+  const pieceArr = pieceIndexes[movePiece(move)];
   if (promotion !== NO_PIECE) {
     const promoPieceArr = pieceIndexes[promotion];
     // Remove promotion piece and add piece that promoted
@@ -73,7 +88,7 @@ export function undoPieceIndexUpdate(
   // Add captured piece
   if (captured !== NO_PIECE) {
     const capturedArr = pieceIndexes[captured];
-    if (enPassant) {
+    if (isEnPassant(move)) {
       const captureSquare = (to > from ? to - 8 : to + 8) as Square;
       capturedArr.push(captureSquare);
     } else {
@@ -81,7 +96,7 @@ export function undoPieceIndexUpdate(
     }
   }
 
-  if (castling) {
+  if (isCastling(move)) {
     // White
     if (from === 4) {
       const rookArr = pieceIndexes[WHITE_ROOK];

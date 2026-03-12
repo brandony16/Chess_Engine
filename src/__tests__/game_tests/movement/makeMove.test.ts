@@ -10,7 +10,6 @@ import {
   PROMOTION_ENDGAME,
   START_POS,
 } from "../fens.ts";
-import Move from "../../../game/moveMaking/move.ts";
 import {
   BLACK,
   BLACK_BISHOP,
@@ -30,25 +29,39 @@ import {
   WHITE_ROOK,
 } from "../../../game/chessConstants.ts";
 import { isRook } from "../../../game/pieceUtils/pieceClassifiers.ts";
+import {
+  encodeMove,
+  FLAG_CASTLE,
+  FLAG_EP,
+  isCastling,
+  moveFrom,
+  movePiece,
+  movePromotion,
+  moveTo,
+  type Move,
+} from "../../../game/moveMaking/move.ts";
 
 const confirmMove = (pos: Position, move: Move) => {
-  expect(pos.pieceAt[move.from]).toBe(NO_PIECE);
+  const from = moveFrom(move);
+  const to = moveTo(move);
 
-  if (move.promotion === NO_PIECE) {
-    expect(pos.pieceAt[move.to]).toBe(move.piece);
+  expect(pos.pieceAt[from]).toBe(NO_PIECE);
+
+  if (movePromotion(move) === NO_PIECE) {
+    expect(pos.pieceAt[to]).toBe(movePiece(move));
   } else {
-    expect(pos.pieceAt[move.to]).toBe(move.promotion);
+    expect(pos.pieceAt[to]).toBe(movePromotion(move));
   }
 
-  if (move.castling) {
-    if (move.from > move.to) {
+  if (isCastling(move)) {
+    if (from > to) {
       // Queenside
-      expect(pos.pieceAt[move.from - 4]).toBe(NO_PIECE);
-      expect(isRook(pos.pieceAt[move.from - 1])).toBe(true);
+      expect(pos.pieceAt[from - 4]).toBe(NO_PIECE);
+      expect(isRook(pos.pieceAt[from - 1])).toBe(true);
     } else {
       // Kingside
-      expect(pos.pieceAt[move.from + 3]).toBe(NO_PIECE);
-      expect(isRook(pos.pieceAt[move.from + 1])).toBe(true);
+      expect(pos.pieceAt[from + 3]).toBe(NO_PIECE);
+      expect(isRook(pos.pieceAt[from + 1])).toBe(true);
     }
   }
 
@@ -66,14 +79,14 @@ describe("makeMove - movement", () => {
     const pos = new Position();
     pos.loadFen(START_POS);
 
-    const moveW = new Move(sq.A2, sq.A3, WHITE_PAWN);
+    const moveW = encodeMove(sq.A2, sq.A3, WHITE_PAWN);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     expect(pos.sideToMove).toBe(BLACK);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.D7, sq.D6, BLACK_PAWN);
+    const moveB = encodeMove(sq.D7, sq.D6, BLACK_PAWN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -85,14 +98,14 @@ describe("makeMove - movement", () => {
     const pos = new Position();
     pos.loadFen(START_POS);
 
-    const moveW = new Move(sq.E2, sq.E4, WHITE_PAWN);
+    const moveW = encodeMove(sq.E2, sq.E4, WHITE_PAWN);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     expect(pos.sideToMove).toBe(BLACK);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.H7, sq.H5, BLACK_PAWN);
+    const moveB = encodeMove(sq.H7, sq.H5, BLACK_PAWN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -104,14 +117,14 @@ describe("makeMove - movement", () => {
     const pos = new Position();
     pos.loadFen(START_POS);
 
-    const moveW = new Move(sq.B1, sq.C3, WHITE_KNIGHT);
+    const moveW = encodeMove(sq.B1, sq.C3, WHITE_KNIGHT);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     expect(pos.sideToMove).toBe(BLACK);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.G8, sq.F6, BLACK_KNIGHT);
+    const moveB = encodeMove(sq.G8, sq.F6, BLACK_KNIGHT);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -123,13 +136,13 @@ describe("makeMove - movement", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    const moveW = new Move(sq.E2, sq.C4, WHITE_BISHOP);
+    const moveW = encodeMove(sq.E2, sq.C4, WHITE_BISHOP);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.G7, sq.H6, BLACK_BISHOP);
+    const moveB = encodeMove(sq.G7, sq.H6, BLACK_BISHOP);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -140,13 +153,13 @@ describe("makeMove - movement", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    const moveW = new Move(sq.A1, sq.C1, WHITE_ROOK);
+    const moveW = encodeMove(sq.A1, sq.C1, WHITE_ROOK);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.A8, sq.B8, BLACK_ROOK);
+    const moveB = encodeMove(sq.A8, sq.B8, BLACK_ROOK);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -157,13 +170,13 @@ describe("makeMove - movement", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    const moveW = new Move(sq.F3, sq.G3, WHITE_QUEEN);
+    const moveW = encodeMove(sq.F3, sq.G3, WHITE_QUEEN);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.E7, sq.C5, BLACK_QUEEN);
+    const moveB = encodeMove(sq.E7, sq.C5, BLACK_QUEEN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -174,13 +187,13 @@ describe("makeMove - movement", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    const moveW = new Move(sq.E1, sq.F1, WHITE_KING);
+    const moveW = encodeMove(sq.E1, sq.F1, WHITE_KING);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.E8, sq.D8, BLACK_KING);
+    const moveB = encodeMove(sq.E8, sq.D8, BLACK_KING);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -192,14 +205,28 @@ describe("makeMove - movement", () => {
     pos.loadFen(KIWIPETE_POS);
 
     // White kingside
-    const moveW = new Move(sq.E1, sq.G1, WHITE_KING, NO_PIECE, NO_PIECE, true);
+    const moveW = encodeMove(
+      sq.E1,
+      sq.G1,
+      WHITE_KING,
+      NO_PIECE,
+      NO_PIECE,
+      FLAG_CASTLE,
+    );
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
     // Black queenside
-    const moveB = new Move(sq.E8, sq.C8, BLACK_KING, NO_PIECE, NO_PIECE, true);
+    const moveB = encodeMove(
+      sq.E8,
+      sq.C8,
+      BLACK_KING,
+      NO_PIECE,
+      NO_PIECE,
+      FLAG_CASTLE,
+    );
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -212,13 +239,13 @@ describe("makeMove - captures", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    const moveW = new Move(sq.D5, sq.E6, WHITE_PAWN, BLACK_PAWN);
+    const moveW = encodeMove(sq.D5, sq.E6, WHITE_PAWN, BLACK_PAWN);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.B4, sq.C3, BLACK_PAWN, WHITE_KNIGHT);
+    const moveB = encodeMove(sq.B4, sq.C3, BLACK_PAWN, WHITE_KNIGHT);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -229,14 +256,13 @@ describe("makeMove - captures", () => {
     const pos = new Position();
     pos.loadFen(EN_PASSANT_WHITE);
 
-    const moveW = new Move(
+    const moveW = encodeMove(
       sq.E5,
       sq.D6,
       WHITE_PAWN,
       BLACK_PAWN,
       NO_PIECE,
-      false,
-      true,
+      FLAG_EP,
     );
     pos.makeMove(moveW);
 
@@ -244,14 +270,13 @@ describe("makeMove - captures", () => {
     confirmMove(pos, moveW);
 
     pos.loadFen(EN_PASSANT_BLACK);
-    const moveB = new Move(
+    const moveB = encodeMove(
       sq.E4,
       sq.D3,
       BLACK_PAWN,
       WHITE_PAWN,
       NO_PIECE,
-      false,
-      true,
+      FLAG_EP,
     );
     pos.makeMove(moveB);
 
@@ -263,13 +288,13 @@ describe("makeMove - captures", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    const moveW = new Move(sq.E5, sq.G6, WHITE_KNIGHT, BLACK_PAWN);
+    const moveW = encodeMove(sq.E5, sq.G6, WHITE_KNIGHT, BLACK_PAWN);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.B6, sq.D5, BLACK_KNIGHT, WHITE_PAWN);
+    const moveB = encodeMove(sq.B6, sq.D5, BLACK_KNIGHT, WHITE_PAWN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -280,13 +305,13 @@ describe("makeMove - captures", () => {
     const pos = new Position();
     pos.loadFen(ALT_PERFT);
 
-    const moveW = new Move(sq.G5, sq.F6, WHITE_BISHOP, BLACK_KNIGHT);
+    const moveW = encodeMove(sq.G5, sq.F6, WHITE_BISHOP, BLACK_KNIGHT);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.C5, sq.F2, BLACK_BISHOP, WHITE_PAWN);
+    const moveB = encodeMove(sq.C5, sq.F2, BLACK_BISHOP, WHITE_PAWN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -297,13 +322,13 @@ describe("makeMove - captures", () => {
     const pos = new Position();
     pos.loadFen(OPEN_MIDGAME);
 
-    const moveW = new Move(sq.D1, sq.D8, WHITE_ROOK, BLACK_ROOK);
+    const moveW = encodeMove(sq.D1, sq.D8, WHITE_ROOK, BLACK_ROOK);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.H8, sq.D8, BLACK_ROOK, WHITE_ROOK);
+    const moveB = encodeMove(sq.H8, sq.D8, BLACK_ROOK, WHITE_ROOK);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -314,13 +339,13 @@ describe("makeMove - captures", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    const moveW = new Move(sq.F3, sq.F6, WHITE_QUEEN, BLACK_KNIGHT);
+    const moveW = encodeMove(sq.F3, sq.F6, WHITE_QUEEN, BLACK_KNIGHT);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.E7, sq.F6, BLACK_QUEEN, WHITE_QUEEN);
+    const moveB = encodeMove(sq.E7, sq.F6, BLACK_QUEEN, WHITE_QUEEN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -331,13 +356,13 @@ describe("makeMove - captures", () => {
     const pos = new Position();
     pos.loadFen(ACTIVE_KING_ENDGAME);
 
-    const moveW = new Move(sq.D5, sq.C5, WHITE_KING, BLACK_PAWN);
+    const moveW = encodeMove(sq.D5, sq.C5, WHITE_KING, BLACK_PAWN);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.F4, sq.G4, BLACK_KING, WHITE_PAWN);
+    const moveB = encodeMove(sq.F4, sq.G4, BLACK_KING, WHITE_PAWN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -350,13 +375,13 @@ describe("makeMove - promotion", () => {
     const pos = new Position();
     pos.loadFen(PROMOTION_ENDGAME);
 
-    const moveW = new Move(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_KNIGHT);
+    const moveW = encodeMove(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_KNIGHT);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_KNIGHT);
+    const moveB = encodeMove(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_KNIGHT);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -367,13 +392,13 @@ describe("makeMove - promotion", () => {
     const pos = new Position();
     pos.loadFen(PROMOTION_ENDGAME);
 
-    const moveW = new Move(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_BISHOP);
+    const moveW = encodeMove(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_BISHOP);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_BISHOP);
+    const moveB = encodeMove(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_BISHOP);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -384,13 +409,13 @@ describe("makeMove - promotion", () => {
     const pos = new Position();
     pos.loadFen(PROMOTION_ENDGAME);
 
-    const moveW = new Move(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_ROOK);
+    const moveW = encodeMove(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_ROOK);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_ROOK);
+    const moveB = encodeMove(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_ROOK);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -401,13 +426,13 @@ describe("makeMove - promotion", () => {
     const pos = new Position();
     pos.loadFen(PROMOTION_ENDGAME);
 
-    const moveW = new Move(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_QUEEN);
+    const moveW = encodeMove(sq.C7, sq.C8, WHITE_PAWN, NO_PIECE, WHITE_QUEEN);
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_QUEEN);
+    const moveB = encodeMove(sq.G2, sq.G1, BLACK_PAWN, NO_PIECE, BLACK_QUEEN);
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -418,7 +443,7 @@ describe("makeMove - promotion", () => {
     const pos = new Position();
     pos.loadFen(PROMOTION_ENDGAME);
 
-    const moveW = new Move(
+    const moveW = encodeMove(
       sq.C7,
       sq.D8,
       WHITE_PAWN,
@@ -430,7 +455,7 @@ describe("makeMove - promotion", () => {
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(
+    const moveB = encodeMove(
       sq.G2,
       sq.F1,
       BLACK_PAWN,
@@ -447,7 +472,7 @@ describe("makeMove - promotion", () => {
     const pos = new Position();
     pos.loadFen(PROMOTION_ENDGAME);
 
-    const moveW = new Move(
+    const moveW = encodeMove(
       sq.C7,
       sq.D8,
       WHITE_PAWN,
@@ -459,7 +484,7 @@ describe("makeMove - promotion", () => {
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(
+    const moveB = encodeMove(
       sq.G2,
       sq.F1,
       BLACK_PAWN,
@@ -476,13 +501,25 @@ describe("makeMove - promotion", () => {
     const pos = new Position();
     pos.loadFen(PROMOTION_ENDGAME);
 
-    const moveW = new Move(sq.C7, sq.D8, WHITE_PAWN, BLACK_KNIGHT, WHITE_ROOK);
+    const moveW = encodeMove(
+      sq.C7,
+      sq.D8,
+      WHITE_PAWN,
+      BLACK_KNIGHT,
+      WHITE_ROOK,
+    );
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_ROOK);
+    const moveB = encodeMove(
+      sq.G2,
+      sq.F1,
+      BLACK_PAWN,
+      WHITE_KNIGHT,
+      BLACK_ROOK,
+    );
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);
@@ -493,13 +530,25 @@ describe("makeMove - promotion", () => {
     const pos = new Position();
     pos.loadFen(PROMOTION_ENDGAME);
 
-    const moveW = new Move(sq.C7, sq.D8, WHITE_PAWN, BLACK_KNIGHT, WHITE_QUEEN);
+    const moveW = encodeMove(
+      sq.C7,
+      sq.D8,
+      WHITE_PAWN,
+      BLACK_KNIGHT,
+      WHITE_QUEEN,
+    );
     pos.makeMove(moveW);
 
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    const moveB = new Move(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_QUEEN);
+    const moveB = encodeMove(
+      sq.G2,
+      sq.F1,
+      BLACK_PAWN,
+      WHITE_KNIGHT,
+      BLACK_QUEEN,
+    );
     pos.makeMove(moveB);
 
     expect(pos.validate()).toBe(true);

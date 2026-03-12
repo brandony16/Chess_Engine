@@ -22,7 +22,7 @@ import {
   type Square,
 } from "../chessConstants.ts";
 import type { Position } from "../Position.ts";
-import type Move from "./move.ts";
+import { moveFrom, moveTo, type Move } from "./move.ts";
 
 export const updateCastlingRights = (
   from: Square,
@@ -84,8 +84,8 @@ export const makeCastleMove = (position: Position, move: Move): void => {
   const bitboards = position.bitboards;
   const pieceAt = position.pieceAt;
 
-  const from = move.from;
-  const to = move.to;
+  const from = moveFrom(move);
+  const to = moveTo(move);
 
   if (from === 4 && to === 6) {
     // White kingside castling
@@ -134,8 +134,8 @@ export const unMakeCastleMove = (position: Position, move: Move): void => {
   const bitboards = position.bitboards;
   const pieceAt = position.pieceAt;
 
-  const from = move.from;
-  const to = move.to;
+  const from = moveFrom(move);
+  const to = moveTo(move);
 
   if (from === 4 && to === 6) {
     // White kingside castling

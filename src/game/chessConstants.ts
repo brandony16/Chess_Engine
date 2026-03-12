@@ -148,20 +148,20 @@ export function isValidFileChar(c: string): c is FileChar {
 // ----- PIECES -----
 export const NUM_PIECES = 12 as const;
 
-export const WHITE_PAWN = 0 as const;
-export const WHITE_KNIGHT = 1 as const;
-export const WHITE_BISHOP = 2 as const;
-export const WHITE_ROOK = 3 as const;
-export const WHITE_QUEEN = 4 as const;
-export const WHITE_KING = 5 as const;
-export const BLACK_PAWN = 6 as const;
-export const BLACK_KNIGHT = 7 as const;
-export const BLACK_BISHOP = 8 as const;
-export const BLACK_ROOK = 9 as const;
-export const BLACK_QUEEN = 10 as const;
-export const BLACK_KING = 11 as const;
+export const NO_PIECE = 0 as const;
+export const WHITE_PAWN = 1 as const;
+export const WHITE_KNIGHT = 2 as const;
+export const WHITE_BISHOP = 3 as const;
+export const WHITE_ROOK = 4 as const;
+export const WHITE_QUEEN = 5 as const;
+export const WHITE_KING = 6 as const;
+export const BLACK_PAWN = 7 as const;
+export const BLACK_KNIGHT = 8 as const;
+export const BLACK_BISHOP = 9 as const;
+export const BLACK_ROOK = 10 as const;
+export const BLACK_QUEEN = 11 as const;
+export const BLACK_KING = 12 as const;
 
-export const NO_PIECE = -1 as const;
 export type Piece = (typeof PIECES)[number] | typeof NO_PIECE;
 
 export const PIECES = [
@@ -241,7 +241,7 @@ export const PROMO_PIECES: Piece[][] = [
   WHITE_PROMO_PIECES,
   BLACK_PROMO_PIECES,
 ] as const;
-export const PROMO_RANK: Rank[] = [RANK_7, RANK_2] as const;
+export const PROMO_RANK: Rank[] = [RANK_8, RANK_1] as const;
 
 export const PIECE_INDEXES = {
   P: WHITE_PAWN,

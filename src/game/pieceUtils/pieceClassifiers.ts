@@ -39,5 +39,5 @@ export function isKing(piece: Piece): boolean {
 }
 
 export function isWhite(piece: Piece): boolean {
-  return piece < 6; // 6 pieces for each side
+  return piece <= WHITE_KING;
 }

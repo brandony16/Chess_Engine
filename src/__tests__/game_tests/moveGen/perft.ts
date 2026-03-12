@@ -8,13 +8,15 @@ export function perft(pos: Position, depth: number): number {
   if (depth === 0) return 1;
 
   let nodes = 0;
-  const moves = pos.generateLegalMoves();
+  const moveCount = pos.generateLegalMoves();
 
   // No need to sim every move if at the end
   if (depth === 1) {
-    return moves.length;
+    return moveCount;
   }
-  for (const move of moves) {
+  for (let i = 0; i < moveCount; i++) {
+    const move = pos.moveBuffer[i];
+
     pos.makeMove(move);
 
     nodes += perft(pos, depth - 1);
@@ -31,9 +33,11 @@ export function perftDivide(
 ): Record<string, number> {
   const divide: Record<string, number> = {};
 
-  const moves = pos.generateLegalMoves();
+  const moveCount = pos.generateLegalMoves();
 
-  for (const move of moves) {
+  for (let i = 0; i < moveCount; i++) {
+    const move = pos.moveBuffer[i];
+
     const uci = moveToUCI(move);
     pos.makeMove(move);
 

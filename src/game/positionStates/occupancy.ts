@@ -1,29 +1,39 @@
 import { BLACK, NO_PIECE, WHITE } from "../chessConstants.ts";
-import Move from "../moveMaking/move.ts";
 import type { Position } from "../Position.ts";
 import { opponent } from "../helpers/opponent.ts";
+import {
+  isCastling,
+  isEnPassant,
+  moveCaptured,
+  moveFrom,
+  moveTo,
+  type Move,
+} from "../moveMaking/move.ts";
 
 export function updateOccupancy(pos: Position, move: Move): void {
+  const from = moveFrom(move);
+  const to = moveTo(move);
+
   let occ = pos.playerOcc[pos.sideToMove];
 
-  if (move.castling) {
+  if (isCastling(move)) {
     occ = updateOccCastling(occ, move);
     pos.playerOcc[pos.sideToMove] = occ;
     pos.occupied = pos.playerOcc[WHITE] | pos.playerOcc[BLACK];
     return;
   }
 
-  const maskFrom = 1n << BigInt(move.from);
-  const maskTo = 1n << BigInt(move.to);
+  const maskFrom = 1n << BigInt(from);
+  const maskTo = 1n << BigInt(to);
 
   occ ^= maskFrom;
   occ |= maskTo;
 
   pos.playerOcc[pos.sideToMove] = occ;
 
-  if (move.captured !== NO_PIECE) {
-    if (move.enPassant) {
-      const target = pos.sideToMove === WHITE ? move.to - 8 : move.to + 8;
+  if (moveCaptured(move) !== NO_PIECE) {
+    if (isEnPassant(move)) {
+      const target = pos.sideToMove === WHITE ? to - 8 : to + 8;
       pos.playerOcc[opponent(pos.sideToMove)] ^= 1n << BigInt(target);
     } else {
       pos.playerOcc[opponent(pos.sideToMove)] ^= maskTo;
@@ -34,18 +44,20 @@ export function updateOccupancy(pos: Position, move: Move): void {
 }
 
 const updateOccCastling = (oldOcc: bigint, move: Move): bigint => {
+  const from = moveFrom(move);
+  const to = moveTo(move);
   let occ = oldOcc;
 
-  const maskFrom = 1n << BigInt(move.from);
-  const maskTo = 1n << BigInt(move.to);
+  const maskFrom = 1n << BigInt(from);
+  const maskTo = 1n << BigInt(to);
 
   occ ^= maskFrom;
   occ |= maskTo;
 
   let rookFrom = 0n;
   let rookTo = 0n;
-  if (move.from === 4) {
-    if (move.to === 6) {
+  if (from === 4) {
+    if (to === 6) {
       rookFrom = 1n << BigInt(7);
       rookTo = 1n << BigInt(5);
     } else {
@@ -53,7 +65,7 @@ const updateOccCastling = (oldOcc: bigint, move: Move): bigint => {
       rookFrom = 1n << BigInt(3);
     }
   } else {
-    if (move.to === 62) {
+    if (to === 62) {
       rookFrom = 1n << BigInt(63);
       rookTo = 1n << BigInt(61);
     } else {
@@ -69,26 +81,28 @@ const updateOccCastling = (oldOcc: bigint, move: Move): bigint => {
 };
 
 export function undoOccupancyUpdate(pos: Position, move: Move): void {
+  const from = moveFrom(move);
+  const to = moveTo(move);
   let occ = pos.playerOcc[pos.sideToMove];
 
-  if (move.castling) {
+  if (isCastling(move)) {
     occ = undoCastlingOcc(occ, move);
     pos.playerOcc[pos.sideToMove] = occ;
     pos.occupied = pos.playerOcc[WHITE] | pos.playerOcc[BLACK];
     return;
   }
 
-  const maskFrom = 1n << BigInt(move.from);
-  const maskTo = 1n << BigInt(move.to);
+  const maskFrom = 1n << BigInt(from);
+  const maskTo = 1n << BigInt(to);
 
   occ |= maskFrom;
   occ ^= maskTo;
 
   pos.playerOcc[pos.sideToMove] = occ;
 
-  if (move.captured !== NO_PIECE) {
-    if (move.enPassant) {
-      const target = pos.sideToMove === WHITE ? move.to - 8 : move.to + 8;
+  if (moveCaptured(move) !== NO_PIECE) {
+    if (isEnPassant(move)) {
+      const target = pos.sideToMove === WHITE ? to - 8 : to + 8;
       pos.playerOcc[opponent(pos.sideToMove)] |= 1n << BigInt(target);
     } else {
       pos.playerOcc[opponent(pos.sideToMove)] |= maskTo;
@@ -99,18 +113,20 @@ export function undoOccupancyUpdate(pos: Position, move: Move): void {
 }
 
 const undoCastlingOcc = (oldOcc: bigint, move: Move): bigint => {
+  const from = moveFrom(move);
+  const to = moveTo(move);
   let occ = oldOcc;
 
-  const maskFrom = 1n << BigInt(move.from);
-  const maskTo = 1n << BigInt(move.to);
+  const maskFrom = 1n << BigInt(from);
+  const maskTo = 1n << BigInt(to);
 
   occ |= maskFrom;
   occ ^= maskTo;
 
   let rookFrom = 0n;
   let rookTo = 0n;
-  if (move.from === 4) {
-    if (move.to === 6) {
+  if (from === 4) {
+    if (to === 6) {
       rookFrom = 1n << BigInt(7);
       rookTo = 1n << BigInt(5);
     } else {
@@ -118,7 +134,7 @@ const undoCastlingOcc = (oldOcc: bigint, move: Move): bigint => {
       rookFrom = 1n << BigInt(3);
     }
   } else {
-    if (move.to === 62) {
+    if (to === 62) {
       rookFrom = 1n << BigInt(63);
       rookTo = 1n << BigInt(61);
     } else {

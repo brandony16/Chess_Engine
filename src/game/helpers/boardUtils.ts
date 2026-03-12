@@ -18,7 +18,7 @@ export function getRank(sq: Square): Rank {
  * A helper to get the file a square is on
  */
 export function getFile(sq: Square): File {
-  return (sq % 8) as File;
+  return (sq & 7) as File;
 }
 
 /**

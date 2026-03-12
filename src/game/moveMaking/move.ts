@@ -1,67 +1,66 @@
-import { type CastlingNumber, type Piece, type Square } from "../chessConstants.ts";
+import {
+  type CastlingNumber,
+  type Piece,
+  type Square,
+} from "../chessConstants.ts";
 
-/**
- * Stores values for a move
- */
-class Move {
-  from: Square;
-  to: Square;
-  piece: Piece;
-  captured: Piece | -1;
-  promotion: Piece | -1;
-  castling: boolean;
-  enPassant: boolean;
+/*
+bits
+0–5   from square
+6–11  to square
+12–15 moving piece
+16–19 captured piece
+20–23 promotion piece
+24    en passant
+25    castling
+26    pawn double
+27–31 unused
+*/
+export type Move = number;
 
-  /**
-   * Sets up the move object
-   */
-  constructor(
-    from: Square,
-    to: Square,
-    piece: Piece,
-    captured: Piece | -1 = -1,
-    promotion: Piece | -1 = -1,
-    castling: boolean = false,
-    enPassant: boolean = false,
-  ) {
-    this.from = from;
-    this.to = to;
-    this.piece = piece;
-    this.captured = captured;
-    this.promotion = promotion;
-    this.castling = castling;
-    this.enPassant = enPassant;
-  }
+export const FROM_SHIFT = 0;
+export const TO_SHIFT = 6;
+export const PIECE_SHIFT = 12;
+export const CAPTURE_SHIFT = 16;
+export const PROMO_SHIFT = 20;
 
-  equals(other: Move): boolean {
-    return (
-      this.from === other.from &&
-      this.to === other.to &&
-      this.piece === other.piece &&
-      this.captured === other.captured &&
-      this.promotion === other.promotion &&
-      this.castling === other.castling &&
-      this.enPassant === other.enPassant
-    );
-  }
+export const FLAG_EP = 1 << 24;
+export const FLAG_CASTLE = 1 << 25;
+export const FLAG_DOUBLE = 1 << 26;
 
-  /**
-   * Copies the current move and changes any fields to what fields are given.
-   * Helpful for promotion moves when you need 4 different moves each with
-   * different promotion fields
-   */
-  copyWith(params: Partial<Move>): Move {
-    return new Move(
-      params.from ?? this.from,
-      params.to ?? this.to,
-      params.piece ?? this.piece,
-      params.captured ?? this.captured,
-      params.promotion ?? this.promotion,
-      params.castling ?? this.castling,
-      params.enPassant ?? this.enPassant,
-    );
-  }
+export function encodeMove(
+  from: number,
+  to: number,
+  piece: number,
+  captured: number = 0,
+  promo: number = 0,
+  flags: number = 0,
+): Move {
+  return (
+    from |
+    (to << TO_SHIFT) |
+    (piece << PIECE_SHIFT) |
+    (captured << CAPTURE_SHIFT) |
+    (promo << PROMO_SHIFT) |
+    flags
+  );
 }
+
+export const moveFrom = (m: Move): Square => (m & 63) as Square;
+
+export const moveTo = (m: Move): Square => ((m >>> 6) & 63) as Square;
+
+export const movePiece = (m: Move): Piece => ((m >>> 12) & 15) as Piece;
+
+export const moveCaptured = (m: Move): Piece => ((m >>> 16) & 15) as Piece;
+
+export const movePromotion = (m: Move): Piece => ((m >>> 20) & 15) as Piece;
+
+export const isEnPassant = (m: Move) => (m & FLAG_EP) !== 0;
+
+export const isCastling = (m: Move) => (m & FLAG_CASTLE) !== 0;
+
+export const isDouble = (m: Move) => (m & FLAG_DOUBLE) !== 0;
 
 export interface Undo {
   captured: Piece;
@@ -70,5 +69,3 @@ export interface Undo {
   halfmoveClock: number;
   zobristKey: bigint;
 }
-
-export default Move;
