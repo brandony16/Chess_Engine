@@ -15,7 +15,7 @@ const INDEX64: Square[] = [
  * Finds the index of the first square that is a 1 (least significant bit) using De Brujin lookup.
  */
 export const bitScanForward = (bitboard: bigint): Square => {
-  if (bitboard === 0n) return -1;
+  if (!bitboard) return -1;
 
   const lsb = bitboard & -bitboard;
 

@@ -16,7 +16,7 @@ import {
   moveTo,
   type Move,
 } from "../moveMaking/move.ts";
-import type { Position } from "../Position.ts";
+import { MAX_MOVES, type Position } from "../Position.ts";
 import { isAlgebraicSquare } from "./fenHelpers.ts";
 
 /**
@@ -71,9 +71,10 @@ export function uciToMove(uciMove: string, pos: Position) {
     promotion = PIECE_INDEXES[pieceChar];
   }
 
+  const start = pos.searchPly * MAX_MOVES;
   const numLegal = pos.generateLegalMoves();
   for (let i = 0; i < numLegal; i++) {
-    const move = pos.moveBuffer[i];
+    const move = pos.moveBuffer[start + i];
     if (
       from === moveFrom(move) &&
       to === moveTo(move) &&

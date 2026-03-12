@@ -16,10 +16,10 @@ describe("Position initialization - init values", () => {
   test("arrays are correctly sized", () => {
     const pos = new Position();
 
-    expect(pos.bitboards.length).toBe(NUM_PIECES);
+    expect(pos.bitboards.length).toBe(NUM_PIECES + 1);
     expect(pos.playerOcc.length).toBe(2);
     expect(pos.pieceAt.length).toBe(64);
-    expect(pos.pieceIndexes.length).toBe(NUM_PIECES);
+    expect(pos.pieceIndexes.length).toBe(NUM_PIECES + 1);
     expect(pos.kingSq.length).toBe(2);
   });
 

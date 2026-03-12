@@ -2,7 +2,6 @@ import { describe, expect, test } from "vitest";
 import { Position } from "../../../../game/Position.ts";
 import { getCheckers } from "../../../../game/moveGen/getCheckers.ts";
 import { BLACK, sq, WHITE } from "../../../../game/chessConstants.ts";
-import { bigIntFullRep } from "../../../../debugFunctions.ts";
 
 describe("single check", () => {
   test("pawn check", () => {
@@ -28,7 +27,6 @@ describe("single check", () => {
     expect(checkers).toBe(expected);
 
     pos.loadFen("8/8/2k5/8/3N2p1/8/4K1P1/8 b - - 0 1");
-    console.log(bigIntFullRep(getCheckers(pos, BLACK)));
     expect(getCheckers(pos, BLACK)).toBe(1n << BigInt(sq.D4));
   });
 

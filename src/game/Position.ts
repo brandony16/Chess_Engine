@@ -15,7 +15,7 @@ import {
   INSUFFICIENT_MATERIAL,
   NO_PIECE,
   NO_SQUARE,
-  NUM_PIECES,
+  PIECE_N,
   PIECES,
   PROMO_PIECES,
   PROMO_RANK,
@@ -87,6 +87,8 @@ import { getCheckers } from "./moveGen/getCheckers.ts";
 import { getRank } from "./helpers/boardUtils.ts";
 
 type MoveList = Move[];
+const MAX_PLY = 16;
+export const MAX_MOVES = 256;
 
 export class Position {
   bitboards: BigUint64Array;
@@ -108,19 +110,21 @@ export class Position {
   kingSq: Square[]; // Indexed by player, len 2
   zobristKey: bigint;
 
+  searchPly: number;
   moveBuffer: Uint32Array;
+
   moveStack: MoveList;
   undoStack: Undo[];
   pastPositions: Map<bigint, number>;
 
   constructor() {
     // ----- Board State -----
-    this.bitboards = new BigUint64Array(NUM_PIECES);
+    this.bitboards = new BigUint64Array(PIECE_N);
     this.playerOcc = new Array(2).fill(0n);
     this.occupied = 0n;
 
     this.pieceAt = new Array(64).fill(NO_PIECE);
-    this.pieceIndexes = Array.from({ length: NUM_PIECES }, () => new Array());
+    this.pieceIndexes = Array.from({ length: PIECE_N }, () => new Array());
 
     // ----- Game State -----
     this.sideToMove = WHITE;
@@ -137,7 +141,9 @@ export class Position {
     this.kingSq = [];
     this.zobristKey = 0n;
 
-    this.moveBuffer = new Uint32Array(256);
+    this.searchPly = 0;
+    this.moveBuffer = new Uint32Array(MAX_PLY * MAX_MOVES);
+
     this.moveStack = [];
     this.undoStack = [];
     this.pastPositions = new Map<bigint, number>();
@@ -180,11 +186,11 @@ export class Position {
   }
 
   initializePieceIndexes(): void {
-    for (let p = 0; p < NUM_PIECES; p++) {
+    for (const p of PIECES) {
       this.pieceIndexes[p].length = 0;
     }
 
-    for (let p = 0; p < NUM_PIECES; p++) {
+    for (const p of PIECES) {
       let bb = this.bitboards[p];
       const list = this.pieceIndexes[p];
       while (bb) {
@@ -199,9 +205,12 @@ export class Position {
     let whiteOcc = 0n;
     let blackOcc = 0n;
 
-    for (let p = 0; p < 6; p++) {
-      whiteOcc |= this.bitboards[p];
-      blackOcc |= this.bitboards[p + 6];
+    for (const piece of PIECES) {
+      if (isWhite(piece)) {
+        whiteOcc |= this.bitboards[piece];
+      } else {
+        blackOcc |= this.bitboards[piece];
+      }
     }
 
     this.occupied = whiteOcc | blackOcc;
@@ -213,7 +222,7 @@ export class Position {
     let key = 0n;
 
     // Pieces
-    for (let piece = 0; piece < NUM_PIECES; piece++) {
+    for (const piece of PIECES) {
       let bb = this.bitboards[piece];
       while (bb) {
         const sq = bitScanForward(bb);
@@ -242,7 +251,11 @@ export class Position {
   /**
    * Creates new zobrist key for the position by updating the old hash
    */
-  updateZobrist(move: Move, prevEpSq: Square, prevCastling: number): void {
+  updateZobrist(
+    move: Move,
+    prevEpSq: Square,
+    prevCastling: CastlingNumber,
+  ): void {
     let newHash = this.zobristKey;
     const from = moveFrom(move);
     const to = moveTo(move);
@@ -254,7 +267,8 @@ export class Position {
     newHash ^= zobristFrom;
 
     // XOR the pieces new location
-    const pieceTo = movePromotion(move) ? piece : movePromotion(move);
+    const promo = movePromotion(move);
+    const pieceTo = promo === NO_PIECE ? piece : promo;
     const zobristTo = zobristTable[pieceTo * 64 + to];
     newHash ^= zobristTo;
 
@@ -272,12 +286,12 @@ export class Position {
     newHash ^= SIDE_TO_MOVE_ZOBRIST;
 
     if (prevEpSq !== this.enPassantSquare) {
-      if (prevEpSq !== NO_PIECE) {
+      if (prevEpSq !== NO_SQUARE) {
         const prevEpFile = prevEpSq & 7;
         newHash ^= EN_PASSANT_ZOBRIST[prevEpFile];
       }
 
-      if (this.enPassantSquare !== NO_PIECE) {
+      if (this.enPassantSquare !== NO_SQUARE) {
         const newEpFile = this.enPassantSquare & 7;
         newHash ^= EN_PASSANT_ZOBRIST[newEpFile];
       }
@@ -324,6 +338,7 @@ export class Position {
   // -----------------------
 
   generatePseudoLegalMoves(): number {
+    const start = this.searchPly * MAX_MOVES;
     let count = 0;
 
     const side = this.sideToMove;
@@ -345,7 +360,12 @@ export class Position {
           kingMoveBB &= kingMoveBB - 1n;
 
           const captured = this.pieceAt[to];
-          this.moveBuffer[count++] = encodeMove(kingSq, to, piece, captured);
+          this.moveBuffer[start + count++] = encodeMove(
+            kingSq,
+            to,
+            piece,
+            captured,
+          );
         }
         return count;
       }
@@ -388,7 +408,7 @@ export class Position {
               const promoList = PROMO_PIECES[side];
 
               for (let k = 0; k < promoList.length; k++) {
-                this.moveBuffer[count++] = encodeMove(
+                this.moveBuffer[start + count++] = encodeMove(
                   from,
                   to,
                   piece,
@@ -409,7 +429,7 @@ export class Position {
             }
           }
 
-          this.moveBuffer[count++] = encodeMove(
+          this.moveBuffer[start + count++] = encodeMove(
             from,
             to,
             piece,
@@ -427,16 +447,17 @@ export class Position {
   generateLegalMoves(): number {
     const pseudoCount = this.generatePseudoLegalMoves();
 
+    const start = this.searchPly * MAX_MOVES;
     let legalCount = 0;
 
     const side = this.sideToMove;
     for (let i = 0; i < pseudoCount; i++) {
-      const move = this.moveBuffer[i];
+      const move = this.moveBuffer[start + i];
 
       this.makeMove(move);
 
       if (!this.isInCheck(side)) {
-        this.moveBuffer[legalCount++] = move;
+        this.moveBuffer[start + legalCount++] = move;
       }
 
       this.unmakeMove();
@@ -483,6 +504,7 @@ export class Position {
     this.pastPositions.set(this.zobristKey, prev + 1);
 
     this.sideToMove ^= 1;
+    this.searchPly++;
   }
 
   unmakeMove(): void {
@@ -526,6 +548,7 @@ export class Position {
     // If unmaking a move, the game cant be over (can't move if the game is over)
     this.result = IN_PROGRESS;
     this.endState = IN_PROGRESS;
+    this.searchPly--;
   }
 
   isInCheck(player: Player = this.sideToMove): boolean {
@@ -536,10 +559,11 @@ export class Position {
   }
 
   hasLegalMove(): boolean {
+    const start = this.searchPly * MAX_MOVES;
     const pseudoCount = this.generatePseudoLegalMoves();
     const side = this.sideToMove;
     for (let i = 0; i < pseudoCount; i++) {
-      const move = this.moveBuffer[i];
+      const move = this.moveBuffer[start + i];
 
       this.makeMove(move);
 
@@ -591,12 +615,16 @@ export class Position {
   isPlayersPieceAt(square: Square, player: Player): boolean {
     const p = this.pieceAt[square];
     if (p === NO_PIECE) return false;
-    return player === WHITE ? p < 6 : p >= 6;
+
+    return player === WHITE ? isWhite(p) : !isWhite(p);
   }
 
   playerPieceIndexes(player: Player): Square[][] {
-    const base = player === WHITE ? 0 : 6;
-    return this.pieceIndexes.slice(base, base + 6);
+    const base = player === WHITE ? WHITE_PAWN : BLACK_PAWN;
+    if (player === WHITE) {
+      return this.pieceIndexes.slice(WHITE_PAWN, BLACK_PAWN);
+    }
+    return this.pieceIndexes.slice(BLACK_PAWN);
   }
 
   isSquareAttacked(square: Square, player: Player): boolean {
@@ -684,7 +712,6 @@ export class Position {
       }
 
       if (found !== piece) {
-        console.log(piece, found);
         console.error(`pieceAt mismatch at square ${sq}`);
         return false;
       }
@@ -753,6 +780,12 @@ export class Position {
     cpy.initCurrentPosition();
 
     cpy.moveBuffer = new Uint32Array(this.moveBuffer);
+
+    const moveStack: Move[] = [];
+    for (const move of this.moveStack) {
+      moveStack.push(move);
+    }
+    cpy.moveStack = moveStack;
 
     const undoStack: Undo[] = [];
     for (const undo of this.undoStack) {

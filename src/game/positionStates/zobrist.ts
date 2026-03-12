@@ -1,4 +1,4 @@
-import { NUM_PIECES } from "../chessConstants.ts";
+import { PIECE_N, PIECES } from "../chessConstants.ts";
 
 /**
  * Generates a random 64 bit integer
@@ -19,10 +19,10 @@ function rand64(): bigint {
  * piece number multiplied by 64 plus the sqaure number. A white pawn moving to a4 would be
  * 0 (white pawn) * 64 + 24 (a4)
  */
-export const zobristTable = new BigUint64Array(NUM_PIECES * 64);
+export const zobristTable = new BigUint64Array(PIECE_N * 64);
 
 // populate:
-for (let p = 0; p < NUM_PIECES; p++) {
+for (const p of PIECES) {
   for (let sq = 0; sq < 64; sq++) {
     zobristTable[p * 64 + sq] = rand64();
   }

@@ -147,6 +147,7 @@ export function isValidFileChar(c: string): c is FileChar {
 
 // ----- PIECES -----
 export const NUM_PIECES = 12 as const;
+export const PIECE_N = 13 as const;
 
 export const NO_PIECE = 0 as const;
 export const WHITE_PAWN = 1 as const;
@@ -259,6 +260,7 @@ export const PIECE_INDEXES = {
 };
 
 export const PIECE_SYMBOLS = [
+  "-",
   "P",
   "N",
   "B",
@@ -313,7 +315,9 @@ export const B_QUEENSIDE_SAFE: bigint = (1n << 60n) | (1n << 59n) | (1n << 58n);
 
 // ----- BITBOARDS -----
 export type Bitboard = bigint;
-export const INITIAL_BITBOARDS: BigUint64Array = new BigUint64Array(NUM_PIECES);
+export const INITIAL_BITBOARDS: BigUint64Array = new BigUint64Array(
+  NUM_PIECES + 1,
+);
 
 // white
 INITIAL_BITBOARDS[PIECE.wP] = 0x000000000000ff00n;

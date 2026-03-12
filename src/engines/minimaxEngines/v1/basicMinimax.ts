@@ -1,14 +1,9 @@
-import type Move from "../../../game/moveMaking/move.ts";
 import type { Engine } from "../../Engine.ts";
-import { Position } from "../../../game/Position.ts";
+import { MAX_MOVES, Position } from "../../../game/Position.ts";
 import { evaluateMaterial } from "../../evaluation/materialEvaluation.ts";
-import {
-  BLACK_WIN,
-  DRAW,
-  WHITE,
-  WHITE_WIN,
-} from "../../../game/chessConstants.ts";
+import { WHITE } from "../../../game/chessConstants.ts";
 import { MATE_SCORE } from "../../evaluation/Evaluation.ts";
+import type { Move } from "../../../game/moveMaking/move.ts";
 
 export class MinimaxV1 implements Engine {
   name: string;
@@ -20,15 +15,18 @@ export class MinimaxV1 implements Engine {
   }
 
   search(pos: Position, maxTimeMs: number): Move {
+    pos.searchPly = 0;
     this.nodesSearched = 0; // reset node count
     const depth = 2;
 
-    const moves = pos.generateLegalMoves();
+    const moveNum = pos.generateLegalMoves();
 
-    let bestMove = moves[0];
+    let bestMove = pos.moveBuffer[0];
     let bestScore = -Infinity;
 
-    for (const move of moves) {
+    for (let i = 0; i < moveNum; i++) {
+      const move = pos.moveBuffer[i];
+
       pos.makeMove(move);
 
       const score = -this.#negamax(pos, depth - 1);
@@ -59,10 +57,13 @@ export class MinimaxV1 implements Engine {
       return sign * evaluateMaterial(pos);
     }
 
+    const start = pos.searchPly * MAX_MOVES;
     const moves = pos.generateLegalMoves();
 
     let bestScore = -Infinity;
-    for (const move of moves) {
+    for (let i = 0; i < moves; i++) {
+      const move = pos.moveBuffer[start + i];
+
       pos.makeMove(move);
 
       const score = -this.#negamax(pos, depth - 1);

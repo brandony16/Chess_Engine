@@ -6,8 +6,8 @@ import {
   isCastlingNumber,
   NO_PIECE,
   NO_SQUARE,
-  NUM_PIECES,
   PIECE_INDEXES,
+  PIECE_N,
   PIECE_SYMBOLS,
   sq,
   WHITE,
@@ -86,7 +86,7 @@ export const buildFenEnPassant = (epSquare: Square): String => {
  * Converts the position part of a FEN into a bitboards array
  */
 export function buildBitboards(bbString: String): BigUint64Array {
-  let bitboards = new BigUint64Array(NUM_PIECES).fill(0n);
+  let bitboards = new BigUint64Array(PIECE_N).fill(0n);
 
   const ranks = bbString.split("/");
 
