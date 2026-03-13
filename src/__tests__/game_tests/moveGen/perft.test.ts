@@ -25,7 +25,6 @@ const cases: PerftTestCase[] = [
   [
     "Start pos",
     3,
-
     8902,
     "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   ],

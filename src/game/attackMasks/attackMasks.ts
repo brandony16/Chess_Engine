@@ -70,9 +70,7 @@ export function attacksOf(
 /**
  * Gets all of the pieces that attack a given square.
  */
-export function attacksTo(position: Position, toSq: Square): Bitboard {
-  const bitboards = position.bitboards;
-  const occ = position.occupied;
+export function attacksTo(bitboards: BigUint64Array, occ: bigint, toSq: Square): Bitboard {
   let attackers = 0n;
 
   // Pawns

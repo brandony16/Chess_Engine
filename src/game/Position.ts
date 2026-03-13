@@ -3,8 +3,11 @@ import { attacksTo } from "./attackMasks/attackMasks.ts";
 import {
   ALL_CASTLING,
   BLACK,
+  BLACK_BISHOP,
   BLACK_KING,
+  BLACK_KNIGHT,
   BLACK_PAWN,
+  BLACK_QUEEN,
   BLACK_ROOK,
   BLACK_WIN,
   CHECKMATE,
@@ -23,8 +26,11 @@ import {
   REPETITION,
   STALEMATE,
   WHITE,
+  WHITE_BISHOP,
   WHITE_KING,
+  WHITE_KNIGHT,
   WHITE_PAWN,
+  WHITE_QUEEN,
   WHITE_ROOK,
   WHITE_WIN,
   type Bitboard,
@@ -80,7 +86,14 @@ import {
 } from "./positionStates/occupancy.ts";
 import { newEnPassant } from "./moveMaking/moveHelpers.ts";
 import { getCheckers } from "./moveGen/getCheckers.ts";
-import { getRank } from "./helpers/boardUtils.ts";
+import { blackPawnMasks, whitePawnMasks } from "./attackMasks/pawnMasks.ts";
+import { knightMasks } from "./attackMasks/knightMasks.ts";
+import { bishopAttacks, rookAttacks } from "./moveGen/sliderMoves.ts";
+import {
+  betweenMask,
+  lineMask,
+  moreThanOne,
+} from "./attackMasks/checkersAndPinned.ts";
 
 const MAX_SEARCH_PLY = 16;
 const MAX_PLY = 512;
@@ -460,6 +473,57 @@ export class Position {
     return legalCount;
   }
 
+  isLegal(
+    move: Move,
+    checkers: Bitboard,
+    pinned: Bitboard,
+    inDoubleCheck: boolean,
+  ) {
+    const side = this.sideToMove;
+    const from = moveFrom(move);
+    const to = moveTo(move);
+    const piece = movePiece(move);
+    const kingSq = this.kingSq[side];
+    const opp = (side ^ 1) as Player;
+
+    // --- King moves ---
+    if (piece === WHITE_KING || piece === BLACK_KING) {
+      // Remove king from occupied so we don't block his own rays
+      // (e.g. king can't step back along a rook's attack ray)
+      const occupiedWithoutKing = this.occupied & ~(1n << BigInt(kingSq));
+      const attacks = attacksTo(this.bitboards, occupiedWithoutKing, to);
+      return (attacks & this.playerOcc[opp]) === 0n;
+    }
+
+    // --- Double check: only king moves are legal ---
+    if (inDoubleCheck) return false;
+
+    // --- En passant: rare edge case, fall back to make/unmake ---
+    if (isEnPassant(move)) {
+      this.makeMove(move);
+      if (!this.isInCheck(side)) {
+        this.unmakeMove();
+        return true;
+      }
+      this.unmakeMove();
+      return false;
+    }
+
+    // --- Single check: must capture checker or block ---
+    if (checkers !== 0n) {
+      const checkerSq = bitScanForward(checkers);
+      const validTargets = checkers | betweenMask[kingSq][checkerSq];
+      if (!(validTargets & (1n << BigInt(to)))) return false;
+    }
+
+    // --- Pinned piece: can only move along the pin ray ---
+    if (pinned & (1n << BigInt(from))) {
+      // Legal only if moving along the line king->pinner
+      if (!(lineMask[kingSq][from] & (1n << BigInt(to)))) return false;
+    }
+    return true;
+  }
+
   makeMove(move: Move): void {
     this.ply++;
 
@@ -599,13 +663,82 @@ export class Position {
   }
 
   isSquareAttacked(square: Square, player: Player): boolean {
-    const occ = this.playerOcc[player];
-    const allAttacks = attacksTo(this, square);
-    return (occ & allAttacks) !== 0n;
+    const allAttacks = attacksTo(this.bitboards, this.occupied, square);
+
+    return (this.playerOcc[player] & allAttacks) !== 0n;
   }
 
   gameOver(): boolean {
     return this.result !== IN_PROGRESS;
+  }
+
+  getCheckers(): bigint {
+    const side = this.sideToMove;
+    const kingSq = this.kingSq[side];
+
+    const bitboards = this.bitboards;
+    const occ = this.occupied;
+    let attackers = 0n;
+
+    // Pawns
+    const pawn = side === WHITE ? BLACK_PAWN : WHITE_PAWN;
+    const mask = side === WHITE ? whitePawnMasks : blackPawnMasks;
+    attackers |= bitboards[pawn] & mask[kingSq];
+
+    // Knights
+    const knight = side === WHITE ? BLACK_KNIGHT : WHITE_KNIGHT;
+    attackers |= knightMasks[kingSq] & bitboards[knight];
+
+    // Sliding Pieces
+    const ortho =
+      side === WHITE
+        ? bitboards[BLACK_QUEEN] | bitboards[BLACK_ROOK]
+        : bitboards[WHITE_QUEEN] | bitboards[WHITE_ROOK];
+    attackers |= rookAttacks(kingSq, occ) & ortho;
+
+    const sliding =
+      side === WHITE
+        ? bitboards[BLACK_QUEEN] | bitboards[BLACK_BISHOP]
+        : bitboards[WHITE_QUEEN] | bitboards[WHITE_BISHOP];
+    attackers |= bishopAttacks(kingSq, occ) & sliding;
+
+    return attackers;
+  }
+
+  getPinnedPieces(): bigint {
+    const side = this.sideToMove;
+    const kingSq = this.kingSq[side];
+    const opp = side ^ 1;
+    const friendly = this.playerOcc[side];
+    let pinned = 0n;
+
+    // Candidate pinners: enemy sliders that share a ray with the king
+    const bishop = side === WHITE ? BLACK_BISHOP : WHITE_BISHOP;
+    const queen = side === WHITE ? BLACK_QUEEN : WHITE_QUEEN;
+    const bishopPinners =
+      bishopAttacks(kingSq, this.playerOcc[opp]) &
+      (this.bitboards[bishop] | this.bitboards[queen]);
+
+    const rook = side === WHITE ? BLACK_ROOK : WHITE_ROOK;
+    const rookPinners =
+      rookAttacks(kingSq, this.playerOcc[opp]) &
+      (this.bitboards[rook] | this.bitboards[queen]);
+
+    // For each candidate pinner, check if exactly one friendly piece is between
+    let pinners = bishopPinners | rookPinners;
+    while (pinners) {
+      const pinnerSq = bitScanForward(pinners);
+      pinners &= pinners - 1n;
+
+      const between = betweenMask[kingSq][pinnerSq] & this.occupied;
+
+      // Exactly one piece between king and pinner, and it's friendly = pinned
+      if (between && !moreThanOne(between) && between & friendly) {
+        pinned |= between;
+      }
+    }
+
+    return pinned;
   }
 
   getFen(): string {

@@ -1,3 +1,5 @@
+import { bigIntFullRep } from "../../../debugFunctions.ts";
+import { moreThanOne } from "../../../game/attackMasks/checkersAndPinned.ts";
 import { moveToUCI } from "../../../game/fenAndUCI/uciHelpers.ts";
 import { MAX_MOVES, type Position } from "../../../game/Position.ts";
 
@@ -11,16 +13,16 @@ export function perft(pos: Position, depth: number): number {
   const start = pos.searchPly * MAX_MOVES;
   const moveCount = pos.generatePseudoLegalMoves();
 
-  const side = pos.sideToMove;
+  const checkers = pos.getCheckers();
+  const pinned = pos.getPinnedPieces();
+  const inDoubleCheck = moreThanOne(checkers);
+
   for (let i = 0; i < moveCount; i++) {
     const move = pos.moveBuffer[start + i];
 
-    pos.makeMove(move);
+    if (!pos.isLegal(move, checkers, pinned, inDoubleCheck)) continue;
 
-    if (pos.isInCheck(side)) {
-      pos.unmakeMove();
-      continue;
-    }
+    pos.makeMove(move);
 
     if (depth === 1) {
       nodes++;
@@ -40,10 +42,16 @@ export function perftDivide(
   const divide: Record<string, number> = {};
 
   pos.searchPly = 0;
-  const moveCount = pos.generateLegalMoves();
+  const moveCount = pos.generatePseudoLegalMoves();
+
+  const checkers = pos.getCheckers();
+  const pinned = pos.getPinnedPieces();
+  const inDoubleCheck = moreThanOne(checkers);
 
   for (let i = 0; i < moveCount; i++) {
     const move = pos.moveBuffer[i];
+
+    if (!pos.isLegal(move, checkers, pinned, inDoubleCheck)) continue;
 
     const uci = moveToUCI(move);
     pos.makeMove(move);
