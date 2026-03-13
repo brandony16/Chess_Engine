@@ -17,6 +17,7 @@ import {
   NO_SQUARE,
   PIECE_N,
   PIECES,
+  PLAYER_PIECES,
   PROMO_PIECES,
   PROMO_RANK,
   REPETITION,
@@ -48,10 +49,6 @@ import { getPieceMoves } from "./moveGen/moveGeneration.ts";
 import { kingMoves } from "./moveGen/majorPieces.ts";
 import { opponent } from "./helpers/opponent.ts";
 import { applyMove, unapplyMove } from "./moveMaking/applyMove.ts";
-import {
-  undoPieceIndexUpdate,
-  updatePieceIndexes,
-} from "./positionStates/pieceIndexUpdators.ts";
 import { updateCastlingRights } from "./moveMaking/castling.ts";
 import {
   encodeMove,
@@ -66,7 +63,6 @@ import {
   movePromotion,
   moveTo,
   type Move,
-  type Undo,
 } from "./moveMaking/move.ts";
 import { isKing, isPawn, isWhite } from "./pieceUtils/pieceClassifiers.ts";
 import {
@@ -86,10 +82,10 @@ import { newEnPassant } from "./moveMaking/moveHelpers.ts";
 import { getCheckers } from "./moveGen/getCheckers.ts";
 import { getRank } from "./helpers/boardUtils.ts";
 
-type MoveList = Move[];
 const MAX_SEARCH_PLY = 16;
 const MAX_PLY = 512;
 export const MAX_MOVES = 256;
+const MAX_PIECES = 16;
 
 export class Position {
   bitboards: BigUint64Array;
@@ -97,7 +93,6 @@ export class Position {
   occupied: Bitboard;
 
   pieceAt: Piece[]; // length 64
-  pieceIndexes: Square[][];
 
   sideToMove: Player;
   castlingRights: CastlingNumber;
@@ -115,8 +110,12 @@ export class Position {
   searchPly: number;
   moveBuffer: Uint32Array;
 
-  moveStack: MoveList;
-  undoStack: Undo[];
+  moveStack: Move[];
+
+  undoCastling: CastlingNumber[];
+  undoEp: Square[];
+  undoHalfmove: number[];
+
   zobristHistory: BigUint64Array;
 
   constructor() {
@@ -126,7 +125,6 @@ export class Position {
     this.occupied = 0n;
 
     this.pieceAt = new Array(64).fill(NO_PIECE);
-    this.pieceIndexes = Array.from({ length: PIECE_N }, () => new Array());
 
     // ----- Game State -----
     this.sideToMove = WHITE;
@@ -141,14 +139,18 @@ export class Position {
     this.endState = IN_PROGRESS;
 
     // ----- Cached Info -----
-    this.kingSq = [];
+    this.kingSq = new Array<Square>(2);
     this.zobristKey = 0n;
 
     this.searchPly = 0;
     this.moveBuffer = new Uint32Array(MAX_SEARCH_PLY * MAX_MOVES);
 
-    this.moveStack = [];
-    this.undoStack = [];
+    this.moveStack = new Array<Move>(MAX_PLY);
+
+    this.undoCastling = new Array<CastlingNumber>(MAX_PLY);
+    this.undoEp = new Array<Square>(MAX_PLY);
+    this.undoHalfmove = new Array<number>(MAX_PLY);
+
     this.zobristHistory = new BigUint64Array(MAX_PLY);
 
     this.loadInitialPosition();
@@ -172,7 +174,8 @@ export class Position {
     this.recomputeOccupancy();
     this.computeZobrist();
     this.initializePieceAt();
-    this.initializePieceIndexes();
+
+    this.zobristHistory[0] = this.zobristKey;
   }
 
   initializePieceAt(): void {
@@ -183,22 +186,6 @@ export class Position {
       while (bb) {
         const sq = bitScanForward(bb);
         this.pieceAt[sq] = piece;
-        bb &= bb - 1n;
-      }
-    }
-  }
-
-  initializePieceIndexes(): void {
-    for (const p of PIECES) {
-      this.pieceIndexes[p].length = 0;
-    }
-
-    for (const p of PIECES) {
-      let bb = this.bitboards[p];
-      const list = this.pieceIndexes[p];
-      while (bb) {
-        const sq = bitScanForward(bb);
-        list.push(sq);
         bb &= bb - 1n;
       }
     }
@@ -377,27 +364,33 @@ export class Position {
       }
     }
 
-    const pieceLists = this.playerPieceIndexes(side);
+    const pieces = PLAYER_PIECES[side];
+    const bitboards = this.bitboards;
+    const pieceAt = this.pieceAt;
+    const buffer = this.moveBuffer;
 
-    for (let i = 0; i < pieceLists.length; i++) {
-      const squares = pieceLists[i];
+    const promoRank = PROMO_RANK[side];
+    const promoList = PROMO_PIECES[side];
+    for (let i = 0; i < pieces.length; i++) {
+      const piece = pieces[i];
+      let bb = bitboards[piece];
+      while (bb) {
+        const from = bitScanForward(bb);
+        bb &= bb - 1n;
 
-      for (let j = 0; j < squares.length; j++) {
-        const from = squares[j];
-        const piece = this.pieceAt[from];
+        let moveBB = getPieceMoves(this, piece, from);
+        while (moveBB) {
+          const to = bitScanForward(moveBB);
+          moveBB &= moveBB - 1n;
 
-        let bb = getPieceMoves(this, piece, from);
-        while (bb) {
-          const to = bitScanForward(bb);
-          bb &= bb - 1n;
-
-          let captured = this.pieceAt[to];
+          let captured = pieceAt[to];
 
           let flags = 0;
 
           // ----- Pawn logic -----
-          if (isPawn(piece)) {
-            const delta = Math.abs(from - to);
+          if (piece === WHITE_PAWN || piece === BLACK_PAWN) {
+            let delta = from - to;
+            if (delta < 0) delta = -delta;
 
             if (delta === 16) {
               flags |= FLAG_DOUBLE;
@@ -407,11 +400,9 @@ export class Position {
             }
 
             // Promotion
-            if (getRank(to) === PROMO_RANK[side]) {
-              const promoList = PROMO_PIECES[side];
-
+            if (to >> 3 === promoRank) {
               for (let k = 0; k < promoList.length; k++) {
-                this.moveBuffer[start + count++] = encodeMove(
+                buffer[start + count++] = encodeMove(
                   from,
                   to,
                   piece,
@@ -426,13 +417,13 @@ export class Position {
           }
 
           // ----- Castling -----
-          else if (isKing(piece)) {
+          else if (piece === WHITE_KING || piece === BLACK_KING) {
             if (Math.abs(from - to) === 2) {
               flags |= FLAG_CASTLE;
             }
           }
 
-          this.moveBuffer[start + count++] = encodeMove(
+          buffer[start + count++] = encodeMove(
             from,
             to,
             piece,
@@ -470,22 +461,19 @@ export class Position {
   }
 
   makeMove(move: Move): void {
+    this.ply++;
+
     const from = moveFrom(move);
     const to = moveTo(move);
 
-    const undo: Undo = {
-      captured: this.pieceAt[to],
-      castlingRights: this.castlingRights,
-      epSquare: this.enPassantSquare,
-      halfmoveClock: this.halfmoveClock,
-      zobristKey: this.zobristKey,
-    };
-    this.undoStack.push(undo);
-    this.moveStack.push(move);
+    this.undoCastling[this.ply] = this.castlingRights;
+    this.undoEp[this.ply] = this.enPassantSquare;
+    this.undoHalfmove[this.ply] = this.halfmoveClock;
+
+    this.moveStack[this.ply] = move;
 
     applyMove(this, move);
 
-    updatePieceIndexes(this.pieceIndexes, move);
     updateOccupancy(this, move);
 
     if (isKing(movePiece(move))) {
@@ -503,37 +491,34 @@ export class Position {
       this.fullmoveNumber++;
     }
 
-    this.zobristHistory[this.ply++] = this.zobristKey;
+    this.zobristHistory[this.ply] = this.zobristKey;
 
     this.sideToMove ^= 1;
     this.searchPly++;
   }
 
   unmakeMove(): void {
-    const undo = this.undoStack.pop();
-    const move = this.moveStack.pop();
+    this.searchPly--;
 
-    if (!undo || !move) {
-      throw new Error("Unmake with empty stack");
-    }
+    const castling = this.undoCastling[this.ply];
+    const ep = this.undoEp[this.ply];
+    const halfmove = this.undoHalfmove[this.ply];
+    const move = this.moveStack[this.ply];
 
     unapplyMove(this, move);
 
     this.sideToMove ^= 1;
 
-    undoPieceIndexUpdate(this.pieceIndexes, move);
     undoOccupancyUpdate(this, move);
 
     if (isKing(movePiece(move))) {
       this.kingSq[this.sideToMove] = moveFrom(move);
     }
 
-    this.zobristHistory[--this.ply] = 0n;
-
-    this.castlingRights = undo.castlingRights;
-    this.enPassantSquare = undo.epSquare;
-    this.halfmoveClock = undo.halfmoveClock;
-    this.zobristKey = undo.zobristKey;
+    this.castlingRights = castling;
+    this.enPassantSquare = ep;
+    this.halfmoveClock = halfmove;
+    this.zobristKey = this.zobristHistory[this.ply - 1]; // get prev position key
 
     if (this.sideToMove === BLACK) {
       this.fullmoveNumber--;
@@ -542,7 +527,7 @@ export class Position {
     // If unmaking a move, the game cant be over (can't move if the game is over)
     this.result = IN_PROGRESS;
     this.endState = IN_PROGRESS;
-    this.searchPly--;
+    this.ply--;
   }
 
   isInCheck(player: Player = this.sideToMove): boolean {
@@ -611,14 +596,6 @@ export class Position {
     if (p === NO_PIECE) return false;
 
     return player === WHITE ? isWhite(p) : !isWhite(p);
-  }
-
-  playerPieceIndexes(player: Player): Square[][] {
-    const base = player === WHITE ? WHITE_PAWN : BLACK_PAWN;
-    if (player === WHITE) {
-      return this.pieceIndexes.slice(WHITE_PAWN, BLACK_PAWN);
-    }
-    return this.pieceIndexes.slice(BLACK_PAWN);
   }
 
   isSquareAttacked(square: Square, player: Player): boolean {
@@ -781,20 +758,14 @@ export class Position {
     }
     cpy.moveStack = moveStack;
 
-    const undoStack: Undo[] = [];
-    for (const undo of this.undoStack) {
-      const undoCpy = {
-        captured: undo.captured,
-        castlingRights: undo.castlingRights,
-        epSquare: undo.epSquare,
-        halfmoveClock: undo.halfmoveClock,
-        zobristKey: undo.zobristKey,
-      };
-      undoStack.push(undoCpy);
-    }
-    cpy.undoStack = undoStack;
+    cpy.undoCastling = this.undoCastling.slice();
+    cpy.undoEp = this.undoEp.slice();
+    cpy.undoHalfmove = this.undoHalfmove.slice();
 
-    cpy.zobristHistory = this.zobristHistory.slice()
+    cpy.ply = this.ply;
+    cpy.searchPly = this.searchPly;
+
+    cpy.zobristHistory = this.zobristHistory.slice();
 
     return cpy;
   }

@@ -43,9 +43,16 @@ function areEqual(pos1: Position, pos2: Position): void {
   expect(pos1.fullmoveNumber).toBe(pos2.fullmoveNumber);
 
   expect(pos1.moveStack.length).toBe(pos2.moveStack.length);
-  expect(pos1.undoStack.length).toBe(pos2.undoStack.length);
 
-  expect(pos1.zobristHistory).toEqual(pos2.zobristHistory);
+  expect(pos1.ply).toBe(pos2.ply);
+  expect(pos1.searchPly).toBe(pos2.searchPly);
+
+  for (let i = 0; i < pos1.ply; i++) {
+    expect(pos1.zobristHistory[i]).toBe(pos2.zobristHistory[i]);
+    expect(pos1.undoCastling[i]).toBe(pos2.undoCastling[i]);
+    expect(pos1.undoEp[i]).toBe(pos2.undoEp[i]);
+    expect(pos1.undoHalfmove[i]).toBe(pos2.undoHalfmove[i]);
+  }
 }
 
 function testUndo(fen: string, move1: Move, move2: Move) {

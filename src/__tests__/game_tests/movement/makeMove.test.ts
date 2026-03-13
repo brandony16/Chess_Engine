@@ -69,8 +69,8 @@ const confirmMove = (pos: Position, move: Move) => {
   pos.computeZobrist();
   expect(zobrist).toBe(pos.zobristKey);
 
-  expect(pos.moveStack[pos.moveStack.length - 1]).toBe(move);
-  expect(pos.zobristHistory[pos.ply - 1]).toBe(pos.zobristKey);
+  expect(pos.moveStack[pos.ply]).toBe(move);
+  expect(pos.zobristHistory[pos.ply]).toBe(pos.zobristKey);
 };
 
 describe("makeMove - movement", () => {
@@ -268,19 +268,19 @@ describe("makeMove - captures", () => {
     expect(pos.validate()).toBe(true);
     confirmMove(pos, moveW);
 
-    // pos.loadFen(EN_PASSANT_BLACK);
-    // const moveB = encodeMove(
-    //   sq.E4,
-    //   sq.D3,
-    //   BLACK_PAWN,
-    //   WHITE_PAWN,
-    //   NO_PIECE,
-    //   FLAG_EP,
-    // );
-    // pos.makeMove(moveB);
+    pos.loadFen(EN_PASSANT_BLACK);
+    const moveB = encodeMove(
+      sq.E4,
+      sq.D3,
+      BLACK_PAWN,
+      WHITE_PAWN,
+      NO_PIECE,
+      FLAG_EP,
+    );
+    pos.makeMove(moveB);
 
-    // expect(pos.validate()).toBe(true);
-    // confirmMove(pos, moveB);
+    expect(pos.validate()).toBe(true);
+    confirmMove(pos, moveB);
   });
 
   test("knight", () => {

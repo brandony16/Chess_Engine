@@ -61,11 +61,3 @@ export const isEnPassant = (m: Move) => (m & FLAG_EP) !== 0;
 export const isCastling = (m: Move) => (m & FLAG_CASTLE) !== 0;
 
 export const isDouble = (m: Move) => (m & FLAG_DOUBLE) !== 0;
-
-export interface Undo {
-  captured: Piece;
-  castlingRights: CastlingNumber;
-  epSquare: Square;
-  halfmoveClock: number;
-  zobristKey: bigint;
-}

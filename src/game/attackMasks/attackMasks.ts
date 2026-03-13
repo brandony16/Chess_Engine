@@ -29,6 +29,7 @@ import {
   queens,
   rooks,
 } from "../pieceUtils/pieceGetters.ts";
+import { bitScanForward } from "../helpers/bbUtils.ts";
 
 /**
  * Generates the attack bitboard of a piece at a square
@@ -102,8 +103,10 @@ export function attacksTo(position: Position, toSq: Square): Bitboard {
  */
 export function computeMaskForPiece(position: Position, piece: Piece): Bitboard {
   let mask = 0n;
-  const indicies = position.pieceIndexes[piece];
-  for (const square of indicies) {
+  let bb = position.bitboards[piece];
+  while (bb) {
+    const square = bitScanForward(bb);
+    bb &= bb - 1n;
     mask |= attacksOf(piece, square, position.occupied);
   }
 

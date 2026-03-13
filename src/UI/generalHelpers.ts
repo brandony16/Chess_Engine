@@ -1,12 +1,10 @@
 import {
-  BLACK,
   FILE_SYMBOLS,
   NO_PIECE,
   PIECE_SYMBOLS,
-  WHITE,
 } from "../game/chessConstants.ts";
 import { getFile, getRank } from "../game/helpers/boardUtils.ts";
-import Move from "../game/moveMaking/move.ts";
+import type { Move } from "../game/moveMaking/move.ts";
 import { isPawn } from "../game/pieceUtils/pieceClassifiers.ts";
 
 /**
