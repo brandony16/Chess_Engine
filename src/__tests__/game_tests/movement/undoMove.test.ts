@@ -26,16 +26,12 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../../../game/chessConstants.ts";
-import { encodeMove, FLAG_CASTLE, FLAG_EP, type Move } from "../../../game/moveMaking/move.ts";
-
-function mapsEqual<K, V>(a: Map<K, V>, b: Map<K, V>): void {
-  expect(a.size).toBe(b.size);
-
-  for (const [key, value] of a) {
-    expect(b.has(key)).toBe(true);
-    expect(b.get(key)).toBe(value);
-  }
-}
+import {
+  encodeMove,
+  FLAG_CASTLE,
+  FLAG_EP,
+  type Move,
+} from "../../../game/moveMaking/move.ts";
 
 function areEqual(pos1: Position, pos2: Position): void {
   // Zobrist covers pieces, sideToMove, castling, and en passant
@@ -49,7 +45,7 @@ function areEqual(pos1: Position, pos2: Position): void {
   expect(pos1.moveStack.length).toBe(pos2.moveStack.length);
   expect(pos1.undoStack.length).toBe(pos2.undoStack.length);
 
-  mapsEqual(pos1.pastPositions, pos2.pastPositions);
+  expect(pos1.zobristHistory).toEqual(pos2.zobristHistory);
 }
 
 function testUndo(fen: string, move1: Move, move2: Move) {
@@ -126,8 +122,22 @@ describe("unmakeMove - movement", () => {
 
   test("king - castling", () => {
     // White kingside and black queenside
-    const moveW = encodeMove(sq.E1, sq.G1, WHITE_KING, NO_PIECE, NO_PIECE, FLAG_CASTLE);
-    const moveB = encodeMove(sq.E8, sq.C8, BLACK_KING, NO_PIECE, NO_PIECE, FLAG_CASTLE);
+    const moveW = encodeMove(
+      sq.E1,
+      sq.G1,
+      WHITE_KING,
+      NO_PIECE,
+      NO_PIECE,
+      FLAG_CASTLE,
+    );
+    const moveB = encodeMove(
+      sq.E8,
+      sq.C8,
+      BLACK_KING,
+      NO_PIECE,
+      NO_PIECE,
+      FLAG_CASTLE,
+    );
 
     testUndo(KIWIPETE_POS, moveW, moveB);
   });
@@ -151,7 +161,7 @@ describe("unmakeMove - captures", () => {
       WHITE_PAWN,
       BLACK_PAWN,
       NO_PIECE,
-      FLAG_EP
+      FLAG_EP,
     );
     pos.makeMove(moveW);
     pos.unmakeMove();
@@ -168,7 +178,7 @@ describe("unmakeMove - captures", () => {
       BLACK_PAWN,
       WHITE_PAWN,
       NO_PIECE,
-      FLAG_EP
+      FLAG_EP,
     );
     pos.makeMove(moveB);
     pos.unmakeMove();
@@ -282,15 +292,39 @@ describe("unmakeMove - promotions", () => {
   });
 
   test("rook promo - capture", () => {
-    const moveW = encodeMove(sq.C7, sq.D8, WHITE_PAWN, BLACK_KNIGHT, WHITE_ROOK);
-    const moveB = encodeMove(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_ROOK);
+    const moveW = encodeMove(
+      sq.C7,
+      sq.D8,
+      WHITE_PAWN,
+      BLACK_KNIGHT,
+      WHITE_ROOK,
+    );
+    const moveB = encodeMove(
+      sq.G2,
+      sq.F1,
+      BLACK_PAWN,
+      WHITE_KNIGHT,
+      BLACK_ROOK,
+    );
 
     testUndo(PROMOTION_ENDGAME, moveW, moveB);
   });
 
   test("queen promo - capture", () => {
-    const moveW = encodeMove(sq.C7, sq.D8, WHITE_PAWN, BLACK_KNIGHT, WHITE_QUEEN);
-    const moveB = encodeMove(sq.G2, sq.F1, BLACK_PAWN, WHITE_KNIGHT, BLACK_QUEEN);
+    const moveW = encodeMove(
+      sq.C7,
+      sq.D8,
+      WHITE_PAWN,
+      BLACK_KNIGHT,
+      WHITE_QUEEN,
+    );
+    const moveB = encodeMove(
+      sq.G2,
+      sq.F1,
+      BLACK_PAWN,
+      WHITE_KNIGHT,
+      BLACK_QUEEN,
+    );
 
     testUndo(PROMOTION_ENDGAME, moveW, moveB);
   });

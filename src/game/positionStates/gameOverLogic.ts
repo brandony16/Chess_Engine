@@ -43,12 +43,25 @@ export const drawByInsufficientMaterial = (
  * different. It is also not the same if en Passant was legal, and is no longer legal.
  */
 export const drawByRepetition = (
-  pastPositions: Map<bigint, number>,
+  pastPositions: BigUint64Array,
+  halfmoveClock: number,
+  currPly: number,
 ): boolean => {
-  for (const count of pastPositions.values()) {
-    if (count >= 3) {
-      return true;
+  const currentKey = pastPositions[currPly];
+
+  let repetitions = 1; // include current position
+
+  const minPly = Math.max(0, currPly - halfmoveClock);
+
+  for (let i = currPly - 2; i >= minPly; i -= 2) {
+    if (pastPositions[i] === currentKey) {
+      repetitions++;
+
+      if (repetitions >= 3) {
+        return true;
+      }
     }
   }
+
   return false;
 };

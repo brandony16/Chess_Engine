@@ -9,19 +9,24 @@ export function perft(pos: Position, depth: number): number {
 
   let nodes = 0;
   const start = pos.searchPly * MAX_MOVES;
-  const moveCount = pos.generateLegalMoves();
+  const moveCount = pos.generatePseudoLegalMoves();
 
-  // No need to sim every move if at the end
-  if (depth === 1) {
-    return moveCount;
-  }
+  const side = pos.sideToMove;
   for (let i = 0; i < moveCount; i++) {
     const move = pos.moveBuffer[start + i];
 
     pos.makeMove(move);
 
-    nodes += perft(pos, depth - 1);
+    if (pos.isInCheck(side)) {
+      pos.unmakeMove();
+      continue;
+    }
 
+    if (depth === 1) {
+      nodes++;
+    } else {
+      nodes += perft(pos, depth - 1);
+    }
     pos.unmakeMove();
   }
 

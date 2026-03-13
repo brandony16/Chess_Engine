@@ -36,8 +36,13 @@ describe("checkGameOver", () => {
     const pos = new Position();
     pos.loadFen("8/8/2k5/2p5/5P2/5K2/8/8 w - - 0 1");
 
-    // Hacky way to set curr pos to have occured 3 times
-    pos.pastPositions.set(pos.zobristKey, 3);
+    // Mkae history have 3 repeated positions
+    pos.zobristHistory[0] = pos.zobristKey;
+    pos.zobristHistory[2] = pos.zobristKey;
+    pos.zobristHistory[4] = pos.zobristKey;
+
+    pos.ply = 4;
+    pos.halfmoveClock = 4;
 
     pos.checkGameOver();
     expect(pos.gameOver()).toBe(true);

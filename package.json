@@ -14,7 +14,8 @@
     "debug": "node --inspect=8080 src/main.js",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
-    "engine-test": "tsx src/engines/testing/runTest.ts"
+    "engine-test": "tsx src/engines/testing/runTest.ts",
+    "speed-test": "tsx src/__tests__/game_tests/moveGen/perftSpeed.ts"
   },
   "dependencies": {
     "chess.js": "^1.2.0",

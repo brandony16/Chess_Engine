@@ -87,7 +87,8 @@ import { getCheckers } from "./moveGen/getCheckers.ts";
 import { getRank } from "./helpers/boardUtils.ts";
 
 type MoveList = Move[];
-const MAX_PLY = 16;
+const MAX_SEARCH_PLY = 16;
+const MAX_PLY = 512;
 export const MAX_MOVES = 256;
 
 export class Position {
@@ -102,6 +103,7 @@ export class Position {
   castlingRights: CastlingNumber;
   enPassantSquare: Square;
   fullmoveNumber: number;
+  ply: number;
 
   result: Result;
   halfmoveClock: number;
@@ -115,7 +117,7 @@ export class Position {
 
   moveStack: MoveList;
   undoStack: Undo[];
-  pastPositions: Map<bigint, number>;
+  zobristHistory: BigUint64Array;
 
   constructor() {
     // ----- Board State -----
@@ -131,6 +133,7 @@ export class Position {
     this.castlingRights = ALL_CASTLING;
     this.enPassantSquare = NO_SQUARE;
     this.fullmoveNumber = 1;
+    this.ply = 0;
 
     // ----- End Game -----
     this.result = IN_PROGRESS;
@@ -142,11 +145,11 @@ export class Position {
     this.zobristKey = 0n;
 
     this.searchPly = 0;
-    this.moveBuffer = new Uint32Array(MAX_PLY * MAX_MOVES);
+    this.moveBuffer = new Uint32Array(MAX_SEARCH_PLY * MAX_MOVES);
 
     this.moveStack = [];
     this.undoStack = [];
-    this.pastPositions = new Map<bigint, number>();
+    this.zobristHistory = new BigUint64Array(MAX_PLY);
 
     this.loadInitialPosition();
   }
@@ -500,8 +503,7 @@ export class Position {
       this.fullmoveNumber++;
     }
 
-    const prev = this.pastPositions.get(this.zobristKey) ?? 0;
-    this.pastPositions.set(this.zobristKey, prev + 1);
+    this.zobristHistory[this.ply++] = this.zobristKey;
 
     this.sideToMove ^= 1;
     this.searchPly++;
@@ -526,15 +528,7 @@ export class Position {
       this.kingSq[this.sideToMove] = moveFrom(move);
     }
 
-    const prev = this.pastPositions.get(this.zobristKey);
-    if (prev === undefined) {
-      throw new Error("Zobrist key missing in pastPositions");
-    }
-    if (prev === 1) {
-      this.pastPositions.delete(this.zobristKey);
-    } else {
-      this.pastPositions.set(this.zobristKey, prev - 1);
-    }
+    this.zobristHistory[--this.ply] = 0n;
 
     this.castlingRights = undo.castlingRights;
     this.enPassantSquare = undo.epSquare;
@@ -589,7 +583,7 @@ export class Position {
       this.endState = FIFTY_MOVE_RULE;
       return;
     }
-    if (drawByRepetition(this.pastPositions)) {
+    if (drawByRepetition(this.zobristHistory, this.halfmoveClock, this.ply)) {
       this.result = DRAW;
       this.endState = REPETITION;
       return;
@@ -800,7 +794,7 @@ export class Position {
     }
     cpy.undoStack = undoStack;
 
-    cpy.pastPositions = new Map(this.pastPositions);
+    cpy.zobristHistory = this.zobristHistory.slice()
 
     return cpy;
   }

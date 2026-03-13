@@ -70,8 +70,7 @@ const confirmMove = (pos: Position, move: Move) => {
   expect(zobrist).toBe(pos.zobristKey);
 
   expect(pos.moveStack[pos.moveStack.length - 1]).toBe(move);
-  expect(pos.pastPositions.get(pos.zobristKey)).not.toBeFalsy();
-  expect(pos.pastPositions.get(pos.zobristKey)).toBeGreaterThan(0);
+  expect(pos.zobristHistory[pos.ply - 1]).toBe(pos.zobristKey);
 };
 
 describe("makeMove - movement", () => {
