@@ -98,7 +98,6 @@ import {
 const MAX_SEARCH_PLY = 16;
 const MAX_PLY = 512;
 export const MAX_MOVES = 256;
-const MAX_PIECES = 16;
 
 export class Position {
   bitboards: BigUint64Array;
@@ -488,8 +487,7 @@ export class Position {
 
     // --- King moves ---
     if (piece === WHITE_KING || piece === BLACK_KING) {
-      // Remove king from occupied so we don't block his own rays
-      // (e.g. king can't step back along a rook's attack ray)
+      // Remove king from occupied so king doesnt block rays
       const occupiedWithoutKing = this.occupied & ~(1n << BigInt(kingSq));
       const attacks = attacksTo(this.bitboards, occupiedWithoutKing, to);
       return (attacks & this.playerOcc[opp]) === 0n;

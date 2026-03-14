@@ -3,7 +3,7 @@ import { PIECE_IMAGES, PIECE_NAMES } from "../../utilTypes.ts";
 import type { Piece } from "../../../game/chessConstants.ts";
 
 interface PieceProps {
-  type: Exclude<Piece, -1>; // Exclude NO_PIECE
+  type: Exclude<Piece, 0>; // Exclude NO_PIECE
 }
 
 /* 

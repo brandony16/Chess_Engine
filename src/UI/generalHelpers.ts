@@ -4,7 +4,15 @@ import {
   PIECE_SYMBOLS,
 } from "../game/chessConstants.ts";
 import { getFile, getRank } from "../game/helpers/boardUtils.ts";
-import type { Move } from "../game/moveMaking/move.ts";
+import {
+  isCastling,
+  moveCaptured,
+  moveFrom,
+  movePiece,
+  movePromotion,
+  moveTo,
+  type Move,
+} from "../game/moveMaking/move.ts";
 import { isPawn } from "../game/pieceUtils/pieceClassifiers.ts";
 
 /**
@@ -18,17 +26,18 @@ export const moveToAlgebraic = (
 ) => {
   let notation = "";
 
-  const { from, to } = move;
+  const from = moveFrom(move);
+  const to = moveTo(move);
 
   const rank = getRank(to);
   const file = getFile(to);
   const fileSymbol = FILE_SYMBOLS[file];
 
-  const piece = move.piece;
+  const piece = movePiece(move);
   const pieceSymbol = PIECE_SYMBOLS[piece];
 
   // Caslting case
-  if (move.castling) {
+  if (isCastling(move)) {
     if (from - to === 2) {
       return "O-O-O";
     } else {
@@ -38,19 +47,19 @@ export const moveToAlgebraic = (
 
   if (isPawn(piece)) {
     // Pawns notation omits the p identifier. a3 instead of Pa3, dxe5 instead of pxe5
-    if (move.captured !== NO_PIECE) {
+    if (moveCaptured(move) !== NO_PIECE) {
       const fileFrom = getFile(from);
       notation += FILE_SYMBOLS[fileFrom] + "x";
     }
     notation += fileSymbol + (rank + 1); // +1 so rank is not 0-indexed (start at rank 1, not 0)
 
-    if (move.promotion !== NO_PIECE) {
-      notation += "=" + PIECE_SYMBOLS[move.promotion];
+    if (movePromotion(move) !== NO_PIECE) {
+      notation += "=" + PIECE_SYMBOLS[movePromotion(move)];
     }
   } else {
     notation += pieceSymbol;
 
-    if (move.captured !== NO_PIECE) notation += "x";
+    if (moveCaptured(move) !== NO_PIECE) notation += "x";
 
     notation += fileSymbol + (rank + 1);
   }
@@ -75,7 +84,7 @@ export const movesToBB = (moves: Move[]) => {
   let bitboard = 0n;
 
   for (const move of moves) {
-    bitboard |= 1n << BigInt(move.to);
+    bitboard |= 1n << BigInt(moveTo(move));
   }
 
   return bitboard;

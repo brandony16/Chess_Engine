@@ -1,14 +1,11 @@
-import { clearTT } from "../../../coreLogic/transpositionTable.mjs";
-import { engineRegistry } from "./engineRegistry.mjs";
+import { createRandomEngine } from "../../../engines/randomEngine.ts";
 import type { EnginePost, EngineResponse } from "./engineWorkerTypes.ts";
 
 self.onmessage = (e: MessageEvent<EnginePost>) => {
-  const { game, engine, depth, timeLimit } = e.data;
+  const { pos, engine, depth, timeLimit } = e.data;
 
-  clearTT();
-
-  const engineFn = engineRegistry[engine];
-  const move = engineFn(game, depth, timeLimit);
+  const engineObj = createRandomEngine(Math.random);
+  const move = engineObj.search(pos, timeLimit);
 
   const result: EngineResponse = { move };
 

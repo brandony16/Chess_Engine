@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { type Engine } from "./utilTypes.ts";
-import type Move from "../game/moveMaking/move.ts";
 import { Game } from "../game/Game.ts";
 import {
   BLACK,
@@ -14,6 +13,7 @@ import { opponent } from "../game/helpers/opponent.ts";
 import { Snapshot } from "../game/Snapshot.ts";
 import { moveToAlgebraic } from "./generalHelpers.ts";
 import { buildPGN } from "../game/fenAndUCI/pgn.ts";
+import type { Move } from "../game/moveMaking/move.ts";
 
 export type ModalType = "history" | "battle" | "new";
 export type HistoryEntry = {

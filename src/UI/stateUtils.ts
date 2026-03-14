@@ -1,4 +1,5 @@
 import { NO_PIECE, type Piece, type Square } from "../game/chessConstants.ts";
+import { moveFrom, movePromotion, moveTo } from "../game/moveMaking/move.ts";
 import type { GameStoreState } from "./gameStore.ts";
 
 export const getShownMove = (state: GameStoreState) =>
@@ -15,7 +16,9 @@ export const findMove = (
 ) => {
   const move = state.legalMovesForSelected.find(
     (elem) =>
-      elem.from === from && elem.to === to && elem.promotion === promoPiece,
+      moveFrom(elem) === from &&
+      moveTo(elem) === to &&
+      movePromotion(elem) === promoPiece,
   );
   if (!move) {
     throw new Error(`Move not found: from ${from}, to ${to}`);

@@ -67,7 +67,7 @@ export class Game implements GameView {
   }
 
   undoMove(): boolean {
-    if (this.position.undoStack.length === 0) {
+    if (this.position.ply === 0) {
       return false;
     }
 
@@ -132,5 +132,9 @@ export class Game implements GameView {
       this.position.sideToMove,
       this.position.pieceAt.slice(),
     );
+  }
+
+  getPositionCpy(): Position {
+    return this.position.copy();
   }
 }
