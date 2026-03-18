@@ -90,10 +90,13 @@ import { blackPawnMasks, whitePawnMasks } from "./attackMasks/pawnMasks.ts";
 import { knightMasks } from "./attackMasks/knightMasks.ts";
 import { bishopAttacks, rookAttacks } from "./moveGen/sliderMoves.ts";
 import {
-  betweenMask,
-  lineMask,
+  betweenMaskHi,
+  betweenMaskLo,
+  lineMaskHi,
+  lineMaskLo,
   moreThanOne,
-} from "./attackMasks/checkersAndPinned.ts";
+} from "./attackMasks/masks.ts";
+import { bbPrint, bbToBigInt } from "./bb.ts";
 
 const MAX_SEARCH_PLY = 16;
 const MAX_PLY = 512;
@@ -510,14 +513,26 @@ export class Position {
     // --- Single check: must capture checker or block ---
     if (checkers !== 0n) {
       const checkerSq = bitScanForward(checkers);
-      const validTargets = checkers | betweenMask[kingSq][checkerSq];
+
+      const maskIdx = kingSq * 64 + checkerSq;
+      const betweenHi = betweenMaskHi[maskIdx];
+      const betweenLo = betweenMaskLo[maskIdx];
+
+      const validTargets = checkers | bbToBigInt(betweenLo, betweenHi);
       if (!(validTargets & (1n << BigInt(to)))) return false;
     }
 
     // --- Pinned piece: can only move along the pin ray ---
     if (pinned & (1n << BigInt(from))) {
+      const maskIdx = kingSq * 64 + from;
+      const lineHi = lineMaskHi[maskIdx];
+      const lineLo = lineMaskLo[maskIdx];
+
+      console.log();
+
+      const valid = bbToBigInt(lineLo, lineHi);
       // Legal only if moving along the line king->pinner
-      if (!(lineMask[kingSq][from] & (1n << BigInt(to)))) return false;
+      if (!(valid & (1n << BigInt(to)))) return false;
     }
     return true;
   }
@@ -728,7 +743,9 @@ export class Position {
       const pinnerSq = bitScanForward(pinners);
       pinners &= pinners - 1n;
 
-      const between = betweenMask[kingSq][pinnerSq] & this.occupied;
+      const betweenHi = betweenMaskHi[kingSq * 64 + pinnerSq];
+      const betweenLo = betweenMaskLo[kingSq * 64 + pinnerSq];
+      const between = bbToBigInt(betweenLo, betweenHi) & this.occupied;
 
       // Exactly one piece between king and pinner, and it's friendly = pinned
       if (between && !moreThanOne(between) && between & friendly) {

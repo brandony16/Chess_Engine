@@ -1,4 +1,6 @@
-export const betweenMask: bigint[][] = (() => {
+import { bbFromBigInt } from "../bb.ts";
+
+const betweenMaskBigInt: bigint[][] = (() => {
   const table: bigint[][] = Array.from({ length: 64 }, () =>
     new Array(64).fill(0n),
   );
@@ -10,22 +12,67 @@ export const betweenMask: bigint[][] = (() => {
   return table;
 })();
 
-// Full line through both squares in both directions
-export const lineMask: bigint[][] = (() => {
+const lineMaskBigInt: bigint[][] = (() => {
   const table: bigint[][] = Array.from({ length: 64 }, () =>
     new Array(64).fill(0n),
   );
   for (let sq1 = 0; sq1 < 64; sq1++) {
     for (let sq2 = 0; sq2 < 64; sq2++) {
       if (sq1 === sq2) continue;
-      const between = betweenMask[sq1][sq2];
+      const between = betweenMaskBigInt[sq1][sq2];
       if (between === 0n && !onSameRay(sq1, sq2)) continue;
-      // Extend the ray fully in both directions across the whole board
       table[sq1][sq2] = fullRay(sq1, sq2);
     }
   }
   return table;
 })();
+
+export const betweenMaskLo = new Int32Array(64 * 64);
+export const betweenMaskHi = new Int32Array(64 * 64);
+
+export const lineMaskLo = new Int32Array(64 * 64);
+export const lineMaskHi = new Int32Array(64 * 64);
+
+function initMasks(verify = false) {
+  for (let sq1 = 0; sq1 < 64; sq1++) {
+    for (let sq2 = 0; sq2 < 64; sq2++) {
+      const idx = sq1 * 64 + sq2;
+
+      const [blo, bhi] = bbFromBigInt(betweenMaskBigInt[sq1][sq2]);
+      betweenMaskLo[idx] = blo;
+      betweenMaskHi[idx] = bhi;
+
+      const [llo, lhi] = bbFromBigInt(lineMaskBigInt[sq1][sq2]);
+      lineMaskLo[idx] = llo;
+      lineMaskHi[idx] = lhi;
+
+      if (verify) {
+        // Re-derive bigint from new arrays and compare
+        const bRecovered = BigInt(blo >>> 0) | (BigInt(bhi >>> 0) << 32n);
+        const lRecovered = BigInt(llo >>> 0) | (BigInt(lhi >>> 0) << 32n);
+
+        if (bRecovered !== betweenMaskBigInt[sq1][sq2]) {
+          throw new Error(
+            `betweenMask mismatch at sq1=${sq1} sq2=${sq2}\n` +
+              `  expected: ${betweenMaskBigInt[sq1][sq2].toString(16)}\n` +
+              `  got:      ${bRecovered.toString(16)}`,
+          );
+        }
+        if (lRecovered !== lineMaskBigInt[sq1][sq2]) {
+          throw new Error(
+            `lineMask mismatch at sq1=${sq1} sq2=${sq2}\n` +
+              `  expected: ${lineMaskBigInt[sq1][sq2].toString(16)}\n` +
+              `  got:      ${lRecovered.toString(16)}`,
+          );
+        }
+      }
+    }
+  }
+}
+
+// Run with verify=true to confirm correctness
+initMasks();
+
 
 export function moreThanOne(bb: bigint): boolean {
   return (bb & (bb - 1n)) !== 0n; // clears LSB — if anything remains, >1 bit set
