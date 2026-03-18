@@ -1,17 +1,36 @@
 // All bitboards represented as two 32-bit numbers (lo = bits 0-31, hi = bits 32-63)
 // Squares 0-31 in lo, squares 32-63 in hi
 
+import type { Square } from "./chessConstants.ts";
+
+export type SplitBB = [number, number];
+
 // Basic Bitwise Ops
 
-export function bbAnd(alo: number, ahi: number, blo: number, bhi: number): [number, number] {
+export function bbAnd(
+  alo: number,
+  ahi: number,
+  blo: number,
+  bhi: number,
+): [number, number] {
   return [alo & blo, ahi & bhi];
 }
 
-export function bbOr(alo: number, ahi: number, blo: number, bhi: number): [number, number] {
+export function bbOr(
+  alo: number,
+  ahi: number,
+  blo: number,
+  bhi: number,
+): [number, number] {
   return [alo | blo, ahi | bhi];
 }
 
-export function bbXor(alo: number, ahi: number, blo: number, bhi: number): [number, number] {
+export function bbXor(
+  alo: number,
+  ahi: number,
+  blo: number,
+  bhi: number,
+): [number, number] {
   return [alo ^ blo, ahi ^ bhi];
 }
 
@@ -19,21 +38,34 @@ export function bbNot(lo: number, hi: number): [number, number] {
   return [~lo, ~hi];
 }
 
-export function bbAndNot(alo: number, ahi: number, blo: number, bhi: number): [number, number] {
+export function bbAndNot(
+  alo: number,
+  ahi: number,
+  blo: number,
+  bhi: number,
+): [number, number] {
   // a & ~b — very common operation, worth having directly
   return [alo & ~blo, ahi & ~bhi];
 }
 
 // Shifts
 
-export function bbShiftLeft(lo: number, hi: number, n: number): [number, number] {
+export function bbShiftLeft(
+  lo: number,
+  hi: number,
+  n: number,
+): [number, number] {
   if (n === 0) return [lo, hi];
   if (n >= 64) return [0, 0];
   if (n >= 32) return [0, lo << (n - 32)];
   return [lo << n, (hi << n) | (lo >>> (32 - n))];
 }
 
-export function bbShiftRight(lo: number, hi: number, n: number): [number, number] {
+export function bbShiftRight(
+  lo: number,
+  hi: number,
+  n: number,
+): [number, number] {
   if (n === 0) return [lo, hi];
   if (n >= 64) return [0, 0];
   if (n >= 32) return [hi >>> (n - 32), 0];
@@ -65,27 +97,28 @@ export function squareBB(sq: number): [number, number] {
 
 // LSB / MSB
 
-export function lsb(lo: number, hi: number): number {
+export function lsb(lo: number, hi: number): Square {
   // Index of least significant bit
-  if (lo !== 0) return 31 - Math.clz32(lo & -lo);
-  if (hi !== 0) return 31 - Math.clz32(hi & -hi) + 32;
+  if (lo !== 0) return 31 - Math.clz32(lo & -lo) as Square;
+  if (hi !== 0) return 31 - Math.clz32(hi & -hi) + 32 as Square;
   return -1; // empty BB
 }
 
-export function msb(lo: number, hi: number): number {
+export function msb(lo: number, hi: number): Square {
   // Index of most significant bit
-  if (hi !== 0) return 63 - Math.clz32(hi);
-  if (lo !== 0) return 31 - Math.clz32(lo);
+  if (hi !== 0) return 63 - Math.clz32(hi) as Square;
+  if (lo !== 0) return 31 - Math.clz32(lo) as Square;
   return -1; // empty BB
 }
 
 export function popLsb(
   arr: Int32Array | number[],
   loIdx: number,
-  hiIdx: number
+  hiIdx: number,
 ): number {
   // Pops LSB from a BB stored in an array, returns the square index
-  const lo = arr[loIdx], hi = arr[hiIdx];
+  const lo = arr[loIdx],
+    hi = arr[hiIdx];
   if (lo !== 0) {
     const sq = 31 - Math.clz32(lo & -lo);
     arr[loIdx] = lo & (lo - 1);
@@ -114,7 +147,11 @@ export function moreThanOne(lo: number, hi: number): boolean {
   const newLo = lo & (lo - 1);
   if (newLo !== 0 || hi !== 0) {
     // Check if after clearing one bit, anything remains
-    return newLo !== 0 || (lo === 0 && (hi & (hi - 1)) !== 0) || (lo !== 0 && hi !== 0);
+    return (
+      newLo !== 0 ||
+      (lo === 0 && (hi & (hi - 1)) !== 0) ||
+      (lo !== 0 && hi !== 0)
+    );
   }
   return false;
 }

@@ -96,13 +96,29 @@ import {
   lineMaskLo,
   moreThanOne,
 } from "./attackMasks/masks.ts";
-import { bbPrint, bbToBigInt } from "./bb.ts";
+import {
+  bbFromBigInt,
+  bbNotEmpty,
+  bbOr,
+  bbToBigInt,
+  lsb,
+  testBit,
+  type SplitBB,
+} from "./bb.ts";
 
 const MAX_SEARCH_PLY = 16;
 const MAX_PLY = 512;
 export const MAX_MOVES = 256;
 
 export class Position {
+  bbsHi: Int32Array;
+  bbsLo: Int32Array;
+
+  playerOccLo: Int32Array;
+  playerOccHi: Int32Array;
+  occupiedLo: number;
+  occupiedHi: number;
+
   bitboards: BigUint64Array;
   playerOcc: Bitboard[];
   occupied: Bitboard;
@@ -135,6 +151,14 @@ export class Position {
 
   constructor() {
     // ----- Board State -----
+    this.bbsHi = new Int32Array(PIECE_N);
+    this.bbsLo = new Int32Array(PIECE_N);
+
+    this.playerOccLo = new Int32Array(2);
+    this.playerOccHi = new Int32Array(2);
+    this.occupiedLo = 0;
+    this.occupiedHi = 0;
+
     this.bitboards = new BigUint64Array(PIECE_N);
     this.playerOcc = new Array(2).fill(0n);
     this.occupied = 0n;
@@ -173,6 +197,12 @@ export class Position {
 
   loadInitialPosition(): void {
     this.bitboards.set(INITIAL_BITBOARDS);
+    for (const piece of PIECES) {
+      const bb = INITIAL_BITBOARDS[piece];
+      const [lo, hi] = bbFromBigInt(bb);
+      this.bbsLo[piece] = lo;
+      this.bbsHi[piece] = hi;
+    }
 
     this.pieceAt.fill(NO_PIECE);
 
@@ -180,8 +210,8 @@ export class Position {
   }
 
   initCurrentPosition(): void {
-    this.kingSq[WHITE] = bitScanForward(this.bitboards[WHITE_KING]);
-    this.kingSq[BLACK] = bitScanForward(this.bitboards[BLACK_KING]);
+    this.kingSq[WHITE] = lsb(this.bbsLo[WHITE_KING], this.bbsHi[WHITE_KING]);
+    this.kingSq[BLACK] = lsb(this.bbsLo[BLACK_KING], this.bbsHi[BLACK_KING]);
 
     this.endState = IN_PROGRESS;
     this.result = IN_PROGRESS;
@@ -477,8 +507,8 @@ export class Position {
 
   isLegal(
     move: Move,
-    checkers: Bitboard,
-    pinned: Bitboard,
+    checkers: SplitBB,
+    pinned: SplitBB,
     inDoubleCheck: boolean,
   ) {
     const side = this.sideToMove;
@@ -487,6 +517,9 @@ export class Position {
     const piece = movePiece(move);
     const kingSq = this.kingSq[side];
     const opp = (side ^ 1) as Player;
+
+    const [cLo, cHi] = checkers;
+    const [pLo, pHi] = pinned;
 
     // --- King moves ---
     if (piece === WHITE_KING || piece === BLACK_KING) {
@@ -511,29 +544,27 @@ export class Position {
     }
 
     // --- Single check: must capture checker or block ---
-    if (checkers !== 0n) {
-      const checkerSq = bitScanForward(checkers);
+    if (bbNotEmpty(cLo, cHi)) {
+      const checkerSq = lsb(cLo, cHi);
 
       const maskIdx = kingSq * 64 + checkerSq;
       const betweenHi = betweenMaskHi[maskIdx];
       const betweenLo = betweenMaskLo[maskIdx];
 
-      const validTargets = checkers | bbToBigInt(betweenLo, betweenHi);
-      if (!(validTargets & (1n << BigInt(to)))) return false;
+      const [validLo, validHi] = bbOr(cLo, cHi, betweenLo, betweenHi);
+      if (!testBit(validLo, validHi, to)) return false;
     }
 
     // --- Pinned piece: can only move along the pin ray ---
-    if (pinned & (1n << BigInt(from))) {
+    if (testBit(pLo, pHi, from)) {
       const maskIdx = kingSq * 64 + from;
       const lineHi = lineMaskHi[maskIdx];
       const lineLo = lineMaskLo[maskIdx];
 
-      console.log();
-
-      const valid = bbToBigInt(lineLo, lineHi);
       // Legal only if moving along the line king->pinner
-      if (!(valid & (1n << BigInt(to)))) return false;
+      if (!testBit(lineLo, lineHi, to)) return false;
     }
+
     return true;
   }
 
@@ -685,7 +716,7 @@ export class Position {
     return this.result !== IN_PROGRESS;
   }
 
-  getCheckers(): bigint {
+  getCheckers(): SplitBB {
     const side = this.sideToMove;
     const kingSq = this.kingSq[side];
 
@@ -715,10 +746,10 @@ export class Position {
         : bitboards[WHITE_QUEEN] | bitboards[WHITE_BISHOP];
     attackers |= bishopAttacks(kingSq, occ) & sliding;
 
-    return attackers;
+    return bbFromBigInt(attackers);
   }
 
-  getPinnedPieces(): bigint {
+  getPinnedPieces(): SplitBB {
     const side = this.sideToMove;
     const kingSq = this.kingSq[side];
     const opp = side ^ 1;
@@ -753,7 +784,7 @@ export class Position {
       }
     }
 
-    return pinned;
+    return bbFromBigInt(pinned);
   }
 
   getFen(): string {
@@ -780,6 +811,11 @@ export class Position {
     const fullmove = data[5];
 
     this.bitboards = buildBitboards(bbStr);
+    for (const piece of PIECES) {
+      const [lo, hi] = bbFromBigInt(this.bitboards[piece]);
+      this.bbsHi[piece] = hi;
+      this.bbsLo[piece] = lo;
+    }
     this.sideToMove = buildPlayer(playerStr);
     this.castlingRights = buildCastlingRights(castlingStr);
     this.enPassantSquare = buildEnPassantSquare(epStr);

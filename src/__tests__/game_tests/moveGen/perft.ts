@@ -1,5 +1,4 @@
-import { moreThanOne } from "../../../game/attackMasks/masks.ts";
-import { bbFromBigInt, bbPrint } from "../../../game/bb.ts";
+import { moreThanOne } from "../../../game/bb.ts";
 import { moveToUCI } from "../../../game/fenAndUCI/uciHelpers.ts";
 import { MAX_MOVES, type Position } from "../../../game/Position.ts";
 
@@ -15,7 +14,7 @@ export function perft(pos: Position, depth: number): number {
 
   const checkers = pos.getCheckers();
   const pinned = pos.getPinnedPieces();
-  const inDoubleCheck = moreThanOne(checkers);
+  const inDoubleCheck = moreThanOne(...checkers);
 
   for (let i = 0; i < moveCount; i++) {
     const move = pos.moveBuffer[start + i];
@@ -46,10 +45,7 @@ export function perftDivide(
 
   const checkers = pos.getCheckers();
   const pinned = pos.getPinnedPieces();
-  const inDoubleCheck = moreThanOne(checkers);
-
-  const [lo, hi] = bbFromBigInt(checkers);
-  const [lo2, hi2] = bbFromBigInt(pinned);
+  const inDoubleCheck = moreThanOne(...checkers);
 
   for (let i = 0; i < moveCount; i++) {
     const move = pos.moveBuffer[i];

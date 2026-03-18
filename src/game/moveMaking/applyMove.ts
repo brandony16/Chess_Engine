@@ -1,3 +1,4 @@
+import { bbAndNot, squareBB } from "../bb.ts";
 import { NO_PIECE, WHITE_PAWN } from "../chessConstants.ts";
 import type { Position } from "../Position.ts";
 import { makeCastleMove, unMakeCastleMove } from "./castling.ts";
@@ -16,6 +17,8 @@ import {
  * Makes a move. Directly alters the given bitboards.
  */
 export const applyMove = (position: Position, move: Move) => {
+  const bbsHi = position.bbsHi;
+  const bbsLo = position.bbsLo;
   const bitboards = position.bitboards;
   const pieceAt = position.pieceAt;
 
@@ -24,6 +27,8 @@ export const applyMove = (position: Position, move: Move) => {
 
   const maskFrom = 1n << BigInt(from);
   const maskTo = 1n << BigInt(to);
+  const [maskFromLo, maskFromHi] = squareBB(from);
+  const [maskToLo, maskToHi] = squareBB(to);
 
   const piece = movePiece(move);
   const captured = moveCaptured(move);
@@ -38,10 +43,14 @@ export const applyMove = (position: Position, move: Move) => {
 
   // Remove moving piece
   bitboards[piece] &= ~maskFrom;
+  bbsLo[piece] &= ~maskFromLo;
+  bbsHi[piece] &= ~maskFromHi;
 
   // Remove captured piece
   if (captured !== NO_PIECE && !enPassant) {
     bitboards[captured] &= ~maskTo;
+    bbsLo[captured] &= ~maskFromLo;
+    bbsHi[captured] &= ~maskFromHi;
   }
 
   pieceAt[from] = NO_PIECE;
@@ -49,9 +58,15 @@ export const applyMove = (position: Position, move: Move) => {
   // Handles promotions
   if (promotion !== NO_PIECE) {
     bitboards[promotion] |= maskTo; // Add promoted piece
+    bbsLo[promotion] |= maskToLo;
+    bbsHi[promotion] |= maskToHi;
+
     pieceAt[to] = promotion;
   } else {
     bitboards[piece] |= maskTo;
+    bbsLo[piece] |= maskToLo;
+    bbsHi[piece] |= maskToHi;
+
     pieceAt[to] = piece;
   }
 
@@ -59,6 +74,9 @@ export const applyMove = (position: Position, move: Move) => {
     const dir = piece === WHITE_PAWN ? -8 : 8;
     // Remove the captured pawn from the opposing pawn bitboard
     bitboards[captured] &= ~(1n << BigInt(to + dir));
+    const [lo, hi] = squareBB(to + dir);
+    bbsLo[captured] &= ~lo;
+    bbsHi[captured] &= ~hi;
 
     pieceAt[to + dir] = NO_PIECE;
   }
