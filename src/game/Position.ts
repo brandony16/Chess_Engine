@@ -100,6 +100,7 @@ import {
   bbFromBigInt,
   bbNotEmpty,
   bbOr,
+  bbPrint,
   bbToBigInt,
   lsb,
   testBit,
@@ -916,6 +917,15 @@ export class Position {
       return false;
     }
 
+    for (const piece of PIECES) {
+      const combinedBB = bbToBigInt(this.bbsLo[piece], this.bbsHi[piece]);
+      if (this.bitboards[piece] !== combinedBB) {
+        console.error(`Bigint and split BBs do not match for piece: ${piece}`);
+        bbPrint(this.bbsLo[piece], this.bbsHi[piece]);
+        return false;
+      }
+    }
+
     return true;
   }
 
@@ -923,6 +933,8 @@ export class Position {
     const cpy = new Position();
     for (const piece of PIECES) {
       cpy.bitboards[piece] = this.bitboards[piece];
+      cpy.bbsHi[piece] = this.bbsHi[piece];
+      cpy.bbsLo[piece] = this.bbsLo[piece];
     }
 
     cpy.sideToMove = this.sideToMove;

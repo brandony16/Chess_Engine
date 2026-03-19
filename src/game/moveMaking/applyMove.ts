@@ -49,8 +49,8 @@ export const applyMove = (position: Position, move: Move) => {
   // Remove captured piece
   if (captured !== NO_PIECE && !enPassant) {
     bitboards[captured] &= ~maskTo;
-    bbsLo[captured] &= ~maskFromLo;
-    bbsHi[captured] &= ~maskFromHi;
+    bbsLo[captured] &= ~maskToLo;
+    bbsHi[captured] &= ~maskToHi;
   }
 
   pieceAt[from] = NO_PIECE;
@@ -86,6 +86,8 @@ export const applyMove = (position: Position, move: Move) => {
  * Undoes a move that was made. Directly alters given bitboards.
  */
 export const unapplyMove = (position: Position, move: Move) => {
+  const bbsHi = position.bbsHi;
+  const bbsLo = position.bbsLo;
   const bitboards = position.bitboards;
   const pieceAt = position.pieceAt;
 
@@ -94,6 +96,8 @@ export const unapplyMove = (position: Position, move: Move) => {
 
   const maskFrom = 1n << BigInt(from);
   const maskTo = 1n << BigInt(to);
+  const [maskFromLo, maskFromHi] = squareBB(from);
+  const [maskToLo, maskToHi] = squareBB(to);
 
   const piece = movePiece(move);
   const captured = moveCaptured(move);
@@ -112,15 +116,28 @@ export const unapplyMove = (position: Position, move: Move) => {
   // Undo promotion
   if (promotion !== NO_PIECE) {
     bitboards[promotion] &= ~maskTo;
-    bitboards[piece] |= maskFrom;
+
+    bbsLo[promotion] &= ~maskToLo;
+    bbsHi[promotion] &= ~maskToHi;
   } else {
     bitboards[piece] &= ~maskTo;
-    bitboards[piece] |= maskFrom;
+
+    bbsLo[piece] &= ~maskToLo;
+    bbsHi[piece] &= ~maskToHi;
   }
+
+  // Place piece back at from
+  bitboards[piece] |= maskFrom;
+  bbsLo[piece] |= maskFromLo;
+  bbsHi[piece] |= maskFromHi;
 
   // Restore captured piece
   if (captured !== NO_PIECE && !enPassant) {
     bitboards[captured] |= maskTo;
+
+    bbsLo[captured] |= maskToLo;
+    bbsHi[captured] |= maskToHi;
+
     pieceAt[to] = captured;
   }
 
@@ -129,6 +146,11 @@ export const unapplyMove = (position: Position, move: Move) => {
     const dir = piece === WHITE_PAWN ? -8 : 8;
     const capturedPawnSquare = to + dir;
     bitboards[captured] |= 1n << BigInt(capturedPawnSquare);
+
+    const [lo, hi] = squareBB(capturedPawnSquare);
+    bbsLo[captured] |= lo;
+    bbsHi[captured] |= hi;
+
     pieceAt[capturedPawnSquare] = captured;
   }
 };

@@ -1,3 +1,4 @@
+import { squareBB } from "../bb.ts";
 import {
   B_KINGSIDE_EMPTY,
   B_KINGSIDE_SAFE,
@@ -7,7 +8,9 @@ import {
   BLACK_KING,
   BLACK_ROOK,
   BQ,
+  C_FILE,
   NO_PIECE,
+  sq,
   W_KINGSIDE_EMPTY,
   W_KINGSIDE_SAFE,
   W_QUEENSIDE_EMPTY,
@@ -21,6 +24,7 @@ import {
   type Player,
   type Square,
 } from "../chessConstants.ts";
+import { getFile } from "../helpers/boardUtils.ts";
 import type { Position } from "../Position.ts";
 import { moveFrom, moveTo, type Move } from "./move.ts";
 
@@ -81,101 +85,91 @@ export function isQueensideCastleLegal(
 }
 
 export const makeCastleMove = (position: Position, move: Move): void => {
+  const bbsHi = position.bbsHi;
+  const bbsLo = position.bbsLo;
   const bitboards = position.bitboards;
   const pieceAt = position.pieceAt;
 
   const from = moveFrom(move);
   const to = moveTo(move);
 
-  if (from === 4 && to === 6) {
-    // White kingside castling
-    bitboards[WHITE_KING] ^= 1n << 4n;
-    bitboards[WHITE_KING] |= 1n << 6n;
-    bitboards[WHITE_ROOK] ^= 1n << 7n;
-    bitboards[WHITE_ROOK] |= 1n << 5n;
-    pieceAt[to] = WHITE_KING;
-    pieceAt[from] = NO_PIECE;
-    pieceAt[7] = NO_PIECE;
-    pieceAt[5] = WHITE_ROOK;
-  } else if (from === 4 && to === 2) {
-    // White queenside castling
-    bitboards[WHITE_KING] ^= 1n << 4n;
-    bitboards[WHITE_KING] |= 1n << 2n;
-    bitboards[WHITE_ROOK] ^= 1n << 0n;
-    bitboards[WHITE_ROOK] |= 1n << 3n;
-    pieceAt[to] = WHITE_KING;
-    pieceAt[from] = NO_PIECE;
-    pieceAt[0] = NO_PIECE;
-    pieceAt[3] = WHITE_ROOK;
-  } else if (from === 60 && to === 62) {
-    // Black kingside castling
-    bitboards[BLACK_KING] ^= 1n << 60n;
-    bitboards[BLACK_KING] |= 1n << 62n;
-    bitboards[BLACK_ROOK] ^= 1n << 63n;
-    bitboards[BLACK_ROOK] |= 1n << 61n;
-    pieceAt[to] = BLACK_KING;
-    pieceAt[from] = NO_PIECE;
-    pieceAt[63] = NO_PIECE;
-    pieceAt[61] = BLACK_ROOK;
-  } else if (from === 60 && to === 58) {
-    // Black queenside castling
-    bitboards[BLACK_KING] ^= 1n << 60n;
-    bitboards[BLACK_KING] |= 1n << 58n;
-    bitboards[BLACK_ROOK] ^= 1n << 56n;
-    bitboards[BLACK_ROOK] |= 1n << 59n;
-    pieceAt[to] = BLACK_KING;
-    pieceAt[from] = NO_PIECE;
-    pieceAt[56] = NO_PIECE;
-    pieceAt[59] = BLACK_ROOK;
-  }
+  const kingPiece = from === sq.E1 ? WHITE_KING : BLACK_KING;
+  const rookPiece = from === sq.E1 ? WHITE_ROOK : BLACK_ROOK;
+
+  const fromMask = 1n << BigInt(from);
+  const toMask = 1n << BigInt(to);
+  const [fromLo, fromHi] = squareBB(from);
+  const [toLo, toHi] = squareBB(to);
+
+  const rookFrom = getFile(to) === C_FILE ? to - 2 : to + 1; // C file is queenside castling
+  const rookTo = getFile(to) === C_FILE ? to + 1 : to - 1;
+  const rookFromMask = 1n << BigInt(rookFrom);
+  const rookToMask = 1n << BigInt(rookTo);
+  const [rookFromLo, rookFromHi] = squareBB(rookFrom);
+  const [rookToLo, rookToHi] = squareBB(rookTo);
+
+  bitboards[kingPiece] ^= fromMask;
+  bitboards[kingPiece] |= toMask;
+  bitboards[rookPiece] ^= rookFromMask;
+  bitboards[rookPiece] |= rookToMask;
+
+  bbsLo[kingPiece] ^= fromLo;
+  bbsHi[kingPiece] ^= fromHi;
+  bbsLo[kingPiece] |= toLo;
+  bbsHi[kingPiece] |= toHi;
+
+  bbsLo[rookPiece] ^= rookFromLo;
+  bbsHi[rookPiece] ^= rookFromHi;
+  bbsLo[rookPiece] |= rookToLo;
+  bbsHi[rookPiece] |= rookToHi;
+
+  pieceAt[to] = kingPiece;
+  pieceAt[from] = NO_PIECE;
+  pieceAt[rookTo] = rookPiece;
+  pieceAt[rookFrom] = NO_PIECE;
 };
 
 export const unMakeCastleMove = (position: Position, move: Move): void => {
+  const bbsHi = position.bbsHi;
+  const bbsLo = position.bbsLo;
   const bitboards = position.bitboards;
   const pieceAt = position.pieceAt;
 
   const from = moveFrom(move);
   const to = moveTo(move);
 
-  if (from === 4 && to === 6) {
-    // White kingside castling
-    bitboards[WHITE_KING] &= ~(1n << 6n);
-    bitboards[WHITE_KING] |= 1n << 4n;
-    bitboards[WHITE_ROOK] &= ~(1n << 5n);
-    bitboards[WHITE_ROOK] |= 1n << 7n;
-    pieceAt[from] = WHITE_KING;
-    pieceAt[to] = NO_PIECE;
-    pieceAt[5] = NO_PIECE;
-    pieceAt[7] = WHITE_ROOK;
-  } else if (from === 4 && to === 2) {
-    // White queenside castling
-    bitboards[WHITE_KING] &= ~(1n << 2n);
-    bitboards[WHITE_KING] |= 1n << 4n;
-    bitboards[WHITE_ROOK] &= ~(1n << 3n);
-    bitboards[WHITE_ROOK] |= 1n << 0n;
-    pieceAt[from] = WHITE_KING;
-    pieceAt[to] = NO_PIECE;
-    pieceAt[3] = NO_PIECE;
-    pieceAt[0] = WHITE_ROOK;
-  } else if (from === 60 && to === 62) {
-    // Black kingside castling
-    bitboards[BLACK_KING] &= ~(1n << 62n);
-    bitboards[BLACK_KING] |= 1n << 60n;
-    bitboards[BLACK_ROOK] &= ~(1n << 61n);
-    bitboards[BLACK_ROOK] |= 1n << 63n;
-    pieceAt[from] = BLACK_KING;
-    pieceAt[to] = NO_PIECE;
-    pieceAt[61] = NO_PIECE;
-    pieceAt[63] = BLACK_ROOK;
-  } else if (from === 60 && to === 58) {
-    // Black queenside castling
-    bitboards[BLACK_KING] &= ~(1n << 58n);
-    bitboards[BLACK_KING] |= 1n << 60n;
-    bitboards[BLACK_ROOK] &= ~(1n << 59n);
-    bitboards[BLACK_ROOK] |= 1n << 56n;
-    pieceAt[from] = BLACK_KING;
-    pieceAt[to] = NO_PIECE;
-    pieceAt[59] = NO_PIECE;
-    pieceAt[56] = BLACK_ROOK;
-  }
+  const kingPiece = from === sq.E1 ? WHITE_KING : BLACK_KING;
+  const rookPiece = from === sq.E1 ? WHITE_ROOK : BLACK_ROOK;
+
+  const fromMask = 1n << BigInt(from);
+  const toMask = 1n << BigInt(to);
+  const [fromLo, fromHi] = squareBB(from);
+  const [toLo, toHi] = squareBB(to);
+
+  const rookFrom = getFile(to) === C_FILE ? to - 2 : to + 1; // C file is queenside castling
+  const rookTo = getFile(to) === C_FILE ? from - 1 : from + 1;
+  const rookFromMask = 1n << BigInt(rookFrom);
+  const rookToMask = 1n << BigInt(rookTo);
+  const [rookFromLo, rookFromHi] = squareBB(rookFrom);
+  const [rookToLo, rookToHi] = squareBB(rookTo);
+
+  bitboards[kingPiece] ^= toMask;
+  bitboards[kingPiece] |= fromMask;
+  bitboards[rookPiece] ^= rookToMask;
+  bitboards[rookPiece] |= rookFromMask;
+
+  bbsLo[kingPiece] ^= toLo;
+  bbsHi[kingPiece] ^= toHi;
+  bbsLo[kingPiece] |= fromLo;
+  bbsHi[kingPiece] |= fromHi;
+
+  bbsLo[rookPiece] ^= rookToLo;
+  bbsHi[rookPiece] ^= rookToHi;
+  bbsLo[rookPiece] |= rookFromLo;
+  bbsHi[rookPiece] |= rookFromHi;
+
+  pieceAt[to] = NO_PIECE;
+  pieceAt[from] = kingPiece;
+  pieceAt[rookTo] = NO_PIECE;
+  pieceAt[rookFrom] = rookPiece;
 };
