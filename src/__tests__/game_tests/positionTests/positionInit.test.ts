@@ -19,7 +19,6 @@ describe("Position initialization - init values", () => {
     expect(pos.bitboards.length).toBe(NUM_PIECES + 1);
     expect(pos.playerOcc.length).toBe(2);
     expect(pos.pieceAt.length).toBe(64);
-    expect(pos.pieceIndexes.length).toBe(NUM_PIECES + 1);
     expect(pos.kingSq.length).toBe(2);
   });
 
@@ -33,27 +32,6 @@ describe("Position initialization - init values", () => {
     expect(pos.halfmoveClock).toBe(0);
     expect(pos.result).toBe(IN_PROGRESS);
     expect(pos.endState).toBe(IN_PROGRESS);
-  });
-
-  test("pieceIndexes arrays are not shared references", () => {
-    const pos = new Position();
-
-    const a = pos.pieceIndexes[0];
-    const b = pos.pieceIndexes[1];
-
-    expect(a).not.toBe(b);
-  });
-
-  test("pieceIndexes are correct", () => {
-    const pos = new Position();
-
-    for (const piece of PIECES) {
-      const idxArr = pos.pieceIndexes[piece];
-      for (const idx of idxArr) {
-        const mask = 1n << BigInt(idx);
-        expect(pos.bitboards[piece] & mask).toBe(mask);
-      }
-    }
   });
 
   test("zobrist key matches recomputed hash", () => {
