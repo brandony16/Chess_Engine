@@ -1,4 +1,4 @@
-import { bitScanForward, popcount } from "./helpers/bbUtils.ts";
+import { bitScanForward } from "./helpers/bbUtils.ts";
 import { attacksTo } from "./attackMasks/attackMasks.ts";
 import {
   ALL_CASTLING,
@@ -33,7 +33,6 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
   WHITE_WIN,
-  type Bitboard,
   type CastlingNumber,
   type EndState,
   type Piece,
@@ -98,13 +97,17 @@ import {
 } from "./attackMasks/masks.ts";
 import {
   bbFromBigInt,
+  bbIsEmpty,
   bbNotEmpty,
   bbOr,
-  bbPrint,
   bbToBigInt,
+  clearBit,
+  exactlyOne,
   lsb,
+  popcount,
+  squareBB,
   testBit,
-  type SplitBB,
+  type Bitboard,
 } from "./bb.ts";
 
 const MAX_SEARCH_PLY = 16;
@@ -119,10 +122,6 @@ export class Position {
   playerOccHi: Int32Array;
   occupiedLo: number;
   occupiedHi: number;
-
-  bitboards: BigUint64Array;
-  playerOcc: Bitboard[];
-  occupied: Bitboard;
 
   pieceAt: Piece[]; // length 64
 
@@ -160,10 +159,6 @@ export class Position {
     this.occupiedLo = 0;
     this.occupiedHi = 0;
 
-    this.bitboards = new BigUint64Array(PIECE_N);
-    this.playerOcc = new Array(2).fill(0n);
-    this.occupied = 0n;
-
     this.pieceAt = new Array(64).fill(NO_PIECE);
 
     // ----- Game State -----
@@ -197,7 +192,6 @@ export class Position {
   }
 
   loadInitialPosition(): void {
-    this.bitboards.set(INITIAL_BITBOARDS);
     for (const piece of PIECES) {
       const bb = INITIAL_BITBOARDS[piece];
       const [lo, hi] = bbFromBigInt(bb);
@@ -228,30 +222,42 @@ export class Position {
     this.pieceAt.fill(NO_PIECE);
 
     for (const piece of PIECES) {
-      let bb = this.bitboards[piece];
-      while (bb) {
-        const sq = bitScanForward(bb);
+      let lo = this.bbsLo[piece];
+      let hi = this.bbsHi[piece];
+
+      while (!bbIsEmpty(lo, hi)) {
+        const sq = lsb(lo, hi);
         this.pieceAt[sq] = piece;
-        bb &= bb - 1n;
+
+        if (lo !== 0) lo &= lo - 1;
+        else hi &= hi - 1;
       }
     }
   }
 
   recomputeOccupancy(): void {
-    let whiteOcc = 0n;
-    let blackOcc = 0n;
+    let wOccLo = 0,
+      wOccHi = 0;
+    let bOccLo = 0,
+      bOccHi = 0;
 
     for (const piece of PIECES) {
       if (isWhite(piece)) {
-        whiteOcc |= this.bitboards[piece];
+        wOccLo |= this.bbsLo[piece];
+        wOccHi |= this.bbsHi[piece];
       } else {
-        blackOcc |= this.bitboards[piece];
+        bOccLo |= this.bbsLo[piece];
+        bOccHi |= this.bbsHi[piece];
       }
     }
 
-    this.occupied = whiteOcc | blackOcc;
-    this.playerOcc[WHITE] = whiteOcc;
-    this.playerOcc[BLACK] = blackOcc;
+    this.occupiedLo = wOccLo | bOccLo;
+    this.occupiedHi = wOccHi | bOccHi;
+
+    this.playerOccLo[WHITE] = wOccLo;
+    this.playerOccHi[WHITE] = wOccHi;
+    this.playerOccLo[BLACK] = bOccLo;
+    this.playerOccHi[BLACK] = bOccHi;
   }
 
   computeZobrist(): bigint {
@@ -259,11 +265,14 @@ export class Position {
 
     // Pieces
     for (const piece of PIECES) {
-      let bb = this.bitboards[piece];
-      while (bb) {
-        const sq = bitScanForward(bb);
+      let lo = this.bbsLo[piece];
+      let hi = this.bbsHi[piece];
+      while (!bbIsEmpty(lo, hi)) {
+        const sq = lsb(lo, hi);
         key ^= zobristTable[piece * 64 + sq];
-        bb &= bb - 1n;
+
+        if (lo !== 0) lo &= lo - 1;
+        else hi &= hi - 1;
       }
     }
 
@@ -383,8 +392,8 @@ export class Position {
 
     // If king is in check
     if (this.isSquareAttacked(kingSq, opponent(side))) {
-      const checkers = getCheckers(this, side);
-      const numCheck = popcount(checkers);
+      const [cLo, cHi] = getCheckers(this, side);
+      const numCheck = popcount(cLo, cHi);
 
       // Double check, only king moves are possible
       if (numCheck > 1) {
@@ -411,7 +420,8 @@ export class Position {
     }
 
     const pieces = PLAYER_PIECES[side];
-    const bitboards = this.bitboards;
+    const bbsLo = this.bbsLo;
+    const bbsHi = this.bbsHi;
     const pieceAt = this.pieceAt;
     const buffer = this.moveBuffer;
 
@@ -419,10 +429,14 @@ export class Position {
     const promoList = PROMO_PIECES[side];
     for (let i = 0; i < pieces.length; i++) {
       const piece = pieces[i];
-      let bb = bitboards[piece];
-      while (bb) {
-        const from = bitScanForward(bb);
-        bb &= bb - 1n;
+
+      let lo = bbsLo[piece];
+      let hi = bbsHi[piece];
+      while (lo !== 0 && hi !== 0) {
+        const from = lsb(lo, hi);
+
+        if (lo !== 0) lo &= lo - 1;
+        else hi &= hi - 1;
 
         let moveBB = getPieceMoves(this, piece, from);
         while (moveBB) {
@@ -508,8 +522,8 @@ export class Position {
 
   isLegal(
     move: Move,
-    checkers: SplitBB,
-    pinned: SplitBB,
+    checkers: Bitboard,
+    pinned: Bitboard,
     inDoubleCheck: boolean,
   ) {
     const side = this.sideToMove;
@@ -525,9 +539,18 @@ export class Position {
     // --- King moves ---
     if (piece === WHITE_KING || piece === BLACK_KING) {
       // Remove king from occupied so king doesnt block rays
-      const occupiedWithoutKing = this.occupied & ~(1n << BigInt(kingSq));
-      const attacks = attacksTo(this.bitboards, occupiedWithoutKing, to);
-      return (attacks & this.playerOcc[opp]) === 0n;
+      const [occLo, occHi] = clearBit(this.occupiedLo, this.occupiedHi, kingSq);
+      const [attLo, attHi] = attacksTo(
+        this.bbsLo,
+        this.bbsHi,
+        occLo,
+        occHi,
+        to,
+      );
+      return (
+        (attLo & this.playerOccLo[opp]) === 0 &&
+        (attHi & this.playerOccHi[opp]) === 0
+      );
     }
 
     // --- Double check: only king moves are legal ---
@@ -667,7 +690,7 @@ export class Position {
   }
 
   checkGameOver() {
-    if (drawByInsufficientMaterial(this.bitboards, this.playerOcc)) {
+    if (drawByInsufficientMaterial(this.bbsLo, this.bbsHi, this.playerOccLo, this.playerOccHi)) {
       this.result = DRAW;
       this.endState = INSUFFICIENT_MATERIAL;
       return;
@@ -708,84 +731,101 @@ export class Position {
   }
 
   isSquareAttacked(square: Square, player: Player): boolean {
-    const allAttacks = attacksTo(this.bitboards, this.occupied, square);
+    const [lo, hi] = attacksTo(this.bbsLo, this.bbsHi, this.occupiedLo, this.occupiedHi, square);
 
-    return (this.playerOcc[player] & allAttacks) !== 0n;
+    return (this.playerOccLo[player] & lo) !== 0 || (this.playerOccHi[player] & hi) !== 0;
   }
 
   gameOver(): boolean {
     return this.result !== IN_PROGRESS;
   }
 
-  getCheckers(): SplitBB {
+  getCheckers(): Bitboard {
     const side = this.sideToMove;
     const kingSq = this.kingSq[side];
 
-    const bitboards = this.bitboards;
-    const occ = this.occupied;
+    const bbsLo = this.bbsLo;
+    const bbsHi = this.bbsHi;
+    const occLo = this.occupiedLo;
+    const occHi = this.occupiedHi;
     let attackers = 0n;
 
     // Pawns
     const pawn = side === WHITE ? BLACK_PAWN : WHITE_PAWN;
     const mask = side === WHITE ? whitePawnMasks : blackPawnMasks;
-    attackers |= bitboards[pawn] & mask[kingSq];
+    const pawnBB = bbToBigInt(bbsLo[pawn], bbsHi[pawn]);
+    attackers |= pawnBB & mask[kingSq];
 
     // Knights
     const knight = side === WHITE ? BLACK_KNIGHT : WHITE_KNIGHT;
-    attackers |= knightMasks[kingSq] & bitboards[knight];
+    const knightBB = bbToBigInt(bbsLo[knight], bbsHi[knight]);
+    attackers |= knightMasks[kingSq] & knightBB;
 
     // Sliding Pieces
-    const ortho =
-      side === WHITE
-        ? bitboards[BLACK_QUEEN] | bitboards[BLACK_ROOK]
-        : bitboards[WHITE_QUEEN] | bitboards[WHITE_ROOK];
-    attackers |= rookAttacks(kingSq, occ) & ortho;
+    const queen = side === WHITE ? BLACK_QUEEN : WHITE_QUEEN;
+    const rook = side === WHITE ? BLACK_ROOK : WHITE_ROOK;
+    const bishop = side === WHITE ? BLACK_BISHOP : WHITE_BISHOP;
 
-    const sliding =
-      side === WHITE
-        ? bitboards[BLACK_QUEEN] | bitboards[BLACK_BISHOP]
-        : bitboards[WHITE_QUEEN] | bitboards[WHITE_BISHOP];
-    attackers |= bishopAttacks(kingSq, occ) & sliding;
+    const queenBB = bbToBigInt(bbsLo[queen], bbsHi[queen]);
+    const rookBB = bbToBigInt(bbsLo[rook], bbsHi[rook]);
+    const bishopBB = bbToBigInt(bbsLo[bishop], bbsHi[bishop]);
+    const ortho = queenBB | rookBB;
+    attackers |= rookAttacks(kingSq, occLo, occHi) & ortho;
+
+    const sliding = queenBB | bishopBB;
+    attackers |= bishopAttacks(kingSq, occLo, occHi) & sliding;
 
     return bbFromBigInt(attackers);
   }
 
-  getPinnedPieces(): SplitBB {
+  getPinnedPieces(): Bitboard {
     const side = this.sideToMove;
     const kingSq = this.kingSq[side];
     const opp = side ^ 1;
-    const friendly = this.playerOcc[side];
-    let pinned = 0n;
+    const friendlyLo = this.playerOccLo[side];
+    const friendlyHi = this.playerOccHi[side];
+
+    let pinnedLo = 0, pinnedHi = 0;
+
+    const bbsLo = this.bbsLo;
+    const bbsHi = this.bbsHi;
 
     // Candidate pinners: enemy sliders that share a ray with the king
     const bishop = side === WHITE ? BLACK_BISHOP : WHITE_BISHOP;
     const queen = side === WHITE ? BLACK_QUEEN : WHITE_QUEEN;
-    const bishopPinners =
-      bishopAttacks(kingSq, this.playerOcc[opp]) &
-      (this.bitboards[bishop] | this.bitboards[queen]);
-
     const rook = side === WHITE ? BLACK_ROOK : WHITE_ROOK;
+    const queenBB = bbToBigInt(bbsLo[queen], bbsHi[queen]);
+    const rookBB = bbToBigInt(bbsLo[rook], bbsHi[rook]);
+    const bishopBB = bbToBigInt(bbsLo[bishop], bbsHi[bishop]);
+
+    const diagPinners =
+      bishopAttacks(kingSq, this.playerOccLo[opp], this.playerOccHi[opp]) & (queenBB | bishopBB);
+
     const rookPinners =
-      rookAttacks(kingSq, this.playerOcc[opp]) &
-      (this.bitboards[rook] | this.bitboards[queen]);
+      rookAttacks(kingSq, this.playerOccLo[opp], this.playerOccHi[opp]) & (queenBB | rookBB);
 
     // For each candidate pinner, check if exactly one friendly piece is between
-    let pinners = bishopPinners | rookPinners;
+    let pinners = diagPinners | rookPinners;
     while (pinners) {
       const pinnerSq = bitScanForward(pinners);
       pinners &= pinners - 1n;
 
       const betweenHi = betweenMaskHi[kingSq * 64 + pinnerSq];
       const betweenLo = betweenMaskLo[kingSq * 64 + pinnerSq];
-      const between = bbToBigInt(betweenLo, betweenHi) & this.occupied;
+      
+      const piecesBetweenLo = betweenLo & this.occupiedLo
+      const piecesBetweenHi = betweenHi & this.occupiedHi
 
       // Exactly one piece between king and pinner, and it's friendly = pinned
-      if (between && !moreThanOne(between) && between & friendly) {
-        pinned |= between;
+      if (exactlyOne(piecesBetweenLo, piecesBetweenHi)) {
+        if (piecesBetweenLo & friendlyLo || piecesBetweenHi & friendlyHi) {
+          pinnedLo |= piecesBetweenLo;
+          pinnedHi |= piecesBetweenHi;
+        }
       }
     }
 
-    return bbFromBigInt(pinned);
+    return [pinnedLo, pinnedHi];
   }
 
   getFen(): string {
@@ -811,9 +851,9 @@ export class Position {
     const halfmove = data[4];
     const fullmove = data[5];
 
-    this.bitboards = buildBitboards(bbStr);
+    const bitboards = buildBitboards(bbStr);
     for (const piece of PIECES) {
-      const [lo, hi] = bbFromBigInt(this.bitboards[piece]);
+      const [lo, hi] = bbFromBigInt(bitboards[piece]);
       this.bbsHi[piece] = hi;
       this.bbsLo[piece] = lo;
     }
@@ -828,40 +868,42 @@ export class Position {
 
   validate(): boolean {
     // ----- Recompute Occupancy from Bitboards -----
-    let union = 0n;
+    let occLo = 0, occHi = 0;
 
-    for (let i = 0; i < this.bitboards.length; i++) {
-      union |= this.bitboards[i];
+    for (let i = 0; i < this.bbsLo.length; i++) {
+      occLo |= this.bbsLo[i], occHi |= this.bbsHi[i];
     }
 
-    if (union !== this.occupied) {
+    if (occLo !== this.occupiedLo || occHi !== this.occupiedHi) {
       console.error("Occupied mismatch");
       return false;
     }
 
     // ----- Player Occupancy -----
-    const whiteOcc = this.playerOcc[WHITE];
-    const blackOcc = this.playerOcc[BLACK];
+    const wOccLo = this.playerOccLo[WHITE], wOccHi = this.playerOccHi[WHITE];
+    const bOccLo = this.playerOccLo[BLACK], bOccHi = this.playerOccHi[BLACK];
 
-    if ((whiteOcc & blackOcc) !== 0n) {
+    if ((wOccLo & bOccLo) !== 0 || (wOccHi & bOccHi) !== 0) {
       console.error("Overlapping player occupancy");
       return false;
     }
 
-    if ((whiteOcc | blackOcc) !== this.occupied) {
+    if ((wOccLo | bOccLo) !== this.occupiedLo || (wOccHi | bOccHi) !== this.occupiedHi) {
       console.error("Player occupancy mismatch");
       return false;
     }
 
     // ----- pieceAt[] matches bitboards -----
     for (let sq = 0; sq < 64; sq++) {
-      const mask = 1n << BigInt(sq);
+      const [maskLo, maskHi] = squareBB(sq);
       const piece = this.pieceAt[sq];
 
       let found: Piece = NO_PIECE;
 
       for (const p of PIECES) {
-        if (this.bitboards[p] & mask) {
+        const lo = this.bbsLo[p];
+        const hi = this.bbsHi[p];
+        if (lo & maskLo || hi & maskHi) {
           found = p;
           break;
         }
@@ -874,9 +916,13 @@ export class Position {
     }
 
     // ----- No overlapping piece bitboards -----
-    for (let i = 0; i < this.bitboards.length; i++) {
-      for (let j = i + 1; j < this.bitboards.length; j++) {
-        if ((this.bitboards[i] & this.bitboards[j]) !== 0n) {
+    for (let i = 0; i < this.bbsLo.length; i++) {
+      for (let j = i + 1; j < this.bbsLo.length; j++) {
+        const lo1 = this.bbsLo[i];
+        const hi1 = this.bbsHi[j];
+        const lo2 = this.bbsLo[i];
+        const hi2 = this.bbsHi[j];
+        if ((lo1 & lo2) !== 0 || (hi1 & hi2) !== 0) {
           console.error("Overlapping piece bitboards");
           return false;
         }
@@ -884,22 +930,24 @@ export class Position {
     }
 
     // ----- Exactly One King Per Side -----
-    const whiteKingBB = this.bitboards[WHITE_KING];
-    const blackKingBB = this.bitboards[BLACK_KING];
+    const wKLo = this.bbsLo[WHITE_KING],
+      wkHi = this.bbsHi[WHITE_KING];
+    const bKLo = this.bbsLo[BLACK_KING],
+      bKHi = this.bbsHi[BLACK_KING];
 
-    if (popcount(whiteKingBB) !== 1) {
+    if (popcount(wKLo, wkHi) !== 1) {
       console.error("Invalid white king count");
       return false;
     }
 
-    if (popcount(blackKingBB) !== 1) {
+    if (popcount(bKLo, bKHi) !== 1) {
       console.error("Invalid black king count");
       return false;
     }
 
     // ----- -kingSq matches king bitboard -----
-    const whiteKingSq = bitScanForward(whiteKingBB);
-    const blackKingSq = bitScanForward(blackKingBB);
+    const whiteKingSq = lsb(wKLo, wkHi);
+    const blackKingSq = lsb(bKLo, bKHi);
 
     if (this.kingSq[WHITE] !== whiteKingSq) {
       console.error("White king square mismatch");
@@ -917,22 +965,12 @@ export class Position {
       return false;
     }
 
-    for (const piece of PIECES) {
-      const combinedBB = bbToBigInt(this.bbsLo[piece], this.bbsHi[piece]);
-      if (this.bitboards[piece] !== combinedBB) {
-        console.error(`Bigint and split BBs do not match for piece: ${piece}`);
-        bbPrint(this.bbsLo[piece], this.bbsHi[piece]);
-        return false;
-      }
-    }
-
     return true;
   }
 
   copy(): Position {
     const cpy = new Position();
     for (const piece of PIECES) {
-      cpy.bitboards[piece] = this.bitboards[piece];
       cpy.bbsHi[piece] = this.bbsHi[piece];
       cpy.bbsLo[piece] = this.bbsLo[piece];
     }

@@ -314,7 +314,6 @@ export const B_KINGSIDE_SAFE: bigint = (1n << 60n) | (1n << 61n) | (1n << 62n); 
 export const B_QUEENSIDE_SAFE: bigint = (1n << 60n) | (1n << 59n) | (1n << 58n); // e8, d8, c8
 
 // ----- BITBOARDS -----
-export type Bitboard = bigint;
 export const INITIAL_BITBOARDS: BigUint64Array = new BigUint64Array(
   NUM_PIECES + 1,
 );

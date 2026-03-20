@@ -9,75 +9,96 @@ import {
   moveTo,
   type Move,
 } from "../moveMaking/move.ts";
+import { squareBB, type Bitboard } from "../bb.ts";
 
 export function updateOccupancy(pos: Position, move: Move): void {
   const from = moveFrom(move);
   const to = moveTo(move);
+  const side = pos.sideToMove;
 
-  let occ = pos.playerOcc[pos.sideToMove];
+  let occLo = pos.playerOccLo[side],
+    occHi = pos.playerOccHi[side];
 
   if (isCastling(move)) {
-    occ = updateOccCastling(occ, move);
-    pos.playerOcc[pos.sideToMove] = occ;
-    pos.occupied = pos.playerOcc[WHITE] | pos.playerOcc[BLACK];
+    [occLo, occHi] = updateOccCastling(occLo, occHi, move);
+    pos.playerOccLo[side] = occLo;
+    pos.playerOccHi[side] = occHi;
+
+    pos.occupiedLo = pos.playerOccLo[WHITE] | pos.playerOccLo[BLACK];
+    pos.occupiedHi = pos.playerOccHi[WHITE] | pos.playerOccHi[BLACK];
     return;
   }
 
-  const maskFrom = 1n << BigInt(from);
-  const maskTo = 1n << BigInt(to);
+  const [fromLo, fromHi] = squareBB(from);
+  const [toLo, toHi] = squareBB(to);
 
-  occ ^= maskFrom;
-  occ |= maskTo;
+  occLo ^= fromLo;
+  occHi ^= fromHi;
 
-  pos.playerOcc[pos.sideToMove] = occ;
+  occLo |= toLo;
+  occHi |= toHi;
+
+  pos.playerOccLo[side] = occLo;
+  pos.playerOccHi[side] = occHi;
 
   if (moveCaptured(move) !== NO_PIECE) {
+    const opp = opponent(side);
     if (isEnPassant(move)) {
       const target = pos.sideToMove === WHITE ? to - 8 : to + 8;
-      pos.playerOcc[opponent(pos.sideToMove)] ^= 1n << BigInt(target);
+      const [targetLo, targetHi] = squareBB(target);
+      pos.playerOccLo[opp] ^= targetLo;
+      pos.playerOccHi[opp] ^= targetHi;
     } else {
-      pos.playerOcc[opponent(pos.sideToMove)] ^= maskTo;
+      pos.playerOccLo[opp] ^= toLo;
+      pos.playerOccHi[opp] ^= toHi;
     }
   }
 
-  pos.occupied = pos.playerOcc[WHITE] | pos.playerOcc[BLACK];
+  pos.occupiedLo = pos.playerOccLo[WHITE] | pos.playerOccLo[BLACK];
+  pos.occupiedHi = pos.playerOccHi[WHITE] | pos.playerOccHi[BLACK];
 }
 
-const updateOccCastling = (oldOcc: bigint, move: Move): bigint => {
+const updateOccCastling = (occLo: number, occHi: number, move: Move): Bitboard => {
   const from = moveFrom(move);
   const to = moveTo(move);
-  let occ = oldOcc;
 
-  const maskFrom = 1n << BigInt(from);
-  const maskTo = 1n << BigInt(to);
+  const [fromLo, fromHi] = squareBB(from);
+  const [toLo, toHi] = squareBB(to);
 
-  occ ^= maskFrom;
-  occ |= maskTo;
+  occLo ^= fromLo;
+  occHi ^= fromHi;
 
-  let rookFrom = 0n;
-  let rookTo = 0n;
+  occLo |= toLo;
+  occHi |= toHi;
+
+  let rookFrom, rookTo;
   if (from === 4) {
     if (to === 6) {
-      rookFrom = 1n << BigInt(7);
-      rookTo = 1n << BigInt(5);
+      rookFrom = 7;
+      rookTo = 5;
     } else {
-      rookFrom = 1n << BigInt(0);
-      rookFrom = 1n << BigInt(3);
+      rookFrom = 0;
+      rookTo = 3;
     }
   } else {
     if (to === 62) {
-      rookFrom = 1n << BigInt(63);
-      rookTo = 1n << BigInt(61);
+      rookFrom = 63;
+      rookTo = 61;
     } else {
-      rookFrom = 1n << BigInt(56);
-      rookTo = 1n << BigInt(59);
+      rookFrom = 56;
+      rookTo = 59;
     }
   }
 
-  occ ^= rookFrom;
-  occ |= rookTo;
+  const [rFromLo, rFromHi] = squareBB(rookFrom);
+  const [rToLo, rToHi] = squareBB(rookTo);
 
-  return occ;
+  occLo ^= rFromLo;
+  occHi ^= rFromHi;
+  occLo |= rToLo;
+  occHi |= rToHi;
+
+  return [occLo, occHi];
 };
 
 export function undoOccupancyUpdate(pos: Position, move: Move): void {

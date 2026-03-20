@@ -3,7 +3,7 @@
 
 import type { Square } from "./chessConstants.ts";
 
-export type SplitBB = [number, number];
+export type Bitboard = [number, number];
 
 // Basic Bitwise Ops
 

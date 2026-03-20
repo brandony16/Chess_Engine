@@ -1,6 +1,9 @@
 import {
   CHECKMATE,
   DRAW,
+  NO_PIECE,
+  PLAYER_PIECES,
+  WHITE,
   type EndState,
   type Piece,
   type Player,
@@ -8,6 +11,7 @@ import {
   type Square,
 } from "./chessConstants.ts";
 import { moveFrom, type Move } from "./moveMaking/move.ts";
+import { isWhite } from "./pieceUtils/pieceClassifiers.ts";
 import { Position } from "./Position.ts";
 import { Snapshot } from "./Snapshot.ts";
 
@@ -88,8 +92,10 @@ export class Game implements GameView {
   }
 
   isPlayersPieceAt(square: Square, player: Player): boolean {
-    const mask = 1n << BigInt(square);
-    return (mask & this.position.playerOcc[player]) !== 0n;
+    const piece = this.position.pieceAt[square];
+    if (piece === NO_PIECE) return false;
+
+    return player === WHITE ? isWhite(piece) : !isWhite(piece);
   }
 
   generateLegalMoves(): Uint32Array {
