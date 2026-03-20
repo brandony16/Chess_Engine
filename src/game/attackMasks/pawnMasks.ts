@@ -1,3 +1,4 @@
+import { bbFromBigInt } from "../bb.ts";
 import { sq, type Square } from "../chessConstants.ts";
 
 /**
@@ -36,32 +37,32 @@ const computeBlackPawnMask = (square: Square): bigint => {
   return attacks;
 };
 
+export const wPMasksLo = new Int32Array(64);
+export const wPMasksHi = new Int32Array(64);
+export const bPMasksLo = new Int32Array(64);
+export const bPMasksHi = new Int32Array(64);
+
 /**
  * Calculates the white pawn attack maps for every square on the board.
  */
-const initializeWPawnAttackMasks = (): bigint[] => {
-  const whitePawnMasks = new Array(64);
+const initializeWhitePawnAttackMasks = () => {
   for (const s of Object.values(sq)) {
-    whitePawnMasks[s] = computeWhitePawnMask(s);
+    const [lo, hi] = bbFromBigInt(computeWhitePawnMask(s));
+    wPMasksLo[s] = lo;
+    wPMasksHi[s] = hi;
   }
-
-  return whitePawnMasks;
 };
-
-// The white pawn attack masks
-export const whitePawnMasks = initializeWPawnAttackMasks();
 
 /**
  * Calculates the black pawn attack maps for every square on the board.
  */
-const initializeBPawnAttackMasks = (): bigint[] => {
-  const blackPawnMasks = new Array(64);
+const initializeBlackPawnAttackMasks = () => {
   for (const s of Object.values(sq)) {
-    blackPawnMasks[s] = computeBlackPawnMask(s);
+    const [lo, hi] = bbFromBigInt(computeBlackPawnMask(s));
+    bPMasksLo[s] = lo;
+    bPMasksHi[s] = hi;
   }
-
-  return blackPawnMasks;
 };
 
-// The white pawn attack masks
-export const blackPawnMasks = initializeBPawnAttackMasks();
+initializeWhitePawnAttackMasks();
+initializeBlackPawnAttackMasks();
