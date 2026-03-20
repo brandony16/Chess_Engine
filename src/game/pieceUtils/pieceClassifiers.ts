@@ -5,6 +5,7 @@ import {
   BLACK_PAWN,
   BLACK_QUEEN,
   BLACK_ROOK,
+  NO_PIECE,
   WHITE_BISHOP,
   WHITE_KING,
   WHITE_KNIGHT,
@@ -39,5 +40,5 @@ export function isKing(piece: Piece): boolean {
 }
 
 export function isWhite(piece: Piece): boolean {
-  return piece <= WHITE_KING;
+  return piece <= WHITE_KING && piece !== NO_PIECE;
 }

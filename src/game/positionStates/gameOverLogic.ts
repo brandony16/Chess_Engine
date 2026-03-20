@@ -1,3 +1,4 @@
+import { popcount } from "../bb.ts";
 import {
   BLACK,
   BLACK_PAWN,
@@ -8,28 +9,31 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../chessConstants.ts";
-import { popcount } from "../helpers/bbUtils.ts";
 
 /**
  * Determines if the game is a draw because neither side has sufficient checkmating material.
  * Only insufficient if both sides only have 1 or 0 minor pieces (knight and bishop).
  */
 export const drawByInsufficientMaterial = (
-  bitboards: BigUint64Array,
-  playerOcc: bigint[], // indexed by player
+  bbsLo: Int32Array,
+  bbsHi: Int32Array,
+  playerOccLo: Int32Array,
+  playerOccHi: Int32Array,
 ): boolean => {
-  const queens = bitboards[WHITE_QUEEN] | bitboards[BLACK_QUEEN];
-  const rooks = bitboards[WHITE_ROOK] | bitboards[BLACK_ROOK];
-  const pawns = bitboards[WHITE_PAWN] | bitboards[BLACK_PAWN];
-  const queensRooksPawns = queens | rooks | pawns;
+  const queensLo = bbsLo[WHITE_QUEEN] | bbsLo[BLACK_QUEEN];
+  const queensHi = bbsHi[WHITE_QUEEN] | bbsHi[BLACK_QUEEN];
+  const rooksLo = bbsLo[WHITE_ROOK] | bbsLo[BLACK_ROOK];
+  const rooksHi = bbsHi[WHITE_ROOK] | bbsHi[BLACK_ROOK];
+  const pawnsLo = bbsLo[WHITE_PAWN] | bbsLo[BLACK_PAWN];
+  const pawnsHi = bbsHi[WHITE_PAWN] | bbsHi[BLACK_PAWN];
 
-  if (queensRooksPawns !== 0n) {
+  if (queensLo || queensHi || rooksLo || rooksHi || pawnsLo || pawnsHi) {
     return false;
   }
 
   if (
-    popcount(playerOcc[WHITE]) <= 2 &&
-    popcount(playerOcc[BLACK]) <= 2
+    popcount(playerOccLo[WHITE], playerOccHi[WHITE]) <= 2 &&
+    popcount(playerOccLo[WHITE], playerOccHi[WHITE]) <= 2
   ) {
     return true;
   }

@@ -87,7 +87,6 @@ export function isQueensideCastleLegal(
 export const makeCastleMove = (position: Position, move: Move): void => {
   const bbsHi = position.bbsHi;
   const bbsLo = position.bbsLo;
-  const bitboards = position.bitboards;
   const pieceAt = position.pieceAt;
 
   const from = moveFrom(move);
@@ -96,22 +95,13 @@ export const makeCastleMove = (position: Position, move: Move): void => {
   const kingPiece = from === sq.E1 ? WHITE_KING : BLACK_KING;
   const rookPiece = from === sq.E1 ? WHITE_ROOK : BLACK_ROOK;
 
-  const fromMask = 1n << BigInt(from);
-  const toMask = 1n << BigInt(to);
   const [fromLo, fromHi] = squareBB(from);
   const [toLo, toHi] = squareBB(to);
 
   const rookFrom = getFile(to) === C_FILE ? to - 2 : to + 1; // C file is queenside castling
   const rookTo = getFile(to) === C_FILE ? to + 1 : to - 1;
-  const rookFromMask = 1n << BigInt(rookFrom);
-  const rookToMask = 1n << BigInt(rookTo);
   const [rookFromLo, rookFromHi] = squareBB(rookFrom);
   const [rookToLo, rookToHi] = squareBB(rookTo);
-
-  bitboards[kingPiece] ^= fromMask;
-  bitboards[kingPiece] |= toMask;
-  bitboards[rookPiece] ^= rookFromMask;
-  bitboards[rookPiece] |= rookToMask;
 
   bbsLo[kingPiece] ^= fromLo;
   bbsHi[kingPiece] ^= fromHi;
@@ -132,7 +122,6 @@ export const makeCastleMove = (position: Position, move: Move): void => {
 export const unMakeCastleMove = (position: Position, move: Move): void => {
   const bbsHi = position.bbsHi;
   const bbsLo = position.bbsLo;
-  const bitboards = position.bitboards;
   const pieceAt = position.pieceAt;
 
   const from = moveFrom(move);
@@ -141,22 +130,13 @@ export const unMakeCastleMove = (position: Position, move: Move): void => {
   const kingPiece = from === sq.E1 ? WHITE_KING : BLACK_KING;
   const rookPiece = from === sq.E1 ? WHITE_ROOK : BLACK_ROOK;
 
-  const fromMask = 1n << BigInt(from);
-  const toMask = 1n << BigInt(to);
   const [fromLo, fromHi] = squareBB(from);
   const [toLo, toHi] = squareBB(to);
 
   const rookFrom = getFile(to) === C_FILE ? to - 2 : to + 1; // C file is queenside castling
   const rookTo = getFile(to) === C_FILE ? from - 1 : from + 1;
-  const rookFromMask = 1n << BigInt(rookFrom);
-  const rookToMask = 1n << BigInt(rookTo);
   const [rookFromLo, rookFromHi] = squareBB(rookFrom);
   const [rookToLo, rookToHi] = squareBB(rookTo);
-
-  bitboards[kingPiece] ^= toMask;
-  bitboards[kingPiece] |= fromMask;
-  bitboards[rookPiece] ^= rookToMask;
-  bitboards[rookPiece] |= rookFromMask;
 
   bbsLo[kingPiece] ^= toLo;
   bbsHi[kingPiece] ^= toHi;

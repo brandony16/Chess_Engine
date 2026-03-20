@@ -1,4 +1,4 @@
-import { bbAndNot, squareBB } from "../bb.ts";
+import { squareBB } from "../bb.ts";
 import { NO_PIECE, WHITE_PAWN } from "../chessConstants.ts";
 import type { Position } from "../Position.ts";
 import { makeCastleMove, unMakeCastleMove } from "./castling.ts";
@@ -14,19 +14,16 @@ import {
 } from "./move.ts";
 
 /**
- * Makes a move. Directly alters the given bitboards.
+ * Makes a move.
  */
 export const applyMove = (position: Position, move: Move) => {
   const bbsHi = position.bbsHi;
   const bbsLo = position.bbsLo;
-  const bitboards = position.bitboards;
   const pieceAt = position.pieceAt;
 
   const from = moveFrom(move);
   const to = moveTo(move);
 
-  const maskFrom = 1n << BigInt(from);
-  const maskTo = 1n << BigInt(to);
   const [maskFromLo, maskFromHi] = squareBB(from);
   const [maskToLo, maskToHi] = squareBB(to);
 
@@ -42,13 +39,11 @@ export const applyMove = (position: Position, move: Move) => {
   }
 
   // Remove moving piece
-  bitboards[piece] &= ~maskFrom;
   bbsLo[piece] &= ~maskFromLo;
   bbsHi[piece] &= ~maskFromHi;
 
   // Remove captured piece
   if (captured !== NO_PIECE && !enPassant) {
-    bitboards[captured] &= ~maskTo;
     bbsLo[captured] &= ~maskToLo;
     bbsHi[captured] &= ~maskToHi;
   }
@@ -57,13 +52,11 @@ export const applyMove = (position: Position, move: Move) => {
 
   // Handles promotions
   if (promotion !== NO_PIECE) {
-    bitboards[promotion] |= maskTo; // Add promoted piece
     bbsLo[promotion] |= maskToLo;
     bbsHi[promotion] |= maskToHi;
 
     pieceAt[to] = promotion;
   } else {
-    bitboards[piece] |= maskTo;
     bbsLo[piece] |= maskToLo;
     bbsHi[piece] |= maskToHi;
 
@@ -73,7 +66,6 @@ export const applyMove = (position: Position, move: Move) => {
   if (enPassant) {
     const dir = piece === WHITE_PAWN ? -8 : 8;
     // Remove the captured pawn from the opposing pawn bitboard
-    bitboards[captured] &= ~(1n << BigInt(to + dir));
     const [lo, hi] = squareBB(to + dir);
     bbsLo[captured] &= ~lo;
     bbsHi[captured] &= ~hi;
@@ -88,14 +80,11 @@ export const applyMove = (position: Position, move: Move) => {
 export const unapplyMove = (position: Position, move: Move) => {
   const bbsHi = position.bbsHi;
   const bbsLo = position.bbsLo;
-  const bitboards = position.bitboards;
   const pieceAt = position.pieceAt;
 
   const from = moveFrom(move);
   const to = moveTo(move);
 
-  const maskFrom = 1n << BigInt(from);
-  const maskTo = 1n << BigInt(to);
   const [maskFromLo, maskFromHi] = squareBB(from);
   const [maskToLo, maskToHi] = squareBB(to);
 
@@ -115,26 +104,19 @@ export const unapplyMove = (position: Position, move: Move) => {
 
   // Undo promotion
   if (promotion !== NO_PIECE) {
-    bitboards[promotion] &= ~maskTo;
-
     bbsLo[promotion] &= ~maskToLo;
     bbsHi[promotion] &= ~maskToHi;
   } else {
-    bitboards[piece] &= ~maskTo;
-
     bbsLo[piece] &= ~maskToLo;
     bbsHi[piece] &= ~maskToHi;
   }
 
   // Place piece back at from
-  bitboards[piece] |= maskFrom;
   bbsLo[piece] |= maskFromLo;
   bbsHi[piece] |= maskFromHi;
 
   // Restore captured piece
   if (captured !== NO_PIECE && !enPassant) {
-    bitboards[captured] |= maskTo;
-
     bbsLo[captured] |= maskToLo;
     bbsHi[captured] |= maskToHi;
 
@@ -145,7 +127,6 @@ export const unapplyMove = (position: Position, move: Move) => {
   if (enPassant) {
     const dir = piece === WHITE_PAWN ? -8 : 8;
     const capturedPawnSquare = to + dir;
-    bitboards[captured] |= 1n << BigInt(capturedPawnSquare);
 
     const [lo, hi] = squareBB(capturedPawnSquare);
     bbsLo[captured] |= lo;

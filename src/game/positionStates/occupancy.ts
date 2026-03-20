@@ -58,7 +58,11 @@ export function updateOccupancy(pos: Position, move: Move): void {
   pos.occupiedHi = pos.playerOccHi[WHITE] | pos.playerOccHi[BLACK];
 }
 
-const updateOccCastling = (occLo: number, occHi: number, move: Move): Bitboard => {
+const updateOccCastling = (
+  occLo: number,
+  occHi: number,
+  move: Move,
+): Bitboard => {
   const from = moveFrom(move);
   const to = moveTo(move);
 
@@ -104,68 +108,91 @@ const updateOccCastling = (occLo: number, occHi: number, move: Move): Bitboard =
 export function undoOccupancyUpdate(pos: Position, move: Move): void {
   const from = moveFrom(move);
   const to = moveTo(move);
-  let occ = pos.playerOcc[pos.sideToMove];
+  const side = pos.sideToMove;
+  let occLo = pos.playerOccLo[side];
+  let occHi = pos.playerOccHi[side];
 
   if (isCastling(move)) {
-    occ = undoCastlingOcc(occ, move);
-    pos.playerOcc[pos.sideToMove] = occ;
-    pos.occupied = pos.playerOcc[WHITE] | pos.playerOcc[BLACK];
+    [occLo, occHi] = undoCastlingOcc(occLo, occHi, move);
+    pos.playerOccLo[side] = occLo;
+    pos.playerOccHi[side] = occHi;
+    pos.occupiedLo = pos.playerOccLo[WHITE] | pos.playerOccLo[BLACK];
+    pos.occupiedHi = pos.playerOccHi[WHITE] | pos.playerOccHi[BLACK];
     return;
   }
 
-  const maskFrom = 1n << BigInt(from);
-  const maskTo = 1n << BigInt(to);
+  const [fromLo, fromHi] = squareBB(from);
+  const [toLo, toHi] = squareBB(to);
 
-  occ |= maskFrom;
-  occ ^= maskTo;
+  occLo ^= toLo;
+  occHi ^= toHi;
 
-  pos.playerOcc[pos.sideToMove] = occ;
+  occLo |= fromLo;
+  occHi |= fromHi;
+
+  pos.playerOccLo[side] = occLo;
+  pos.playerOccHi[side] = occHi;
 
   if (moveCaptured(move) !== NO_PIECE) {
+    const opp = opponent(side);
     if (isEnPassant(move)) {
-      const target = pos.sideToMove === WHITE ? to - 8 : to + 8;
-      pos.playerOcc[opponent(pos.sideToMove)] |= 1n << BigInt(target);
+      const target = side === WHITE ? to - 8 : to + 8;
+      const [targetLo, targetHi] = squareBB(target);
+      pos.playerOccLo[opp] |= targetLo;
+      pos.playerOccHi[opp] |= targetHi;
     } else {
-      pos.playerOcc[opponent(pos.sideToMove)] |= maskTo;
+      pos.playerOccLo[opp] |= toLo;
+      pos.playerOccHi[opp] |= toHi;
     }
   }
 
-  pos.occupied = pos.playerOcc[WHITE] | pos.playerOcc[BLACK];
+  pos.occupiedLo = pos.playerOccLo[WHITE] | pos.playerOccLo[BLACK];
+  pos.occupiedHi = pos.playerOccHi[WHITE] | pos.playerOccHi[BLACK];
 }
 
-const undoCastlingOcc = (oldOcc: bigint, move: Move): bigint => {
+const undoCastlingOcc = (
+  occLo: number,
+  occHi: number,
+  move: Move,
+): Bitboard => {
   const from = moveFrom(move);
   const to = moveTo(move);
-  let occ = oldOcc;
 
-  const maskFrom = 1n << BigInt(from);
-  const maskTo = 1n << BigInt(to);
+  const [fromLo, fromHi] = squareBB(from);
+  const [toLo, toHi] = squareBB(to);
 
-  occ |= maskFrom;
-  occ ^= maskTo;
+  occLo ^= toLo;
+  occHi ^= toHi;
 
-  let rookFrom = 0n;
-  let rookTo = 0n;
+  occLo |= fromLo;
+  occHi |= fromHi;
+
+  let rookFrom, rookTo;
   if (from === 4) {
     if (to === 6) {
-      rookFrom = 1n << BigInt(7);
-      rookTo = 1n << BigInt(5);
+      rookFrom = 7;
+      rookTo = 5;
     } else {
-      rookFrom = 1n << BigInt(0);
-      rookFrom = 1n << BigInt(3);
+      rookFrom = 0;
+      rookTo = 3;
     }
   } else {
     if (to === 62) {
-      rookFrom = 1n << BigInt(63);
-      rookTo = 1n << BigInt(61);
+      rookFrom = 63;
+      rookTo = 61;
     } else {
-      rookFrom = 1n << BigInt(56);
-      rookTo = 1n << BigInt(59);
+      rookFrom = 56;
+      rookTo = 59;
     }
   }
 
-  occ |= rookFrom;
-  occ ^= rookTo;
+  const [rFromLo, rFromHi] = squareBB(rookFrom);
+  const [rToLo, rToHi] = squareBB(rookTo);
 
-  return occ;
+  occLo |= rFromLo;
+  occHi |= rFromHi;
+  occLo ^= rToLo;
+  occHi ^= rToHi;
+
+  return [occLo, occHi];
 };

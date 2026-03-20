@@ -17,6 +17,7 @@ import {
 } from "../chessConstants.ts";
 import { bishopMoves, knightMoves, pawnMoves } from "./minorPieces.ts";
 import { kingMoves, queenMoves, rookMoves } from "./majorPieces.ts";
+import type { Bitboard } from "../bb.ts";
 
 /**
  * Gets the moves for a specific piece. Returns a bitboard of the moves for that piece.
@@ -25,7 +26,7 @@ export const getPieceMoves = (
   pos: Position,
   piece: Piece,
   sq: Square,
-): bigint => {
+): Bitboard => {
   switch (piece) {
     case WHITE_PAWN:
     case BLACK_PAWN:
@@ -46,6 +47,6 @@ export const getPieceMoves = (
     case BLACK_KING:
       return kingMoves(pos, sq);
     default:
-      return 0n; // No legal moves
+      return [0, 0]; // No legal moves
   }
 };
