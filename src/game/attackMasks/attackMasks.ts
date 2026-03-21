@@ -1,6 +1,3 @@
-import { kingMasks } from "./kingMasks.ts";
-import { knightMasks } from "./knightMasks.ts";
-import { blackPawnMasks, whitePawnMasks } from "./pawnMasks.ts";
 import type { Position } from "../Position.ts";
 import {
   BLACK_BISHOP,
@@ -16,20 +13,15 @@ import {
   WHITE_PAWN,
   WHITE_QUEEN,
   WHITE_ROOK,
-  type Bitboard,
   type Piece,
   type Player,
   type Square,
 } from "../chessConstants.ts";
 import { bishopAttacks, rookAttacks } from "../moveGen/sliderMoves.ts";
-import {
-  bishops,
-  kings,
-  knights,
-  queens,
-  rooks,
-} from "../pieceUtils/pieceGetters.ts";
-import { bitScanForward } from "../helpers/bbUtils.ts";
+import { lsb, type Bitboard } from "../bb.ts";
+import { bPMasksHi, bPMasksLo, wPMasksHi, wPMasksLo } from "./pawnMasks.ts";
+import { knightMasksHi, knightMasksLo } from "./knightMasks.ts";
+import { kingMasksHi, kingMasksLo } from "./kingMasks.ts";
 
 /**
  * Generates the attack bitboard of a piece at a square
@@ -37,85 +29,137 @@ import { bitScanForward } from "../helpers/bbUtils.ts";
 export function attacksOf(
   piece: Piece,
   square: Square,
-  occupancy: Bitboard,
+  occLo: number,
+  occHi: number,
 ): Bitboard {
   switch (piece) {
     case WHITE_PAWN:
-      return whitePawnMasks[square];
+      return [wPMasksLo[square], wPMasksHi[square]];
     case BLACK_PAWN:
-      return blackPawnMasks[square];
+      return [bPMasksLo[square], bPMasksHi[square]];
     case WHITE_KNIGHT:
     case BLACK_KNIGHT:
-      return knightMasks[square];
+      return [knightMasksLo[square], knightMasksHi[square]];
     case WHITE_KING:
     case BLACK_KING:
-      return kingMasks[square];
+      return [kingMasksLo[square], kingMasksHi[square]];
     case WHITE_BISHOP:
-    case BLACK_BISHOP: {
-      return bishopAttacks(square, occupancy);
-    }
+    case BLACK_BISHOP:
+      return bishopAttacks(square, occLo, occHi);
     case WHITE_ROOK:
-    case BLACK_ROOK: {
-      return rookAttacks(square, occupancy);
-    }
+    case BLACK_ROOK:
+      return rookAttacks(square, occLo, occHi);
     case WHITE_QUEEN:
     case BLACK_QUEEN: {
-      return bishopAttacks(square, occupancy) | rookAttacks(square, occupancy);
+      const [diagLo, diagHi] = bishopAttacks(square, occLo, occHi);
+      const [orthoLo, orthoHi] = rookAttacks(square, occLo, occHi);
+      return [diagLo | orthoLo, diagHi | orthoHi];
     }
     default:
-      return 0n;
+      return [0, 0];
   }
 }
 
 /**
  * Gets all of the pieces that attack a given square.
  */
-export function attacksTo(bitboards: BigUint64Array, occ: bigint, toSq: Square): Bitboard {
-  let attackers = 0n;
+export function attacksTo(
+  bbsLo: Int32Array,
+  bbsHi: Int32Array,
+  occLo: number,
+  occHi: number,
+  toSq: Square,
+): Bitboard {
+  let attackersLo = 0,
+    attackersHi = 0;
 
+  // ----- Mask Pieces -----
   // Pawns
-  attackers |= bitboards[WHITE_PAWN] & blackPawnMasks[toSq];
-  attackers |= bitboards[BLACK_PAWN] & whitePawnMasks[toSq];
+  // Use mask of other color bc we want pawns that attack the toSq
+  attackersLo |= bbsLo[WHITE_PAWN] & bPMasksLo[toSq];
+  attackersHi |= bbsHi[WHITE_PAWN] & bPMasksHi[toSq];
+
+  attackersLo |= bbsLo[BLACK_PAWN] & wPMasksLo[toSq];
+  attackersHi |= bbsHi[BLACK_PAWN] & wPMasksHi[toSq];
 
   // Knights
-  const knightBB = knights(bitboards);
-  attackers |= knightMasks[toSq] & knightBB;
+  const knightsLo = bbsLo[WHITE_KNIGHT] | bbsLo[BLACK_KNIGHT];
+  const knightsHi = bbsHi[WHITE_KNIGHT] | bbsHi[BLACK_KNIGHT];
+  attackersLo |= knightMasksLo[toSq] & knightsLo;
+  attackersHi |= knightMasksHi[toSq] & knightsHi;
 
   // Kings
-  const kingBB = kings(bitboards);
-  attackers |= kingMasks[toSq] & kingBB;
+  const kingsLo = bbsLo[WHITE_KING] | bbsLo[BLACK_KING];
+  const kingsHi = bbsHi[WHITE_KING] | bbsHi[BLACK_KING];
+  attackersLo |= kingMasksLo[toSq] & kingsLo;
+  attackersHi |= kingMasksHi[toSq] & kingsHi;
 
-  // Sliding Pieces
-  const queenBB = queens(bitboards);
-  const orthoPieces = rookAttacks(toSq, occ) & occ;
-  attackers |= orthoPieces & (rooks(bitboards) | queenBB);
+  // ----- Sliding Pieces -----
+  const queensLo = bbsLo[WHITE_QUEEN] | bbsLo[BLACK_QUEEN];
+  const queensHi = bbsHi[WHITE_QUEEN] | bbsHi[BLACK_QUEEN];
+  const rooksLo = bbsLo[WHITE_ROOK] | bbsLo[BLACK_ROOK];
+  const rooksHi = bbsHi[WHITE_ROOK] | bbsHi[BLACK_ROOK];
+  const bishopsLo = bbsLo[WHITE_BISHOP] | bbsLo[BLACK_BISHOP];
+  const bishopsHi = bbsHi[WHITE_BISHOP] | bbsHi[BLACK_BISHOP];
 
-  const diagPieces = bishopAttacks(toSq, occ) & occ;
-  attackers |= diagPieces & (bishops(bitboards) | queenBB);
+  // Ortho
+  const [orthoLo, orthoHi] = rookAttacks(toSq, occLo, occHi);
+  const orthoPiecesLo = orthoLo & occLo;
+  const orthoPiecesHi = orthoHi & occHi;
 
-  return attackers;
+  attackersLo |= orthoPiecesLo & (rooksLo | queensLo);
+  attackersHi |= orthoPiecesHi & (rooksHi | queensHi);
+
+  // Diagonal
+  const [diagLo, diagHi] = bishopAttacks(toSq, occLo, occHi);
+  const diagPiecesLo = diagLo & occLo;
+  const diagPiecesHi = diagHi & occHi;
+
+  attackersLo |= diagPiecesLo & (bishopsLo | queensLo);
+  attackersHi |= diagPiecesHi & (bishopsHi | queensHi);
+
+  return [attackersLo, attackersHi];
 }
 
 /**
  * Computes the attack mask for a piece
  */
-export function computeMaskForPiece(position: Position, piece: Piece): Bitboard {
-  let mask = 0n;
-  let bb = position.bitboards[piece];
-  while (bb) {
-    const square = bitScanForward(bb);
-    bb &= bb - 1n;
-    mask |= attacksOf(piece, square, position.occupied);
+export function computeMaskForPiece(
+  position: Position,
+  piece: Piece,
+): Bitboard {
+  let maskLo = 0,
+    maskHi = 0;
+
+  let bbLo = position.bbsLo[piece];
+  let bbHi = position.bbsHi[piece];
+  while (bbLo || bbHi) {
+    const square = lsb(bbLo, bbHi);
+
+    const [attacksLo, attacksHi] = attacksOf(
+      piece,
+      square,
+      position.occupiedLo,
+      position.occupiedHi,
+    );
+    maskLo |= attacksLo;
+    maskHi |= attacksHi;
+
+    if (bbLo) bbLo &= bbLo - 1;
+    else bbHi &= bbHi - 1;
   }
 
-  return mask;
+  return [maskLo, maskHi];
 }
 
-export function playerAttackMask(pos: Position, player: Player) {
-  let mask = 0n;
+export function playerAttackMask(pos: Position, player: Player): Bitboard {
+  let maskLo = 0,
+    maskHi = 0;
   for (const piece of PLAYER_PIECES[player]) {
-    mask |= computeMaskForPiece(pos, piece);
+    const [lo, hi] = computeMaskForPiece(pos, piece);
+    maskLo |= lo;
+    maskHi |= hi;
   }
 
-  return mask;
+  return [maskLo, maskHi];
 }

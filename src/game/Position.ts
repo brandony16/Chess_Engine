@@ -1,4 +1,3 @@
-import { bitScanForward } from "./helpers/bbUtils.ts";
 import { attacksTo } from "./attackMasks/attackMasks.ts";
 import {
   ALL_CASTLING,
@@ -51,7 +50,6 @@ import {
   drawByRepetition,
 } from "./positionStates/gameOverLogic.ts";
 import { getPieceMoves } from "./moveGen/moveGeneration.ts";
-import { kingMoves } from "./moveGen/majorPieces.ts";
 import { opponent } from "./helpers/opponent.ts";
 import { applyMove, unapplyMove } from "./moveMaking/applyMove.ts";
 import { updateCastlingRights } from "./moveMaking/castling.ts";
@@ -85,22 +83,18 @@ import {
 } from "./positionStates/occupancy.ts";
 import { newEnPassant } from "./moveMaking/moveHelpers.ts";
 import { getCheckers } from "./moveGen/getCheckers.ts";
-import { blackPawnMasks, whitePawnMasks } from "./attackMasks/pawnMasks.ts";
-import { knightMasks } from "./attackMasks/knightMasks.ts";
 import { bishopAttacks, rookAttacks } from "./moveGen/sliderMoves.ts";
 import {
   betweenMaskHi,
   betweenMaskLo,
   lineMaskHi,
   lineMaskLo,
-  moreThanOne,
 } from "./attackMasks/masks.ts";
 import {
   bbFromBigInt,
   bbIsEmpty,
   bbNotEmpty,
   bbOr,
-  bbToBigInt,
   clearBit,
   exactlyOne,
   lsb,
@@ -109,6 +103,14 @@ import {
   testBit,
   type Bitboard,
 } from "./bb.ts";
+import { kingMoves } from "./moveGen/kingMoves.ts";
+import {
+  bPMasksHi,
+  bPMasksLo,
+  wPMasksHi,
+  wPMasksLo,
+} from "./attackMasks/pawnMasks.ts";
+import { knightMasksHi, knightMasksLo } from "./attackMasks/knightMasks.ts";
 
 const MAX_SEARCH_PLY = 16;
 const MAX_PLY = 512;
@@ -397,12 +399,11 @@ export class Position {
 
       // Double check, only king moves are possible
       if (numCheck > 1) {
-        let kingMoveBB = kingMoves(this, kingSq);
+        let [kMoveLo, kMoveHi] = kingMoves(this, kingSq);
         const piece = side === WHITE ? WHITE_KING : BLACK_KING;
 
-        while (kingMoveBB) {
-          const to = bitScanForward(kingMoveBB);
-          kingMoveBB &= kingMoveBB - 1n;
+        while (kMoveLo || kMoveHi) {
+          const to = lsb(kMoveLo, kMoveHi);
 
           const captured = this.pieceAt[to];
           this.moveBuffer[start + count++] = encodeMove(
@@ -411,6 +412,9 @@ export class Position {
             piece,
             captured,
           );
+
+          if (kMoveLo !== 0) kMoveLo &= kMoveLo - 1;
+          else kMoveHi &= kMoveHi - 1;
         }
         return count;
       }
@@ -438,10 +442,12 @@ export class Position {
         if (lo !== 0) lo &= lo - 1;
         else hi &= hi - 1;
 
-        let moveBB = getPieceMoves(this, piece, from);
-        while (moveBB) {
-          const to = bitScanForward(moveBB);
-          moveBB &= moveBB - 1n;
+        let [movesLo, movesHi] = getPieceMoves(this, piece, from);
+        while (movesLo || movesHi) {
+          const to = lsb(movesLo, movesHi);
+
+          if (movesLo) movesLo &= movesLo - 1;
+          else movesHi &= movesHi - 1;
 
           let captured = pieceAt[to];
 
@@ -690,7 +696,14 @@ export class Position {
   }
 
   checkGameOver() {
-    if (drawByInsufficientMaterial(this.bbsLo, this.bbsHi, this.playerOccLo, this.playerOccHi)) {
+    if (
+      drawByInsufficientMaterial(
+        this.bbsLo,
+        this.bbsHi,
+        this.playerOccLo,
+        this.playerOccHi,
+      )
+    ) {
       this.result = DRAW;
       this.endState = INSUFFICIENT_MATERIAL;
       return;
@@ -731,9 +744,18 @@ export class Position {
   }
 
   isSquareAttacked(square: Square, player: Player): boolean {
-    const [lo, hi] = attacksTo(this.bbsLo, this.bbsHi, this.occupiedLo, this.occupiedHi, square);
+    const [lo, hi] = attacksTo(
+      this.bbsLo,
+      this.bbsHi,
+      this.occupiedLo,
+      this.occupiedHi,
+      square,
+    );
 
-    return (this.playerOccLo[player] & lo) !== 0 || (this.playerOccHi[player] & hi) !== 0;
+    return (
+      (this.playerOccLo[player] & lo) !== 0 ||
+      (this.playerOccHi[player] & hi) !== 0
+    );
   }
 
   gameOver(): boolean {
@@ -748,34 +770,43 @@ export class Position {
     const bbsHi = this.bbsHi;
     const occLo = this.occupiedLo;
     const occHi = this.occupiedHi;
-    let attackers = 0n;
+
+    let attackersLo = 0,
+      attackersHi = 0;
 
     // Pawns
     const pawn = side === WHITE ? BLACK_PAWN : WHITE_PAWN;
-    const mask = side === WHITE ? whitePawnMasks : blackPawnMasks;
-    const pawnBB = bbToBigInt(bbsLo[pawn], bbsHi[pawn]);
-    attackers |= pawnBB & mask[kingSq];
+    const maskLo = side === WHITE ? wPMasksLo : bPMasksLo;
+    const maskHi = side === WHITE ? wPMasksHi : bPMasksHi;
+    attackersLo |= bbsLo[pawn] & maskLo[kingSq];
+    attackersHi |= bbsHi[pawn] & maskHi[kingSq];
 
     // Knights
     const knight = side === WHITE ? BLACK_KNIGHT : WHITE_KNIGHT;
-    const knightBB = bbToBigInt(bbsLo[knight], bbsHi[knight]);
-    attackers |= knightMasks[kingSq] & knightBB;
+    attackersLo |= knightMasksLo[kingSq] & bbsLo[knight];
+    attackersHi |= knightMasksHi[kingSq] & bbsHi[knight];
 
     // Sliding Pieces
     const queen = side === WHITE ? BLACK_QUEEN : WHITE_QUEEN;
     const rook = side === WHITE ? BLACK_ROOK : WHITE_ROOK;
     const bishop = side === WHITE ? BLACK_BISHOP : WHITE_BISHOP;
 
-    const queenBB = bbToBigInt(bbsLo[queen], bbsHi[queen]);
-    const rookBB = bbToBigInt(bbsLo[rook], bbsHi[rook]);
-    const bishopBB = bbToBigInt(bbsLo[bishop], bbsHi[bishop]);
-    const ortho = queenBB | rookBB;
-    attackers |= rookAttacks(kingSq, occLo, occHi) & ortho;
+    const queenLo = bbsLo[queen],
+      queenHi = bbsHi[queen];
+    const rookLo = bbsLo[rook],
+      rookHi = bbsHi[rook];
+    const bishopLo = bbsLo[bishop],
+      bishopHi = bbsHi[bishop];
 
-    const sliding = queenBB | bishopBB;
-    attackers |= bishopAttacks(kingSq, occLo, occHi) & sliding;
+    const [orthoLo, orthoHi] = rookAttacks(kingSq, occLo, occHi);
+    attackersLo |= orthoLo & (queenLo | rookLo);
+    attackersHi |= orthoHi & (queenHi | rookHi);
 
-    return bbFromBigInt(attackers);
+    const [diagLo, diagHi] = bishopAttacks(kingSq, occLo, occHi);
+    attackersLo |= diagLo & (queenLo | bishopLo);
+    attackersHi |= diagHi & (queenHi | bishopHi);
+
+    return [attackersLo, attackersHi];
   }
 
   getPinnedPieces(): Bitboard {
@@ -785,7 +816,8 @@ export class Position {
     const friendlyLo = this.playerOccLo[side];
     const friendlyHi = this.playerOccHi[side];
 
-    let pinnedLo = 0, pinnedHi = 0;
+    let pinnedLo = 0,
+      pinnedHi = 0;
 
     const bbsLo = this.bbsLo;
     const bbsHi = this.bbsHi;
@@ -794,27 +826,42 @@ export class Position {
     const bishop = side === WHITE ? BLACK_BISHOP : WHITE_BISHOP;
     const queen = side === WHITE ? BLACK_QUEEN : WHITE_QUEEN;
     const rook = side === WHITE ? BLACK_ROOK : WHITE_ROOK;
-    const queenBB = bbToBigInt(bbsLo[queen], bbsHi[queen]);
-    const rookBB = bbToBigInt(bbsLo[rook], bbsHi[rook]);
-    const bishopBB = bbToBigInt(bbsLo[bishop], bbsHi[bishop]);
+    const queenLo = bbsLo[queen],
+      queenHi = bbsHi[queen];
+    const rookLo = bbsLo[rook],
+      rookHi = bbsHi[rook];
+    const bishopLo = bbsLo[bishop],
+      bishopHi = bbsHi[bishop];
 
-    const diagPinners =
-      bishopAttacks(kingSq, this.playerOccLo[opp], this.playerOccHi[opp]) & (queenBB | bishopBB);
+    const [diagRayLo, diagRayHi] = bishopAttacks(
+      kingSq,
+      this.playerOccLo[opp],
+      this.playerOccHi[opp],
+    );
+    const diagPinnersLo = diagRayLo & (queenLo | bishopLo);
+    const diagPinnersHi = diagRayHi & (queenHi | bishopHi);
 
-    const rookPinners =
-      rookAttacks(kingSq, this.playerOccLo[opp], this.playerOccHi[opp]) & (queenBB | rookBB);
+    const [orthoRayLo, orthoRayHi] = rookAttacks(
+      kingSq,
+      this.playerOccLo[opp],
+      this.playerOccHi[opp],
+    );
+    const orthoPinnersLo = orthoRayLo & (queenLo | rookLo);
+    const orthoPinnersHi = orthoRayHi & (queenHi | rookHi);
 
     // For each candidate pinner, check if exactly one friendly piece is between
-    let pinners = diagPinners | rookPinners;
-    while (pinners) {
-      const pinnerSq = bitScanForward(pinners);
-      pinners &= pinners - 1n;
+    let pinnersLo = diagPinnersLo | orthoPinnersLo;
+    let pinnersHi = diagPinnersHi | orthoPinnersHi;
+    while (pinnersLo || pinnersHi) {
+      const pinnerSq = lsb(pinnersLo, pinnersHi);
+      if (pinnersLo) pinnersLo &= pinnersLo - 1;
+      else pinnersHi &= pinnersHi - 1;
 
       const betweenHi = betweenMaskHi[kingSq * 64 + pinnerSq];
       const betweenLo = betweenMaskLo[kingSq * 64 + pinnerSq];
-      
-      const piecesBetweenLo = betweenLo & this.occupiedLo
-      const piecesBetweenHi = betweenHi & this.occupiedHi
+
+      const piecesBetweenLo = betweenLo & this.occupiedLo;
+      const piecesBetweenHi = betweenHi & this.occupiedHi;
 
       // Exactly one piece between king and pinner, and it's friendly = pinned
       if (exactlyOne(piecesBetweenLo, piecesBetweenHi)) {
@@ -868,10 +915,11 @@ export class Position {
 
   validate(): boolean {
     // ----- Recompute Occupancy from Bitboards -----
-    let occLo = 0, occHi = 0;
+    let occLo = 0,
+      occHi = 0;
 
     for (let i = 0; i < this.bbsLo.length; i++) {
-      occLo |= this.bbsLo[i], occHi |= this.bbsHi[i];
+      ((occLo |= this.bbsLo[i]), (occHi |= this.bbsHi[i]));
     }
 
     if (occLo !== this.occupiedLo || occHi !== this.occupiedHi) {
@@ -880,15 +928,20 @@ export class Position {
     }
 
     // ----- Player Occupancy -----
-    const wOccLo = this.playerOccLo[WHITE], wOccHi = this.playerOccHi[WHITE];
-    const bOccLo = this.playerOccLo[BLACK], bOccHi = this.playerOccHi[BLACK];
+    const wOccLo = this.playerOccLo[WHITE],
+      wOccHi = this.playerOccHi[WHITE];
+    const bOccLo = this.playerOccLo[BLACK],
+      bOccHi = this.playerOccHi[BLACK];
 
     if ((wOccLo & bOccLo) !== 0 || (wOccHi & bOccHi) !== 0) {
       console.error("Overlapping player occupancy");
       return false;
     }
 
-    if ((wOccLo | bOccLo) !== this.occupiedLo || (wOccHi | bOccHi) !== this.occupiedHi) {
+    if (
+      (wOccLo | bOccLo) !== this.occupiedLo ||
+      (wOccHi | bOccHi) !== this.occupiedHi
+    ) {
       console.error("Player occupancy mismatch");
       return false;
     }
