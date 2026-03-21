@@ -99,7 +99,7 @@ function rookBruteForce(sq: Square, occLo: number, occHi: number): Bitboard {
   maskLo |= upLo | downLo | rightLo | leftLo;
   maskHi |= upHi | downHi | rightHi | leftHi;
 
-  return [maskLo, maskHi];
+  return [maskLo >>> 0, maskHi >>> 0];
 }
 
 function bishopBruteForce(sq: Square, occLo: number, occHi: number): Bitboard {
@@ -114,7 +114,7 @@ function bishopBruteForce(sq: Square, occLo: number, occHi: number): Bitboard {
   maskLo |= neLo | seLo | swLo | nwLo;
   maskHi |= neHi | seHi | swHi | nwHi;
 
-  return [maskLo, maskHi];
+  return [maskLo >>> 0, maskHi >>> 0];
 }
 
 type Direction = { dr: number; dc: number };

@@ -103,7 +103,7 @@ import {
   testBit,
   type Bitboard,
 } from "./bb.ts";
-import { kingMoves } from "./moveGen/kingMoves.ts";
+import { castlingMoves, kingMoves } from "./moveGen/kingMoves.ts";
 import {
   bPMasksHi,
   bPMasksLo,
@@ -443,6 +443,11 @@ export class Position {
         else hi &= hi - 1;
 
         let [movesLo, movesHi] = getPieceMoves(this, piece, from);
+        if ((piece === BLACK_KING || piece === WHITE_KING) && this.castlingRights) {
+          const [castleLo, castleHi] = castlingMoves(this, from);
+          movesLo |= castleLo;
+          movesHi |= castleHi;
+        }
         while (movesLo || movesHi) {
           const to = lsb(movesLo, movesHi);
 

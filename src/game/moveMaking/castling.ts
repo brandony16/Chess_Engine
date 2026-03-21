@@ -61,13 +61,18 @@ export const updateCastlingRights = (
  */
 export function isKingsideCastleLegal(
   player: Player,
-  attackMask: bigint,
-  occ: bigint,
+  attackMaskLo: number,
+  attackMaskHi: number,
+  occLo: number,
+  occHi: number,
 ): boolean {
-  const EMPTY = player === WHITE ? W_KINGSIDE_EMPTY : B_KINGSIDE_EMPTY;
-  const SAFE = player === WHITE ? W_KINGSIDE_SAFE : B_KINGSIDE_SAFE;
+  const [emptyLo, emptyHi] =
+    player === WHITE ? W_KINGSIDE_EMPTY : B_KINGSIDE_EMPTY;
+  const [safeLo, safeHi] = player === WHITE ? W_KINGSIDE_SAFE : B_KINGSIDE_SAFE;
 
-  return ((occ & EMPTY) | (attackMask & SAFE)) === 0n;
+  const areOccupied = emptyLo & occLo || emptyHi & occHi;
+  const isAttacked = attackMaskLo & safeLo || attackMaskHi & safeHi;
+  return !areOccupied && !isAttacked;
 }
 
 /**
@@ -75,13 +80,19 @@ export function isKingsideCastleLegal(
  */
 export function isQueensideCastleLegal(
   player: Player,
-  attackMask: bigint,
-  occ: bigint,
+  attackMaskLo: number,
+  attackMaskHi: number,
+  occLo: number,
+  occHi: number,
 ): boolean {
-  const EMPTY = player === WHITE ? W_QUEENSIDE_EMPTY : B_QUEENSIDE_EMPTY;
-  const SAFE = player === WHITE ? W_QUEENSIDE_SAFE : B_QUEENSIDE_SAFE;
+  const [emptyLo, emptyHi] =
+    player === WHITE ? W_QUEENSIDE_EMPTY : B_QUEENSIDE_EMPTY;
+  const [safeLo, safeHi] =
+    player === WHITE ? W_QUEENSIDE_SAFE : B_QUEENSIDE_SAFE;
 
-  return ((occ & EMPTY) | (attackMask & SAFE)) === 0n;
+  const areOccupied = emptyLo & occLo || emptyHi & occHi;
+  const isAttacked = attackMaskLo & safeLo || attackMaskHi & safeHi;
+  return !areOccupied && !isAttacked;
 }
 
 export const makeCastleMove = (position: Position, move: Move): void => {

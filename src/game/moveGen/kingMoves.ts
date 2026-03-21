@@ -1,6 +1,19 @@
+import { playerAttackMask } from "../attackMasks/attackMasks.ts";
 import { kingMasksHi, kingMasksLo } from "../attackMasks/kingMasks.ts";
-import type { Bitboard } from "../bb.ts";
-import type { Square } from "../chessConstants.ts";
+import { squareBB, type Bitboard } from "../bb.ts";
+import {
+  BK,
+  BLACK,
+  BQ,
+  WHITE,
+  WK,
+  WQ,
+  type Square,
+} from "../chessConstants.ts";
+import {
+  isKingsideCastleLegal,
+  isQueensideCastleLegal,
+} from "../moveMaking/castling.ts";
 import type { Position } from "../Position.ts";
 
 /**
@@ -15,35 +28,51 @@ export const kingMoves = (pos: Position, from: Square): Bitboard => {
 };
 
 export const castlingMoves = (pos: Position, from: Square): Bitboard => {
-  // const rights = pos.castlingRights;
-  // if (rights !== 0) {
-  //   if (isWhite) {
-  //     if (
-  //       rights & WK &&
-  //       isKingsideCastleLegal(pos.sideToMove, oppAttackMask, occ)
-  //     ) {
-  //       moves |= 1n << 6n;
-  //     }
-  //     if (
-  //       rights & WQ &&
-  //       isQueensideCastleLegal(pos.sideToMove, oppAttackMask, occ)
-  //     ) {
-  //       moves |= 1n << 2n;
-  //     }
-  //   } else {
-  //     if (
-  //       rights & BK &&
-  //       isKingsideCastleLegal(pos.sideToMove, oppAttackMask, occ)
-  //     ) {
-  //       moves |= 1n << 62n;
-  //     }
-  //     if (
-  //       rights & BQ &&
-  //       isQueensideCastleLegal(pos.sideToMove, oppAttackMask, occ)
-  //     ) {
-  //       moves |= 1n << 58n;
-  //     }
-  //   }
-  // }
-  return [0, 0];
+  let movesLo = 0,
+    movesHi = 0;
+
+  const rights = pos.castlingRights;
+  if (rights !== 0) {
+    const occLo = pos.occupiedLo,
+      occHi = pos.occupiedHi;
+    if (pos.sideToMove === WHITE && rights & (WK | WQ)) {
+      const [attLo, attHi] = playerAttackMask(pos, BLACK);
+      if (
+        rights & WK &&
+        isKingsideCastleLegal(pos.sideToMove, attLo, attHi, occLo, occHi)
+      ) {
+        const [lo, hi] = squareBB(6);
+        movesLo |= lo;
+        movesHi |= hi;
+      }
+      if (
+        rights & WQ &&
+        isQueensideCastleLegal(pos.sideToMove, attLo, attHi, occLo, occHi)
+      ) {
+        const [lo, hi] = squareBB(2);
+        movesLo |= lo;
+        movesHi |= hi;
+      }
+    } else if (pos.sideToMove === BLACK && rights & (BK | BQ)) {
+      const [attLo, attHi] = playerAttackMask(pos, WHITE);
+      if (
+        rights & BK &&
+        isKingsideCastleLegal(pos.sideToMove, attLo, attHi, occLo, occHi)
+      ) {
+        const [lo, hi] = squareBB(62);
+        movesLo |= lo;
+        movesHi |= hi;
+      }
+      if (
+        rights & BQ &&
+        isQueensideCastleLegal(pos.sideToMove, attLo, attHi, occLo, occHi)
+      ) {
+        const [lo, hi] = squareBB(58);
+        movesLo |= lo;
+        movesHi |= hi;
+      }
+    }
+  }
+
+  return [movesLo, movesHi];
 };

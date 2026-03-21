@@ -1,3 +1,5 @@
+import { bbFromBigInt, bbToBigInt, type Bitboard } from "./bb.ts";
+
 // Players
 export type Player = 0 | 1; // WHITE = 0, BLACK = 1
 export const WHITE = 0 as const;
@@ -301,17 +303,30 @@ export const BQ = (1 << 3) as CastlingNumber; // black queenside
 export const ALL_CASTLING = (WK | WQ | BK | BQ) as CastlingNumber;
 
 // These squares must be empty for castling to be legal
-export const W_KINGSIDE_EMPTY: bigint = (1n << 5n) | (1n << 6n); // f1, g1
-export const W_QUEENSIDE_EMPTY: bigint = (1n << 1n) | (1n << 2n) | (1n << 3n); // b1, c1, d1
-export const B_KINGSIDE_EMPTY: bigint = (1n << 61n) | (1n << 62n); // f8, g8
-export const B_QUEENSIDE_EMPTY: bigint =
-  (1n << 57n) | (1n << 58n) | (1n << 59n); // b8, c8, d8
+export const W_KINGSIDE_EMPTY: Bitboard = bbFromBigInt((1n << 5n) | (1n << 6n)); // f1, g1
+export const W_QUEENSIDE_EMPTY: Bitboard = bbFromBigInt(
+  (1n << 1n) | (1n << 2n) | (1n << 3n),
+); // b1, c1, d1
+export const B_KINGSIDE_EMPTY: Bitboard = bbFromBigInt(
+  (1n << 61n) | (1n << 62n),
+); // f8, g8
+export const B_QUEENSIDE_EMPTY: Bitboard = bbFromBigInt(
+  (1n << 57n) | (1n << 58n) | (1n << 59n),
+); // b8, c8, d8
 
 // These squares must not be occupied for castling to be legal
-export const W_KINGSIDE_SAFE: bigint = (1n << 4n) | (1n << 5n) | (1n << 6n); // e1, f1, g1
-export const W_QUEENSIDE_SAFE: bigint = (1n << 4n) | (1n << 3n) | (1n << 2n); // e1, d1, c1
-export const B_KINGSIDE_SAFE: bigint = (1n << 60n) | (1n << 61n) | (1n << 62n); // e8, f8, g8
-export const B_QUEENSIDE_SAFE: bigint = (1n << 60n) | (1n << 59n) | (1n << 58n); // e8, d8, c8
+export const W_KINGSIDE_SAFE: Bitboard = bbFromBigInt(
+  (1n << 4n) | (1n << 5n) | (1n << 6n),
+); // e1, f1, g1
+export const W_QUEENSIDE_SAFE: Bitboard = bbFromBigInt(
+  (1n << 4n) | (1n << 3n) | (1n << 2n),
+); // e1, d1, c1
+export const B_KINGSIDE_SAFE: Bitboard = bbFromBigInt(
+  (1n << 60n) | (1n << 61n) | (1n << 62n),
+); // e8, f8, g8
+export const B_QUEENSIDE_SAFE: Bitboard = bbFromBigInt(
+  (1n << 60n) | (1n << 59n) | (1n << 58n),
+); // e8, d8, c8
 
 // ----- BITBOARDS -----
 export const INITIAL_BITBOARDS: BigUint64Array = new BigUint64Array(
