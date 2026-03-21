@@ -95,7 +95,7 @@ export const pawnMoves = (pos: Position, from: Square): Bitboard => {
 /**
  * Gets the move bitboard for a knight.
  */
-export const knightMoves = (pos: Position, from: Square) => {
+export const knightMoves = (pos: Position, from: Square): Bitboard => {
   const movesLo = knightMasksLo[from],
     movesHi = knightMasksHi[from];
 
@@ -108,8 +108,11 @@ export const knightMoves = (pos: Position, from: Square) => {
 /**
  * Gets the move bitboard for a bishop
  */
-export const bishopMoves = (pos: Position, from: Square) => {
-  const moves = bishopAttacks(from, pos.occupied);
+export const bishopMoves = (pos: Position, from: Square): Bitboard => {
+  const [lo, hi] = bishopAttacks(from, pos.occupiedLo, pos.occupiedHi);
 
-  return moves & ~pos.playerOcc[pos.sideToMove];
+  const finalLo = lo & ~pos.playerOccLo[pos.sideToMove];
+  const finalHi = hi & ~pos.playerOccHi[pos.sideToMove];
+
+  return [finalLo, finalHi];
 };

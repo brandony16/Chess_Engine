@@ -1,12 +1,5 @@
-import type { File, Rank, Square } from "../../chessConstants.ts";
-
-// Precompute masks
-export const rookMasks = Array.from({ length: 64 }, (_, sq) =>
-  generateRookMask(sq as Square),
-);
-export const bishopMasks = Array.from({ length: 64 }, (_, sq) =>
-  generateBishopMask(sq as Square),
-);
+import { bbFromBigInt } from "../../bb.ts";
+import { sq, type File, type Rank, type Square } from "../../chessConstants.ts";
 
 // Convert (file,rank) to bit index 0…63
 function toIndex(file: File, rank: Rank): Square {
@@ -14,7 +7,7 @@ function toIndex(file: File, rank: Rank): Square {
 }
 
 // Generate rook mask for square sq
-function generateRookMask(sq: Square): bigint {
+function computeRookMask(sq: Square): bigint {
   const file = sq % 8;
   const rank = Math.floor(sq / 8);
 
@@ -45,7 +38,7 @@ function generateRookMask(sq: Square): bigint {
 }
 
 // Generate bishop mask for square sq
-function generateBishopMask(sq: Square): bigint {
+function computeBishopMask(sq: Square): bigint {
   const file = sq % 8;
   const rank = Math.floor(sq / 8);
 
@@ -69,3 +62,27 @@ function generateBishopMask(sq: Square): bigint {
   }
   return mask;
 }
+
+export const bishopMasksLo = new Int32Array(64);
+export const bishopMasksHi = new Int32Array(64);
+export const rookMasksLo = new Int32Array(64);
+export const rookMasksHi = new Int32Array(64);
+
+const generateBishopMasks = () => {
+  for (const s of Object.values(sq)) {
+    const [lo, hi] = bbFromBigInt(computeBishopMask(s));
+    bishopMasksLo[s] = lo;
+    bishopMasksHi[s] = hi;
+  }
+};
+
+const generateRookMasks = () => {
+  for (const s of Object.values(sq)) {
+    const [lo, hi] = bbFromBigInt(computeRookMask(s));
+    rookMasksLo[s] = lo;
+    rookMasksHi[s] = hi;
+  }
+};
+
+generateBishopMasks();
+generateRookMasks();

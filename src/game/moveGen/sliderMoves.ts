@@ -1,5 +1,10 @@
 import { bishopAttackTable, rookAttackTable } from "../attackTables.ts";
-import { bishopMasks, rookMasks } from "./magicNumbers/slidingMasks.ts";
+import {
+  bishopMasksHi,
+  bishopMasksLo,
+  rookMasksHi,
+  rookMasksLo,
+} from "./magicNumbers/slidingMasks.ts";
 import {
   bishopMagics,
   bishopShifts,
@@ -7,38 +12,44 @@ import {
   rookShifts,
 } from "./magicNumbers/magicNumbers.ts";
 import type { Square } from "../chessConstants.ts";
+import { bbFromBigInt, bbToBigInt, type Bitboard } from "../bb.ts";
 
 /**
  * Gets the attack mask for a bishop at a given square using
  * magic bitboards.
- *
- * @param {number} sq - the square where the bishop is
- * @param {bigint} occ - the occupancy bitboard
- * @returns {bigint} the attack mask for the bishop
  */
-export function bishopAttacks(sq: Square, occ: bigint): bigint {
-  const mask = occ & bishopMasks[sq];
+export function bishopAttacks(
+  sq: Square,
+  occLo: number,
+  occHi: number,
+): Bitboard {
+  const maskLo = occLo & bishopMasksLo[sq];
+  const maskHi = occHi & bishopMasksHi[sq];
+
+  const mask = bbToBigInt(maskLo, maskHi);
   const index = Number(
     BigInt.asUintN(64, mask * bishopMagics[sq]) >> BigInt(bishopShifts[sq]),
   );
 
-  return bishopAttackTable[sq][index];
+  return bbFromBigInt(bishopAttackTable[sq][index]);
 }
 
 /**
  * Gets the attack mask for a rook at a given square using
  * magic bitboards.
- *
- * @param {number} sq - the square where the rook is
- * @param {bigint} occ - the occupancy bitboard
- * @returns {bigint} the attack mask for the rook
  */
-export function rookAttacks(sq: Square, occ: bigint): bigint {
-  const mask = occ & rookMasks[sq];
+export function rookAttacks(
+  sq: Square,
+  occLo: number,
+  occHi: number,
+): Bitboard {
+  const maskLo = occLo & rookMasksLo[sq];
+  const maskHi = occHi & rookMasksHi[sq];
 
+  const mask = bbToBigInt(maskLo, maskHi);
   const index = Number(
     BigInt.asUintN(64, mask * rookMagics[sq]) >> BigInt(rookShifts[sq]),
   );
 
-  return rookAttackTable[sq][index];
+  return bbFromBigInt(rookAttackTable[sq][index]);
 }

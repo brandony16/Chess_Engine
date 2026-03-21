@@ -1,4 +1,3 @@
-import { bishopMasks, rookMasks } from "./slidingMasks.ts";
 import {
   bishopMagics,
   bishopShifts,
@@ -6,6 +5,13 @@ import {
   rookShifts,
 } from "./magicNumbers.ts";
 import { sq, type Square } from "../../chessConstants.ts";
+import {
+  bishopMasksHi,
+  bishopMasksLo,
+  rookMasksHi,
+  rookMasksLo,
+} from "./slidingMasks.ts";
+import { bbToBigInt } from "../../bb.ts";
 
 type CollisionResolution = {
   collision: boolean;
@@ -100,7 +106,10 @@ export function findRookCollision(
   sq: Square,
   magic: bigint = 0n,
 ): CollisionResolution {
-  const mask = rookMasks[sq];
+  const maskLo = rookMasksLo[sq];
+  const maskHi = rookMasksHi[sq];
+  const mask = bbToBigInt(maskLo, maskHi);
+
   const seen = new Map();
   const magicNum = magic !== 0n ? magic : rookMagics[sq];
 
@@ -126,7 +135,10 @@ export function findBishopCollision(
   sq: Square,
   magic: bigint = 0n,
 ): CollisionResolution {
-  const mask = bishopMasks[sq];
+  const maskLo = bishopMasksLo[sq];
+  const maskHi = bishopMasksHi[sq];
+  const mask = bbToBigInt(maskLo, maskHi);
+
   const seen = new Map();
   const magicNum = magic !== 0n ? magic : bishopMagics[sq];
 

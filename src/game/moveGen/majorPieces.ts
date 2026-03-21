@@ -1,76 +1,37 @@
 import { bishopAttacks, rookAttacks } from "./sliderMoves.ts";
 import type { Position } from "../Position.ts";
 import { BK, BQ, WHITE, WK, WQ, type Square } from "../chessConstants.ts";
-import { kingMasks } from "../attackMasks/kingMasks.ts";
 import {
   isKingsideCastleLegal,
   isQueensideCastleLegal,
 } from "../moveMaking/castling.ts";
 import { playerAttackMask } from "../attackMasks/attackMasks.ts";
 import { opponent } from "../helpers/opponent.ts";
+import type { Bitboard } from "../bb.ts";
+import { kingMasksHi, kingMasksLo } from "../attackMasks/kingMasks.ts";
 
 /**
  * Gets all legal rook moves for a given square
  */
-export const rookMoves = (pos: Position, from: Square): bigint => {
-  const occ = pos.occupied;
-  let moves = rookAttacks(from, occ);
+export const rookMoves = (pos: Position, from: Square): Bitboard => {
+  const [lo, hi] = rookAttacks(from, pos.occupiedLo, pos.occupiedHi);
 
-  return moves & ~pos.playerOcc[pos.sideToMove];
+  const finalLo = lo & ~pos.playerOccLo[pos.sideToMove];
+  const finalHi = hi & ~pos.playerOccHi[pos.sideToMove];
+  return [finalLo, finalHi];
 };
 
 /**
  * Gets all legal queen moves for a square
  */
-export const queenMoves = (pos: Position, from: Square): bigint => {
-  const occ = pos.occupied;
-  let moves = bishopAttacks(from, occ) | rookAttacks(from, occ);
+export const queenMoves = (pos: Position, from: Square): Bitboard => {
+  const [orthoLo, orthoHi] = rookAttacks(from, pos.occupiedLo, pos.occupiedHi);
+  const [diagLo, diagHi] = bishopAttacks(from, pos.occupiedLo, pos.occupiedHi);
 
-  return moves & ~pos.playerOcc[pos.sideToMove];
+  const lo = orthoLo | diagLo;
+  const hi = orthoHi | diagHi;
+  const finalLo = lo & ~pos.playerOccLo[pos.sideToMove];
+  const finalHi = hi & ~pos.playerOccHi[pos.sideToMove];
+  return [finalLo, finalHi];
 };
 
-/**
- * Gets the move bitboard for a king.
- */
-export const kingMoves = (pos: Position, from: Square): bigint => {
-  const isWhite = pos.sideToMove === WHITE;
-  let moves = kingMasks[from] & ~pos.playerOcc[pos.sideToMove];
-
-  const occ = pos.occupied;
-  const oppAttackMask = playerAttackMask(pos, opponent(pos.sideToMove));
-
-  /* CASTLING */
-  const rights = pos.castlingRights;
-  if (rights !== 0) {
-    if (isWhite) {
-      if (
-        rights & WK &&
-        isKingsideCastleLegal(pos.sideToMove, oppAttackMask, occ)
-      ) {
-        moves |= 1n << 6n;
-      }
-      if (
-        rights & WQ &&
-        isQueensideCastleLegal(pos.sideToMove, oppAttackMask, occ)
-      ) {
-        moves |= 1n << 2n;
-      }
-    } else {
-      if (
-        rights & BK &&
-        isKingsideCastleLegal(pos.sideToMove, oppAttackMask, occ)
-      ) {
-        moves |= 1n << 62n;
-      }
-      if (
-        rights & BQ &&
-        isQueensideCastleLegal(pos.sideToMove, oppAttackMask, occ)
-      ) {
-        moves |= 1n << 58n;
-      }
-    }
-  }
-
-  // Remove squares attacked by the enemy
-  return moves & ~oppAttackMask;
-};

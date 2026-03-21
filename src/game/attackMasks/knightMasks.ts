@@ -42,10 +42,9 @@ const isValidKnightMove = (source: Square, dest: Square): boolean => {
 export const knightMasksLo = new Int32Array(64);
 export const knightMasksHi = new Int32Array(64);
 
-
 const initializeKnightMasks = (): void => {
   for (const s of Object.values(sq)) {
-    const [lo, hi] = bbFromBigInt(computeKnightMask(s as Square));
+    const [lo, hi] = bbFromBigInt(computeKnightMask(s));
     knightMasksLo[s] = lo;
     knightMasksHi[s] = hi;
   }

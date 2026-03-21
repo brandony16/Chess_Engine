@@ -1,6 +1,11 @@
-import { knightMasks } from "../attackMasks/knightMasks.ts";
+import { knightMasksHi, knightMasksLo } from "../attackMasks/knightMasks.ts";
 import type { Position } from "../Position.ts";
-import { blackPawnMasks, whitePawnMasks } from "../attackMasks/pawnMasks.ts";
+import {
+  bPMasksHi,
+  bPMasksLo,
+  wPMasksHi,
+  wPMasksLo,
+} from "../attackMasks/pawnMasks.ts";
 import { bishopAttacks, rookAttacks } from "./sliderMoves.ts";
 import {
   BLACK_BISHOP,
@@ -17,56 +22,77 @@ import {
   type Player,
   type Square,
 } from "../chessConstants.ts";
+import type { Bitboard } from "../bb.ts";
 
 /**
  * Finds all pieces that put a given player's king in check and returns
  * them all on a bitboard.
  */
-export function getCheckers(pos: Position, player: Player): bigint {
+export function getCheckers(pos: Position, player: Player): Bitboard {
   const isWhite = player === WHITE;
   const kingSq = pos.kingSq[player];
 
-  const pawnBB = pos.bitboards[isWhite ? BLACK_PAWN : WHITE_PAWN];
-  const pawnCheckMask =
-    (isWhite ? whitePawnMasks[kingSq] : blackPawnMasks[kingSq]) & pawnBB;
+  const pawn = isWhite ? BLACK_PAWN : WHITE_PAWN;
+  const pawnBBLo = pos.bbsLo[pawn],
+    pawnBBHi = pos.bbsHi[pawn];
 
-  const knightBB = pos.bitboards[isWhite ? BLACK_KNIGHT : WHITE_KNIGHT];
-  const knightCheckMask = knightMasks[kingSq] & knightBB;
+  const pawnMaskLo = isWhite ? wPMasksLo : bPMasksLo;
+  const pawnMaskHi = isWhite ? wPMasksHi : bPMasksHi;
+  const pawnCheckLo = pawnMaskLo[kingSq] & pawnBBLo;
+  const pawnCheckHi = pawnMaskHi[kingSq] & pawnBBHi;
 
-  const slidingMask = slidingCheckMask(pos, kingSq, isWhite);
+  const knight = isWhite ? BLACK_KNIGHT : WHITE_KNIGHT;
+  const knightBBLo = pos.bbsLo[knight],
+    knightBBHi = pos.bbsHi[knight];
 
-  return pawnCheckMask | knightCheckMask | slidingMask;
+  const knightCheckLo = knightMasksLo[kingSq] & knightBBLo;
+  const knightCheckHi = knightMasksHi[kingSq] & knightBBHi;
+
+  const [slidingLo, slidingHi] = slidingCheckMask(pos, kingSq);
+
+  const lo = pawnCheckLo | knightCheckLo | slidingLo;
+  const hi = pawnCheckHi | knightCheckHi | slidingHi;
+  return [lo, hi];
 }
 
 /**
  * Computes the checkers bitboard for sliding pieces (bishop, rook, queen)
  */
-function slidingCheckMask(
-  pos: Position,
-  kingSq: Square,
-  isWhite: boolean,
-): bigint {
-  let mask = 0n;
-  const occ = pos.occupied;
-  const bitboards = pos.bitboards;
+function slidingCheckMask(pos: Position, kingSq: Square): Bitboard {
+  let maskLo = 0,
+    maskHi = 0;
+
+  const isWhite = pos.sideToMove === WHITE;
+  const occLo = pos.occupiedLo,
+    occHi = pos.occupiedHi;
+  const bbsLo = pos.bbsLo,
+    bbsHi = pos.bbsHi;
+
+  const queen = isWhite ? BLACK_QUEEN : WHITE_QUEEN;
+  const rook = isWhite ? BLACK_ROOK : WHITE_ROOK;
+  const bishop = isWhite ? BLACK_BISHOP : WHITE_BISHOP;
 
   // Orthogonal Directions
-  let orthBB = rookAttacks(kingSq, occ);
+  const [orthLo, orthHi] = rookAttacks(kingSq, occLo, occHi);
 
-  let orthBlockers = orthBB & occ;
-  const orthAttackers = isWhite
-    ? bitboards[BLACK_ROOK] | bitboards[BLACK_QUEEN]
-    : bitboards[WHITE_ROOK] | bitboards[WHITE_QUEEN];
-  mask |= orthBlockers & orthAttackers;
+  const orthBlockersLo = orthLo & occLo;
+  const orthBlockersHi = orthHi & occHi;
+  const orthAttackersLo = bbsLo[queen] | bbsLo[rook];
+  const orthAttackersHi = bbsHi[queen] | bbsHi[rook];
+
+  maskLo |= orthBlockersLo & orthAttackersLo;
+  maskHi |= orthBlockersHi & orthAttackersHi;
 
   // Diagonal Directions
-  const diagBB = bishopAttacks(kingSq, occ);
+  const [diagLo, diagHi] = bishopAttacks(kingSq, occLo, occHi);
 
-  let diagBlockers = diagBB & occ;
-  const diagAttackers = isWhite
-    ? bitboards[BLACK_BISHOP] | bitboards[BLACK_QUEEN]
-    : bitboards[WHITE_BISHOP] | bitboards[WHITE_QUEEN];
-  mask |= diagAttackers & diagBlockers;
+  const diagBlockersLo = diagLo & occLo;
+  const diagBlockersHi = diagHi & occHi;
+  const diagAttackersLo = bbsLo[queen] | bbsLo[bishop];
+  const diagAttackersHi = bbsHi[queen] | bbsHi[bishop];
 
-  return mask;
+  maskLo |= diagAttackersLo & diagBlockersLo;
+  maskHi |= diagAttackersHi & diagBlockersHi;
+
+  return [maskLo, maskHi];
 }

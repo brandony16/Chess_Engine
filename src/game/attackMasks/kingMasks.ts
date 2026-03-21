@@ -1,3 +1,4 @@
+import { bbFromBigInt } from "../bb.ts";
 import { sq, type Square } from "../chessConstants.ts";
 import { isOnBoard } from "../helpers/boardUtils.ts";
 
@@ -37,18 +38,18 @@ const isValidKingMove = (source: Square, dest: Square): boolean => {
   return true;
 };
 
+export const kingMasksLo = new Int32Array(64);
+export const kingMasksHi = new Int32Array(64);
+
 /**
  * Initializes an array of king masks for every square.
  */
-const initializeKingMasks = (): bigint[] => {
-  const kingMasks = new Array(64);
-
+const initializeKingMasks = () => {
   for (const s of Object.values(sq)) {
-    kingMasks[s] = computeKingMask(s);
+    const [lo, hi] = bbFromBigInt(computeKingMask(s));
+    kingMasksLo[s] = lo;
+    kingMasksHi[s] = hi;
   }
-
-  return kingMasks;
 };
 
-// The king masks
-export const kingMasks = initializeKingMasks();
+initializeKingMasks();
