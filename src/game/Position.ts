@@ -111,6 +111,14 @@ import {
   wPMasksLo,
 } from "./attackMasks/pawnMasks.ts";
 import { knightMasksHi, knightMasksLo } from "./attackMasks/knightMasks.ts";
+import {
+  generateBishopMoves,
+  generateKingMoves,
+  generateKnightMoves,
+  generatePawnMoves,
+  generateQueenMoves,
+  generateRookMoves,
+} from "./moveGen/totalPieceGen.ts";
 
 const MAX_SEARCH_PLY = 16;
 const MAX_PLY = 512;
@@ -385,9 +393,7 @@ export class Position {
   // -----------------------
 
   generatePseudoLegalMoves(): number {
-    const start = this.searchPly * MAX_MOVES;
-    let count = 0;
-
+    let start = this.searchPly * MAX_MOVES;
     const side = this.sideToMove;
 
     const kingSq = this.kingSq[side];
@@ -399,114 +405,33 @@ export class Position {
 
       // Double check, only king moves are possible
       if (numCheck > 1) {
-        let [kMoveLo, kMoveHi] = kingMoves(this, kingSq);
-        const piece = side === WHITE ? WHITE_KING : BLACK_KING;
-
-        while (kMoveLo || kMoveHi) {
-          const to = lsb(kMoveLo, kMoveHi);
-
-          const captured = this.pieceAt[to];
-          this.moveBuffer[start + count++] = encodeMove(
-            kingSq,
-            to,
-            piece,
-            captured,
-          );
-
-          if (kMoveLo !== 0) kMoveLo &= kMoveLo - 1;
-          else kMoveHi &= kMoveHi - 1;
-        }
-        return count;
+        return generateKingMoves(this, start);
       }
       if (numCheck !== 1) {
         throw new Error("KING IN CHECK W/O CHECKERS");
       }
     }
 
-    const pieces = PLAYER_PIECES[side];
-    const bbsLo = this.bbsLo;
-    const bbsHi = this.bbsHi;
-    const pieceAt = this.pieceAt;
-    const buffer = this.moveBuffer;
+    const pawnCount = generatePawnMoves(this, start);
+    start += pawnCount;
 
-    const promoRank = PROMO_RANK[side];
-    const promoList = PROMO_PIECES[side];
-    for (let i = 0; i < pieces.length; i++) {
-      const piece = pieces[i];
+    const knightCount = generateKnightMoves(this, start);
+    start += knightCount;
 
-      let lo = bbsLo[piece];
-      let hi = bbsHi[piece];
-      while (lo || hi) {
-        const from = lsb(lo, hi);
+    const bishopCount = generateBishopMoves(this, start);
+    start += bishopCount;
 
-        if (lo !== 0) lo &= lo - 1;
-        else hi &= hi - 1;
+    const rookCount = generateRookMoves(this, start);
+    start += rookCount;
 
-        let [movesLo, movesHi] = getPieceMoves(this, piece, from);
-        if ((piece === BLACK_KING || piece === WHITE_KING) && this.castlingRights) {
-          const [castleLo, castleHi] = castlingMoves(this, from);
-          movesLo |= castleLo;
-          movesHi |= castleHi;
-        }
-        while (movesLo || movesHi) {
-          const to = lsb(movesLo, movesHi);
+    const queenCount = generateQueenMoves(this, start);
+    start += queenCount;
 
-          if (movesLo) movesLo &= movesLo - 1;
-          else movesHi &= movesHi - 1;
+    const kingCount = generateKingMoves(this, start);
 
-          let captured = pieceAt[to];
-
-          let flags = 0;
-
-          // ----- Pawn logic -----
-          if (piece === WHITE_PAWN || piece === BLACK_PAWN) {
-            let delta = from - to;
-            if (delta < 0) delta = -delta;
-
-            if (delta === 16) {
-              flags |= FLAG_DOUBLE;
-            } else if (delta !== 8 && captured === NO_PIECE) {
-              flags |= FLAG_EP;
-              captured = side === WHITE ? BLACK_PAWN : WHITE_PAWN;
-            }
-
-            // Promotion
-            if (to >> 3 === promoRank) {
-              for (let k = 0; k < promoList.length; k++) {
-                buffer[start + count++] = encodeMove(
-                  from,
-                  to,
-                  piece,
-                  captured,
-                  promoList[k],
-                  flags,
-                );
-              }
-
-              continue;
-            }
-          }
-
-          // ----- Castling -----
-          else if (piece === WHITE_KING || piece === BLACK_KING) {
-            if (Math.abs(from - to) === 2) {
-              flags |= FLAG_CASTLE;
-            }
-          }
-
-          buffer[start + count++] = encodeMove(
-            from,
-            to,
-            piece,
-            captured,
-            NO_PIECE,
-            flags,
-          );
-        }
-      }
-    }
-
-    return count;
+    return (
+      pawnCount + knightCount + bishopCount + rookCount + queenCount + kingCount
+    );
   }
 
   generateLegalMoves(): number {
