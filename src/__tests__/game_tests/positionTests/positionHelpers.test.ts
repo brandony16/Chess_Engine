@@ -3,18 +3,17 @@ import { Position } from "../../../game/Position.ts";
 import { KIWIPETE_POS } from "../fens.ts";
 import { playerAttackMask } from "../../../game/attackMasks/attackMasks.ts";
 import { BLACK, sq, WHITE } from "../../../game/chessConstants.ts";
+import { testBit } from "../../../game/bb.ts";
 
 describe("isSquareAttacked", () => {
   test("works for white", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    const attackMask = playerAttackMask(pos, WHITE);
+    const [lo, hi] = playerAttackMask(pos, WHITE);
     for (const i of Object.values(sq)) {
-      const mask = 1n << BigInt(i);
-
       // Not attacked
-      if ((attackMask & mask) === 0n) {
+      if (!testBit(lo, hi, i)) {
         expect(pos.isSquareAttacked(i, WHITE)).toBe(false);
       } else {
         // Attacked
@@ -27,12 +26,10 @@ describe("isSquareAttacked", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    const attackMask = playerAttackMask(pos, BLACK);
+    const [lo, hi] = playerAttackMask(pos, BLACK);
     for (const i of Object.values(sq)) {
-      const mask = 1n << BigInt(i);
-
       // Not attacked
-      if ((attackMask & mask) === 0n) {
+      if (!testBit(lo, hi, i)) {
         expect(pos.isSquareAttacked(i, BLACK)).toBe(false);
       } else {
         // Attacked
@@ -47,15 +44,14 @@ describe("isPlayersPieceAt", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    const occ = pos.playerOcc[WHITE];
+    const occLo = pos.playerOccLo[WHITE];
+    const occHi = pos.playerOccHi[WHITE];
     for (const i of Object.values(sq)) {
-      const mask = 1n << BigInt(i);
-
-      // Not attacked
-      if ((occ & mask) === 0n) {
+      // players piece not at i
+      if (!testBit(occLo, occHi, i)) {
         expect(pos.isPlayersPieceAt(i, WHITE)).toBe(false);
       } else {
-        // Attacked
+        // piece is at i
         expect(pos.isPlayersPieceAt(i, WHITE)).toBe(true);
       }
     }
@@ -65,16 +61,15 @@ describe("isPlayersPieceAt", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    const attackMask = playerAttackMask(pos, BLACK);
+    const occLo = pos.playerOccLo[BLACK];
+    const occHi = pos.playerOccHi[BLACK];
     for (const i of Object.values(sq)) {
-      const mask = 1n << BigInt(i);
-
-      // Not attacked
-      if ((attackMask & mask) === 0n) {
-        expect(pos.isSquareAttacked(i, BLACK)).toBe(false);
+      // players piece not at i
+      if (!testBit(occLo, occHi, i)) {
+        expect(pos.isPlayersPieceAt(i, BLACK)).toBe(false);
       } else {
-        // Attacked
-        expect(pos.isSquareAttacked(i, BLACK)).toBe(true);
+        // piece is at i
+        expect(pos.isPlayersPieceAt(i, BLACK)).toBe(true);
       }
     }
   });

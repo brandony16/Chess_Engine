@@ -1,3 +1,4 @@
+import { testBit } from "../../game/bb.ts";
 import { isPieceChar, PIECE_INDEXES } from "../../game/chessConstants.ts";
 
 // Fens mostly got from chess programming wiki. Created some specific ones like the ep positions
@@ -19,7 +20,8 @@ export const ACTIVE_KING_ENDGAME = "8/8/p6p/1ppK2p1/2P2kP1/PP6/8/8 w - - 0 1";
 export const PROMOTION_ENDGAME = "3n4/2P5/1K6/8/8/5k2/6p1/5N2 w - - 0 1";
 
 export const validateBitboards = (
-  bitboards: BigUint64Array,
+  bbsLo: Int32Array,
+  bbsHi: Int32Array,
   fen: string,
 ): boolean => {
   const bbString = fen.split(" ")[0];
@@ -38,8 +40,7 @@ export const validateBitboards = (
     }
     const piece = PIECE_INDEXES[ch];
 
-    const mask = 1n << BigInt(sq);
-    if ((bitboards[piece] & mask) === 0n) {
+    if (!testBit(bbsLo[piece], bbsHi[piece], sq)) {
       console.error(`Piece ${piece} at square ${sq} is wrong`);
       return false;
     }

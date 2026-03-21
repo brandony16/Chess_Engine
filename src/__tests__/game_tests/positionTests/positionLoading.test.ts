@@ -30,7 +30,7 @@ describe("FEN position loading", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    expect(validateBitboards(pos.bitboards, KIWIPETE_POS)).toBe(true);
+    expect(validateBitboards(pos.bbsLo, pos.bbsHi, KIWIPETE_POS)).toBe(true);
   });
 
   test("sideToMove is correct", () => {

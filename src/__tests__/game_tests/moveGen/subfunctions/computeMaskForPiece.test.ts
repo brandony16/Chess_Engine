@@ -9,14 +9,18 @@ import {
   WHITE_ROOK,
   type Square,
 } from "../../../../game/chessConstants.ts";
+import { squareBB, type Bitboard } from "../../../../game/bb.ts";
 
-function computeExpected(squares: Square[]): bigint {
-  let total = 0n;
+function computeExpected(squares: Square[]): Bitboard {
+  let totalLo = 0,
+    totalHi = 0;
   for (const sq of squares) {
-    total += 1n << BigInt(sq);
+    const [lo, hi] = squareBB(sq);
+    totalLo |= lo;
+    totalHi |= hi;
   }
 
-  return total;
+  return [totalLo, totalHi];
 }
 
 describe("computeMaskForPiece", () => {
@@ -49,7 +53,7 @@ describe("computeMaskForPiece", () => {
 
     const mask = computeMaskForPiece(pos, WHITE_ROOK);
 
-    expect(mask).toBe(expected);
+    expect(mask).toEqual(expected);
   });
 
   test("knight on b1", () => {
@@ -61,7 +65,7 @@ describe("computeMaskForPiece", () => {
     const expected = computeExpected([sq.A3, sq.C3, sq.D2]);
 
     const mask = computeMaskForPiece(pos, WHITE_KNIGHT);
-    expect(mask).toBe(expected);
+    expect(mask).toEqual(expected);
   });
 
   test("queen on d4 with blockers", () => {
@@ -93,7 +97,7 @@ describe("computeMaskForPiece", () => {
     const expected = computeExpected(sqsAttacked);
 
     const mask = computeMaskForPiece(pos, WHITE_QUEEN);
-    expect(mask).toBe(expected);
+    expect(mask).toEqual(expected);
   });
 
   test("multiple pieces of same type", () => {
@@ -117,6 +121,6 @@ describe("computeMaskForPiece", () => {
     const expected = computeExpected(sqsAttacked);
 
     const mask = computeMaskForPiece(pos, WHITE_BISHOP);
-    expect(mask).toBe(expected);
+    expect(mask).toEqual(expected);
   });
 });

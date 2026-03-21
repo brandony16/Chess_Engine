@@ -436,7 +436,7 @@ export class Position {
 
       let lo = bbsLo[piece];
       let hi = bbsHi[piece];
-      while (lo !== 0 && hi !== 0) {
+      while (lo || hi) {
         const from = lsb(lo, hi);
 
         if (lo !== 0) lo &= lo - 1;
@@ -972,8 +972,8 @@ export class Position {
     for (let i = 0; i < this.bbsLo.length; i++) {
       for (let j = i + 1; j < this.bbsLo.length; j++) {
         const lo1 = this.bbsLo[i];
-        const hi1 = this.bbsHi[j];
-        const lo2 = this.bbsLo[i];
+        const hi1 = this.bbsHi[i];
+        const lo2 = this.bbsLo[j];
         const hi2 = this.bbsHi[j];
         if ((lo1 & lo2) !== 0 || (hi1 & hi2) !== 0) {
           console.error("Overlapping piece bitboards");

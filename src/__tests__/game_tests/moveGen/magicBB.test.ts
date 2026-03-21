@@ -7,6 +7,7 @@ import {
 import { generateBlockerSubsets } from "../../../game/moveGen/magicNumbers/magicGen.ts";
 import { sq, type Square } from "../../../game/chessConstants.ts";
 import { getFile, getRank } from "../../../game/helpers/boardUtils.ts";
+import { squareBB, type Bitboard } from "../../../game/bb.ts";
 
 describe("maskBits", () => {
   test("extracts correct bit positions", () => {
@@ -48,19 +49,19 @@ describe("generateBlockerSubsets", () => {
 
 describe("rookAttacks vs brute force", () => {
   test("matches brute-force for empty occupancy on all squares", () => {
-    const occ = 0n;
+    const [occLo, occHi] = [0, 0];
     for (const s of Object.values(sq)) {
-      const m = rookAttacks(s, occ);
-      expect(m).toBe(rookBruteForce(s, occ));
+      const m = rookAttacks(s, occLo, occHi);
+      expect(m).toEqual(rookBruteForce(s, occLo, occHi));
     }
   });
 
   test("matches brute-force for single blocker anywhere", () => {
     for (let blocker = 0; blocker < 64; blocker++) {
-      const occ = 1n << BigInt(blocker);
+      const [occLo, occHi] = squareBB(blocker);
       for (const s of Object.values(sq)) {
-        const m = rookAttacks(s, occ);
-        expect(m).toBe(rookBruteForce(s, occ));
+        const m = rookAttacks(s, occLo, occHi);
+        expect(m).toEqual(rookBruteForce(s, occLo, occHi));
       }
     }
   });
@@ -68,55 +69,73 @@ describe("rookAttacks vs brute force", () => {
 
 describe("bishopAttacks vs brute force", () => {
   test("matches brute-force for empty occupancy on all squares", () => {
-    const occ = 0n;
+    const [occLo, occHi] = [0, 0];
     for (const s of Object.values(sq)) {
-      expect(bishopAttacks(s, occ)).toBe(bishopBruteForce(s, occ));
+      const m = bishopAttacks(s, occLo, occHi);
+      expect(m).toEqual(bishopBruteForce(s, occLo, occHi));
     }
   });
 
   test("matches brute-force for single blocker anywhere", () => {
     for (let blocker = 0; blocker < 64; blocker++) {
-      const occ = 1n << BigInt(blocker);
+      const [occLo, occHi] = squareBB(blocker);
       for (const s of Object.values(sq)) {
-        expect(bishopAttacks(s, occ)).toBe(bishopBruteForce(s, occ));
+        const m = bishopAttacks(s, occLo, occHi);
+        expect(m).toEqual(bishopBruteForce(s, occLo, occHi));
       }
     }
   });
 });
 
-function rookBruteForce(sq: Square, occ: bigint): bigint {
-  let mask = 0n;
+function rookBruteForce(sq: Square, occLo: number, occHi: number): Bitboard {
+  let maskLo = 0,
+    maskHi = 0;
 
-  mask |= slide(sq, { dr: 1, dc: 0 }, occ);
-  mask |= slide(sq, { dr: -1, dc: 0 }, occ);
-  mask |= slide(sq, { dr: 0, dc: 1 }, occ);
-  mask |= slide(sq, { dr: 0, dc: -1 }, occ);
+  const [upLo, upHi] = slide(sq, { dr: 1, dc: 0 }, occLo, occHi);
+  const [downLo, downHi] = slide(sq, { dr: -1, dc: 0 }, occLo, occHi);
+  const [rightLo, rightHi] = slide(sq, { dr: 0, dc: 1 }, occLo, occHi);
+  const [leftLo, leftHi] = slide(sq, { dr: 0, dc: -1 }, occLo, occHi);
 
-  return mask;
+  maskLo |= upLo | downLo | rightLo | leftLo;
+  maskHi |= upHi | downHi | rightHi | leftHi;
+
+  return [maskLo, maskHi];
 }
 
-function bishopBruteForce(sq: Square, occ: bigint): bigint {
-  let mask = 0n;
+function bishopBruteForce(sq: Square, occLo: number, occHi: number): Bitboard {
+  let maskLo = 0,
+    maskHi = 0;
 
-  mask |= slide(sq, { dr: 1, dc: 1 }, occ);
-  mask |= slide(sq, { dr: -1, dc: 1 }, occ);
-  mask |= slide(sq, { dr: -1, dc: -1 }, occ);
-  mask |= slide(sq, { dr: 1, dc: -1 }, occ);
+  const [neLo, neHi] = slide(sq, { dr: 1, dc: 1 }, occLo, occHi);
+  const [seLo, seHi] = slide(sq, { dr: -1, dc: 1 }, occLo, occHi);
+  const [swLo, swHi] = slide(sq, { dr: -1, dc: -1 }, occLo, occHi);
+  const [nwLo, nwHi] = slide(sq, { dr: 1, dc: -1 }, occLo, occHi);
 
-  return mask;
+  maskLo |= neLo | seLo | swLo | nwLo;
+  maskHi |= neHi | seHi | swHi | nwHi;
+
+  return [maskLo, maskHi];
 }
 
 type Direction = { dr: number; dc: number };
-function slide(from: Square, dir: Direction, occ: bigint): bigint {
-  let mask = 0n;
+function slide(
+  from: Square,
+  dir: Direction,
+  occLo: number,
+  occHi: number,
+): Bitboard {
+  let maskLo = 0,
+    maskHi = 0;
 
   let currRow = getRank(from) + dir.dr;
   let currCol = getFile(from) + dir.dc;
   while (0 <= currRow && currRow < 8 && currCol >= 0 && currCol < 8) {
-    const sqMask = 1n << BigInt(currRow * 8 + currCol);
-    mask |= sqMask;
+    const [lo, hi] = squareBB(currRow * 8 + currCol);
+    maskLo |= lo;
+    maskHi |= hi;
 
-    if (sqMask & occ) {
+    // ran into piece - stop slide
+    if (lo & occLo || hi & occHi) {
       break;
     }
 
@@ -124,5 +143,5 @@ function slide(from: Square, dir: Direction, occ: bigint): bigint {
     currCol += dir.dc;
   }
 
-  return mask;
+  return [maskLo, maskHi];
 }

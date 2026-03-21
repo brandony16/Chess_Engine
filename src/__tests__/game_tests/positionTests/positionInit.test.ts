@@ -7,6 +7,7 @@ import {
   NO_PIECE,
   NO_SQUARE,
   NUM_PIECES,
+  PIECE_N,
   PIECES,
   WHITE,
 } from "../../../game/chessConstants.ts";
@@ -16,8 +17,10 @@ describe("Position initialization - init values", () => {
   test("arrays are correctly sized", () => {
     const pos = new Position();
 
-    expect(pos.bitboards.length).toBe(NUM_PIECES + 1);
-    expect(pos.playerOcc.length).toBe(2);
+    expect(pos.bbsLo.length).toBe(PIECE_N);
+    expect(pos.bbsHi.length).toBe(PIECE_N);
+    expect(pos.playerOccLo.length).toBe(2);
+    expect(pos.playerOccHi.length).toBe(2);
     expect(pos.pieceAt.length).toBe(64);
     expect(pos.kingSq.length).toBe(2);
   });
@@ -52,30 +55,39 @@ describe("Position initialization - board correctness", () => {
   test("occupied equals OR of all piece bitboards", () => {
     const pos = new Position();
 
-    let union = 0n;
-    for (let i = 0; i < pos.bitboards.length; i++) {
-      union |= pos.bitboards[i];
+    let occLo = 0,
+      occHi = 0;
+    for (let i = 0; i < pos.bbsLo.length; i++) {
+      occLo |= pos.bbsLo[i];
+      occHi |= pos.bbsHi[i];
     }
 
-    expect(pos.occupied).toBe(union);
+    expect(pos.occupiedLo).toBe(occLo);
+    expect(pos.occupiedHi).toBe(occHi);
   });
 
   test("player occupancy matches piece bitboards", () => {
     const pos = new Position();
 
-    let whiteOcc = 0n;
-    let blackOcc = 0n;
+    let wOccLo = 0,
+      wOccHi = 0;
+    let bOccLo = 0,
+      bOccHi = 0;
 
     for (const piece of PIECES) {
       if (isWhite(piece)) {
-        whiteOcc |= pos.bitboards[piece];
+        wOccLo |= pos.bbsLo[piece];
+        wOccHi |= pos.bbsHi[piece];
       } else {
-        blackOcc |= pos.bitboards[piece];
+        bOccLo |= pos.bbsLo[piece];
+        bOccHi |= pos.bbsHi[piece];
       }
     }
 
-    expect(pos.playerOcc[WHITE]).toBe(whiteOcc);
-    expect(pos.playerOcc[BLACK]).toBe(blackOcc);
+    expect(pos.playerOccLo[WHITE]).toBe(wOccLo);
+    expect(pos.playerOccHi[WHITE]).toBe(wOccHi);
+    expect(pos.playerOccLo[BLACK]).toBe(bOccLo);
+    expect(pos.playerOccHi[BLACK]).toBe(bOccHi);
   });
 
   test("initial position has correct piece counts", () => {
