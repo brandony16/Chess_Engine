@@ -37,10 +37,14 @@ import {
   type Square,
 } from "./chessConstants.ts";
 import {
-  CASTLING_ZOBRIST,
-  EN_PASSANT_ZOBRIST,
-  SIDE_TO_MOVE_ZOBRIST,
-  zobristTable,
+  CASTLING_ZOBRIST_HI,
+  CASTLING_ZOBRIST_LO,
+  EN_PASSANT_ZOBRIST_HI,
+  EN_PASSANT_ZOBRIST_LO,
+  SIDE_ZOBRIST_HI,
+  SIDE_ZOBRIST_LO,
+  zobristTableHi,
+  zobristTableLo,
 } from "./positionStates/zobrist.ts";
 import {
   drawByInsufficientMaterial,
@@ -90,6 +94,7 @@ import {
   clearBit,
   exactlyOne,
   lsb,
+  moreThanOne,
   popcount,
   squareBB,
   testBit,
@@ -124,7 +129,7 @@ export class Position {
   occupiedLo: number;
   occupiedHi: number;
 
-  pieceAt: Piece[]; // length 64
+  pieceAt: Int8Array; // length 64
 
   sideToMove: Player;
   castlingRights: CastlingNumber;
@@ -136,19 +141,22 @@ export class Position {
   halfmoveClock: number;
   endState: EndState;
 
-  kingSq: Square[]; // Indexed by player, len 2
-  zobristKey: bigint;
+  kingSq: Int8Array; // Indexed by player, len 2
 
   searchPly: number;
   moveBuffer: Uint32Array;
 
-  moveStack: Move[];
+  moveStack: Int32Array;
 
-  undoCastling: CastlingNumber[];
-  undoEp: Square[];
-  undoHalfmove: number[];
+  undoCastling: Int8Array;
+  undoEp: Int8Array;
+  undoHalfmove: Int32Array;
 
-  zobristHistory: BigUint64Array;
+  zobristLo: number;
+  zobristHi: number;
+
+  zobristHistoryLo: Uint32Array;
+  zobristHistoryHi: Uint32Array;
 
   constructor() {
     // ----- Board State -----
@@ -160,7 +168,7 @@ export class Position {
     this.occupiedLo = 0;
     this.occupiedHi = 0;
 
-    this.pieceAt = new Array(64).fill(NO_PIECE);
+    this.pieceAt = new Int8Array(64).fill(NO_PIECE);
 
     // ----- Game State -----
     this.sideToMove = WHITE;
@@ -175,19 +183,21 @@ export class Position {
     this.endState = IN_PROGRESS;
 
     // ----- Cached Info -----
-    this.kingSq = new Array<Square>(2);
-    this.zobristKey = 0n;
+    this.kingSq = new Int8Array(2);
+    this.zobristLo = 0;
+    this.zobristHi = 0;
 
     this.searchPly = 0;
     this.moveBuffer = new Uint32Array(MAX_SEARCH_PLY * MAX_MOVES);
 
-    this.moveStack = new Array<Move>(MAX_PLY);
+    this.moveStack = new Int32Array(MAX_PLY);
 
-    this.undoCastling = new Array<CastlingNumber>(MAX_PLY);
-    this.undoEp = new Array<Square>(MAX_PLY);
-    this.undoHalfmove = new Array<number>(MAX_PLY);
+    this.undoCastling = new Int8Array(MAX_PLY);
+    this.undoEp = new Int8Array(MAX_PLY);
+    this.undoHalfmove = new Int32Array(MAX_PLY);
 
-    this.zobristHistory = new BigUint64Array(MAX_PLY);
+    this.zobristHistoryLo = new Uint32Array(MAX_PLY);
+    this.zobristHistoryHi = new Uint32Array(MAX_PLY);
 
     this.loadInitialPosition();
   }
@@ -216,7 +226,8 @@ export class Position {
     this.computeZobrist();
     this.initializePieceAt();
 
-    this.zobristHistory[0] = this.zobristKey;
+    this.zobristHistoryLo[0] = this.zobristLo;
+    this.zobristHistoryHi[0] = this.zobristHi;
   }
 
   initializePieceAt(): void {
@@ -263,6 +274,8 @@ export class Position {
 
   computeZobrist(): bigint {
     let key = 0n;
+    let keyLo = 0,
+      keyHi = 0;
 
     // Pieces
     for (const piece of PIECES) {
@@ -270,7 +283,9 @@ export class Position {
       let hi = this.bbsHi[piece];
       while (!bbIsEmpty(lo, hi)) {
         const sq = lsb(lo, hi);
-        key ^= zobristTable[piece * 64 + sq];
+        const idx = piece * 64 + sq;
+        keyLo ^= zobristTableLo[idx];
+        keyHi ^= zobristTableHi[idx];
 
         if (lo !== 0) lo &= lo - 1;
         else hi &= hi - 1;
@@ -279,18 +294,23 @@ export class Position {
 
     // Side to move
     if (this.sideToMove === BLACK) {
-      key ^= SIDE_TO_MOVE_ZOBRIST;
+      keyLo ^= SIDE_ZOBRIST_LO;
+      keyHi ^= SIDE_ZOBRIST_HI;
     }
 
     // Castling rights
-    key ^= CASTLING_ZOBRIST[this.castlingRights];
+    keyLo ^= CASTLING_ZOBRIST_LO[this.castlingRights];
+    keyHi ^= CASTLING_ZOBRIST_HI[this.castlingRights];
 
     // En passant (file-based)
     if (this.enPassantSquare !== NO_SQUARE) {
-      key ^= EN_PASSANT_ZOBRIST[this.enPassantSquare & 7];
+      // & 7 gives the column
+      keyLo ^= EN_PASSANT_ZOBRIST_LO[this.enPassantSquare & 7];
+      keyHi ^= EN_PASSANT_ZOBRIST_HI[this.enPassantSquare & 7];
     }
 
-    this.zobristKey = key;
+    this.zobristLo = keyLo >>> 0;
+    this.zobristHi = keyHi >>> 0;
     return key;
   }
 
@@ -302,21 +322,24 @@ export class Position {
     prevEpSq: Square,
     prevCastling: CastlingNumber,
   ): void {
-    let newHash = this.zobristKey;
+    let hashLo = this.zobristLo;
+    let hashHi = this.zobristHi;
     const from = moveFrom(move);
     const to = moveTo(move);
     const piece = movePiece(move);
     const captured = moveCaptured(move);
 
     // XOR the piece at the previous position
-    const zobristFrom = zobristTable[piece * 64 + from];
-    newHash ^= zobristFrom;
+    const idxFrom = piece * 64 + from;
+    hashLo ^= zobristTableLo[idxFrom];
+    hashHi ^= zobristTableHi[idxFrom];
 
     // XOR the pieces new location
     const promo = movePromotion(move);
     const pieceTo = promo === NO_PIECE ? piece : promo;
-    const zobristTo = zobristTable[pieceTo * 64 + to];
-    newHash ^= zobristTo;
+    const idxTo = pieceTo * 64 + to;
+    hashLo ^= zobristTableLo[idxTo];
+    hashHi ^= zobristTableHi[idxTo];
 
     // if a capture, XOR to remove captured piece
     if (captured !== NO_PIECE) {
@@ -324,22 +347,26 @@ export class Position {
       if (isEnPassant(move)) {
         captSq = isWhite(piece) ? captSq - 8 : captSq + 8;
       }
-      const zobristCaptured = zobristTable[captured * 64 + captSq];
-      newHash ^= zobristCaptured;
+      const idxCap = captured * 64 + captSq;
+      hashLo ^= zobristTableLo[idxCap];
+      hashHi ^= zobristTableHi[idxCap];
     }
 
     // XOR player
-    newHash ^= SIDE_TO_MOVE_ZOBRIST;
+    hashLo ^= SIDE_ZOBRIST_LO;
+    hashHi ^= SIDE_ZOBRIST_HI;
 
     if (prevEpSq !== this.enPassantSquare) {
       if (prevEpSq !== NO_SQUARE) {
         const prevEpFile = prevEpSq & 7;
-        newHash ^= EN_PASSANT_ZOBRIST[prevEpFile];
+        hashLo ^= EN_PASSANT_ZOBRIST_LO[prevEpFile];
+        hashHi ^= EN_PASSANT_ZOBRIST_HI[prevEpFile];
       }
 
       if (this.enPassantSquare !== NO_SQUARE) {
         const newEpFile = this.enPassantSquare & 7;
-        newHash ^= EN_PASSANT_ZOBRIST[newEpFile];
+        hashLo ^= EN_PASSANT_ZOBRIST_LO[newEpFile];
+        hashHi ^= EN_PASSANT_ZOBRIST_HI[newEpFile];
       }
     }
 
@@ -350,25 +377,38 @@ export class Position {
 
       // Queenside
       if (from > to) {
-        const queenRookFromSquare = isWhite ? 0 : 56;
-        newHash ^= zobristTable[rook * 64 + queenRookFromSquare];
+        const rookFrom = isWhite ? 0 : 56;
+        const fromIdx = rook * 64 + rookFrom;
+        hashLo ^= zobristTableLo[fromIdx];
+        hashHi ^= zobristTableHi[fromIdx];
 
-        const queenRookToSquare = queenRookFromSquare + 3;
-        newHash ^= zobristTable[rook * 64 + queenRookToSquare];
+        const rookTo = rookFrom + 3;
+        const toIdx = rook * 64 + rookTo;
+        hashLo ^= zobristTableLo[toIdx];
+        hashHi ^= zobristTableHi[toIdx];
       } else {
         // Kingside
-        const kingRookFromSquare = isWhite ? 7 : 63;
-        newHash ^= zobristTable[rook * 64 + kingRookFromSquare];
+        const rookFrom = isWhite ? 7 : 63;
+        const fromIdx = rook * 64 + rookFrom;
+        hashLo ^= zobristTableLo[fromIdx];
+        hashHi ^= zobristTableHi[fromIdx];
 
-        const kingRookToSquare = kingRookFromSquare - 2;
-        newHash ^= zobristTable[rook * 64 + kingRookToSquare];
+        const rookTo = rookFrom - 2;
+        const toIdx = rook * 64 + rookTo;
+        hashLo ^= zobristTableLo[toIdx];
+        hashHi ^= zobristTableHi[toIdx];
       }
     }
 
-    newHash ^= CASTLING_ZOBRIST[prevCastling];
-    newHash ^= CASTLING_ZOBRIST[this.castlingRights];
+    if (prevCastling !== this.castlingRights) {
+      hashLo ^= CASTLING_ZOBRIST_LO[prevCastling];
+      hashHi ^= CASTLING_ZOBRIST_HI[prevCastling];
+      hashLo ^= CASTLING_ZOBRIST_LO[this.castlingRights];
+      hashHi ^= CASTLING_ZOBRIST_HI[this.castlingRights];
+    }
 
-    this.zobristKey = newHash;
+    this.zobristLo = hashLo >>> 0;
+    this.zobristHi = hashHi >>> 0;
   }
 
   updateHalfmoveClock(move: Move): void {
@@ -385,23 +425,6 @@ export class Position {
 
   generatePseudoLegalMoves(): number {
     let start = this.searchPly * MAX_MOVES;
-    const side = this.sideToMove;
-
-    const kingSq = this.kingSq[side];
-
-    // If king is in check
-    if (this.isSquareAttacked(kingSq, opponent(side))) {
-      const [cLo, cHi] = getCheckers(this, side);
-      const numCheck = popcount(cLo, cHi);
-
-      // Double check, only king moves are possible
-      if (numCheck > 1) {
-        return generateKingMoves(this, start);
-      }
-      if (numCheck !== 1) {
-        throw new Error("KING IN CHECK W/O CHECKERS");
-      }
-    }
 
     const pawnCount = generatePawnMoves(this, start);
     start += pawnCount;
@@ -550,7 +573,8 @@ export class Position {
       this.fullmoveNumber++;
     }
 
-    this.zobristHistory[this.ply] = this.zobristKey;
+    this.zobristHistoryLo[this.ply] = this.zobristLo;
+    this.zobristHistoryHi[this.ply] = this.zobristHi;
 
     this.sideToMove ^= 1;
     this.searchPly++;
@@ -559,8 +583,8 @@ export class Position {
   unmakeMove(): void {
     this.searchPly--;
 
-    const castling = this.undoCastling[this.ply];
-    const ep = this.undoEp[this.ply];
+    const castling = this.undoCastling[this.ply] as CastlingNumber;
+    const ep = this.undoEp[this.ply] as Square;
     const halfmove = this.undoHalfmove[this.ply];
     const move = this.moveStack[this.ply];
 
@@ -577,7 +601,8 @@ export class Position {
     this.castlingRights = castling;
     this.enPassantSquare = ep;
     this.halfmoveClock = halfmove;
-    this.zobristKey = this.zobristHistory[this.ply - 1]; // get prev position key
+    this.zobristLo = this.zobristHistoryLo[this.ply - 1];
+    this.zobristHi = this.zobristHistoryHi[this.ply - 1];
 
     if (this.sideToMove === BLACK) {
       this.fullmoveNumber--;
@@ -591,7 +616,7 @@ export class Position {
 
   isInCheck(player: Player = this.sideToMove): boolean {
     const opp = opponent(player);
-    const kingSquare = this.kingSq[player];
+    const kingSquare = this.kingSq[player] as Square;
 
     return this.isSquareAttacked(kingSquare, opp);
   }
@@ -599,18 +624,13 @@ export class Position {
   hasLegalMove(): boolean {
     const start = this.searchPly * MAX_MOVES;
     const pseudoCount = this.generatePseudoLegalMoves();
-    const side = this.sideToMove;
+    const checkers = this.getCheckers();
+    const pinned = this.getPinnedPieces();
+    const inDoubleCheck = moreThanOne(checkers[0], checkers[1]);
     for (let i = 0; i < pseudoCount; i++) {
       const move = this.moveBuffer[start + i];
 
-      this.makeMove(move);
-
-      if (!this.isInCheck(side)) {
-        this.unmakeMove();
-        return true;
-      }
-
-      this.unmakeMove();
+      if (this.isLegal(move, checkers, pinned, inDoubleCheck)) return true;
     }
 
     return false;
@@ -634,7 +654,14 @@ export class Position {
       this.endState = FIFTY_MOVE_RULE;
       return;
     }
-    if (drawByRepetition(this.zobristHistory, this.halfmoveClock, this.ply)) {
+    if (
+      drawByRepetition(
+        this.zobristHistoryLo,
+        this.zobristHistoryHi,
+        this.halfmoveClock,
+        this.ply,
+      )
+    ) {
       this.result = DRAW;
       this.endState = REPETITION;
       return;
@@ -642,7 +669,7 @@ export class Position {
 
     // If player has no moves it is stalemate or checkmate
     if (!this.hasLegalMove()) {
-      const kingSquare = this.kingSq[this.sideToMove];
+      const kingSquare = this.kingSq[this.sideToMove] as Square;
       if (this.isSquareAttacked(kingSquare, opponent(this.sideToMove))) {
         this.result = this.sideToMove === WHITE ? BLACK_WIN : WHITE_WIN;
         this.endState = CHECKMATE;
@@ -658,7 +685,7 @@ export class Position {
   // Game Info Methods
   // -----------------------
   isPlayersPieceAt(square: Square, player: Player): boolean {
-    const p = this.pieceAt[square];
+    const p = this.pieceAt[square] as Piece;
     if (p === NO_PIECE) return false;
 
     return player === WHITE ? isWhite(p) : !isWhite(p);
@@ -685,7 +712,7 @@ export class Position {
 
   getCheckers(): Bitboard {
     const side = this.sideToMove;
-    const kingSq = this.kingSq[side];
+    const kingSq = this.kingSq[side] as Square;
 
     const bbsLo = this.bbsLo;
     const bbsHi = this.bbsHi;
@@ -732,7 +759,7 @@ export class Position {
 
   getPinnedPieces(): Bitboard {
     const side = this.sideToMove;
-    const kingSq = this.kingSq[side];
+    const kingSq = this.kingSq[side] as Square;
     const opp = side ^ 1;
     const friendlyLo = this.playerOccLo[side];
     const friendlyHi = this.playerOccHi[side];
@@ -958,13 +985,9 @@ export class Position {
 
     cpy.initCurrentPosition();
 
-    cpy.moveBuffer = new Uint32Array(this.moveBuffer);
+    cpy.moveBuffer = this.moveBuffer.slice();
 
-    const moveStack: Move[] = [];
-    for (const move of this.moveStack) {
-      moveStack.push(move);
-    }
-    cpy.moveStack = moveStack;
+    cpy.moveStack = this.moveStack.slice();
 
     cpy.undoCastling = this.undoCastling.slice();
     cpy.undoEp = this.undoEp.slice();
@@ -973,7 +996,8 @@ export class Position {
     cpy.ply = this.ply;
     cpy.searchPly = this.searchPly;
 
-    cpy.zobristHistory = this.zobristHistory.slice();
+    cpy.zobristHistoryLo = this.zobristHistoryLo.slice();
+    cpy.zobristHistoryHi = this.zobristHistoryHi.slice();
 
     return cpy;
   }

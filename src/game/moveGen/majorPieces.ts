@@ -1,14 +1,7 @@
 import { bishopAttacks, rookAttacks } from "./sliderMoves.ts";
 import type { Position } from "../Position.ts";
-import { BK, BQ, WHITE, WK, WQ, type Square } from "../chessConstants.ts";
-import {
-  isKingsideCastleLegal,
-  isQueensideCastleLegal,
-} from "../moveMaking/castling.ts";
-import { playerAttackMask } from "../attackMasks/attackMasks.ts";
-import { opponent } from "../helpers/opponent.ts";
+import { type Square } from "../chessConstants.ts";
 import type { Bitboard } from "../bb.ts";
-import { kingMasksHi, kingMasksLo } from "../attackMasks/kingMasks.ts";
 
 /**
  * Gets all legal rook moves for a given square
@@ -34,4 +27,3 @@ export const queenMoves = (pos: Position, from: Square): Bitboard => {
   const finalHi = hi & ~pos.playerOccHi[pos.sideToMove];
   return [finalLo, finalHi];
 };
-

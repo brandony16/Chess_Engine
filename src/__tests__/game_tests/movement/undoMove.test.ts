@@ -35,7 +35,8 @@ import {
 
 function areEqual(pos1: Position, pos2: Position): void {
   // Zobrist covers pieces, sideToMove, castling, and en passant
-  expect(pos1.zobristKey).toBe(pos2.zobristKey);
+  expect(pos1.zobristLo).toBe(pos2.zobristLo);
+  expect(pos1.zobristHi).toBe(pos2.zobristHi);
 
   expect(pos1.result).toBe(pos2.result);
   expect(pos1.endState).toBe(pos2.endState);
@@ -48,7 +49,8 @@ function areEqual(pos1: Position, pos2: Position): void {
   expect(pos1.searchPly).toBe(pos2.searchPly);
 
   for (let i = 0; i < pos1.ply; i++) {
-    expect(pos1.zobristHistory[i]).toBe(pos2.zobristHistory[i]);
+    expect(pos1.zobristHistoryLo[i]).toBe(pos2.zobristHistoryLo[i]);
+    expect(pos1.zobristHistoryHi[i]).toBe(pos2.zobristHistoryHi[i]);
     expect(pos1.undoCastling[i]).toBe(pos2.undoCastling[i]);
     expect(pos1.undoEp[i]).toBe(pos2.undoEp[i]);
     expect(pos1.undoHalfmove[i]).toBe(pos2.undoHalfmove[i]);

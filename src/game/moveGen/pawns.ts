@@ -1,11 +1,4 @@
-import { getRank } from "../helpers/boardUtils.ts";
-import {
-  bPMasksHi,
-  bPMasksLo,
-  wPMasksHi,
-  wPMasksLo,
-} from "../attackMasks/pawnMasks.ts";
-import { opponent } from "../helpers/opponent.ts";
+import { bPMasksHi, wPMasksLo } from "../attackMasks/pawnMasks.ts";
 import type { Position } from "../Position.ts";
 import {
   BLACK_PAWN,
@@ -13,19 +6,10 @@ import {
   NO_SQUARE,
   PROMO_PIECES,
   PROMO_RANK,
-  RANK_2,
-  RANK_7,
   WHITE,
   WHITE_PAWN,
-  type Square,
 } from "../chessConstants.ts";
-import {
-  bbShiftLeft,
-  bbShiftRight,
-  lsb,
-  squareBB,
-  type Bitboard,
-} from "../bb.ts";
+import { bbShiftLeft, bbShiftRight, lsb } from "../bb.ts";
 import { encodeMove, FLAG_DOUBLE, FLAG_EP } from "../moveMaking/move.ts";
 import {
   NOT_A_FILE_HI,

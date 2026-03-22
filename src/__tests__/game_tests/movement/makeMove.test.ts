@@ -65,12 +65,15 @@ const confirmMove = (pos: Position, move: Move) => {
     }
   }
 
-  const zobrist = pos.zobristKey;
+  const zobristLo = pos.zobristLo;
+  const zobristHi = pos.zobristHi;
   pos.computeZobrist();
-  expect(zobrist).toBe(pos.zobristKey);
+  expect(zobristLo).toBe(pos.zobristLo);
+  expect(zobristHi).toBe(pos.zobristHi);
 
   expect(pos.moveStack[pos.ply]).toBe(move);
-  expect(pos.zobristHistory[pos.ply]).toBe(pos.zobristKey);
+  expect(pos.zobristHistoryLo[pos.ply]).toBe(pos.zobristLo);
+  expect(pos.zobristHistoryHi[pos.ply]).toBe(pos.zobristHi);
 };
 
 describe("makeMove - movement", () => {

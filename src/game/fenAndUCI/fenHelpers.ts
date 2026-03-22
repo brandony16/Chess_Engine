@@ -31,7 +31,7 @@ function isValidPieceChar(c: string): c is keyof typeof PIECE_INDEXES {
 }
 
 // ---- FEN STRING FROM POSITION -----
-export const buildFenBoard = (pieceAt: Piece[]): String => {
+export const buildFenBoard = (pieceAt: Int8Array): String => {
   const ranks = [];
   for (let rank = 7; rank >= 0; rank--) {
     let rankFEN = "";

@@ -8,6 +8,7 @@ import Modal from "./components/modals/Modal.jsx";
 import PromotionModal from "./components/modals/promotionModal/PromotionModal.jsx";
 import Sidebar from "./components/sidebar/Sidebar.jsx";
 import { useGameStore } from "./gameStore.ts";
+import { PerftProfiler } from "./components/Profiler.tsx";
 
 function App(): ReactNode {
   // Get states
@@ -22,6 +23,11 @@ function App(): ReactNode {
 
   // Handles engine moving after the player moves
   useMoveTrigger(postToEngine);
+
+  let profile = true;
+  if (profile) {
+    return <PerftProfiler />;
+  }
 
   return (
     <main className="body">

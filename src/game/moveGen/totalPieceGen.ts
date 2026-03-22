@@ -12,11 +12,9 @@ import {
   WHITE_KNIGHT,
   WHITE_QUEEN,
   WHITE_ROOK,
+  type Square,
 } from "../chessConstants.ts";
-import {
-  encodeMove,
-  FLAG_CASTLE,
-} from "../moveMaking/move.ts";
+import { encodeMove, FLAG_CASTLE } from "../moveMaking/move.ts";
 import type { Position } from "../Position.ts";
 import { castlingMoves, kingMoves } from "./kingMoves.ts";
 import { queenMoves, rookMoves } from "./majorPieces.ts";
@@ -199,7 +197,7 @@ export const generateKingMoves = (pos: Position, start: number): number => {
   const pieceAt = pos.pieceAt;
 
   const king = side === WHITE ? WHITE_KING : BLACK_KING;
-  const from = pos.kingSq[side];
+  const from = pos.kingSq[side] as Square;
   let [lo, hi] = kingMoves(pos, from);
   while (lo || hi) {
     const to = lsb(lo, hi);

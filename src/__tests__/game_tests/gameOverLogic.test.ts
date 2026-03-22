@@ -37,9 +37,12 @@ describe("checkGameOver", () => {
     pos.loadFen("8/8/2k5/2p5/5P2/5K2/8/8 w - - 0 1");
 
     // Mkae history have 3 repeated positions
-    pos.zobristHistory[0] = pos.zobristKey;
-    pos.zobristHistory[2] = pos.zobristKey;
-    pos.zobristHistory[4] = pos.zobristKey;
+    pos.zobristHistoryLo[0] = pos.zobristLo;
+    pos.zobristHistoryHi[0] = pos.zobristHi;
+    pos.zobristHistoryLo[2] = pos.zobristLo;
+    pos.zobristHistoryHi[2] = pos.zobristHi;
+    pos.zobristHistoryLo[4] = pos.zobristLo;
+    pos.zobristHistoryHi[4] = pos.zobristHi;
 
     pos.ply = 4;
     pos.halfmoveClock = 4;

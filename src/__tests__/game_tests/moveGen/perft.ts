@@ -14,10 +14,11 @@ export function perft(pos: Position, depth: number): number {
 
   const checkers = pos.getCheckers();
   const pinned = pos.getPinnedPieces();
-  const inDoubleCheck = moreThanOne(...checkers);
+  const inDoubleCheck = moreThanOne(checkers[0], checkers[1]);
+  const buffer = pos.moveBuffer;
 
   for (let i = 0; i < moveCount; i++) {
-    const move = pos.moveBuffer[start + i];
+    const move = buffer[start + i];
 
     if (!pos.isLegal(move, checkers, pinned, inDoubleCheck)) continue;
 
