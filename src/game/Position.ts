@@ -19,9 +19,6 @@ import {
   NO_SQUARE,
   PIECE_N,
   PIECES,
-  PLAYER_PIECES,
-  PROMO_PIECES,
-  PROMO_RANK,
   REPETITION,
   STALEMATE,
   WHITE,
@@ -49,15 +46,10 @@ import {
   drawByInsufficientMaterial,
   drawByRepetition,
 } from "./positionStates/gameOverLogic.ts";
-import { getPieceMoves } from "./moveGen/moveGeneration.ts";
 import { opponent } from "./helpers/opponent.ts";
 import { applyMove, unapplyMove } from "./moveMaking/applyMove.ts";
 import { updateCastlingRights } from "./moveMaking/castling.ts";
 import {
-  encodeMove,
-  FLAG_CASTLE,
-  FLAG_DOUBLE,
-  FLAG_EP,
   isCastling,
   isEnPassant,
   moveCaptured,
@@ -103,7 +95,6 @@ import {
   testBit,
   type Bitboard,
 } from "./bb.ts";
-import { castlingMoves, kingMoves } from "./moveGen/kingMoves.ts";
 import {
   bPMasksHi,
   bPMasksLo,

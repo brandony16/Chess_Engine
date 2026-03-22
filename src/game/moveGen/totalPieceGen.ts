@@ -3,96 +3,44 @@ import {
   BLACK_BISHOP,
   BLACK_KING,
   BLACK_KNIGHT,
-  BLACK_PAWN,
   BLACK_QUEEN,
   BLACK_ROOK,
   NO_PIECE,
-  PROMO_PIECES,
-  PROMO_RANK,
   WHITE,
   WHITE_BISHOP,
   WHITE_KING,
   WHITE_KNIGHT,
-  WHITE_PAWN,
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../chessConstants.ts";
 import {
   encodeMove,
   FLAG_CASTLE,
-  FLAG_DOUBLE,
-  FLAG_EP,
 } from "../moveMaking/move.ts";
 import type { Position } from "../Position.ts";
 import { castlingMoves, kingMoves } from "./kingMoves.ts";
 import { queenMoves, rookMoves } from "./majorPieces.ts";
-import { bishopMoves, knightMoves, pawnMoves } from "./minorPieces.ts";
+import { bishopMoves, knightMoves } from "./minorPieces.ts";
+import {
+  generateAttackEast,
+  generateAttackWest,
+  generateDoublePush,
+  generateEpMoves,
+  generateSinglePush,
+} from "./pawns.ts";
 
 export const generatePawnMoves = (pos: Position, start: number): number => {
-  let count = 0;
+  const singleCt = generateSinglePush(pos, start);
+  start += singleCt;
+  const doubleCt = generateDoublePush(pos, start);
+  start += doubleCt;
+  const eastCt = generateAttackEast(pos, start);
+  start += eastCt;
+  const westCt = generateAttackWest(pos, start);
+  start += westCt;
+  const epCt = generateEpMoves(pos, start);
 
-  const side = pos.sideToMove;
-  const buffer = pos.moveBuffer;
-  const pieceAt = pos.pieceAt;
-  const promoRank = PROMO_RANK[side];
-  const promoList = PROMO_PIECES[side];
-
-  const pawn = side === WHITE ? WHITE_PAWN : BLACK_PAWN;
-  let bbLo = pos.bbsLo[pawn];
-  let bbHi = pos.bbsHi[pawn];
-  while (bbLo || bbHi) {
-    const from = lsb(bbLo, bbHi);
-    if (bbLo) bbLo &= bbLo - 1;
-    else bbHi &= bbHi - 1;
-
-    let [lo, hi] = pawnMoves(pos, from);
-    while (lo || hi) {
-      const to = lsb(lo, hi);
-      if (lo) lo &= lo - 1;
-      else hi &= hi - 1;
-
-      let captured = pieceAt[to];
-
-      let flags = 0;
-
-      let delta = from - to;
-      if (delta < 0) delta = -delta;
-
-      if (delta === 16) {
-        flags |= FLAG_DOUBLE;
-      } else if (delta !== 8 && captured === NO_PIECE) {
-        flags |= FLAG_EP;
-        captured = side === WHITE ? BLACK_PAWN : WHITE_PAWN;
-      }
-
-      // Promotion
-      if (to >> 3 === promoRank) {
-        for (let k = 0; k < promoList.length; k++) {
-          buffer[start + count++] = encodeMove(
-            from,
-            to,
-            pawn,
-            captured,
-            promoList[k],
-            flags,
-          );
-        }
-
-        continue;
-      }
-
-      buffer[start + count++] = encodeMove(
-        from,
-        to,
-        pawn,
-        captured,
-        NO_PIECE,
-        flags,
-      );
-    }
-  }
-
-  return count;
+  return singleCt + doubleCt + eastCt + westCt + epCt;
 };
 
 export const generateKnightMoves = (pos: Position, start: number): number => {
