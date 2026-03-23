@@ -1,4 +1,9 @@
-import { bishopAttackTable, rookAttackTable } from "../attackTables.ts";
+import {
+  bishopAttackTableHi,
+  bishopAttackTableLo,
+  rookAttackTableHi,
+  rookAttackTableLo,
+} from "../attackTables.ts";
 import {
   bishopMasksHi,
   bishopMasksLo,
@@ -31,7 +36,7 @@ export function bishopAttacks(
     BigInt.asUintN(64, mask * bishopMagics[sq]) >> BigInt(bishopShifts[sq]),
   );
 
-  return bbFromBigInt(bishopAttackTable[sq][index]);
+  return [bishopAttackTableLo[sq][index], bishopAttackTableHi[sq][index]];
 }
 
 /**
@@ -51,5 +56,5 @@ export function rookAttacks(
     BigInt.asUintN(64, mask * rookMagics[sq]) >> BigInt(rookShifts[sq]),
   );
 
-  return bbFromBigInt(rookAttackTable[sq][index]);
+  return [rookAttackTableLo[sq][index], rookAttackTableHi[sq][index]];
 }
