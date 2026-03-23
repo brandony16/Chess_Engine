@@ -36,7 +36,10 @@ export function bishopAttacks(
     BigInt.asUintN(64, mask * bishopMagics[sq]) >> BigInt(bishopShifts[sq]),
   );
 
-  return [bishopAttackTableLo[sq][index], bishopAttackTableHi[sq][index]];
+  return [
+    bishopAttackTableLo[sq][index] >>> 0,
+    bishopAttackTableHi[sq][index] >>> 0,
+  ];
 }
 
 /**
@@ -56,5 +59,8 @@ export function rookAttacks(
     BigInt.asUintN(64, mask * rookMagics[sq]) >> BigInt(rookShifts[sq]),
   );
 
-  return [rookAttackTableLo[sq][index], rookAttackTableHi[sq][index]];
+  return [
+    rookAttackTableLo[sq][index] >>> 0,
+    rookAttackTableHi[sq][index] >>> 0,
+  ];
 }

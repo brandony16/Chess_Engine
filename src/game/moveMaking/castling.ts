@@ -1,4 +1,4 @@
-import { squareBB } from "../bb.ts";
+import { SQUARE_BB_HI, SQUARE_BB_LO } from "../bb.ts";
 import {
   B_KINGSIDE_EMPTY,
   B_KINGSIDE_SAFE,
@@ -106,13 +106,17 @@ export const makeCastleMove = (position: Position, move: Move): void => {
   const kingPiece = from === sq.E1 ? WHITE_KING : BLACK_KING;
   const rookPiece = from === sq.E1 ? WHITE_ROOK : BLACK_ROOK;
 
-  const [fromLo, fromHi] = squareBB(from);
-  const [toLo, toHi] = squareBB(to);
+  const fromLo = SQUARE_BB_LO[from];
+  const fromHi = SQUARE_BB_HI[from];
+  const toLo = SQUARE_BB_LO[to];
+  const toHi = SQUARE_BB_HI[to];
 
   const rookFrom = getFile(to) === C_FILE ? to - 2 : to + 1; // C file is queenside castling
   const rookTo = getFile(to) === C_FILE ? to + 1 : to - 1;
-  const [rookFromLo, rookFromHi] = squareBB(rookFrom);
-  const [rookToLo, rookToHi] = squareBB(rookTo);
+  const rookFromLo = SQUARE_BB_LO[rookFrom];
+  const rookFromHi = SQUARE_BB_HI[rookFrom];
+  const rookToLo = SQUARE_BB_LO[rookTo];
+  const rookToHi = SQUARE_BB_HI[rookTo];
 
   bbsLo[kingPiece] ^= fromLo;
   bbsHi[kingPiece] ^= fromHi;
@@ -141,13 +145,17 @@ export const unMakeCastleMove = (position: Position, move: Move): void => {
   const kingPiece = from === sq.E1 ? WHITE_KING : BLACK_KING;
   const rookPiece = from === sq.E1 ? WHITE_ROOK : BLACK_ROOK;
 
-  const [fromLo, fromHi] = squareBB(from);
-  const [toLo, toHi] = squareBB(to);
+  const fromLo = SQUARE_BB_LO[from];
+  const fromHi = SQUARE_BB_HI[from];
+  const toLo = SQUARE_BB_LO[to];
+  const toHi = SQUARE_BB_HI[to];
 
   const rookFrom = getFile(to) === C_FILE ? to - 2 : to + 1; // C file is queenside castling
   const rookTo = getFile(to) === C_FILE ? from - 1 : from + 1;
-  const [rookFromLo, rookFromHi] = squareBB(rookFrom);
-  const [rookToLo, rookToHi] = squareBB(rookTo);
+  const rookFromLo = SQUARE_BB_LO[rookFrom];
+  const rookFromHi = SQUARE_BB_HI[rookFrom];
+  const rookToLo = SQUARE_BB_LO[rookTo];
+  const rookToHi = SQUARE_BB_HI[rookTo];
 
   bbsLo[kingPiece] ^= toLo;
   bbsHi[kingPiece] ^= toHi;

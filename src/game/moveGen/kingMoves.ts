@@ -1,6 +1,6 @@
 import { playerAttackMask } from "../attackMasks/attackMasks.ts";
 import { kingMasksHi, kingMasksLo } from "../attackMasks/kingMasks.ts";
-import { squareBB, type Bitboard } from "../bb.ts";
+import { SQUARE_BB_HI, SQUARE_BB_LO, type Bitboard } from "../bb.ts";
 import {
   BK,
   BLACK,
@@ -41,7 +41,8 @@ export const castlingMoves = (pos: Position, from: Square): Bitboard => {
         rights & WK &&
         isKingsideCastleLegal(pos.sideToMove, attLo, attHi, occLo, occHi)
       ) {
-        const [lo, hi] = squareBB(6);
+        const lo = SQUARE_BB_LO[6];
+        const hi = SQUARE_BB_HI[6];
         movesLo |= lo;
         movesHi |= hi;
       }
@@ -49,7 +50,8 @@ export const castlingMoves = (pos: Position, from: Square): Bitboard => {
         rights & WQ &&
         isQueensideCastleLegal(pos.sideToMove, attLo, attHi, occLo, occHi)
       ) {
-        const [lo, hi] = squareBB(2);
+        const lo = SQUARE_BB_LO[2];
+        const hi = SQUARE_BB_HI[2];
         movesLo |= lo;
         movesHi |= hi;
       }
@@ -59,7 +61,8 @@ export const castlingMoves = (pos: Position, from: Square): Bitboard => {
         rights & BK &&
         isKingsideCastleLegal(pos.sideToMove, attLo, attHi, occLo, occHi)
       ) {
-        const [lo, hi] = squareBB(62);
+        const lo = SQUARE_BB_LO[62];
+        const hi = SQUARE_BB_HI[62];
         movesLo |= lo;
         movesHi |= hi;
       }
@@ -67,7 +70,8 @@ export const castlingMoves = (pos: Position, from: Square): Bitboard => {
         rights & BQ &&
         isQueensideCastleLegal(pos.sideToMove, attLo, attHi, occLo, occHi)
       ) {
-        const [lo, hi] = squareBB(58);
+        const lo = SQUARE_BB_LO[58];
+        const hi = SQUARE_BB_HI[58];
         movesLo |= lo;
         movesHi |= hi;
       }

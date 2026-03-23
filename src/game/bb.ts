@@ -95,6 +95,19 @@ export function squareBB(sq: number): [number, number] {
   return [0, 1 << (sq - 32)];
 }
 
+export const SQUARE_BB_LO = new Uint32Array(64);
+export const SQUARE_BB_HI = new Uint32Array(64);
+
+for (let sq = 0; sq < 64; sq++) {
+  if (sq < 32) {
+    SQUARE_BB_LO[sq] = 1 << sq;
+    SQUARE_BB_HI[sq] = 0;
+  } else {
+    SQUARE_BB_LO[sq] = 0;
+    SQUARE_BB_HI[sq] = 1 << (sq - 32);
+  }
+}
+
 // LSB / MSB
 
 export function lsb(lo: number, hi: number): Square {

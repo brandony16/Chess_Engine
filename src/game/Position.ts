@@ -374,27 +374,28 @@ export class Position {
       // King must move from square 4 if white is castling
       const isWhite = from === 4;
       const rook = isWhite ? WHITE_ROOK : BLACK_ROOK;
+      const pieceOffset = rook * 64;
 
       // Queenside
       if (from > to) {
         const rookFrom = isWhite ? 0 : 56;
-        const fromIdx = rook * 64 + rookFrom;
+        const fromIdx = pieceOffset + rookFrom;
         hashLo ^= zobristTableLo[fromIdx];
         hashHi ^= zobristTableHi[fromIdx];
 
         const rookTo = rookFrom + 3;
-        const toIdx = rook * 64 + rookTo;
+        const toIdx = pieceOffset + rookTo;
         hashLo ^= zobristTableLo[toIdx];
         hashHi ^= zobristTableHi[toIdx];
       } else {
         // Kingside
         const rookFrom = isWhite ? 7 : 63;
-        const fromIdx = rook * 64 + rookFrom;
+        const fromIdx = pieceOffset + rookFrom;
         hashLo ^= zobristTableLo[fromIdx];
         hashHi ^= zobristTableHi[fromIdx];
 
         const rookTo = rookFrom - 2;
-        const toIdx = rook * 64 + rookTo;
+        const toIdx = pieceOffset + rookTo;
         hashLo ^= zobristTableLo[toIdx];
         hashHi ^= zobristTableHi[toIdx];
       }

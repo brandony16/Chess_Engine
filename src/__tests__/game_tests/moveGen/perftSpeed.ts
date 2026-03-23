@@ -3,7 +3,7 @@ import { perft } from "./perft.ts";
 
 const pos = new Position();
 
- const t0 = performance.now();
+const t0 = performance.now();
 const nodes = perft(pos, 5);
 const t1 = performance.now();
 

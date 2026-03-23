@@ -9,7 +9,7 @@ import {
   moveTo,
   type Move,
 } from "../moveMaking/move.ts";
-import { squareBB, type Bitboard } from "../bb.ts";
+import { SQUARE_BB_HI, SQUARE_BB_LO, type Bitboard } from "../bb.ts";
 
 export function updateOccupancy(pos: Position, move: Move): void {
   const from = moveFrom(move);
@@ -29,8 +29,10 @@ export function updateOccupancy(pos: Position, move: Move): void {
     return;
   }
 
-  const [fromLo, fromHi] = squareBB(from);
-  const [toLo, toHi] = squareBB(to);
+  const fromLo = SQUARE_BB_LO[from];
+  const fromHi = SQUARE_BB_HI[from];
+  const toLo = SQUARE_BB_LO[to];
+  const toHi = SQUARE_BB_HI[to];
 
   occLo ^= fromLo;
   occHi ^= fromHi;
@@ -45,9 +47,8 @@ export function updateOccupancy(pos: Position, move: Move): void {
     const opp = opponent(side);
     if (isEnPassant(move)) {
       const target = pos.sideToMove === WHITE ? to - 8 : to + 8;
-      const [targetLo, targetHi] = squareBB(target);
-      pos.playerOccLo[opp] ^= targetLo;
-      pos.playerOccHi[opp] ^= targetHi;
+      pos.playerOccLo[opp] ^= SQUARE_BB_LO[target];
+      pos.playerOccHi[opp] ^= SQUARE_BB_HI[target];
     } else {
       pos.playerOccLo[opp] ^= toLo;
       pos.playerOccHi[opp] ^= toHi;
@@ -66,8 +67,10 @@ const updateOccCastling = (
   const from = moveFrom(move);
   const to = moveTo(move);
 
-  const [fromLo, fromHi] = squareBB(from);
-  const [toLo, toHi] = squareBB(to);
+  const fromLo = SQUARE_BB_LO[from];
+  const fromHi = SQUARE_BB_HI[from];
+  const toLo = SQUARE_BB_LO[to];
+  const toHi = SQUARE_BB_HI[to];
 
   occLo ^= fromLo;
   occHi ^= fromHi;
@@ -94,8 +97,10 @@ const updateOccCastling = (
     }
   }
 
-  const [rFromLo, rFromHi] = squareBB(rookFrom);
-  const [rToLo, rToHi] = squareBB(rookTo);
+  const rFromLo = SQUARE_BB_LO[rookFrom];
+  const rFromHi = SQUARE_BB_HI[rookFrom];
+  const rToLo = SQUARE_BB_LO[rookTo];
+  const rToHi = SQUARE_BB_HI[rookTo];
 
   occLo ^= rFromLo;
   occHi ^= rFromHi;
@@ -121,8 +126,10 @@ export function undoOccupancyUpdate(pos: Position, move: Move): void {
     return;
   }
 
-  const [fromLo, fromHi] = squareBB(from);
-  const [toLo, toHi] = squareBB(to);
+  const fromLo = SQUARE_BB_LO[from];
+  const fromHi = SQUARE_BB_HI[from];
+  const toLo = SQUARE_BB_LO[to];
+  const toHi = SQUARE_BB_HI[to];
 
   occLo ^= toLo;
   occHi ^= toHi;
@@ -137,9 +144,8 @@ export function undoOccupancyUpdate(pos: Position, move: Move): void {
     const opp = opponent(side);
     if (isEnPassant(move)) {
       const target = side === WHITE ? to - 8 : to + 8;
-      const [targetLo, targetHi] = squareBB(target);
-      pos.playerOccLo[opp] |= targetLo;
-      pos.playerOccHi[opp] |= targetHi;
+      pos.playerOccLo[opp] |= SQUARE_BB_LO[target];
+      pos.playerOccHi[opp] |= SQUARE_BB_HI[target];
     } else {
       pos.playerOccLo[opp] |= toLo;
       pos.playerOccHi[opp] |= toHi;
@@ -158,8 +164,10 @@ const undoCastlingOcc = (
   const from = moveFrom(move);
   const to = moveTo(move);
 
-  const [fromLo, fromHi] = squareBB(from);
-  const [toLo, toHi] = squareBB(to);
+  const fromLo = SQUARE_BB_LO[from];
+  const fromHi = SQUARE_BB_HI[from];
+  const toLo = SQUARE_BB_LO[to];
+  const toHi = SQUARE_BB_HI[to];
 
   occLo ^= toLo;
   occHi ^= toHi;
@@ -186,8 +194,10 @@ const undoCastlingOcc = (
     }
   }
 
-  const [rFromLo, rFromHi] = squareBB(rookFrom);
-  const [rToLo, rToHi] = squareBB(rookTo);
+  const rFromLo = SQUARE_BB_LO[rookFrom];
+  const rFromHi = SQUARE_BB_HI[rookFrom];
+  const rToLo = SQUARE_BB_LO[rookTo];
+  const rToHi = SQUARE_BB_HI[rookTo];
 
   occLo |= rFromLo;
   occHi |= rFromHi;
