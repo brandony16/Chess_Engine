@@ -73,11 +73,6 @@ function initMasks(verify = false) {
 // Run with verify=true to confirm correctness
 initMasks();
 
-
-export function moreThanOne(bb: bigint): boolean {
-  return (bb & (bb - 1n)) !== 0n; // clears LSB — if anything remains, >1 bit set
-}
-
 function computeBetween(sq1: number, sq2: number): bigint {
   if (sq1 === sq2) return 0n;
 

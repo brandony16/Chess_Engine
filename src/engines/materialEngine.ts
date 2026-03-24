@@ -1,3 +1,4 @@
+import { moreThanOne } from "../game/bb.ts";
 import type { Move } from "../game/moveMaking/move.ts";
 import { Position } from "../game/Position.ts";
 import type { Engine } from "./Engine.ts";
@@ -9,13 +10,18 @@ export function createMaterialEngine(): Engine {
 
     search(pos: Position, maxTimeMs: number): Move {
       pos.searchPly = 0;
-      const numMoves = pos.generateLegalMoves();
+      const numMoves = pos.generatePseudoLegalMoves();
+      const checkers = pos.getCheckers();
+      const pinned = pos.getPinnedPieces();
+      const doubleCheck = moreThanOne(checkers[0], checkers[1]);
 
       let bestMove = pos.moveBuffer[0];
       let bestScore = -Infinity;
 
       for (let i = 0; i < numMoves; i++) {
         const move = pos.moveBuffer[i];
+        if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
+
         pos.makeMove(move);
 
         const score = -evaluateMaterial(pos);

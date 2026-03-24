@@ -4,6 +4,7 @@ import { evaluateMaterial } from "../../evaluation/materialEvaluation.ts";
 import { WHITE } from "../../../game/chessConstants.ts";
 import { MATE_SCORE } from "../../evaluation/Evaluation.ts";
 import type { Move } from "../../../game/moveMaking/move.ts";
+import { moreThanOne } from "../../../game/bb.ts";
 
 export class MinimaxV1 implements Engine {
   name: string;
@@ -19,13 +20,18 @@ export class MinimaxV1 implements Engine {
     this.nodesSearched = 0; // reset node count
     const depth = 2;
 
-    const moveNum = pos.generateLegalMoves();
+    const moveNum = pos.generatePseudoLegalMoves();
+    const checkers = pos.getCheckers();
+    const pinned = pos.getPinnedPieces();
+    const doubleCheck = moreThanOne(checkers[0], checkers[1]);
 
     let bestMove = pos.moveBuffer[0];
     let bestScore = -Infinity;
 
     for (let i = 0; i < moveNum; i++) {
       const move = pos.moveBuffer[i];
+
+      if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
 
       pos.makeMove(move);
 
@@ -58,11 +64,16 @@ export class MinimaxV1 implements Engine {
     }
 
     const start = pos.searchPly * MAX_MOVES;
-    const moves = pos.generateLegalMoves();
+    const moves = pos.generatePseudoLegalMoves();
+    const checkers = pos.getCheckers();
+    const pinned = pos.getPinnedPieces();
+    const doubleCheck = moreThanOne(checkers[0], checkers[1]);
 
     let bestScore = -Infinity;
     for (let i = 0; i < moves; i++) {
       const move = pos.moveBuffer[start + i];
+
+      if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
 
       pos.makeMove(move);
 

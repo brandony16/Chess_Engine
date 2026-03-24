@@ -24,11 +24,6 @@ function App(): ReactNode {
   // Handles engine moving after the player moves
   useMoveTrigger(postToEngine);
 
-  let profile = true;
-  if (profile) {
-    return <PerftProfiler />;
-  }
-
   return (
     <main className="body">
       <section className="gameWrap" role="application">
