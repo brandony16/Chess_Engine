@@ -1,6 +1,5 @@
 import { popcount } from "../bb.ts";
 import {
-  BLACK,
   BLACK_PAWN,
   BLACK_QUEEN,
   BLACK_ROOK,

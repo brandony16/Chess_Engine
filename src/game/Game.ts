@@ -1,8 +1,6 @@
+import { moreThanOne } from "./bb.ts";
 import {
-  CHECKMATE,
-  DRAW,
   NO_PIECE,
-  PLAYER_PIECES,
   WHITE,
   type EndState,
   type Piece,
@@ -28,7 +26,7 @@ interface GameView {
   loadFen(fen: string): void;
   getPiece(square: Square): Piece;
   isPlayersPieceAt(square: Square, player: Player): boolean;
-  generateLegalMoves(): Uint32Array;
+  generateLegalMoves(): number[];
   isInCheck(player?: Player): boolean;
   isOver(): boolean;
   result(): GameResult;
@@ -53,17 +51,10 @@ export class Game implements GameView {
     if (this.position.gameOver()) {
       return false;
     }
-    const legalCount = this.position.generateLegalMoves();
-    let isLegal = false;
-    for (let i = 0; i < legalCount; i++) {
-      const m = this.position.moveBuffer[i];
-      if (move === m) {
-        isLegal = true;
-        break;
-      }
-    }
+    const legal = this.generateLegalMoves();
+    const found = legal.find((m) => m === move);
 
-    if (!isLegal) return false;
+    if (!found) return false;
 
     this.position.makeMove(move);
     this.position.checkGameOver();
@@ -88,21 +79,29 @@ export class Game implements GameView {
   }
 
   getPiece(square: Square): Piece {
-    return this.position.pieceAt[square];
+    return this.position.pieceAt[square] as Piece;
   }
 
   isPlayersPieceAt(square: Square, player: Player): boolean {
-    const piece = this.position.pieceAt[square];
+    const piece = this.position.pieceAt[square] as Piece;
     if (piece === NO_PIECE) return false;
 
     return player === WHITE ? isWhite(piece) : !isWhite(piece);
   }
 
-  generateLegalMoves(): Uint32Array {
-    const numLegal = this.position.generateLegalMoves();
-    const arr = new Uint32Array(numLegal);
-    for (let i = 0; i < numLegal; i++) {
-      arr[i] = this.position.moveBuffer[i];
+  generateLegalMoves(): number[] {
+    this.position.searchPly = 0;
+    const num = this.position.generatePseudoLegalMoves();
+    const checkers = this.position.getCheckers();
+    const pinned = this.position.getPinnedPieces();
+    const inDoubleCheck = moreThanOne(checkers[0], checkers[1]);
+
+    const arr: number[] = [];
+    for (let i = 0; i < num; i++) {
+      const move = this.position.moveBuffer[i];
+      if (this.position.isLegal(move, checkers, pinned, inDoubleCheck)) {
+        arr.push(move);
+      }
     }
 
     return arr;

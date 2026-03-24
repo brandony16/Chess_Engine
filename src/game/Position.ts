@@ -78,7 +78,6 @@ import {
   updateOccupancy,
 } from "./positionStates/occupancy.ts";
 import { newEnPassant } from "./moveMaking/moveHelpers.ts";
-import { getCheckers } from "./moveGen/getCheckers.ts";
 import { bishopAttacks, rookAttacks } from "./moveGen/sliderMoves.ts";
 import {
   betweenMaskHi,
@@ -447,28 +446,6 @@ export class Position {
     return (
       pawnCount + knightCount + bishopCount + rookCount + queenCount + kingCount
     );
-  }
-
-  generateLegalMoves(): number {
-    const pseudoCount = this.generatePseudoLegalMoves();
-
-    const start = this.searchPly * MAX_MOVES;
-    let legalCount = 0;
-
-    const side = this.sideToMove;
-    for (let i = 0; i < pseudoCount; i++) {
-      const move = this.moveBuffer[start + i];
-
-      this.makeMove(move);
-
-      if (!this.isInCheck(side)) {
-        this.moveBuffer[start + legalCount++] = move;
-      }
-
-      this.unmakeMove();
-    }
-
-    return legalCount;
   }
 
   isLegal(

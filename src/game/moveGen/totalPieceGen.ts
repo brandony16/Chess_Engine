@@ -217,7 +217,7 @@ export const generateKingMoves = (pos: Position, start: number): number => {
   }
   if (!pos.castlingRights) return count;
 
-  [lo, hi] = castlingMoves(pos, from);
+  [lo, hi] = castlingMoves(pos);
   while (lo || hi) {
     const to = lsb(lo, hi);
     if (lo) lo &= lo - 1;

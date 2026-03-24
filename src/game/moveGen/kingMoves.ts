@@ -27,7 +27,7 @@ export const kingMoves = (pos: Position, from: Square): Bitboard => {
   return [movesLo, movesHi];
 };
 
-export const castlingMoves = (pos: Position, from: Square): Bitboard => {
+export const castlingMoves = (pos: Position): Bitboard => {
   let movesLo = 0,
     movesHi = 0;
 

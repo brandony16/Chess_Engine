@@ -1,3 +1,4 @@
+import { moreThanOne } from "../bb.ts";
 import {
   FILE_INDEXES,
   FILE_SYMBOLS,
@@ -72,9 +73,14 @@ export function uciToMove(uciMove: string, pos: Position) {
   }
 
   const start = pos.searchPly * MAX_MOVES;
-  const numLegal = pos.generateLegalMoves();
-  for (let i = 0; i < numLegal; i++) {
+  const num = pos.generatePseudoLegalMoves();
+  const checkers = pos.getCheckers();
+  const pinned = pos.getPinnedPieces();
+  const doubleCheck = moreThanOne(checkers[0], checkers[1]);
+  for (let i = 0; i < num; i++) {
     const move = pos.moveBuffer[start + i];
+    if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
+
     if (
       from === moveFrom(move) &&
       to === moveTo(move) &&

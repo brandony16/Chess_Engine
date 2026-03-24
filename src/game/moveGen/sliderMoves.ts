@@ -17,7 +17,7 @@ import {
   rookShifts,
 } from "./magicNumbers/magicNumbers.ts";
 import type { Square } from "../chessConstants.ts";
-import { bbFromBigInt, bbToBigInt, type Bitboard } from "../bb.ts";
+import { bbToBigInt, type Bitboard } from "../bb.ts";
 
 /**
  * Gets the attack mask for a bishop at a given square using

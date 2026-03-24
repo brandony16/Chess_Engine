@@ -30,7 +30,7 @@ import type { Bitboard } from "../bb.ts";
  */
 export function getCheckers(pos: Position, player: Player): Bitboard {
   const isWhite = player === WHITE;
-  const kingSq = pos.kingSq[player];
+  const kingSq = pos.kingSq[player] as Square;
 
   const pawn = isWhite ? BLACK_PAWN : WHITE_PAWN;
   const pawnBBLo = pos.bbsLo[pawn],

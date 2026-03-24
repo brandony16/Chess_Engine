@@ -16,7 +16,7 @@ import {
 /**
  * Makes a move.
  */
-export const applyMove = (position: Position, move: Move) => {
+export const applyMove = (position: Position, move: Move): void => {
   const bbsHi = position.bbsHi;
   const bbsLo = position.bbsLo;
   const pieceAt = position.pieceAt;
@@ -80,7 +80,7 @@ export const applyMove = (position: Position, move: Move) => {
 /**
  * Undoes a move that was made. Directly alters given bitboards.
  */
-export const unapplyMove = (position: Position, move: Move) => {
+export const unapplyMove = (position: Position, move: Move): void => {
   const bbsHi = position.bbsHi;
   const bbsLo = position.bbsLo;
   const pieceAt = position.pieceAt;

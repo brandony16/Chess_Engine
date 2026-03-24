@@ -7,14 +7,14 @@ interface SnapshotView {
 
 export class Snapshot implements SnapshotView {
   readonly sideToMove: Player;
-  readonly pieceAt: Piece[];
+  readonly pieceAt: Int8Array;
 
-  constructor(sideToMove: Player, pieceAt: Piece[]) {
+  constructor(sideToMove: Player, pieceAt: Int8Array) {
     this.sideToMove = sideToMove;
     this.pieceAt = pieceAt;
   }
 
   getPiece(square: Square): Piece {
-    return this.pieceAt[square];
+    return this.pieceAt[square] as Piece;
   }
 }
