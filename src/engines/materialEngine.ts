@@ -2,11 +2,13 @@ import { moreThanOne } from "../game/bb.ts";
 import type { Move } from "../game/moveMaking/move.ts";
 import { Position } from "../game/Position.ts";
 import type { Engine } from "./Engine.ts";
+import { DEFAULT_EVAL_WEIGHTS } from "./evaluation/Evaluation.ts";
 import { evaluateMaterial } from "./evaluation/materialEvaluation.ts";
 
 export function createMaterialEngine(): Engine {
   return {
     name: "Material",
+    weights: DEFAULT_EVAL_WEIGHTS,
 
     search(pos: Position, maxTimeMs: number): Move {
       pos.searchPly = 0;
@@ -24,7 +26,7 @@ export function createMaterialEngine(): Engine {
 
         pos.makeMove(move);
 
-        const score = -evaluateMaterial(pos);
+        const score = -evaluateMaterial(pos, this.weights!);
 
         pos.unmakeMove();
 

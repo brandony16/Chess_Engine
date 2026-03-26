@@ -1,23 +1,15 @@
 import { popcount } from "../../game/bb.ts";
-import { PIECES, WHITE } from "../../game/chessConstants.ts";
+import { WHITE } from "../../game/chessConstants.ts";
 import { Position } from "../../game/Position.ts";
+import { type EvalWeights } from "./Evaluation.ts";
 
-type PieceWeights = {
-  pawn: number;
-  knight: number;
-  bishop: number;
-  rook: number;
-  queen: number;
-};
-
-const weights = [
-  0, 100, 320, 330, 500, 900, 20_000, -100, -320, -330, -500, -900, -20_000,
-];
-
-export function evaluateMaterial(pos: Position): number {
+export function evaluateMaterial(pos: Position, weights: EvalWeights): number {
   let matEval = 0;
-  for (const piece of PIECES) {
-    matEval += weights[piece] * popcount(pos.bbsLo[piece], pos.bbsHi[piece]);
+  const pieceWeights = weights.pieceWeights;
+  for (let pt = 1; pt <= 6; pt++) {
+    const value = pieceWeights[pt];
+    matEval += value * popcount(pos.bbsLo[pt], pos.bbsHi[pt]);
+    matEval -= value * popcount(pos.bbsLo[pt + 6], pos.bbsHi[pt + 6]);
   }
 
   return pos.sideToMove === WHITE ? matEval : -matEval;

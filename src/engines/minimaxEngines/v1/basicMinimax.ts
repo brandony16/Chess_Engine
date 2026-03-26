@@ -2,17 +2,23 @@ import type { Engine } from "../../Engine.ts";
 import { MAX_MOVES, Position } from "../../../game/Position.ts";
 import { evaluateMaterial } from "../../evaluation/materialEvaluation.ts";
 import { WHITE } from "../../../game/chessConstants.ts";
-import { MATE_SCORE } from "../../evaluation/Evaluation.ts";
+import {
+  DEFAULT_EVAL_WEIGHTS,
+  MATE_SCORE,
+  type EvalWeights,
+} from "../../evaluation/Evaluation.ts";
 import type { Move } from "../../../game/moveMaking/move.ts";
 import { moreThanOne } from "../../../game/bb.ts";
 
 export class MinimaxV1 implements Engine {
   name: string;
   nodesSearched: number;
+  weights: EvalWeights;
 
   constructor() {
     this.name = "MinimaxV1";
     this.nodesSearched = 0;
+    this.weights = DEFAULT_EVAL_WEIGHTS;
   }
 
   search(pos: Position, maxTimeMs: number): Move {
@@ -60,7 +66,7 @@ export class MinimaxV1 implements Engine {
 
     if (depth === 0) {
       const sign = pos.sideToMove === WHITE ? 1 : -1;
-      return sign * evaluateMaterial(pos);
+      return sign * evaluateMaterial(pos, this.weights);
     }
 
     const start = pos.searchPly * MAX_MOVES;
