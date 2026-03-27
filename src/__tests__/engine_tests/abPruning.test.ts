@@ -1,0 +1,53 @@
+import { describe, expect, it } from "vitest";
+import { MinimaxV1 } from "../../engines/minimaxEngines/v1/basicMinimax.ts";
+import { Position } from "../../game/Position.ts";
+import { MinimaxV2 } from "../../engines/minimaxEngines/v1/abPruning.ts";
+import { KIWIPETE_POS } from "../game_tests/fens.ts";
+
+describe("Minimax w ab pruning is the same as minimax w/o it", () => {
+  it("should give the same move for starting pos at depth 2", () => {
+    const basic = new MinimaxV1(2);
+    const pruning = new MinimaxV2(2);
+
+    const pos = new Position();
+
+    const basicMove = basic.search(pos, 100);
+    const pruningMove = pruning.search(pos, 100);
+    expect(pruningMove).toBe(basicMove);
+  });
+
+  it("should give the same move for starting pos at depth 3", () => {
+    const basic = new MinimaxV1(3);
+    const pruning = new MinimaxV2(3);
+
+    const pos = new Position();
+
+    const basicMove = basic.search(pos, 100);
+    const pruningMove = pruning.search(pos, 100);
+    expect(pruningMove).toBe(basicMove);
+  });
+
+  it("should give the same move for kiwipete at depth 2", () => {
+    const basic = new MinimaxV1(2);
+    const pruning = new MinimaxV2(2);
+
+    const pos = new Position();
+    pos.loadFen(KIWIPETE_POS);
+
+    const basicMove = basic.search(pos, 100);
+    const pruningMove = pruning.search(pos, 100);
+    expect(pruningMove).toBe(basicMove);
+  });
+
+  it("should give the same move for kiwipete at depth 3", () => {
+    const basic = new MinimaxV1(3);
+    const pruning = new MinimaxV2(3);
+
+    const pos = new Position();
+    pos.loadFen(KIWIPETE_POS);
+
+    const basicMove = basic.search(pos, 100);
+    const pruningMove = pruning.search(pos, 100);
+    expect(pruningMove).toBe(basicMove);
+  });
+});

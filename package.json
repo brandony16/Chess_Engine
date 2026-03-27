@@ -15,6 +15,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
     "engine-test": "tsx src/engines/testing/runTest.ts",
+    "engine-profile": "tsx src/engines/testing/profile.ts",
     "speed-test": "tsx src/__tests__/game_tests/moveGen/perftSpeed.ts",
     "speed-profile": "node --cpu-prof --import tsx ./src/__tests__/game_tests/moveGen/perftSpeed.ts"
   },

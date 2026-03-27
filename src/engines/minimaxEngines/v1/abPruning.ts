@@ -1,25 +1,25 @@
+import { moreThanOne } from "../../../game/bb.ts";
+import type { Move } from "../../../game/moveMaking/move.ts";
+import { MAX_MOVES, type Position } from "../../../game/Position.ts";
 import type { Engine } from "../../Engine.ts";
-import { MAX_MOVES, Position } from "../../../game/Position.ts";
-import { evaluateMaterial } from "../../evaluation/materialEvaluation.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
   type EvalWeights,
 } from "../../evaluation/Evaluation.ts";
-import type { Move } from "../../../game/moveMaking/move.ts";
-import { moreThanOne } from "../../../game/bb.ts";
+import { evaluateMaterial } from "../../evaluation/materialEvaluation.ts";
 
 /**
- * Engine that implements a basic minimax search. Should mainly be used for testing the 
+ * Evolution of minimaxV1 that implements alpha-beta pruning
  */
-export class MinimaxV1 implements Engine {
+export class MinimaxV2 implements Engine {
   name: string;
   nodesSearched: number;
   weights: EvalWeights;
   depth: number;
 
   constructor(depth: number) {
-    this.name = "MinimaxV1";
+    this.name = "MinimaxV2";
     this.nodesSearched = 0;
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
@@ -44,7 +44,7 @@ export class MinimaxV1 implements Engine {
 
       pos.makeMove(move);
 
-      const score = -this.#negamax(pos, this.depth - 1);
+      const score = -this.#negamax(pos, this.depth - 1, -Infinity, -bestScore);
 
       pos.unmakeMove();
 
@@ -57,7 +57,7 @@ export class MinimaxV1 implements Engine {
     return bestMove;
   }
 
-  #negamax(pos: Position, depth: number) {
+  #negamax(pos: Position, depth: number, alpha: number, beta: number) {
     this.nodesSearched++;
 
     if (depth === 0) {
@@ -70,7 +70,6 @@ export class MinimaxV1 implements Engine {
     const pinned = pos.getPinnedPieces();
     const doubleCheck = moreThanOne(checkers[0], checkers[1]);
 
-    let bestScore = -Infinity;
     let legalCount = 0;
     for (let i = 0; i < moves; i++) {
       const move = pos.moveBuffer[start + i];
@@ -80,12 +79,19 @@ export class MinimaxV1 implements Engine {
 
       pos.makeMove(move);
 
-      const score = -this.#negamax(pos, depth - 1);
+      const score = -this.#negamax(pos, depth - 1, -beta, -alpha);
 
       pos.unmakeMove();
 
-      if (score > bestScore) {
-        bestScore = score;
+      if (score >= beta) {
+        // Beta cutoff: opponent won't allow this position because we already
+        // have a move that's too good. Stop searching immediately.
+        return beta;
+      }
+
+      if (score > alpha) {
+        // Found a better move than our current best - raise the lower bound.
+        alpha = score;
       }
     }
 
@@ -98,6 +104,6 @@ export class MinimaxV1 implements Engine {
       return 0; // stalemate
     }
 
-    return bestScore;
+    return alpha;
   }
 }

@@ -3,7 +3,7 @@ import type { Position } from "../../game/Position.ts";
 
 export type Evaluation = (pos: Position, weights: EvalWeights) => number;
 
-export const MATE_SCORE = -100_000;
+export const MATE_SCORE = 100_000;
 
 // white king is last white piece. Anything larger is a black piece
 export const pieceType = (piece: Piece): number =>
