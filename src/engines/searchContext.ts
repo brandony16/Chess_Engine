@@ -3,6 +3,10 @@ export class SearchContext {
   nodeLimit = Infinity;
   aborted = false;
 
+  constructor(nodeLimit: number = Infinity) {
+    this.nodeLimit = nodeLimit;
+  }
+
   reset(nodeLimit: number): void {
     this.nodesSearched = 0;
     this.nodeLimit = nodeLimit;

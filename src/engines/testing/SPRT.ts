@@ -7,6 +7,7 @@ import {
   playOpeningMoves,
 } from "./openings.ts";
 import { mulberry32 } from "../../random.ts";
+import { SearchContext } from "../searchContext.ts";
 
 type Stats = {
   wins: number;
@@ -47,7 +48,7 @@ const MAX_GAMES = 1000;
 export const sprt = async (
   engine1: Engine,
   engine2: Engine,
-  timeLimitMs: number = 1000,
+  nodeLimit: number,
 ): Promise<sprtResult> => {
   const openings = await fetchOpenings();
   const stats: Stats = {
@@ -79,7 +80,7 @@ export const sprt = async (
       engine1,
       engine2,
       openingMoves,
-      timeLimitMs,
+      nodeLimit,
     );
 
     llr = updateLLR(llr, result1, engine1, engine1);
@@ -92,7 +93,7 @@ export const sprt = async (
       engine2,
       engine1,
       openingMoves,
-      timeLimitMs,
+      nodeLimit,
     );
 
     llr = updateLLR(llr, result2, engine2, engine1);
@@ -111,21 +112,24 @@ async function playSingleGame(
   white: Engine,
   black: Engine,
   openingMoves: string[],
-  timeLimit: number,
+  nodeLimit: number,
 ): Promise<Result> {
   const pos = new Position();
   const MAX_PLY = 512;
 
   await playOpeningMoves(openingMoves, pos);
 
+  const ctx = new SearchContext(nodeLimit);
   while (!pos.gameOver() && pos.fullmoveNumber * 2 < MAX_PLY) {
-    const whiteMove = white.search(pos, timeLimit);
+    ctx.reset(nodeLimit);
+    const whiteMove = white.search(pos, ctx);
     pos.makeMove(whiteMove);
 
     pos.checkGameOver();
     if (pos.gameOver()) break;
+    ctx.reset(nodeLimit);
 
-    const blackMove = black.search(pos, timeLimit);
+    const blackMove = black.search(pos, ctx);
     pos.makeMove(blackMove);
 
     pos.checkGameOver();

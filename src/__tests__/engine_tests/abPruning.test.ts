@@ -3,6 +3,7 @@ import { MinimaxV1 } from "../../engines/minimaxEngines/v1/basicMinimax.ts";
 import { Position } from "../../game/Position.ts";
 import { MinimaxV2 } from "../../engines/minimaxEngines/v1/abPruning.ts";
 import { KIWIPETE_POS, PINNED_POS } from "../game_tests/fens.ts";
+import { SearchContext } from "../../engines/searchContext.ts";
 
 describe("Minimax w ab pruning is the same as minimax w/o it", () => {
   it("should give the same move for starting pos at depth 2", () => {
@@ -11,8 +12,9 @@ describe("Minimax w ab pruning is the same as minimax w/o it", () => {
 
     const pos = new Position();
 
-    const basicMove = basic.search(pos, 100);
-    const pruningMove = pruning.search(pos, 100);
+    const ctx = new SearchContext();
+    const basicMove = basic.search(pos, ctx);
+    const pruningMove = pruning.search(pos, ctx);
     expect(pruningMove).toBe(basicMove);
   });
 
@@ -22,8 +24,9 @@ describe("Minimax w ab pruning is the same as minimax w/o it", () => {
 
     const pos = new Position();
 
-    const basicMove = basic.search(pos, 100);
-    const pruningMove = pruning.search(pos, 100);
+    const ctx = new SearchContext();
+    const basicMove = basic.search(pos, ctx);
+    const pruningMove = pruning.search(pos, ctx);
     expect(pruningMove).toBe(basicMove);
   });
 
@@ -33,8 +36,9 @@ describe("Minimax w ab pruning is the same as minimax w/o it", () => {
 
     const pos = new Position();
 
-    const basicMove = basic.search(pos, 100);
-    const pruningMove = pruning.search(pos, 100);
+    const ctx = new SearchContext();
+    const basicMove = basic.search(pos, ctx);
+    const pruningMove = pruning.search(pos, ctx);
     expect(pruningMove).toBe(basicMove);
   });
 
@@ -45,8 +49,9 @@ describe("Minimax w ab pruning is the same as minimax w/o it", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    const basicMove = basic.search(pos, 100);
-    const pruningMove = pruning.search(pos, 100);
+    const ctx = new SearchContext();
+    const basicMove = basic.search(pos, ctx);
+    const pruningMove = pruning.search(pos, ctx);
     expect(pruningMove).toBe(basicMove);
   });
 
@@ -57,8 +62,9 @@ describe("Minimax w ab pruning is the same as minimax w/o it", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
 
-    const basicMove = basic.search(pos, 100);
-    const pruningMove = pruning.search(pos, 100);
+    const ctx = new SearchContext();
+    const basicMove = basic.search(pos, ctx);
+    const pruningMove = pruning.search(pos, ctx);
     expect(pruningMove).toBe(basicMove);
   });
 
@@ -69,8 +75,9 @@ describe("Minimax w ab pruning is the same as minimax w/o it", () => {
     const pos = new Position();
     pos.loadFen(PINNED_POS);
 
-    const basicMove = basic.search(pos, 100);
-    const pruningMove = pruning.search(pos, 100);
+    const ctx = new SearchContext();
+    const basicMove = basic.search(pos, ctx);
+    const pruningMove = pruning.search(pos, ctx);
     expect(pruningMove).toBe(basicMove);
   });
 
@@ -81,8 +88,9 @@ describe("Minimax w ab pruning is the same as minimax w/o it", () => {
     const pos = new Position();
     pos.loadFen(PINNED_POS);
 
-    const basicMove = basic.search(pos, 100);
-    const pruningMove = pruning.search(pos, 100);
+    const ctx = new SearchContext();
+    const basicMove = basic.search(pos, ctx);
+    const pruningMove = pruning.search(pos, ctx);
     expect(pruningMove).toBe(basicMove);
   });
 });

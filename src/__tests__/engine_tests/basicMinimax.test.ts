@@ -3,6 +3,7 @@ import { Position } from "../../game/Position.ts";
 import { createMaterialEngine } from "../../engines/materialEngine.ts";
 import { MinimaxV1 } from "../../engines/minimaxEngines/v1/basicMinimax.ts";
 import { KIWIPETE_POS, KNIGHT_FORK_POS } from "../game_tests/fens.ts";
+import { SearchContext } from "../../engines/searchContext.ts";
 
 describe("minimax should be the same as material at depth 1", () => {
   it("is the same for start pos", () => {
@@ -11,8 +12,9 @@ describe("minimax should be the same as material at depth 1", () => {
     const material = createMaterialEngine();
     const minimax = new MinimaxV1(1);
 
-    const matMove = material.search(pos, 100);
-    const minimaxMove = minimax.search(pos, 100);
+    const ctx = new SearchContext();
+    const matMove = material.search(pos, ctx);
+    const minimaxMove = minimax.search(pos, ctx);
 
     expect(minimaxMove).toBe(matMove);
   });
@@ -24,8 +26,9 @@ describe("minimax should be the same as material at depth 1", () => {
     const material = createMaterialEngine();
     const minimax = new MinimaxV1(1);
 
-    const matMove = material.search(pos, 100);
-    const minimaxMove = minimax.search(pos, 100);
+    const ctx = new SearchContext();
+    const matMove = material.search(pos, ctx);
+    const minimaxMove = minimax.search(pos, ctx);
 
     expect(minimaxMove).toBe(matMove);
   });
@@ -37,8 +40,9 @@ describe("minimax should be the same as material at depth 1", () => {
     const material = createMaterialEngine();
     const minimax = new MinimaxV1(1);
 
-    const matMove = material.search(pos, 100);
-    const minimaxMove = minimax.search(pos, 100);
+    const ctx = new SearchContext();
+    const matMove = material.search(pos, ctx);
+    const minimaxMove = minimax.search(pos, ctx);
 
     expect(minimaxMove).toBe(matMove);
   });

@@ -25,9 +25,7 @@ export function createMaterialEngine(): Engine {
         if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
 
         pos.makeMove(move);
-
         const score = -evaluateMaterial(pos, DEFAULT_EVAL_WEIGHTS);
-
         pos.unmakeMove();
 
         if (score > bestScore) {
