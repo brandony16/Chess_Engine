@@ -115,7 +115,7 @@ import {
   generateRookMoves,
 } from "./moveGen/totalPieceGen.ts";
 
-const MAX_SEARCH_PLY = 16;
+const MAX_SEARCH_PLY = 32;
 const MAX_PLY = 512;
 export const MAX_MOVES = 256;
 

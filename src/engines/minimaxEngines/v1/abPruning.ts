@@ -8,14 +8,16 @@ import {
   type EvalWeights,
 } from "../../evaluation/Evaluation.ts";
 import { evaluateMaterial } from "../../evaluation/materialEvaluation.ts";
+import type { SearchContext } from "../../searchContext.ts";
 
 /**
  * Evolution of minimaxV1 that implements alpha-beta pruning
  */
 export class MinimaxV2 implements Engine {
-  name: string;
+  readonly name: string;
   nodesSearched: number;
-  weights: EvalWeights;
+  
+  private readonly weights: EvalWeights;
   depth: number;
 
   constructor(depth: number) {
@@ -25,7 +27,7 @@ export class MinimaxV2 implements Engine {
     this.depth = depth;
   }
 
-  search(pos: Position, maxTimeMs: number): Move {
+  search(pos: Position, ctx: SearchContext): Move {
     pos.searchPly = 0;
     this.nodesSearched = 0; // reset node count
 

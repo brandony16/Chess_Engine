@@ -8,15 +8,16 @@ import {
 } from "../../evaluation/Evaluation.ts";
 import type { Move } from "../../../game/moveMaking/move.ts";
 import { moreThanOne } from "../../../game/bb.ts";
+import type { SearchContext } from "../../searchContext.ts";
 
 /**
  * Engine that implements a basic minimax search. Should mainly be used for testing the 
  */
 export class MinimaxV1 implements Engine {
-  name: string;
+  readonly name: string;
   nodesSearched: number;
-  weights: EvalWeights;
   depth: number;
+  private readonly weights: EvalWeights;
 
   constructor(depth: number) {
     this.name = "MinimaxV1";
@@ -25,7 +26,7 @@ export class MinimaxV1 implements Engine {
     this.depth = depth;
   }
 
-  search(pos: Position, maxTimeMs: number): Move {
+  search(pos: Position, ctx: SearchContext): Move {
     pos.searchPly = 0;
     this.nodesSearched = 0; // reset node count
 
