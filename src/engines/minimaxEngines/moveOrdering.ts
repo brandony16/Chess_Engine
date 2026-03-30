@@ -1,26 +1,27 @@
-import { moreThanOne } from "../../../game/bb.ts";
-import type { Move } from "../../../game/moveMaking/move.ts";
-import { MAX_MOVES, type Position } from "../../../game/Position.ts";
-import { ABORT_SCORE, type Engine } from "../../Engine.ts";
+import { moreThanOne } from "../../game/bb.ts";
+import type { Move } from "../../game/moveMaking/move.ts";
+import { MAX_MOVES, type Position } from "../../game/Position.ts";
+import { ABORT_SCORE, type Engine } from "../Engine.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
   type EvalWeights,
-} from "../../evaluation/Evaluation.ts";
-import { evaluateMaterial } from "../../evaluation/materialEvaluation.ts";
-import type { SearchContext } from "../../searchContext.ts";
+} from "../evaluation/Evaluation.ts";
+import { evaluateMaterial } from "../evaluation/materialEvaluation.ts";
+import { scoreMoveForOrdering } from "../mvv_lva.ts";
+import type { SearchContext } from "../searchContext.ts";
 
 /**
- * Evolution of minimaxV1 that implements alpha-beta pruning
+ * Evolution of minimaxV2 that implements move ordering
  */
-export class MinimaxV2 implements Engine {
+export class MinimaxV3 implements Engine {
   readonly name: string;
 
   private readonly weights: EvalWeights;
   depth: number;
 
   constructor(depth: number) {
-    this.name = "MinimaxV2";
+    this.name = "MinimaxV3";
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
   }
@@ -53,20 +54,21 @@ export class MinimaxV2 implements Engine {
     let bestMove = 0;
     let bestScore = -Infinity;
 
+    const scores = new Int32Array(moveNum);
     for (let i = 0; i < moveNum; i++) {
+      scores[i] = scoreMoveForOrdering(pos.moveBuffer[start + i], pos);
+    }
+
+    for (let i = 0; i < moveNum; i++) {
+      this.#pickBestMove(pos.moveBuffer, scores, start, i, moveNum);
+
       const move = pos.moveBuffer[start + i];
 
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
 
       pos.makeMove(move);
 
-      const score = -this.#negamax(
-        pos,
-        depth - 1,
-        -Infinity,
-        -bestScore,
-        ctx,
-      );
+      const score = -this.#negamax(pos, depth - 1, -Infinity, -bestScore, ctx);
 
       pos.unmakeMove();
 
@@ -100,8 +102,17 @@ export class MinimaxV2 implements Engine {
     const pinned = pos.getPinnedPieces();
     const doubleCheck = moreThanOne(checkers[0], checkers[1]);
 
+    // Make this a buffer
+    const scores = new Int32Array(moves);
+    for (let i = 0; i < moves; i++) {
+      scores[i] = scoreMoveForOrdering(pos.moveBuffer[start + i], pos);
+    }
+
     let legalCount = 0;
     for (let i = 0; i < moves; i++) {
+      // Move best (highest scoring) move to the front of moveBuffer
+      this.#pickBestMove(pos.moveBuffer, scores, start, i, moves);
+
       const move = pos.moveBuffer[start + i];
 
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
@@ -137,5 +148,35 @@ export class MinimaxV2 implements Engine {
     }
 
     return alpha;
+  }
+
+  // Do 1 step of selection sort to search for the move to search
+  #pickBestMove(
+    moveBuffer: Uint32Array,
+    scores: Int32Array,
+    start: number,
+    current: number,
+    end: number,
+  ) {
+    let bestIdx = current;
+    let bestScore = scores[current];
+
+    for (let i = current + 1; i < end; i++) {
+      if (scores[i] > bestScore) {
+        bestScore = scores[i];
+        bestIdx = i;
+      }
+    }
+
+    if (bestIdx !== current) {
+      // Swap moves
+      const tmpMove = moveBuffer[start + current];
+      moveBuffer[start + current] = moveBuffer[start + bestIdx];
+      moveBuffer[start + bestIdx] = tmpMove;
+      // Swap scores
+      const tmpScore = scores[current];
+      scores[current] = scores[bestIdx];
+      scores[bestIdx] = tmpScore;
+    }
   }
 }

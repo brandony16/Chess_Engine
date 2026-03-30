@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MinimaxV1 } from "../../engines/minimaxEngines/v1/basicMinimax.ts";
+import { MinimaxV1 } from "../../engines/minimaxEngines/basicMinimax.ts";
 import { MAX_SEARCH_PLY } from "../../engines/Engine.ts";
 import { SearchContext } from "../../engines/searchContext.ts";
 import { Position } from "../../game/Position.ts";

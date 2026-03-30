@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Position } from "../../game/Position.ts";
 import { createMaterialEngine } from "../../engines/materialEngine.ts";
-import { MinimaxV1 } from "../../engines/minimaxEngines/v1/basicMinimax.ts";
+import { MinimaxV1 } from "../../engines/minimaxEngines/basicMinimax.ts";
 import { KIWIPETE_POS, KNIGHT_FORK_POS } from "../game_tests/fens.ts";
 import { SearchContext } from "../../engines/searchContext.ts";
 

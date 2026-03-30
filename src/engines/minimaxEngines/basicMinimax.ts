@@ -1,14 +1,14 @@
-import { ABORT_SCORE, type Engine } from "../../Engine.ts";
-import { MAX_MOVES, Position } from "../../../game/Position.ts";
-import { evaluateMaterial } from "../../evaluation/materialEvaluation.ts";
+import { ABORT_SCORE, type Engine } from "../Engine.ts";
+import { MAX_MOVES, Position } from "../../game/Position.ts";
+import { evaluateMaterial } from "../evaluation/materialEvaluation.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
   type EvalWeights,
-} from "../../evaluation/Evaluation.ts";
-import type { Move } from "../../../game/moveMaking/move.ts";
-import { moreThanOne } from "../../../game/bb.ts";
-import type { SearchContext } from "../../searchContext.ts";
+} from "../evaluation/Evaluation.ts";
+import type { Move } from "../../game/moveMaking/move.ts";
+import { moreThanOne } from "../../game/bb.ts";
+import type { SearchContext } from "../searchContext.ts";
 
 /**
  * Engine that implements a basic minimax search. Should mainly be used for testing the

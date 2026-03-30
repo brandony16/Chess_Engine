@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { MinimaxV1 } from "../../engines/minimaxEngines/v1/basicMinimax.ts";
+import { MinimaxV1 } from "../../engines/minimaxEngines/basicMinimax.ts";
 import { Position } from "../../game/Position.ts";
-import { MinimaxV2 } from "../../engines/minimaxEngines/v1/abPruning.ts";
+import { MinimaxV2 } from "../../engines/minimaxEngines/abPruning.ts";
 import { KIWIPETE_POS, PINNED_POS } from "../game_tests/fens.ts";
 import { SearchContext } from "../../engines/searchContext.ts";
 
