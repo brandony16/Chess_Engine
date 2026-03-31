@@ -1,7 +1,7 @@
 import { moreThanOne } from "../../game/bb.ts";
 import type { Move } from "../../game/moveMaking/move.ts";
 import { MAX_MOVES, type Position } from "../../game/Position.ts";
-import { ABORT_SCORE, type Engine } from "../Engine.ts";
+import { ABORT_SCORE, MAX_SEARCH_PLY, type Engine } from "../Engine.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
@@ -19,6 +19,7 @@ export class MinimaxV3 implements Engine {
 
   private readonly weights: EvalWeights;
   depth: number;
+  private scoreBuffer = new Int32Array(MAX_SEARCH_PLY * MAX_MOVES);
 
   constructor(depth: number) {
     this.name = "MinimaxV3";
@@ -54,15 +55,16 @@ export class MinimaxV3 implements Engine {
     let bestMove = 0;
     let bestScore = -Infinity;
 
-    const scores = new Int32Array(moveNum);
+    const moveBuf = pos.moveBuffer;
+    const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moveNum; i++) {
-      scores[i] = scoreMoveForOrdering(pos.moveBuffer[start + i], pos);
+      scoreBuf[start + i] = scoreMoveForOrdering(moveBuf[start + i], pos);
     }
 
     for (let i = 0; i < moveNum; i++) {
-      this.#pickBestMove(pos.moveBuffer, scores, start, i, moveNum);
+      this.#pickBestMove(moveBuf, start, i, moveNum);
 
-      const move = pos.moveBuffer[start + i];
+      const move = moveBuf[start + i];
 
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
 
@@ -103,17 +105,18 @@ export class MinimaxV3 implements Engine {
     const doubleCheck = moreThanOne(checkers[0], checkers[1]);
 
     // Make this a buffer
-    const scores = new Int32Array(moves);
+    const moveBuf = pos.moveBuffer;
+    const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moves; i++) {
-      scores[i] = scoreMoveForOrdering(pos.moveBuffer[start + i], pos);
+      scoreBuf[start + i] = scoreMoveForOrdering(moveBuf[start + i], pos);
     }
 
     let legalCount = 0;
     for (let i = 0; i < moves; i++) {
       // Move best (highest scoring) move to the front of moveBuffer
-      this.#pickBestMove(pos.moveBuffer, scores, start, i, moves);
+      this.#pickBestMove(moveBuf, start, i, moves);
 
-      const move = pos.moveBuffer[start + i];
+      const move = moveBuf[start + i];
 
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
       legalCount++;
@@ -153,17 +156,17 @@ export class MinimaxV3 implements Engine {
   // Do 1 step of selection sort to search for the move to search
   #pickBestMove(
     moveBuffer: Uint32Array,
-    scores: Int32Array,
     start: number,
     current: number,
     end: number,
   ) {
     let bestIdx = current;
-    let bestScore = scores[current];
+    const buf = this.scoreBuffer;
+    let bestScore = buf[start + current];
 
     for (let i = current + 1; i < end; i++) {
-      if (scores[i] > bestScore) {
-        bestScore = scores[i];
+      if (buf[start + i] > bestScore) {
+        bestScore = buf[start + i];
         bestIdx = i;
       }
     }
@@ -174,9 +177,9 @@ export class MinimaxV3 implements Engine {
       moveBuffer[start + current] = moveBuffer[start + bestIdx];
       moveBuffer[start + bestIdx] = tmpMove;
       // Swap scores
-      const tmpScore = scores[current];
-      scores[current] = scores[bestIdx];
-      scores[bestIdx] = tmpScore;
+      const tmpScore = buf[start + current];
+      buf[start + current] = buf[start + bestIdx];
+      buf[start + bestIdx] = tmpScore;
     }
   }
 }
