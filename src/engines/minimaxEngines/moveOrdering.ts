@@ -8,7 +8,7 @@ import {
   type EvalWeights,
 } from "../evaluation/Evaluation.ts";
 import { evaluateMaterial } from "../evaluation/materialEvaluation.ts";
-import { scoreMoveForOrdering } from "../mvv_lva.ts";
+import { scoreMoveForOrderingBasic } from "../moveScoring/basicScoring.ts";
 import type { SearchContext } from "../searchContext.ts";
 
 /**
@@ -58,7 +58,7 @@ export class MinimaxV3 implements Engine {
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moveNum; i++) {
-      scoreBuf[start + i] = scoreMoveForOrdering(moveBuf[start + i], pos);
+      scoreBuf[start + i] = scoreMoveForOrderingBasic(moveBuf[start + i]);
     }
 
     for (let i = 0; i < moveNum; i++) {
@@ -108,7 +108,7 @@ export class MinimaxV3 implements Engine {
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moves; i++) {
-      scoreBuf[start + i] = scoreMoveForOrdering(moveBuf[start + i], pos);
+      scoreBuf[start + i] = scoreMoveForOrderingBasic(moveBuf[start + i]);
     }
 
     let legalCount = 0;

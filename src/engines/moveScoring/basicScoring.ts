@@ -1,17 +1,17 @@
-import { NO_PIECE, PIECE_N, PIECES } from "../game/chessConstants.ts";
+import { NO_PIECE, PIECE_N, PIECES } from "../../game/chessConstants.ts";
 import {
   moveCaptured,
   movePiece,
   movePromotion,
   type Move,
-} from "../game/moveMaking/move.ts";
-import type { Position } from "../game/Position.ts";
-import { pieceType } from "./evaluation/Evaluation.ts";
+} from "../../game/moveMaking/move.ts";
+import type { Position } from "../../game/Position.ts";
+import { pieceType } from "../evaluation/Evaluation.ts";
 
 const ORDERING_VALUES = [0, 1, 3, 3, 5, 9, 100];
 
 // Score each move for ordering
-export function scoreMoveForOrdering(move: Move, pos: Position): number {
+export function scoreMoveForOrderingBasic(move: Move): number {
   let total = 0;
   const captured = moveCaptured(move);
 
