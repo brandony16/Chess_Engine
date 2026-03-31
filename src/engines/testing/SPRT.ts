@@ -72,6 +72,9 @@ export const sprt = async (
   let llr = 0;
   let games = 0;
   while (games < MAX_GAMES) {
+    if (games % 50 === 0) {
+      console.log(`Game ${games} started.\nStats: ${stats.wins} wins - ${stats.draws} draws - ${stats.losses} losses`);
+    }
     const gameSeed = Math.floor(rng() * 1e9);
     const openingMoves = await getRandomOpening(openings, gameSeed);
 

@@ -1,5 +1,6 @@
 import { moreThanOne } from "../../game/bb.ts";
-import type { Move } from "../../game/moveMaking/move.ts";
+import { NO_PIECE } from "../../game/chessConstants.ts";
+import { moveCaptured, type Move } from "../../game/moveMaking/move.ts";
 import { MAX_MOVES, type Position } from "../../game/Position.ts";
 import { ABORT_SCORE, MAX_SEARCH_PLY, type Engine } from "../Engine.ts";
 import {
@@ -12,17 +13,18 @@ import { scoreMoveForOrderingBasic } from "../moveScoring/basicScoring.ts";
 import type { SearchContext } from "../searchContext.ts";
 
 /**
- * Evolution of minimaxV2 that implements move ordering
+ * Evolution of minimaxV3 that implements a quiescence search
  */
-export class MinimaxV3 implements Engine {
+export class MinimaxV4 implements Engine {
   readonly name: string;
 
   private readonly weights: EvalWeights;
   depth: number;
   private scoreBuffer = new Int32Array(MAX_SEARCH_PLY * MAX_MOVES);
+  private readonly MAX_QUIESCE_DEPTH = 8;
 
   constructor(depth: number) {
-    this.name = "MinimaxV3";
+    this.name = "MinimaxV4";
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
   }
@@ -95,7 +97,7 @@ export class MinimaxV3 implements Engine {
     if (ctx.tick()) return ABORT_SCORE;
 
     if (depth === 0) {
-      return evaluateMaterial(pos, this.weights);
+      return this.#quiescence(pos, this.MAX_QUIESCE_DEPTH, alpha, beta, ctx);
     }
 
     const start = pos.searchPly * MAX_MOVES;
@@ -147,6 +149,84 @@ export class MinimaxV3 implements Engine {
         return -MATE_SCORE + pos.searchPly;
       }
       return 0; // stalemate
+    }
+
+    return alpha;
+  }
+
+  #quiescence(
+    pos: Position,
+    depth: number,
+    alpha: number,
+    beta: number,
+    ctx: SearchContext,
+  ): number {
+    if (ctx.tick()) return ABORT_SCORE;
+
+    if (depth === 0) {
+      return evaluateMaterial(pos, this.weights);
+    }
+
+    const inCheck = pos.isInCheck();
+
+    if (!inCheck) {
+      const standPat = evaluateMaterial(pos, this.weights);
+
+      // if doing nothing beats beta, opp wont allow this pos
+      if (standPat >= beta) return beta;
+      if (standPat > alpha) alpha = standPat;
+    }
+
+    const start = pos.searchPly * MAX_MOVES;
+    const moves = pos.generatePseudoLegalMoves();
+    const checkers = pos.getCheckers();
+    const pinned = pos.getPinnedPieces();
+    const doubleCheck = moreThanOne(checkers[0], checkers[1]);
+
+    const moveBuf = pos.moveBuffer;
+    const scoreBuf = this.scoreBuffer;
+    for (let i = 0; i < moves; i++) {
+      scoreBuf[start + i] = scoreMoveForOrderingBasic(moveBuf[start + i]);
+    }
+
+    let legalCount = 0;
+    for (let i = 0; i < moves; i++) {
+      // Move best (highest scoring) move to the front of moveBuffer
+      this.#pickBestMove(moveBuf, start, i, moves);
+
+      const move = moveBuf[start + i];
+
+      // Only care about captures or if in check, search all evasions
+      if (!inCheck && moveCaptured(move) === NO_PIECE) continue;
+
+      if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
+      legalCount++;
+
+      pos.makeMove(move);
+
+      const score = -this.#quiescence(pos, depth - 1, -beta, -alpha, ctx);
+
+      pos.unmakeMove();
+
+      if (ctx.aborted) return ABORT_SCORE;
+
+      if (score >= beta) {
+        // Beta cutoff: opponent won't allow this position because we already
+        // have a move that's too good. Stop searching immediately.
+        return beta;
+      }
+
+      if (score > alpha) {
+        // Found a better move than our current best - raise the lower bound.
+        alpha = score;
+      }
+    }
+
+    if (legalCount === 0) {
+      if (inCheck) {
+        return -MATE_SCORE + pos.searchPly;
+      }
+      // cant return 0 for stalemate as it could just be that we are not in check and have no captures
     }
 
     return alpha;
