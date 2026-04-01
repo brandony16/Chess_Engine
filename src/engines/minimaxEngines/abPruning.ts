@@ -25,6 +25,8 @@ export class MinimaxV2 implements Engine {
     this.depth = depth;
   }
 
+  newGame(): void {}
+
   search(pos: Position, ctx: SearchContext): Move {
     pos.searchPly = 0;
 
@@ -60,13 +62,7 @@ export class MinimaxV2 implements Engine {
 
       pos.makeMove(move);
 
-      const score = -this.#negamax(
-        pos,
-        depth - 1,
-        -Infinity,
-        -bestScore,
-        ctx,
-      );
+      const score = -this.#negamax(pos, depth - 1, -Infinity, -bestScore, ctx);
 
       pos.unmakeMove();
 

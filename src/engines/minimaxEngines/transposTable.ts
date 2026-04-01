@@ -9,27 +9,41 @@ import {
   type EvalWeights,
 } from "../evaluation/Evaluation.ts";
 import { evaluateMaterial } from "../evaluation/materialEvaluation.ts";
-import { scoreMoveForOrderingBasic } from "../moveScoring/basicScoring.ts";
+import {
+  scoreMoveForOrderingBasic,
+  scoreMoveForOrderingWithTT,
+} from "../moveScoring/basicScoring.ts";
 import type { SearchContext } from "../searchContext.ts";
+import { TranspositionTable } from "../transpositionTable/table.ts";
+import {
+  TT_EXACT,
+  TT_LOWERBOUND,
+  TT_UPPERBOUND,
+} from "../transpositionTable/ttTypes.ts";
 
 /**
- * Evolution of minimaxV3 that implements a quiescence search
+ * Evolution of minimaxV4 that implements a transposition table
  */
-export class MinimaxV4 implements Engine {
+export class MinimaxV5 implements Engine {
   readonly name: string;
 
   private readonly weights: EvalWeights;
   depth: number;
   private scoreBuffer = new Int32Array(MAX_SEARCH_PLY * MAX_MOVES);
   private readonly MAX_QUIESCE_DEPTH = 8;
+  private tt: TranspositionTable;
 
   constructor(depth: number) {
-    this.name = "MinimaxV4";
+    this.name = "MinimaxV5";
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
+
+    this.tt = new TranspositionTable();
   }
 
-  newGame(): void {}
+  newGame(): void {
+    this.tt.clear();
+  }
 
   search(pos: Position, ctx: SearchContext): Move {
     pos.searchPly = 0;
@@ -56,13 +70,20 @@ export class MinimaxV4 implements Engine {
     const pinned = pos.getPinnedPieces();
     const doubleCheck = moreThanOne(checkers[0], checkers[1]);
 
+    // Get TT move for ordering — don't use score at root
+    const ttIdx = this.tt.probe(pos.zobristLo, pos.zobristHi);
+    const ttMove = ttIdx !== -1 ? this.tt.getMove(ttIdx) : 0;
+
     let bestMove = 0;
     let bestScore = -Infinity;
 
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moveNum; i++) {
-      scoreBuf[start + i] = scoreMoveForOrderingBasic(moveBuf[start + i]);
+      scoreBuf[start + i] = scoreMoveForOrderingWithTT(
+        moveBuf[start + i],
+        ttMove,
+      );
     }
 
     for (let i = 0; i < moveNum; i++) {
@@ -86,6 +107,17 @@ export class MinimaxV4 implements Engine {
       }
     }
 
+    // Store root result in TT
+    this.tt.store(
+      pos.zobristLo,
+      pos.zobristHi,
+      depth,
+      bestScore,
+      TT_EXACT,
+      bestMove,
+      pos.searchPly,
+    );
+
     return bestMove;
   }
 
@@ -97,6 +129,20 @@ export class MinimaxV4 implements Engine {
     ctx: SearchContext,
   ): number {
     if (ctx.tick()) return ABORT_SCORE;
+
+    const originalAlpha = alpha;
+    const ttIdx = this.tt.probe(pos.zobristLo, pos.zobristHi);
+    let ttMove = 0;
+    if (ttIdx !== -1 && this.tt.getDepth(ttIdx) >= depth) {
+      const ttScore = this.tt.getScore(ttIdx, pos.searchPly);
+      const ttFlag = this.tt.getFlag(ttIdx);
+
+      if (ttFlag === TT_EXACT) return ttScore;
+      if (ttFlag === TT_LOWERBOUND) alpha = Math.max(alpha, ttScore);
+      if (ttFlag === TT_UPPERBOUND) beta = Math.min(beta, ttScore);
+      if (alpha >= beta) return ttScore;
+    }
+    if (ttIdx !== -1) ttMove = this.tt.getMove(ttIdx);
 
     if (depth === 0) {
       return this.#quiescence(pos, this.MAX_QUIESCE_DEPTH, alpha, beta, ctx);
@@ -111,10 +157,14 @@ export class MinimaxV4 implements Engine {
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moves; i++) {
-      scoreBuf[start + i] = scoreMoveForOrderingBasic(moveBuf[start + i]);
+      scoreBuf[start + i] = scoreMoveForOrderingWithTT(
+        moveBuf[start + i],
+        ttMove,
+      );
     }
 
     let legalCount = 0;
+    let bestMove = 0;
     for (let i = 0; i < moves; i++) {
       // Move best (highest scoring) move to the front of moveBuffer
       this.#pickBestMove(moveBuf, start, i, moves);
@@ -133,14 +183,22 @@ export class MinimaxV4 implements Engine {
       if (ctx.aborted) return ABORT_SCORE;
 
       if (score >= beta) {
-        // Beta cutoff: opponent won't allow this position because we already
-        // have a move that's too good. Stop searching immediately.
+        // Store this move in tt table as it caused a cutoff
+        this.tt.store(
+          pos.zobristLo,
+          pos.zobristHi,
+          depth,
+          beta,
+          TT_LOWERBOUND,
+          move,
+          pos.searchPly,
+        );
         return beta;
       }
 
       if (score > alpha) {
-        // Found a better move than our current best - raise the lower bound.
         alpha = score;
+        bestMove = move;
       }
     }
 
@@ -152,6 +210,20 @@ export class MinimaxV4 implements Engine {
       }
       return 0; // stalemate
     }
+
+    // Determine flag based on how alpha changed relative to original
+    // No lowerbound as beta cutoffs are returned immediately
+    const flag = alpha === originalAlpha ? TT_UPPERBOUND : TT_EXACT;
+
+    this.tt.store(
+      pos.zobristLo,
+      pos.zobristHi,
+      depth,
+      alpha,
+      flag,
+      bestMove,
+      pos.searchPly,
+    );
 
     return alpha;
   }

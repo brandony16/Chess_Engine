@@ -73,7 +73,9 @@ export const sprt = async (
   let games = 0;
   while (games < MAX_GAMES) {
     if (games % 50 === 0) {
-      console.log(`Game ${games} started.\nStats: ${stats.wins} wins - ${stats.draws} draws - ${stats.losses} losses`);
+      console.log(
+        `Game ${games} started.\nStats: ${stats.wins} wins - ${stats.draws} draws - ${stats.losses} losses`,
+      );
     }
     const gameSeed = Math.floor(rng() * 1e9);
     const openingMoves = await getRandomOpening(openings, gameSeed);
@@ -119,6 +121,9 @@ async function playSingleGame(
 ): Promise<Result> {
   const pos = new Position();
   const MAX_PLY = 512;
+
+  white.newGame();
+  black.newGame();
 
   await playOpeningMoves(openingMoves, pos);
 

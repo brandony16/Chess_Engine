@@ -8,6 +8,8 @@ export function createRandomEngine(rng: () => number): Engine {
   return {
     name: "Random",
 
+    newGame(): void {},
+
     search(pos: Position, ctx: SearchContext): Move {
       pos.searchPly = 0;
       const moveNum = pos.generatePseudoLegalMoves();

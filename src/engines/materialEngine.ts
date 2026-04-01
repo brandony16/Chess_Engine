@@ -10,6 +10,8 @@ export function createMaterialEngine(): Engine {
   return {
     name: "Material",
 
+    newGame(): void {},
+
     search(pos: Position, ctx: SearchContext): Move {
       pos.searchPly = 0;
       const numMoves = pos.generatePseudoLegalMoves();

@@ -5,7 +5,6 @@ import {
   movePromotion,
   type Move,
 } from "../../game/moveMaking/move.ts";
-import type { Position } from "../../game/Position.ts";
 import { pieceType } from "../evaluation/Evaluation.ts";
 
 const ORDERING_VALUES = [0, 1, 3, 3, 5, 9, 100];
@@ -25,6 +24,30 @@ export function scoreMoveForOrderingBasic(move: Move): number {
   const promo = movePromotion(move);
   if (promo !== NO_PIECE) {
     total += ORDERING_VALUES[promo] + 900_000;
+  }
+
+  return total;
+}
+
+export function scoreMoveForOrderingWithTT(move: Move, ttMove: Move): number {
+  let total = 0;
+  const captured = moveCaptured(move);
+
+  // Always do TT move first
+  if (move === ttMove) {
+    total += 1_000_000;
+  }
+
+  // Captures next, ordered by MVV-LVA
+  // (Most Valuable Victim - Least Valuable Attacker)
+  if (captured !== NO_PIECE) {
+    total += MVV_LVA[captured * PIECE_N + movePiece(move)] + 100_000;
+  }
+
+  // Promotions
+  const promo = movePromotion(move);
+  if (promo !== NO_PIECE) {
+    total += ORDERING_VALUES[promo] + 90_000;
   }
 
   return total;

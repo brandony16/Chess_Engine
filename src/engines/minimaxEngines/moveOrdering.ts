@@ -27,6 +27,8 @@ export class MinimaxV3 implements Engine {
     this.depth = depth;
   }
 
+  newGame(): void {}
+
   search(pos: Position, ctx: SearchContext): Move {
     pos.searchPly = 0;
 

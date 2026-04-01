@@ -89,6 +89,9 @@ async function playSingleGame(
   const pos = new Position();
   const MAX_PLY = 512;
 
+  white.newGame();
+  black.newGame();
+
   await playOpeningMoves(openingMoves, pos);
 
   const ctx = new SearchContext(maxNodeCt);
