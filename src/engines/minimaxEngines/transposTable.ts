@@ -31,7 +31,7 @@ export class MinimaxV5 implements Engine {
   depth: number;
   private scoreBuffer = new Int32Array(MAX_SEARCH_PLY * MAX_MOVES);
   private readonly MAX_QUIESCE_DEPTH = 8;
-  private tt: TranspositionTable;
+  tt: TranspositionTable;
 
   constructor(depth: number) {
     this.name = "MinimaxV5";
@@ -137,10 +137,16 @@ export class MinimaxV5 implements Engine {
       const ttScore = this.tt.getScore(ttIdx, pos.searchPly);
       const ttFlag = this.tt.getFlag(ttIdx);
 
-      if (ttFlag === TT_EXACT) return ttScore;
+      if (ttFlag === TT_EXACT) {
+        this.tt.cutoffs++;
+        return ttScore;
+      }
       if (ttFlag === TT_LOWERBOUND) alpha = Math.max(alpha, ttScore);
       if (ttFlag === TT_UPPERBOUND) beta = Math.min(beta, ttScore);
-      if (alpha >= beta) return ttScore;
+      if (alpha >= beta) {
+        this.tt.cutoffs++;
+        return beta;
+      }
     }
     if (ttIdx !== -1) ttMove = this.tt.getMove(ttIdx);
 
@@ -188,7 +194,7 @@ export class MinimaxV5 implements Engine {
           pos.zobristLo,
           pos.zobristHi,
           depth,
-          beta,
+          score,
           TT_LOWERBOUND,
           move,
           pos.searchPly,

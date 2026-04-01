@@ -12,6 +12,11 @@ export class TranspositionTable {
   private flag: Int8Array;
   private move: Uint32Array;
 
+  // Stats
+  hits: number = 0;
+  misses: number = 0;
+  cutoffs: number = 0;
+
   constructor(sizeMB = 64) {
     // Make size power of 2 so you can use & instead of %
     this.size =
@@ -28,7 +33,7 @@ export class TranspositionTable {
   index(keyLo: number): number {
     // bc size is a power of 2, size - 1 is all 1s.
     // & therefore isolates the trailing bits, just like modulo
-    return keyLo & (this.size - 1);
+    return (keyLo >>> 0) & (this.size - 1);
   }
 
   store(
@@ -41,6 +46,14 @@ export class TranspositionTable {
     ply: number,
   ): void {
     const i = this.index(keyLo);
+
+    if (
+      (this.keyLo[i] !== keyLo || this.keyHi[i] !== keyHi) &&
+      this.depth[i] > depth
+    ) {
+      // keep deeper entries
+      return;
+    }
 
     // Adjust mate scores before storing
     const adjustedScore =
@@ -62,9 +75,11 @@ export class TranspositionTable {
   probe(keyLo: number, keyHi: number): number {
     const idx = this.index(keyLo);
     if (this.keyLo[idx] === keyLo && this.keyHi[idx] === keyHi) {
+      this.hits++;
       return idx;
     }
 
+    this.misses++;
     return -1;
   }
 
@@ -92,5 +107,6 @@ export class TranspositionTable {
   clear(): void {
     this.keyLo.fill(0);
     this.keyHi.fill(0);
+    this.depth.fill(0);
   }
 }
