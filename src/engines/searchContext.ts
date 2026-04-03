@@ -7,7 +7,7 @@ export class SearchContext {
     this.nodeLimit = nodeLimit;
   }
 
-  reset(nodeLimit: number): void {
+  reset(nodeLimit: number = this.nodeLimit): void {
     this.nodesSearched = 0;
     this.nodeLimit = nodeLimit;
     this.aborted = false;

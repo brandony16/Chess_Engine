@@ -4,8 +4,8 @@ import { MATE_THRESHOLD } from "../evaluation/Evaluation.ts";
 export class TranspositionTable {
   private readonly ENTRY_BYTES = 18; // 8 for key, 4 each for depth and move, 1 each for depth and flag
 
-  private size: number;
-  private keyLo: Int32Array;
+  readonly size: number;
+  readonly keyLo: Int32Array;
   private keyHi: Int32Array;
   private depth: Int8Array;
   private score: Int32Array;

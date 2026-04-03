@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
-import { Position } from "../../../game/Position.ts";
+import { MAX_MOVES, Position } from "../../../game/Position.ts";
+import { moreThanOne } from "../../../game/bb.ts";
 
 type MoveCountTestCase = [
   description: string,
@@ -39,9 +40,22 @@ describe("GetAllLegalMoves", () => {
       const pos = new Position();
       pos.loadFen(fen);
 
-      const moveCount = pos.generateLegalMoves();
+      const pseudoCount = pos.generatePseudoLegalMoves();
+      const checkers = pos.getCheckers();
+      const pinned = pos.getPinnedPieces();
+      const doubleCheck = moreThanOne(checkers[0], checkers[1]);
 
-      expect(moveCount).toBe(expectedCount);
+      const start = pos.searchPly * MAX_MOVES;
+      let count = 0;
+      for (let i = 0; i < pseudoCount; i++) {
+        const move = pos.moveBuffer[start + i];
+
+        if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
+
+        count++;
+      }
+
+      expect(count).toBe(expectedCount);
     },
   );
 });

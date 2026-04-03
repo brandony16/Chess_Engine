@@ -27,6 +27,7 @@ import {
   WHITE_PAWN,
   WHITE_QUEEN,
   WHITE_ROOK,
+  type Piece,
 } from "../../../game/chessConstants.ts";
 import { isRook } from "../../../game/pieceUtils/pieceClassifiers.ts";
 import {
@@ -57,11 +58,11 @@ const confirmMove = (pos: Position, move: Move) => {
     if (from > to) {
       // Queenside
       expect(pos.pieceAt[from - 4]).toBe(NO_PIECE);
-      expect(isRook(pos.pieceAt[from - 1])).toBe(true);
+      expect(isRook(pos.pieceAt[from - 1] as Piece)).toBe(true);
     } else {
       // Kingside
       expect(pos.pieceAt[from + 3]).toBe(NO_PIECE);
-      expect(isRook(pos.pieceAt[from + 1])).toBe(true);
+      expect(isRook(pos.pieceAt[from + 1] as Piece)).toBe(true);
     }
   }
 

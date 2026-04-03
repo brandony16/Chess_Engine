@@ -19,11 +19,11 @@ async function main() {
   const quiesce = new MinimaxV4(MAX_SEARCH_PLY);
   const transpos = new MinimaxV5(MAX_SEARCH_PLY);
 
-  const nodeLimit = 10_000;
+  const nodeLimit = 100_000;
 
   const start = performance.now();
   // const result = await sprt(quiesce, moveOrdering, nodeLimit);
-  const result = await runMatch(transpos, quiesce, 50, nodeLimit, 16);
+  const result = await runMatch(transpos, quiesce, 100, nodeLimit, 16);
   const end = performance.now();
 
   const time = ((end - start) / 1000).toFixed(2); // get time in seconds

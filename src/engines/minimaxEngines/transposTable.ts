@@ -145,13 +145,38 @@ export class MinimaxV5 implements Engine {
       if (ttFlag === TT_UPPERBOUND) beta = Math.min(beta, ttScore);
       if (alpha >= beta) {
         this.tt.cutoffs++;
-        return beta;
+        return ttScore;
       }
     }
     if (ttIdx !== -1) ttMove = this.tt.getMove(ttIdx);
 
     if (depth === 0) {
-      return this.#quiescence(pos, this.MAX_QUIESCE_DEPTH, alpha, beta, ctx);
+      const score = this.#quiescence(
+        pos,
+        this.MAX_QUIESCE_DEPTH,
+        alpha,
+        beta,
+        ctx,
+      );
+
+      const flag =
+        score >= beta
+          ? TT_LOWERBOUND
+          : score > alpha
+            ? TT_EXACT
+            : TT_UPPERBOUND;
+
+      this.tt.store(
+        pos.zobristLo,
+        pos.zobristHi,
+        depth,
+        score,
+        flag,
+        0,
+        pos.searchPly,
+      );
+
+      return score;
     }
 
     const start = pos.searchPly * MAX_MOVES;

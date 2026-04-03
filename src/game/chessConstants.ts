@@ -1,4 +1,4 @@
-import { bbFromBigInt, bbToBigInt, type Bitboard } from "./bb.ts";
+import { bbFromBigInt, type Bitboard } from "./bb.ts";
 
 // Players
 export type Player = 0 | 1; // WHITE = 0, BLACK = 1

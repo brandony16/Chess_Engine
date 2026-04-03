@@ -1,10 +1,13 @@
+import { mulberry32 } from "../../random.ts";
 import { PIECE_N, PIECES } from "../chessConstants.ts";
+
+const rng = mulberry32(16);
 
 /**
  * Generates a random 32 bit integer
  * @returns {number} - a random number
  */
-const rand32 = (): number => (Math.random() * 0x100000000) >>> 0;
+const rand32 = (): number => (rng() * 0x100000000) >>> 0;
 
 /**
  * Zobrist table for hashing. Creates a unique bitstring for every piece at every square.

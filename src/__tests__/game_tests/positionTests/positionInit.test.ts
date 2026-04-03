@@ -40,9 +40,11 @@ describe("Position initialization - init values", () => {
   test("zobrist key matches recomputed hash", () => {
     const pos = new Position();
 
-    const initZobrist = pos.zobristKey;
+    const initLo = pos.zobristLo,
+      initHi = pos.zobristHi;
     pos.computeZobrist();
-    expect(pos.zobristKey).toBe(initZobrist);
+    expect(pos.zobristLo).toBe(initLo);
+    expect(pos.zobristHi).toBe(initHi);
   });
 
   test("position validates after initialization", () => {
