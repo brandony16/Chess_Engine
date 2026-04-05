@@ -16,6 +16,7 @@ import type { SearchContext } from "../searchContext.ts";
  */
 export class MinimaxV3 implements Engine {
   readonly name: string;
+  readonly description: string;
 
   private readonly weights: EvalWeights;
   depth: number;
@@ -23,6 +24,7 @@ export class MinimaxV3 implements Engine {
 
   constructor(depth: number) {
     this.name = "MinimaxV3";
+    this.description = "Searches better moves first, leading to more pruning";
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
   }

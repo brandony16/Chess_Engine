@@ -35,7 +35,7 @@ export function scoreMoveForOrderingWithTT(move: Move, ttMove: Move): number {
 
   // Always do TT move first
   if (move === ttMove) {
-    total += 1_000_000;
+    total += 10_000_000;
   }
 
   // Captures next, ordered by MVV-LVA

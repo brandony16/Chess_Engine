@@ -9,6 +9,7 @@ import type { SearchContext } from "./searchContext.ts";
 export function createMaterialEngine(): Engine {
   return {
     name: "Material",
+    description: "Makes moves based purely off of material",
 
     newGame(): void {},
 

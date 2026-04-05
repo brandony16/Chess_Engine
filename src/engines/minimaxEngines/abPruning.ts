@@ -15,12 +15,14 @@ import type { SearchContext } from "../searchContext.ts";
  */
 export class MinimaxV2 implements Engine {
   readonly name: string;
+  readonly description: string;
 
   private readonly weights: EvalWeights;
   depth: number;
 
   constructor(depth: number) {
     this.name = "MinimaxV2";
+    this.description = "Seaches more efficiently by pruning bad branches";
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
   }

@@ -117,19 +117,29 @@ describe("TT usage in search", () => {
     const ctx = new SearchContext();
 
     // First search
-    engine.search(pos, ctx);
+    const move = engine.search(pos, ctx);
 
     console.log(`Nodes searched: ${ctx.nodesSearched}`);
     const ttEntriesAfterFirstSearch = engine.tt.keyLo.filter(
       (k) => k !== 0,
     ).length;
     console.log(`TT entries populated: ${ttEntriesAfterFirstSearch}`);
+    console.log(`Hits: ${engine.tt.hits}`);
+    console.log(`Misses: ${engine.tt.misses}`);
+    console.log(`Cutoffs: ${engine.tt.cutoffs}`);
+    console.log(`Nodes - Cutoffs = ${ctx.nodesSearched - engine.tt.cutoffs}`);
 
     // Check if root is in TT
     const rootIdx = engine.tt.probe(pos.zobristLo, pos.zobristHi);
     console.log(`Root in TT: ${rootIdx !== -1}`);
     if (rootIdx !== -1) {
       console.log(`Root depth: ${engine.tt.getDepth(rootIdx)}`);
+      console.log(`Root score: ${engine.tt.getScore(rootIdx, 0)}`);
+      console.log(`Root flag: ${engine.tt.getFlag(rootIdx)}`);
+      console.log(`Root move: ${engine.tt.getMove(rootIdx)}`);
+      console.log(
+        `Move: ${move}\nMoves Equal: ${engine.tt.getMove(rootIdx) === move}`,
+      );
     }
 
     ctx.reset();

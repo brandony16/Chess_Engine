@@ -19,7 +19,7 @@ async function main() {
   const quiesce = new MinimaxV4(MAX_SEARCH_PLY);
   const transpos = new MinimaxV5(MAX_SEARCH_PLY);
 
-  const nodeLimit = 100_000;
+  const nodeLimit = 10_000;
 
   const start = performance.now();
   // const result = await sprt(quiesce, moveOrdering, nodeLimit);

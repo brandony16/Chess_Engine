@@ -26,6 +26,7 @@ import {
  */
 export class MinimaxV5 implements Engine {
   readonly name: string;
+  readonly description: string;
 
   private readonly weights: EvalWeights;
   depth: number;
@@ -35,6 +36,8 @@ export class MinimaxV5 implements Engine {
 
   constructor(depth: number) {
     this.name = "MinimaxV5";
+    this.description =
+      "Stores search results of previous positions so less repeat searches occur";
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
 
@@ -64,6 +67,8 @@ export class MinimaxV5 implements Engine {
   }
 
   #searchRoot(pos: Position, depth: number, ctx: SearchContext): Move {
+    if (ctx.tick()) return ABORT_SCORE;
+
     const start = pos.searchPly * MAX_MOVES;
     const moveNum = pos.generatePseudoLegalMoves();
     const checkers = pos.getCheckers();
@@ -318,7 +323,7 @@ export class MinimaxV5 implements Engine {
       if (score >= beta) {
         // Beta cutoff: opponent won't allow this position because we already
         // have a move that's too good. Stop searching immediately.
-        return beta;
+        return score;
       }
 
       if (score > alpha) {

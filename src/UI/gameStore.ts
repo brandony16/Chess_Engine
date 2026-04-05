@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import { type Engine } from "./utilTypes.ts";
 import { Game } from "../game/Game.ts";
 import {
   BLACK,
@@ -14,13 +13,15 @@ import { Snapshot } from "../game/Snapshot.ts";
 import { moveToAlgebraic } from "./generalHelpers.ts";
 import { buildPGN } from "../game/fenAndUCI/pgn.ts";
 import type { Move } from "../game/moveMaking/move.ts";
+import type { Engine } from "../engines/Engine.ts";
+import { MinimaxV5 } from "../engines/minimaxEngines/transposTable.ts";
 
 export type ModalType = "history" | "battle" | "new";
 export type HistoryEntry = {
   pgn: string;
   engineGame: boolean;
-  white: Engine | "user";
-  black: Engine | "user";
+  white: string;
+  black: string;
   plyCount: number;
 };
 type ModalState = { isOpen: false } | { isOpen: true; type: ModalType };
@@ -31,7 +32,7 @@ type PromotionState =
 export const INITIAL_STATE = {
   fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   userSide: WHITE,
-  engine: "BMV1",
+  engine: new MinimaxV5(5),
   depth: 5,
   timeLimit: 5000,
 } as const;
@@ -143,8 +144,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       if (game.isOver()) {
         const result = game.result();
 
-        const whiteSide = userSide === WHITE ? "user" : selectedEngine;
-        const blackSide = userSide === BLACK ? "user" : selectedEngine;
+        const whiteSide = userSide === WHITE ? "user" : selectedEngine.name;
+        const blackSide = userSide === BLACK ? "user" : selectedEngine.name;
 
         const gamePGN = buildPGN(algebraicMoves, {
           Event: wasEngineGame ? "Engine Game" : "Normal Battle",

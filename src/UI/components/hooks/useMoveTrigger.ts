@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { useGameStore } from "../../gameStore.ts";
-import type {
-  EnginePost,
-} from "../workers/engineWorkerTypes.ts";
+import type { EnginePost } from "../workers/engineWorkerTypes.ts";
+import { SearchContext } from "../../../engines/searchContext.ts";
 
 /**
  * Custom hook that handles the engine moving after the player does.
@@ -21,12 +20,13 @@ export default function useMoveTrigger(
     if (sideToMove !== userSide && !game.isOver() && userSide !== null) {
       const state = useGameStore.getState();
       const position = game.getPositionCpy();
-      
+
+      const ctx = new SearchContext();
+
       postToEngine({
         pos: position,
         engine: state.selectedEngine,
-        timeLimit: state.maxSearchTimeMs,
-        depth: state.searchDepth,
+        ctx: ctx,
       });
     }
   }, [sideToMove, userSide, postToEngine]);

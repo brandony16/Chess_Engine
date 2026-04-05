@@ -1,16 +1,15 @@
 import React from "react";
 import PropTypes from "prop-types";
-
-import { EngineObjects, type Engine } from "../../../utilTypes.ts";
+import type { Engine } from "../../../../engines/Engine.ts";
 
 type EngineOptionProps = {
-  type: Engine,
+  engine: Engine,
   selected: boolean,
   onSelect: (type: Engine) => void;
 }
 
-function EngineOption({ type, selected, onSelect }: EngineOptionProps) {
-  const id = `engine-${type}`;
+function EngineOption({ engine, selected, onSelect }: EngineOptionProps) {
+  const id = `engine-${engine.name}`;
   return (
     <label
       htmlFor={id}
@@ -20,12 +19,12 @@ function EngineOption({ type, selected, onSelect }: EngineOptionProps) {
         id={id}
         type="radio"
         name="engine"
-        value={type}
+        value={engine.name}
         checked={selected}
-        onChange={() => onSelect(type)}
+        onChange={() => onSelect(engine)}
       />
-      <span className="engineName">{EngineObjects[type].name}</span>
-      <span className="engineDesc">{EngineObjects[type].description}</span>
+      <span className="engineName">{engine.name}</span>
+      <span className="engineDesc">{engine.description}</span>
     </label>
   );
 }

@@ -25,50 +25,6 @@ import {
   WHITE_ROOK,
 } from "../game/chessConstants.ts";
 
-export const EngineTypes = {
-  BMV1: "BMV1",
-  BMV2: "BMV2",
-  BMV3: "BMV3",
-  BMV4: "BMV4",
-  BMV5: "BMV5",
-  BMV6: "BMV6",
-  BMV7: "BMV7",
-} as const;
-
-export type Engine = keyof typeof EngineTypes;
-
-export const engineStrings = [
-  "BondMonkeyV1",
-  "BondMonkeyV2",
-  "BondMonkeyV3",
-  "BondMonkeyV4",
-  "BondMonkeyV5",
-  "BondMonkeyV6",
-  "BondMonkeyV7",
-] as const;
-
-export const EngineObjects: Record<
-  Engine,
-  { name: string; description: string }
-> = {
-  BMV1: { name: "BondMonkey V1", description: "Plays random moves" },
-  BMV2: { name: "BondMonkey V2", description: "Basic searching" },
-  BMV3: { name: "BondMonkey V3", description: "More efficient searching" },
-  BMV4: { name: "BondMonkey V4", description: "Calculates tactics better" },
-  BMV5: { name: "BondMonkey V5", description: "Better Evaluation" },
-  BMV6: { name: "BondMonkey V6", description: "Values mobility more" },
-  BMV7: { name: "BondMonkey V7", description: "In progress" },
-} as const;
-
-export const nameToType = {
-  BondMonkeyV1: EngineTypes.BMV1,
-  BondMonkeyV2: EngineTypes.BMV2,
-  BondMonkeyV3: EngineTypes.BMV3,
-  BondMonkeyV4: EngineTypes.BMV4,
-  BondMonkeyV5: EngineTypes.BMV5,
-  BondMonkeyV6: EngineTypes.BMV6,
-} as const;
-
 export const BattleModalStates = {
   SETTING: "setting",
   LOADING: "loading",

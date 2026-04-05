@@ -7,6 +7,7 @@ import type { SearchContext } from "./searchContext.ts";
 export function createRandomEngine(rng: () => number): Engine {
   return {
     name: "Random",
+    description: "Plays random moves",
 
     newGame(): void {},
 
