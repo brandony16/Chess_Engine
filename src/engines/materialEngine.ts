@@ -10,6 +10,7 @@ export function createMaterialEngine(): Engine {
   return {
     name: "Material",
     description: "Makes moves based purely off of material",
+    depth: -1,
 
     newGame(): void {},
 

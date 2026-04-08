@@ -51,6 +51,7 @@ export class Game implements GameView {
     if (this.position.gameOver()) {
       return false;
     }
+
     const legal = this.generateLegalMoves();
     const found = legal.find((m) => m === move);
 

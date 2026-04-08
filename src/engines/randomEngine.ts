@@ -8,6 +8,7 @@ export function createRandomEngine(rng: () => number): Engine {
   return {
     name: "Random",
     description: "Plays random moves",
+    depth: -1,
 
     newGame(): void {},
 

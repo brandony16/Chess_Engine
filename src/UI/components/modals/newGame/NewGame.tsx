@@ -7,11 +7,10 @@ import EngineSelector from "./EngineSelector.jsx";
 
 import "./NewGame.css";
 import { BLACK, WHITE, type Player } from "../../../../game/chessConstants.ts";
+import type { Engine } from "../../../../engines/Engine.ts";
 
+const START_POS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-const START_POS =
-  "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  
 type StateInfo = {
   userSide: Player | null;
   engine: string;
@@ -40,11 +39,9 @@ const NewGame = () => {
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
   const { userSide, engine, depth, timeLimit } = state;
 
-  const onEngineChange = useCallback(
-    (newEngine: string) =>
-      dispatch({ type: "SET_FIELD", field: "engine", value: newEngine }),
-    [],
-  );
+  const onEngineChange = useCallback((newEngine: string) => {
+    dispatch({ type: "SET_FIELD", field: "engine", value: newEngine });
+  }, []);
 
   const onSideChange = useCallback(
     (newSide: Player | null) =>
@@ -67,7 +64,7 @@ const NewGame = () => {
 
   return (
     <div className="newGameBody">
-      <EngineSelector engine={engine} onChange={onEngineChange} />
+      <EngineSelector selected={engine} onChange={onEngineChange} />
 
       <div className="depthTimeWrap">
         <div className="form-group">

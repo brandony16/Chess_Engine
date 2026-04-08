@@ -19,6 +19,8 @@ import {
 import { getShownMove } from "../../stateUtils.ts";
 import { movesToBB } from "../../generalHelpers.ts";
 import { getSquare } from "../../../game/helpers/boardUtils.ts";
+import { bbFromBigInt, bbPrint } from "../../../game/bb.ts";
+import { moveTo } from "../../../game/moveMaking/move.ts";
 
 interface BoardProps {
   onSquareClick: (rank: Rank, file: File) => void;

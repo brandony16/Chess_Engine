@@ -1,25 +1,23 @@
 import React from "react";
-import { EngineTypes } from "../../../utilTypes.ts";
 
 import EngineOption from "./EngineOption.jsx";
+import { engines } from "../../../../engines/engineList.ts";
 
 type EngineSelectorProps = {
-  engine: string;
-  onChange: (type: string) => void;
+  selected: string;
+  onChange: (engine: string) => void;
 };
 
-const engineOptions = Object.values(EngineTypes).reverse();
-
-const EngineSelector = ({ engine, onChange }: EngineSelectorProps) => {
+const EngineSelector = ({ selected, onChange }: EngineSelectorProps) => {
   return (
     <fieldset className="engine-selector">
       <legend>Choose your opponent</legend>
       <div className="engineWrap">
-        {engineOptions.map((type) => (
+        {engines.map((eng) => (
           <EngineOption
-            key={type}
-            type={type}
-            selected={engine === type}
+            key={eng}
+            engine={eng}
+            selected={selected === eng}
             onSelect={onChange}
           />
         ))}

@@ -4,7 +4,9 @@ import type { SearchContext } from "./searchContext.ts";
 
 export type Engine = {
   readonly name: string;
-  readonly description: string
+  readonly description: string;
+  depth: number;
+  
   search(pos: Position, ctx: SearchContext): Move;
   newGame(): void;
 };

@@ -13,8 +13,7 @@ import { Snapshot } from "../game/Snapshot.ts";
 import { moveToAlgebraic } from "./generalHelpers.ts";
 import { buildPGN } from "../game/fenAndUCI/pgn.ts";
 import type { Move } from "../game/moveMaking/move.ts";
-import type { Engine } from "../engines/Engine.ts";
-import { MinimaxV5 } from "../engines/minimaxEngines/transposTable.ts";
+import { engines } from "../engines/engineList.ts";
 
 export type ModalType = "history" | "battle" | "new";
 export type HistoryEntry = {
@@ -32,8 +31,8 @@ type PromotionState =
 export const INITIAL_STATE = {
   fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   userSide: WHITE,
-  engine: new MinimaxV5(5),
-  depth: 5,
+  engine: engines[engines.length - 1], // most recent engine
+  depth: 6,
   timeLimit: 5000,
 } as const;
 
@@ -51,7 +50,7 @@ export interface GameStoreState {
   promotion: PromotionState;
 
   // ----- ENGINE INFO -----
-  selectedEngine: Engine;
+  selectedEngine: string;
   searchDepth: number;
   maxSearchTimeMs: number;
 
@@ -63,7 +62,6 @@ export interface GameStoreState {
 
   // ----- ACTIONS -----
   playMove: (move: Move) => void;
-  selectSquare: (square: Square) => void;
   resetGame: (fen?: string, wasEngineGame?: boolean) => void;
   flipBoard: () => void;
   openModal: (type: Exclude<ModalType, null>) => void;
@@ -107,7 +105,9 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       const { game, pastPositions, algebraicMoves } = get();
 
       const success = game.playMove(move);
-      if (!success) return;
+      if (!success) {
+        return;
+      }
 
       const algebraic = moveToAlgebraic(move, game.isInCheck(), game.isOver());
 
@@ -118,21 +118,7 @@ export const useGameStore = create<GameStoreState>((set, get) => {
         algebraicMoves: [...algebraicMoves, algebraic],
         pastPositions: [...pastPositions, game.getSnapshot()],
         currIdxOfDisplayed: pastPositions.length,
-      });
-    },
-
-    selectSquare: (square: Square) => {
-      const { game } = get();
-
-      if (square === NO_SQUARE) {
-        set({ selectedSquare: NO_SQUARE, legalMovesForSelected: [] });
-      }
-
-      const moves = game.legalMovesFrom(square);
-
-      set({
-        selectedSquare: square,
-        legalMovesForSelected: moves,
+        promotion: { isHappening: false },
       });
     },
 
@@ -144,8 +130,8 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       if (game.isOver()) {
         const result = game.result();
 
-        const whiteSide = userSide === WHITE ? "user" : selectedEngine.name;
-        const blackSide = userSide === BLACK ? "user" : selectedEngine.name;
+        const whiteSide = userSide === WHITE ? "user" : selectedEngine;
+        const blackSide = userSide === BLACK ? "user" : selectedEngine;
 
         const gamePGN = buildPGN(algebraicMoves, {
           Event: wasEngineGame ? "Engine Game" : "Normal Battle",

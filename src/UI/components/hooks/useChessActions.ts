@@ -12,7 +12,7 @@ import {
 } from "../../../game/chessConstants.ts";
 import { getSquare } from "../../../game/helpers/boardUtils.ts";
 import { isPawn } from "../../../game/pieceUtils/pieceClassifiers.ts";
-import { moveFrom } from "../../../game/moveMaking/move.ts";
+import { moveFrom, moveTo } from "../../../game/moveMaking/move.ts";
 
 /**
  * Custom hook for chess actions.
@@ -43,7 +43,7 @@ export default function useChessActions() {
       const movesForPiece = moves.filter((a) => moveFrom(a) === square);
 
       useGameStore.setState({
-        legalMovesForSelected: new Array(...movesForPiece),
+        legalMovesForSelected: [...movesForPiece],
         promotion: { isHappening: false },
       });
       return;
