@@ -3,6 +3,10 @@ import { WHITE } from "../../game/chessConstants.ts";
 import { Position } from "../../game/Position.ts";
 import { type EvalWeights } from "./Evaluation.ts";
 
+/**
+ * Evaluates a position based purely off of material.
+ * @returns evaluation from the perspecive of whose move it is
+ */
 export function evaluateMaterial(pos: Position, weights: EvalWeights): number {
   let matEval = 0;
   const pieceWeights = weights.pieceWeights;
