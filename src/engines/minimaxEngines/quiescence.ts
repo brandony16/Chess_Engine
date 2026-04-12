@@ -6,6 +6,7 @@ import { ABORT_SCORE, MAX_SEARCH_PLY, type Engine } from "../Engine.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
+  type Evaluation,
   type EvalWeights,
 } from "../evaluation/Evaluation.ts";
 import { evaluateMaterial } from "../evaluation/materialEvaluation.ts";
@@ -16,26 +17,25 @@ import type { SearchContext } from "../searchContext.ts";
  * Evolution of minimaxV3 that implements a quiescence search
  */
 export class MinimaxV4 implements Engine {
-  readonly name: string;
-  readonly description: string;
-
   private readonly weights: EvalWeights;
+  private evaluate: Evaluation;
+
   depth: number;
+
   private scoreBuffer = new Int32Array(MAX_SEARCH_PLY * MAX_MOVES);
   private readonly MAX_QUIESCE_DEPTH = 8;
 
   constructor(depth: number) {
-    this.name = "MinimaxV4";
-    this.description =
-      "Searches capture sequences to completion, eliminating the horizon effect";
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
+    this.evaluate = evaluateMaterial;
   }
 
   newGame(): void {}
 
-  search(pos: Position, ctx: SearchContext): Move {
+  search(pos: Position, evaluate: Evaluation, ctx: SearchContext): Move {
     pos.searchPly = 0;
+    this.evaluate = evaluate;
 
     let bestMove = 0;
 
@@ -169,13 +169,13 @@ export class MinimaxV4 implements Engine {
     if (ctx.tick()) return ABORT_SCORE;
 
     if (depth === 0) {
-      return evaluateMaterial(pos, this.weights);
+      return this.evaluate(pos, this.weights);
     }
 
     const inCheck = pos.isInCheck();
 
     if (!inCheck) {
-      const standPat = evaluateMaterial(pos, this.weights);
+      const standPat = this.evaluate(pos, this.weights);
 
       // if doing nothing beats beta, opp wont allow this pos
       if (standPat >= beta) return beta;

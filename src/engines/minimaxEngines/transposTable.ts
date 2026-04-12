@@ -6,6 +6,7 @@ import { ABORT_SCORE, MAX_SEARCH_PLY, type Engine } from "../Engine.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
+  type Evaluation,
   type EvalWeights,
 } from "../evaluation/Evaluation.ts";
 import { evaluateMaterial } from "../evaluation/materialEvaluation.ts";
@@ -25,21 +26,19 @@ import {
  * Evolution of minimaxV4 that implements a transposition table
  */
 export class MinimaxV5 implements Engine {
-  readonly name: string;
-  readonly description: string;
-
   private readonly weights: EvalWeights;
+  private evaluate: Evaluation;
+
   depth: number;
+
   private scoreBuffer = new Int32Array(MAX_SEARCH_PLY * MAX_MOVES);
   private readonly MAX_QUIESCE_DEPTH = 8;
   tt: TranspositionTable;
 
   constructor(depth: number) {
-    this.name = "MinimaxV5";
-    this.description =
-      "Stores search results of previous positions so less repeat searches occur";
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
+    this.evaluate = evaluateMaterial;
 
     this.tt = new TranspositionTable();
   }
@@ -48,8 +47,9 @@ export class MinimaxV5 implements Engine {
     this.tt.clear();
   }
 
-  search(pos: Position, ctx: SearchContext): Move {
+  search(pos: Position, evaluate: Evaluation, ctx: SearchContext): Move {
     pos.searchPly = 0;
+    this.evaluate = evaluate;
 
     let bestMove = 0;
 
@@ -274,13 +274,13 @@ export class MinimaxV5 implements Engine {
     if (ctx.tick()) return ABORT_SCORE;
 
     if (depth === 0) {
-      return evaluateMaterial(pos, this.weights);
+      return this.evaluate(pos, this.weights);
     }
 
     const inCheck = pos.isInCheck();
 
     if (!inCheck) {
-      const standPat = evaluateMaterial(pos, this.weights);
+      const standPat = this.evaluate(pos, this.weights);
 
       // if doing nothing beats beta, opp wont allow this pos
       if (standPat >= beta) return beta;

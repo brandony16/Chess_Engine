@@ -13,7 +13,7 @@ import { Snapshot } from "../game/Snapshot.ts";
 import { moveToAlgebraic } from "./generalHelpers.ts";
 import { buildPGN } from "../game/fenAndUCI/pgn.ts";
 import type { Move } from "../game/moveMaking/move.ts";
-import { engines } from "../engines/engineList.ts";
+import { engineNames } from "../engines/bondmonkeyVersions/engineList.ts";
 
 export type ModalType = "history" | "battle" | "new";
 export type HistoryEntry = {
@@ -31,7 +31,7 @@ type PromotionState =
 export const INITIAL_STATE = {
   fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   userSide: WHITE,
-  engine: engines[engines.length - 1], // most recent engine
+  engine: engineNames[engineNames.length - 1], // most recent engine
   depth: 6,
   timeLimit: 5000,
 } as const;

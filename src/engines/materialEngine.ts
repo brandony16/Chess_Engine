@@ -5,16 +5,13 @@ import type { Engine } from "./Engine.ts";
 import { DEFAULT_EVAL_WEIGHTS } from "./evaluation/Evaluation.ts";
 import { evaluateMaterial } from "./evaluation/materialEvaluation.ts";
 import type { SearchContext } from "./searchContext.ts";
+import type { Evaluation } from "./evaluation/Evaluation.ts";
 
 export function createMaterialEngine(): Engine {
   return {
-    name: "Material",
-    description: "Makes moves based purely off of material",
-    depth: -1,
-
     newGame(): void {},
 
-    search(pos: Position, ctx: SearchContext): Move {
+    search(pos: Position, evaluate: Evaluation, ctx: SearchContext): Move {
       pos.searchPly = 0;
       const numMoves = pos.generatePseudoLegalMoves();
       const checkers = pos.getCheckers();
@@ -29,7 +26,7 @@ export function createMaterialEngine(): Engine {
         if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
 
         pos.makeMove(move);
-        const score = -evaluateMaterial(pos, DEFAULT_EVAL_WEIGHTS);
+        const score = -evaluate(pos, DEFAULT_EVAL_WEIGHTS);
         pos.unmakeMove();
 
         if (score > bestScore) {

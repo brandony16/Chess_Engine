@@ -4,6 +4,7 @@ import { evaluateMaterial } from "../evaluation/materialEvaluation.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
+  type Evaluation,
   type EvalWeights,
 } from "../evaluation/Evaluation.ts";
 import type { Move } from "../../game/moveMaking/move.ts";
@@ -14,23 +15,22 @@ import type { SearchContext } from "../searchContext.ts";
  * Engine that implements a basic minimax search. Should mainly be used for testing the
  */
 export class MinimaxV1 implements Engine {
-  readonly name: string;
-  readonly description: string;
-
   private readonly weights: EvalWeights;
+  private evaluate: Evaluation;
+
   depth: number;
 
   constructor(depth: number) {
-    this.name = "MinimaxV1";
-    this.description = "Searches nodes up to the specified depth";
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
+    this.evaluate = evaluateMaterial;
   }
 
   newGame(): void {}
 
-  search(pos: Position, ctx: SearchContext): Move {
+  search(pos: Position, evaluate: Evaluation, ctx: SearchContext): Move {
     pos.searchPly = 0;
+    this.evaluate = evaluate;
 
     let bestMove = 0;
 
@@ -83,7 +83,7 @@ export class MinimaxV1 implements Engine {
     if (ctx.tick()) return ABORT_SCORE;
 
     if (depth === 0) {
-      return evaluateMaterial(pos, this.weights);
+      return this.evaluate(pos, this.weights);
     }
 
     const start = pos.searchPly * MAX_MOVES;

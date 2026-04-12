@@ -3,24 +3,25 @@ import type { Position } from "../../game/Position.ts";
 import type { Engine } from "../Engine.ts";
 import type { Evaluation } from "../evaluation/Evaluation.ts";
 import { evaluateMaterial } from "../evaluation/materialEvaluation.ts";
-import { createMaterialEngine } from "../materialEngine.ts";
+import { MinimaxV5 } from "../minimaxEngines/transposTable.ts";
 import type { SearchContext } from "../searchContext.ts";
 import type { Bondmonkey } from "./type.ts";
 
-export class BondmonkeyV2 implements Bondmonkey {
-  static readonly name = "BondmonkeyV2";
-  static readonly description =
-    "Makes moves based off the best immediate material gain";
+export class BondmonkeyV7 implements Bondmonkey {
+  static readonly name = "BondmonkeyV7";
+  static readonly description = "Saves search results from previous positions";
 
   private readonly engine: Engine;
   private readonly evaluation: Evaluation;
 
-  constructor() {
-    this.engine = createMaterialEngine();
+  constructor(maxDepth: number = 6) {
+    this.engine = new MinimaxV5(maxDepth);
     this.evaluation = evaluateMaterial;
   }
 
-  newGame(): void {}
+  newGame(): void {
+    this.engine.newGame();
+  }
 
   search(pos: Position, ctx: SearchContext): Move {
     return this.engine.search(pos, this.evaluation, ctx);

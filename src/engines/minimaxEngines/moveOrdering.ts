@@ -5,6 +5,7 @@ import { ABORT_SCORE, MAX_SEARCH_PLY, type Engine } from "../Engine.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
+  type Evaluation,
   type EvalWeights,
 } from "../evaluation/Evaluation.ts";
 import { evaluateMaterial } from "../evaluation/materialEvaluation.ts";
@@ -15,24 +16,24 @@ import type { SearchContext } from "../searchContext.ts";
  * Evolution of minimaxV2 that implements move ordering
  */
 export class MinimaxV3 implements Engine {
-  readonly name: string;
-  readonly description: string;
-
   private readonly weights: EvalWeights;
+  private evaluate: Evaluation;
+
   depth: number;
+
   private scoreBuffer = new Int32Array(MAX_SEARCH_PLY * MAX_MOVES);
 
   constructor(depth: number) {
-    this.name = "MinimaxV3";
-    this.description = "Searches better moves first, leading to more pruning";
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
+    this.evaluate = evaluateMaterial;
   }
 
   newGame(): void {}
 
-  search(pos: Position, ctx: SearchContext): Move {
+  search(pos: Position, evaluate: Evaluation, ctx: SearchContext): Move {
     pos.searchPly = 0;
+    this.evaluate = evaluate;
 
     let bestMove = 0;
 
@@ -99,7 +100,7 @@ export class MinimaxV3 implements Engine {
     if (ctx.tick()) return ABORT_SCORE;
 
     if (depth === 0) {
-      return evaluateMaterial(pos, this.weights);
+      return this.evaluate(pos, this.weights);
     }
 
     const start = pos.searchPly * MAX_MOVES;

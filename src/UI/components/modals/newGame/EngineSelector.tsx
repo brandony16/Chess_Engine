@@ -1,7 +1,7 @@
 import React from "react";
 
 import EngineOption from "./EngineOption.jsx";
-import { engines } from "../../../../engines/engineList.ts";
+import { engineNames } from "../../../../engines/bondmonkeyVersions/engineList.ts";
 
 type EngineSelectorProps = {
   selected: string;
@@ -13,11 +13,11 @@ const EngineSelector = ({ selected, onChange }: EngineSelectorProps) => {
     <fieldset className="engine-selector">
       <legend>Choose your opponent</legend>
       <div className="engineWrap">
-        {engines.map((eng) => (
+        {engineNames.map((name) => (
           <EngineOption
-            key={eng}
-            engine={eng}
-            selected={selected === eng}
+            key={name}
+            engine={name}
+            selected={selected === name}
             onSelect={onChange}
           />
         ))}

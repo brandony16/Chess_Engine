@@ -3,16 +3,13 @@ import { Position } from "../game/Position.ts";
 import type { Move } from "../game/moveMaking/move.ts";
 import { moreThanOne } from "../game/bb.ts";
 import type { SearchContext } from "./searchContext.ts";
+import type { Evaluation } from "./evaluation/Evaluation.ts";
 
 export function createRandomEngine(rng: () => number): Engine {
   return {
-    name: "Random",
-    description: "Plays random moves",
-    depth: -1,
-
     newGame(): void {},
 
-    search(pos: Position, ctx: SearchContext): Move {
+    search(pos: Position, evaluate: Evaluation, ctx: SearchContext): Move {
       pos.searchPly = 0;
       const moveNum = pos.generatePseudoLegalMoves();
       const checkers = pos.getCheckers();
