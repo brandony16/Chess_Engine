@@ -1,6 +1,5 @@
 import { DRAW, WHITE_WIN, type Result } from "../../game/chessConstants.ts";
 import { Position } from "../../game/Position.ts";
-import type { Engine } from "../Engine.ts";
 import {
   fetchOpenings,
   getRandomOpening,
@@ -8,6 +7,7 @@ import {
 } from "./openings.ts";
 import { mulberry32 } from "../../random.ts";
 import { SearchContext } from "../searchContext.ts";
+import type { Bondmonkey } from "../bondmonkeyVersions/type.ts";
 
 type Stats = {
   wins: number;
@@ -46,8 +46,8 @@ const BOUNDS: sprtBounds = {
 const MAX_GAMES = 1000;
 
 export const sprt = async (
-  engine1: Engine,
-  engine2: Engine,
+  engine1: Bondmonkey,
+  engine2: Bondmonkey,
   nodeLimit: number,
 ): Promise<sprtResult> => {
   const openings = await fetchOpenings();
@@ -114,8 +114,8 @@ export const sprt = async (
 };
 
 async function playSingleGame(
-  white: Engine,
-  black: Engine,
+  white: Bondmonkey,
+  black: Bondmonkey,
   openingMoves: string[],
   nodeLimit: number,
 ): Promise<Result> {
@@ -153,8 +153,8 @@ async function playSingleGame(
 function updateLLR(
   llr: number,
   result: Result,
-  white: Engine,
-  engine1: Engine,
+  white: Bondmonkey,
+  engine1: Bondmonkey,
 ) {
   const score =
     result === DRAW
@@ -193,9 +193,9 @@ function scoreRate(stats: Stats): number {
 function updateStats(
   stats: Stats,
   result: Result,
-  white: Engine,
-  black: Engine,
-  engine1: Engine,
+  white: Bondmonkey,
+  black: Bondmonkey,
+  engine1: Bondmonkey,
 ) {
   if (result === DRAW) {
     stats.draws++;

@@ -8,6 +8,7 @@ import {
 } from "./openings.ts";
 import { mulberry32 } from "../../random.ts";
 import { SearchContext } from "../searchContext.ts";
+import type { Bondmonkey } from "../bondmonkeyVersions/type.ts";
 
 type MatchResult = {
   games: number;
@@ -17,8 +18,8 @@ type MatchResult = {
   score: number;
 };
 export const runMatch = async (
-  engine1: Engine,
-  engine2: Engine,
+  engine1: Bondmonkey,
+  engine2: Bondmonkey,
   numGames: number,
   nodeLimit: number,
   seed: number = 1,
@@ -34,7 +35,7 @@ export const runMatch = async (
 
   const rng = mulberry32(seed);
 
-  const recordResult = (result: Result, white: Engine, black: Engine) => {
+  const recordResult = (result: Result, white: Bondmonkey, black: Bondmonkey) => {
     if (result === DRAW) {
       res.draws++;
       return;
@@ -81,8 +82,8 @@ export const runMatch = async (
 };
 
 async function playSingleGame(
-  white: Engine,
-  black: Engine,
+  white: Bondmonkey,
+  black: Bondmonkey,
   openingMoves: string[],
   maxNodeCt: number,
 ): Promise<Result> {
