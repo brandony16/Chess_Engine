@@ -1,8 +1,5 @@
 import { getEngineByName } from "../../../engines/bondmonkeyVersions/engineList.ts";
-import { createMaterialEngine } from "../../../engines/materialEngine.ts";
 import { SearchContext } from "../../../engines/searchContext.ts";
-import { moveFrom, movePiece, moveTo } from "../../../game/moveMaking/move.ts";
-import { Position } from "../../../game/Position.ts";
 import { rebuildPosiiton } from "./builders.ts";
 import type { EnginePost, EngineResponse } from "./engineWorkerTypes.ts";
 

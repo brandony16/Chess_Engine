@@ -2,9 +2,10 @@ import { uciToMove } from "../../game/fenAndUCI/uciHelpers.ts";
 import type { Position } from "../../game/Position.ts";
 import { mulberry32 } from "../../random.ts";
 import path from "path";
-import { readFile } from "fs/promises";
 
 export async function fetchOpenings(): Promise<string[][]> {
+  const { readFile } = await import("fs/promises");
+
   const filePath = path.resolve("./public/openings.json");
 
   const data = await readFile(filePath, "utf-8");

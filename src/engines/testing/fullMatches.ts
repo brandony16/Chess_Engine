@@ -23,7 +23,7 @@ export const runMatch = async (
   numGames: number,
   nodeLimit: number,
   seed: number = 1,
-) => {
+): Promise<MatchResult> => {
   const openings = await fetchOpenings();
   const res: MatchResult = {
     games: numGames,
@@ -35,7 +35,11 @@ export const runMatch = async (
 
   const rng = mulberry32(seed);
 
-  const recordResult = (result: Result, white: Bondmonkey, black: Bondmonkey) => {
+  const recordResult = (
+    result: Result,
+    white: Bondmonkey,
+    black: Bondmonkey,
+  ) => {
     if (result === DRAW) {
       res.draws++;
       return;

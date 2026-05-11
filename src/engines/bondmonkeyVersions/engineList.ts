@@ -7,7 +7,7 @@ import { BondmonkeyV5 } from "./v5.ts";
 import { BondmonkeyV6 } from "./v6.ts";
 import { BondmonkeyV7 } from "./v7.ts";
 
-export const engineNames: string[] = [
+export const engineNames = [
   BondmonkeyV1.name,
   BondmonkeyV2.name,
   BondmonkeyV3.name,
@@ -16,6 +16,12 @@ export const engineNames: string[] = [
   BondmonkeyV6.name,
   BondmonkeyV7.name,
 ] as const;
+
+export type EngineName = (typeof engineNames)[number];
+
+export function isEngineName(value: string): value is EngineName {
+  return engineNames.includes(value as EngineName);
+}
 
 export const getEngineByName = (
   name: string,
@@ -37,7 +43,7 @@ export const getEngineByName = (
     case BondmonkeyV7.name:
       return new BondmonkeyV7(depth);
     default:
-      throw new Error("Invalid Engine Name");
+      throw new Error(`Invalid Engine Name: ${name}`);
   }
 };
 
