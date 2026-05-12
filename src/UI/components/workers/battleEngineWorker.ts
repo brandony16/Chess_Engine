@@ -48,72 +48,87 @@ const runMatch = async (
   nodeLimit: number,
   seed: number = 1,
 ): Promise<MatchResult> => {
-  try {
-    const openingRes = await fetch("/openings.json");
-    const openings = await openingRes.json();
+  const openingRes = await fetch("/openings.json");
+  const openings = await openingRes.json();
 
-    const res: MatchResult = {
-      games: numGames,
-      wins: 0,
-      losses: 0,
-      draws: 0,
-      score: 0,
-    };
+  const res: MatchResult = {
+    games: numGames,
+    wins: 0,
+    losses: 0,
+    draws: 0,
+    score: 0,
+  };
 
-    const rng = mulberry32(seed);
+  const rng = mulberry32(seed);
 
-    const recordResult = (
-      result: Result,
-      white: Bondmonkey,
-      black: Bondmonkey,
-    ) => {
-      if (result === DRAW) {
-        res.draws++;
-        return;
-      }
+  const postProgress = (gamesCompleted: number) => {
+    const score = res.wins + 0.5 * res.draws;
 
-      const winner = result === WHITE_WIN ? white : black;
-      if (winner === engine1) {
-        res.wins++;
-      } else {
-        res.losses++;
-      }
-    };
+    self.postMessage({
+      type: "progress",
+      wins: res.wins,
+      losses: res.losses,
+      draws: res.draws,
+      games: gamesCompleted,
+      score,
+      winRate:
+        gamesCompleted > 0
+          ? Number(((res.wins / gamesCompleted) * 100).toFixed(1))
+          : 0,
+    } satisfies BattleWorkerResponse);
+  };
 
-    for (let i = 0; i < numGames; i += 2) {
-      if (i % 10 === 0) {
-        console.log(`Game ${i} started`);
-      }
-
-      const gameSeed = Math.floor(rng() * 1e9);
-      const openingMoves = await getRandomOpening(openings, gameSeed);
-
-      // Each engine plays the same opening with white and black
-      const result1 = await playSingleGame(
-        engine1,
-        engine2,
-        openingMoves,
-        nodeLimit,
-      );
-      const result2 = await playSingleGame(
-        engine2,
-        engine1,
-        openingMoves,
-        nodeLimit,
-      );
-
-      recordResult(result1, engine1, engine2);
-      recordResult(result2, engine2, engine1);
+  const recordResult = (
+    result: Result,
+    white: Bondmonkey,
+    black: Bondmonkey,
+  ) => {
+    if (result === DRAW) {
+      res.draws++;
+      return;
     }
 
-    const score = res.wins + 0.5 * res.draws;
-    res.score = score;
+    const winner = result === WHITE_WIN ? white : black;
+    if (winner === engine1) {
+      res.wins++;
+    } else {
+      res.losses++;
+    }
+  };
 
-    return res;
-  } catch (err) {
-    console.error(err);
-    throw err;
+  let completed = 0;
+  for (let i = 0; i < numGames; i += 2) {
+    const gameSeed = Math.floor(rng() * 1e9);
+    const openingMoves = await getRandomOpening(openings, gameSeed);
+
+    // Each engine plays the same opening with white and black
+    const result1 = await playSingleGame(
+      engine1,
+      engine2,
+      openingMoves,
+      nodeLimit,
+    );
+
+    recordResult(result1, engine1, engine2);
+    completed++;
+    postProgress(completed);
+
+    const result2 = await playSingleGame(
+      engine2,
+      engine1,
+      openingMoves,
+      nodeLimit,
+    );
+
+    recordResult(result2, engine2, engine1);
+    completed++;
+    postProgress(completed);
   }
+
+  const score = res.wins + 0.5 * res.draws;
+  res.score = score;
+
+  return res;
 };
 
 async function playSingleGame(

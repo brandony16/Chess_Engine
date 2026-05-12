@@ -32,7 +32,7 @@ export const INITIAL_STATE = {
   fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
   userSide: WHITE,
   engine: engineNames[engineNames.length - 1], // most recent engine
-  depth: 6,
+  depth: 5,
   timeLimit: 5000,
 } as const;
 
