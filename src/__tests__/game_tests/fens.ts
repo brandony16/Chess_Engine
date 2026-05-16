@@ -18,6 +18,8 @@ export const OPEN_MIDGAME =
   "2kr3r/pbp1qppp/1pn1pn2/8/1b2PP2/1PN2N2/PBP1Q1PP/2KR1B1R w - - 0 1";
 export const ACTIVE_KING_ENDGAME = "8/8/p6p/1ppK2p1/2P2kP1/PP6/8/8 w - - 0 1";
 export const PROMOTION_ENDGAME = "3n4/2P5/1K6/8/8/5k2/6p1/5N2 w - - 0 1";
+export const TRANSPOSITION_ENDGAME = "8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1";
+export const BLACK_TWO_ROOK_ENDGAME = "3r4/3r4/3k4/8/8/3K4/8/8 w - - 0 1";
 
 export const validateBitboards = (
   bbsLo: Int32Array,

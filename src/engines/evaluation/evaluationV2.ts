@@ -2,12 +2,12 @@ import { lsb, popcount } from "../../game/bb.ts";
 import { WHITE } from "../../game/chessConstants.ts";
 import { Position } from "../../game/Position.ts";
 import { type EvalWeights } from "./Evaluation.ts";
-import { PIECE_SQUARE_TABLES } from "./PieceSquareTables.ts";
+import { PIECE_SQUARE_TABLES } from "./evalComponents/PieceSquareTables.ts";
 
 /**
  * Version 2 of evaluation. Incorporates Piece Square Tables
  */
-export function evaluatePSQT(pos: Position, weights: EvalWeights): number {
+export function evaluateV2(pos: Position, weights: EvalWeights): number {
   let evaluation = 0;
   const pieceWeights = weights.pieceWeights;
   for (let pt = 1; pt <= 6; pt++) {

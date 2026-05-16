@@ -8,7 +8,7 @@ import {
   type Evaluation,
   type EvalWeights,
 } from "../evaluation/Evaluation.ts";
-import { evaluateMaterial } from "../evaluation/materialEvaluation.ts";
+import { evaluateV1 } from "../evaluation/evaluationV1.ts";
 import type { SearchContext } from "../searchContext.ts";
 
 /**
@@ -23,7 +23,7 @@ export class MinimaxV2 implements Engine {
   constructor(depth: number) {
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
-    this.evaluate = evaluateMaterial;
+    this.evaluate = evaluateV1;
   }
 
   newGame(): void {}

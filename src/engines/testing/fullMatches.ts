@@ -1,6 +1,5 @@
 import { DRAW, WHITE_WIN, type Result } from "../../game/chessConstants.ts";
 import { Position } from "../../game/Position.ts";
-import type { Engine } from "../Engine.ts";
 import {
   fetchOpenings,
   getRandomOpening,

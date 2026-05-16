@@ -19,13 +19,13 @@ async function main() {
   const moveOrdering = new BondmonkeyV5(MAX_SEARCH_PLY);
   const quiesce = new BondmonkeyV6(MAX_SEARCH_PLY);
   const psqt = new BondmonkeyV7(MAX_SEARCH_PLY);
-  const transpos = new BondmonkeyV8(MAX_SEARCH_PLY);
+  const endgameKingPos = new BondmonkeyV8(MAX_SEARCH_PLY);
 
   const nodeLimit = 10_000;
 
   const start = performance.now();
   // const result = await sprt(psqt, quiesce, nodeLimit);
-  const result = await runMatch(transpos, psqt, 100, nodeLimit, 16);
+  const result = await runMatch(endgameKingPos, psqt, 100, nodeLimit, 16);
   const end = performance.now();
 
   const time = ((end - start) / 1000).toFixed(2); // get time in seconds

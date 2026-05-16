@@ -1,6 +1,6 @@
 import { moreThanOne } from "../../game/bb.ts";
 import { MAX_MOVES, Position } from "../../game/Position.ts";
-import { evaluateMaterial } from "../evaluation/materialEvaluation.ts";
+import { evaluateV1 } from "../evaluation/evaluationV1.ts";
 import { MinimaxV1 } from "../minimaxEngines/basicMinimax.ts";
 import { MinimaxV4 } from "../minimaxEngines/quiescence.ts";
 import { MinimaxV5 } from "../minimaxEngines/transposTable.ts";
@@ -10,12 +10,12 @@ import { TranspositionTable } from "../transpositionTable/table.ts";
 const engine = new MinimaxV5(15);
 const eng2 = new MinimaxV4(15);
 const pos = new Position();
-pos.loadFen("8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - -");
+pos.loadFen("8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1");
 
 const ctx = new SearchContext();
 const ctx2 = new SearchContext();
 const start = performance.now();
-const result = engine.search(pos, evaluateMaterial, ctx);
+const result = engine.search(pos, evaluateV1, ctx);
 // eng2.search(pos, ctx2);
 const end = performance.now();
 

@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useGameStore } from "../../gameStore.ts";
 import type { EnginePost } from "../workers/engineWorkerTypes.ts";
 import { SearchContext } from "../../../engines/searchContext.ts";
-import { MinimaxV5 } from "../../../engines/minimaxEngines/transposTable.ts";
 
 /**
  * Custom hook that handles the engine moving after the player does.

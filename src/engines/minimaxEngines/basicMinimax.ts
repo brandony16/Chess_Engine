@@ -1,6 +1,6 @@
 import { ABORT_SCORE, type Engine } from "../Engine.ts";
 import { MAX_MOVES, Position } from "../../game/Position.ts";
-import { evaluateMaterial } from "../evaluation/materialEvaluation.ts";
+import { evaluateV1 } from "../evaluation/evaluationV1.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
@@ -23,7 +23,7 @@ export class MinimaxV1 implements Engine {
   constructor(depth: number) {
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
-    this.evaluate = evaluateMaterial;
+    this.evaluate = evaluateV1;
   }
 
   newGame(): void {}

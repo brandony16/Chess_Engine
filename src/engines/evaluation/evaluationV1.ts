@@ -7,7 +7,7 @@ import { type EvalWeights } from "./Evaluation.ts";
  * Evaluates a position based purely off of material.
  * @returns evaluation from the perspecive of whose move it is
  */
-export function evaluateMaterial(pos: Position, weights: EvalWeights): number {
+export function evaluateV1(pos: Position, weights: EvalWeights): number {
   let matEval = 0;
   const pieceWeights = weights.pieceWeights;
   for (let pt = 1; pt <= 6; pt++) {

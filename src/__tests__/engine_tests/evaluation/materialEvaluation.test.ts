@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { Position } from "../../../game/Position.ts";
-import { evaluateMaterial } from "../../../engines/evaluation/materialEvaluation.ts";
+import { evaluateMaterial } from "../../../engines/evaluation/evaluationV1.ts";
 import {
   pieceType,
   type EvalWeights,

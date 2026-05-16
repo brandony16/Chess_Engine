@@ -14,6 +14,7 @@ import { moveToAlgebraic } from "./generalHelpers.ts";
 import { buildPGN } from "../game/fenAndUCI/pgn.ts";
 import type { Move } from "../game/moveMaking/move.ts";
 import { engineNames } from "../engines/bondmonkeyVersions/engineList.ts";
+import { BLACK_TWO_ROOK_ENDGAME } from "../__tests__/game_tests/fens.ts";
 
 export type ModalType = "history" | "battle" | "new";
 export type HistoryEntry = {
@@ -29,7 +30,7 @@ type PromotionState =
   | { isHappening: true; square: Square };
 
 export const INITIAL_STATE = {
-  fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+  fen: BLACK_TWO_ROOK_ENDGAME,
   userSide: WHITE,
   engine: engineNames[engineNames.length - 1], // most recent engine
   depth: 5,
@@ -74,7 +75,7 @@ export interface GameStoreState {
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => {
-  const game = new Game();
+  const game = new Game(INITIAL_STATE.fen);
 
   return {
     game: game,

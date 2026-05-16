@@ -2,7 +2,7 @@ import type { Move } from "../../game/moveMaking/move.ts";
 import type { Position } from "../../game/Position.ts";
 import type { Engine } from "../Engine.ts";
 import type { Evaluation } from "../evaluation/Evaluation.ts";
-import { evaluatePSQT } from "../evaluation/psqtEvaluation.ts";
+import { evaluateV2 } from "../evaluation/evaluationV2.ts";
 import { MinimaxV4 } from "../minimaxEngines/quiescence.ts";
 import type { SearchContext } from "../searchContext.ts";
 import type { Bondmonkey } from "./type.ts";
@@ -16,7 +16,7 @@ export class BondmonkeyV7 implements Bondmonkey {
 
   constructor(maxDepth: number = 6) {
     this.engine = new MinimaxV4(maxDepth);
-    this.evaluation = evaluatePSQT;
+    this.evaluation = evaluateV2;
   }
 
   newGame(): void {

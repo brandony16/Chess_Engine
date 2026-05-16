@@ -3,7 +3,6 @@ import type { Move } from "../game/moveMaking/move.ts";
 import { Position } from "../game/Position.ts";
 import type { Engine } from "./Engine.ts";
 import { DEFAULT_EVAL_WEIGHTS } from "./evaluation/Evaluation.ts";
-import { evaluateMaterial } from "./evaluation/materialEvaluation.ts";
 import type { SearchContext } from "./searchContext.ts";
 import type { Evaluation } from "./evaluation/Evaluation.ts";
 

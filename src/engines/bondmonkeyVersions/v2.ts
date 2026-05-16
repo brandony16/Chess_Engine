@@ -2,7 +2,7 @@ import type { Move } from "../../game/moveMaking/move.ts";
 import type { Position } from "../../game/Position.ts";
 import type { Engine } from "../Engine.ts";
 import type { Evaluation } from "../evaluation/Evaluation.ts";
-import { evaluateMaterial } from "../evaluation/materialEvaluation.ts";
+import { evaluateV1 } from "../evaluation/evaluationV1.ts";
 import { createMaterialEngine } from "../materialEngine.ts";
 import type { SearchContext } from "../searchContext.ts";
 import type { Bondmonkey } from "./type.ts";
@@ -17,7 +17,7 @@ export class BondmonkeyV2 implements Bondmonkey {
 
   constructor() {
     this.engine = createMaterialEngine();
-    this.evaluation = evaluateMaterial;
+    this.evaluation = evaluateV1;
   }
 
   newGame(): void {}

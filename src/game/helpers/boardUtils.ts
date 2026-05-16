@@ -11,7 +11,7 @@ export function isOnBoard(sq: number) {
  * A helper to get the rank a square is on
  */
 export function getRank(sq: Square): Rank {
-  return Math.floor(sq / 8) as Rank;
+  return sq >> 3 as Rank;
 }
 
 /**
