@@ -36,4 +36,4 @@ export function forceKingToEdgeEndgameEval(
   evaluation += 14 - distBetweenKings;
 
   return evaluation * 10 * endgameWeight;
-} 
+}

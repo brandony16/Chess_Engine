@@ -62,12 +62,22 @@ export class MinimaxV5 implements Engine {
 
       bestMove = result;
     }
+    if (!ctx.aborted) {
+      console.log(
+        `Nodes searched: ${ctx.nodesSearched}\nDepth searched: ${this.depth}\nTranspositions: ${this.tt.hits}`,
+      );
+    }
 
     return bestMove;
   }
 
   #searchRoot(pos: Position, depth: number, ctx: SearchContext): Move {
-    if (ctx.tick()) return ABORT_SCORE;
+    if (ctx.tick()) {
+      console.log(
+        `Nodes searched: ${ctx.nodesSearched}\nDepth searched: ${this.depth - depth}\nTranspositions: ${this.tt.hits}`,
+      );
+      return ABORT_SCORE;
+    }
 
     const start = pos.searchPly * MAX_MOVES;
     const moveNum = pos.generatePseudoLegalMoves();
@@ -133,7 +143,12 @@ export class MinimaxV5 implements Engine {
     beta: number,
     ctx: SearchContext,
   ): number {
-    if (ctx.tick()) return ABORT_SCORE;
+    if (ctx.tick()) {
+      console.log(
+        `Nodes searched: ${ctx.nodesSearched}\nDepth searched: ${this.depth - depth}\nTranspositions: ${this.tt.hits}`,
+      );
+      return ABORT_SCORE;
+    }
 
     const originalAlpha = alpha;
     const ttIdx = this.tt.probe(pos.zobristLo, pos.zobristHi);
@@ -146,9 +161,13 @@ export class MinimaxV5 implements Engine {
         this.tt.cutoffs++;
         return ttScore;
       }
-      if (ttFlag === TT_LOWERBOUND) alpha = Math.max(alpha, ttScore);
-      if (ttFlag === TT_UPPERBOUND) beta = Math.min(beta, ttScore);
-      if (alpha >= beta) {
+      // Cutoff if the lower bound is already too good for the opponent
+      if (ttFlag === TT_LOWERBOUND && ttScore >= beta) {
+        this.tt.cutoffs++;
+        return ttScore;
+      }
+      // Cutoff if the upper bound is already worse than our guaranteed alpha
+      if (ttFlag === TT_UPPERBOUND && ttScore <= alpha) {
         this.tt.cutoffs++;
         return ttScore;
       }

@@ -9,7 +9,7 @@ self.onmessage = (e: MessageEvent<EnginePost>) => {
   const eng = getEngineByName(engine, depth);
 
   const position = rebuildPosiiton(pos);
-  const searchCtx = new SearchContext(ctx.nodeLimit);
+  const searchCtx = new SearchContext(ctx.nodeLimit, ctx.timeLimit);
   const move = eng.search(position, searchCtx);
 
   const result: EngineResponse = { move };

@@ -1,35 +1,35 @@
+import { KIWIPETE_POS, TRANSPOSITION_ENDGAME } from "../../__tests__/game_tests/fens.ts";
 import { moreThanOne } from "../../game/bb.ts";
 import { MAX_MOVES, Position } from "../../game/Position.ts";
-import { evaluateV1 } from "../evaluation/evaluationV1.ts";
-import { MinimaxV1 } from "../minimaxEngines/basicMinimax.ts";
+import { evaluateV3 } from "../evaluation/evaluationV3.ts";
 import { MinimaxV4 } from "../minimaxEngines/quiescence.ts";
 import { MinimaxV5 } from "../minimaxEngines/transposTable.ts";
 import { SearchContext } from "../searchContext.ts";
-import { TranspositionTable } from "../transpositionTable/table.ts";
 
-const engine = new MinimaxV5(15);
-const eng2 = new MinimaxV4(15);
+const ttengine = new MinimaxV5(20);
+const nonTTEngine = new MinimaxV4(20);
 const pos = new Position();
-pos.loadFen("8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1");
+pos.loadFen(TRANSPOSITION_ENDGAME);
 
 const ctx = new SearchContext();
 const ctx2 = new SearchContext();
 const start = performance.now();
-const result = engine.search(pos, evaluateV1, ctx);
-// eng2.search(pos, ctx2);
+const result = ttengine.search(pos, evaluateV3, ctx);
 const end = performance.now();
 
+const start2 = performance.now();
+nonTTEngine.search(pos, evaluateV3, ctx2);
+const end2 = performance.now();
+
+console.log(
+  `Time w/o TT: ${((end2 - start2) / 1000).toFixed(2)}s\nTime w/ TT: ${((end - start) / 1000).toFixed(2)}`,
+);
 console.log(
   `Nodes w/o TT: ${ctx2.nodesSearched}\nNodes w/ TT: ${ctx.nodesSearched}`,
 );
-const time = (end - start) / 1000;
-console.log(`Time: ${time.toFixed(2)}s`);
-console.log(`nodes: ${ctx.nodesSearched}`);
-console.log(`nps: ${(ctx.nodesSearched / time).toFixed(0)}`);
-
 console.log(
-  `TT Hits: ${engine.tt.hits}\nTT Misses: ${engine.tt.misses}\nTT Cutoffs: ${engine.tt.cutoffs}`,
+  `TT Hits: ${ttengine.tt.hits}\nTT Misses: ${ttengine.tt.misses}\nTT Cutoffs: ${ttengine.tt.cutoffs}`,
 );
 console.log(
-  `Hit Rate: ${engine.tt.hits / (engine.tt.hits + engine.tt.misses)}`,
+  `Hit Rate: ${ttengine.tt.hits / (ttengine.tt.hits + ttengine.tt.misses)}`,
 );

@@ -47,12 +47,11 @@ export class TranspositionTable {
   ): void {
     const i = this.index(keyLo);
 
-    if (
-      (this.keyLo[i] !== keyLo || this.keyHi[i] !== keyHi) &&
-      this.depth[i] > depth
-    ) {
-      // keep deeper entries
-      return;
+    // If it's the exact same position, protect the deeper search
+    if (this.keyLo[i] === keyLo && this.keyHi[i] === keyHi) {
+      if (this.depth[i] > depth) {
+        return;
+      }
     }
 
     // Adjust mate scores before storing

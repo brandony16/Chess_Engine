@@ -21,7 +21,7 @@ export default function useMoveTrigger(
       const state = useGameStore.getState();
       const position = game.getPositionCpy();
 
-      const ctx = new SearchContext();
+      const ctx = new SearchContext(Infinity, state.maxSearchTimeMs);
 
       postToEngine({
         pos: position,
