@@ -23,7 +23,7 @@ async function main() {
   const endgameKingPos = new BondmonkeyV8(MAX_SEARCH_PLY);
   const transpos = new BondmonkeyV9(MAX_SEARCH_PLY);
 
-  const nodeLimit = 10_000;
+  const nodeLimit = 50_000;
 
   const start = performance.now();
   // const result = await sprt(psqt, quiesce, nodeLimit);

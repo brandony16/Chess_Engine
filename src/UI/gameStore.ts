@@ -14,7 +14,9 @@ import { moveToAlgebraic } from "./generalHelpers.ts";
 import { buildPGN } from "../game/fenAndUCI/pgn.ts";
 import type { Move } from "../game/moveMaking/move.ts";
 import { engineNames } from "../engines/bondmonkeyVersions/engineList.ts";
-import { TRANSPOSITION_ENDGAME } from "../__tests__/game_tests/fens.ts";
+import {
+  TRANSPOSITION_ENDGAME,
+} from "../__tests__/game_tests/fens.ts";
 import { MAX_SEARCH_PLY } from "../engines/Engine.ts";
 
 export type ModalType = "history" | "battle" | "new";

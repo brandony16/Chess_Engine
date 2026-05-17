@@ -6,8 +6,8 @@ import { MinimaxV4 } from "../minimaxEngines/quiescence.ts";
 import { MinimaxV5 } from "../minimaxEngines/transposTable.ts";
 import { SearchContext } from "../searchContext.ts";
 
-const ttengine = new MinimaxV5(20);
-const nonTTEngine = new MinimaxV4(20);
+const ttengine = new MinimaxV5(14);
+const nonTTEngine = new MinimaxV4(14);
 const pos = new Position();
 pos.loadFen(TRANSPOSITION_ENDGAME);
 

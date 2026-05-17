@@ -2,6 +2,7 @@ import { moreThanOne } from "../../game/bb.ts";
 import { NO_PIECE } from "../../game/chessConstants.ts";
 import { moveCaptured, type Move } from "../../game/moveMaking/move.ts";
 import { MAX_MOVES, type Position } from "../../game/Position.ts";
+import { drawByRepetition } from "../../game/positionStates/gameOverLogic.ts";
 import { ABORT_SCORE, MAX_SEARCH_PLY, type Engine } from "../Engine.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
@@ -52,8 +53,9 @@ export class MinimaxV5 implements Engine {
     this.evaluate = evaluate;
 
     let bestMove = 0;
-
+    let maxD = 1;
     for (let depth = 1; depth <= this.depth; depth++) {
+      maxD++;
       const result = this.#searchRoot(pos, depth, ctx);
 
       if (ctx.aborted) {
@@ -63,19 +65,21 @@ export class MinimaxV5 implements Engine {
       bestMove = result;
     }
     if (!ctx.aborted) {
-      console.log(
-        `Nodes searched: ${ctx.nodesSearched}\nDepth searched: ${this.depth}\nTranspositions: ${this.tt.hits}`,
-      );
+      // console.log(
+      //   `Nodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}`,
+      // );
     }
+
+    // console.log(`Depth Searched: ${maxD}`);
 
     return bestMove;
   }
 
   #searchRoot(pos: Position, depth: number, ctx: SearchContext): Move {
     if (ctx.tick()) {
-      console.log(
-        `Nodes searched: ${ctx.nodesSearched}\nDepth searched: ${this.depth - depth}\nTranspositions: ${this.tt.hits}`,
-      );
+      // console.log(
+      //   `Nodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}`,
+      // );
       return ABORT_SCORE;
     }
 
@@ -144,10 +148,25 @@ export class MinimaxV5 implements Engine {
     ctx: SearchContext,
   ): number {
     if (ctx.tick()) {
-      console.log(
-        `Nodes searched: ${ctx.nodesSearched}\nDepth searched: ${this.depth - depth}\nTranspositions: ${this.tt.hits}`,
-      );
+      // console.log(
+      //   `Nodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}`,
+      // );
       return ABORT_SCORE;
+    }
+
+    const currHi = pos.zobristHi,
+      currLo = pos.zobristLo;
+    const currPly = pos.ply;
+    const minPly = currPly - pos.halfmoveClock;
+    for (let i = currPly - 2; i >= minPly; i -= 2) {
+      const lo = pos.zobristHistoryLo[i];
+      const hi = pos.zobristHistoryHi[i];
+
+      // dont repeat positions or its a draw
+      // without this, the engine will repeat in a winning position because it thinks its winning
+      if (lo === currLo && hi === currHi) {
+        return 0;
+      }
     }
 
     const originalAlpha = alpha;
