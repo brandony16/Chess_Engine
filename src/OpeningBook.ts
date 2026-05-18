@@ -62,6 +62,7 @@ export class OpeningBook {
 
     const historyKey = history.join(" ");
     const possibleMoves = this.book.get(historyKey);
+    3;
 
     if (!possibleMoves || possibleMoves.length === 0) {
       return null; // Out of book
@@ -83,7 +84,7 @@ export class OpeningBook {
       }
     }
 
-    // Fallback (should theoretically never hit unless floating point math gets weird)
+    // Fallback (should theoretically never hit)
     return possibleMoves[possibleMoves.length - 1].move;
   }
 }

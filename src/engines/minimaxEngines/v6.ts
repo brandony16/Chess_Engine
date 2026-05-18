@@ -2,7 +2,6 @@ import { moreThanOne } from "../../game/bb.ts";
 import { NO_PIECE } from "../../game/chessConstants.ts";
 import { moveCaptured, type Move } from "../../game/moveMaking/move.ts";
 import { MAX_MOVES, type Position } from "../../game/Position.ts";
-import { drawByRepetition } from "../../game/positionStates/gameOverLogic.ts";
 import { ABORT_SCORE, MAX_SEARCH_PLY, type Engine } from "../Engine.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
@@ -24,9 +23,9 @@ import {
 } from "../transpositionTable/ttTypes.ts";
 
 /**
- * Evolution of minimaxV4 that implements a transposition table
+ * Evolution of minimaxV5 that doesnt throw away aborted search results
  */
-export class MinimaxV5 implements Engine {
+export class MinimaxV6 implements Engine {
   private readonly weights: EvalWeights;
   private evaluate: Evaluation;
 
@@ -56,13 +55,15 @@ export class MinimaxV5 implements Engine {
     let maxD = 1;
     for (let depth = 1; depth <= this.depth; depth++) {
       maxD++;
-      const result = this.#searchRoot(pos, depth, ctx);
+      const result = this.#searchRoot(pos, depth, ctx, bestMove);
+
+      if (result) {
+        bestMove = result;
+      }
 
       if (ctx.aborted) {
         break;
       }
-
-      bestMove = result;
     }
     // console.log(
     //   `Depth Searched: ${maxD}\nNodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}`,
@@ -71,9 +72,14 @@ export class MinimaxV5 implements Engine {
     return bestMove;
   }
 
-  #searchRoot(pos: Position, depth: number, ctx: SearchContext): Move {
+  #searchRoot(
+    pos: Position,
+    depth: number,
+    ctx: SearchContext,
+    prevBest: Move,
+  ): Move {
     if (ctx.tick()) {
-      return ABORT_SCORE;
+      return prevBest;
     }
 
     const start = pos.searchPly * MAX_MOVES;
@@ -91,10 +97,11 @@ export class MinimaxV5 implements Engine {
 
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
+    const firstToSearch = prevBest !== 0 ? prevBest : ttMove; // search previous best first, then ttMove
     for (let i = 0; i < moveNum; i++) {
       scoreBuf[start + i] = scoreMoveForOrderingWithTT(
         moveBuf[start + i],
-        ttMove,
+        firstToSearch,
       );
     }
 
@@ -153,7 +160,7 @@ export class MinimaxV5 implements Engine {
       const hi = pos.zobristHistoryHi[i];
 
       // dont repeat positions or its a draw
-      // without this, the engine will repeat in a winning position because it thinks its winning
+      // without this, the engine will repeat in a winning position because it doesnt know repeating is a draw
       if (lo === currLo && hi === currHi) {
         return 0;
       }

@@ -1,8 +1,13 @@
 import { moreThanOne } from "../../game/bb.ts";
-import { NO_PIECE } from "../../game/chessConstants.ts";
-import { moveCaptured, type Move } from "../../game/moveMaking/move.ts";
+import { NO_PIECE, PIECE_N } from "../../game/chessConstants.ts";
+import {
+  moveCaptured,
+  movePiece,
+  movePromotion,
+  moveTo,
+  type Move,
+} from "../../game/moveMaking/move.ts";
 import { MAX_MOVES, type Position } from "../../game/Position.ts";
-import { drawByRepetition } from "../../game/positionStates/gameOverLogic.ts";
 import { ABORT_SCORE, MAX_SEARCH_PLY, type Engine } from "../Engine.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
@@ -11,10 +16,7 @@ import {
   type EvalWeights,
 } from "../evaluation/Evaluation.ts";
 import { evaluateV1 } from "../evaluation/evaluationV1.ts";
-import {
-  scoreMoveForOrderingBasic,
-  scoreMoveForOrderingWithTT,
-} from "../moveScoring/basicScoring.ts";
+import { scoreMoveForOrderingKiller } from "../moveScoring/basicScoring.ts";
 import type { SearchContext } from "../searchContext.ts";
 import { TranspositionTable } from "../transpositionTable/table.ts";
 import {
@@ -24,9 +26,9 @@ import {
 } from "../transpositionTable/ttTypes.ts";
 
 /**
- * Evolution of minimaxV4 that implements a transposition table
+ * Evolution of minimaxV6 that improves move ordering by implementing killer moves and history heuristic
  */
-export class MinimaxV5 implements Engine {
+export class MinimaxV7 implements Engine {
   private readonly weights: EvalWeights;
   private evaluate: Evaluation;
 
@@ -36,33 +38,67 @@ export class MinimaxV5 implements Engine {
   private readonly MAX_QUIESCE_DEPTH = 8;
   tt: TranspositionTable;
 
+  // [ply][slot]. store 2 killer moves per ply
+  private killerMoves: Uint32Array[];
+
+  // indexed by [piece][square]
+  private historyTable: Int32Array[];
+
   constructor(depth: number) {
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
     this.evaluate = evaluateV1;
 
     this.tt = new TranspositionTable();
+
+    this.killerMoves = Array.from(
+      { length: MAX_SEARCH_PLY },
+      () => new Uint32Array(2),
+    );
+    this.historyTable = Array.from(
+      { length: PIECE_N },
+      () => new Int32Array(64),
+    );
   }
 
   newGame(): void {
     this.tt.clear();
+
+    // clear history between games
+    for (let i = 0; i < this.historyTable.length; i++) {
+      this.historyTable[i].fill(0);
+    }
   }
 
   search(pos: Position, evaluate: Evaluation, ctx: SearchContext): Move {
     pos.searchPly = 0;
     this.evaluate = evaluate;
 
+    // clear killer moves before each search
+    for (let i = 0; i < this.killerMoves.length; i++) {
+      this.killerMoves[i].fill(0);
+    }
+
+    // age table to prevent exploding scores and not have the engine hold on to old useless ideas
+    for (let p = 0; p < this.historyTable.length; p++) {
+      for (let s = 0; s < 64; s++) {
+        this.historyTable[p][s] >>= 1; // divide by 2
+      }
+    }
+
     let bestMove = 0;
     let maxD = 1;
     for (let depth = 1; depth <= this.depth; depth++) {
       maxD++;
-      const result = this.#searchRoot(pos, depth, ctx);
+      const result = this.#searchRoot(pos, depth, ctx, bestMove);
+
+      if (result) {
+        bestMove = result;
+      }
 
       if (ctx.aborted) {
         break;
       }
-
-      bestMove = result;
     }
     // console.log(
     //   `Depth Searched: ${maxD}\nNodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}`,
@@ -71,9 +107,14 @@ export class MinimaxV5 implements Engine {
     return bestMove;
   }
 
-  #searchRoot(pos: Position, depth: number, ctx: SearchContext): Move {
+  #searchRoot(
+    pos: Position,
+    depth: number,
+    ctx: SearchContext,
+    prevBest: Move,
+  ): Move {
     if (ctx.tick()) {
-      return ABORT_SCORE;
+      return prevBest;
     }
 
     const start = pos.searchPly * MAX_MOVES;
@@ -91,10 +132,14 @@ export class MinimaxV5 implements Engine {
 
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
+    const firstToSearch = prevBest !== 0 ? prevBest : ttMove; // search previous best first, then ttMove
     for (let i = 0; i < moveNum; i++) {
-      scoreBuf[start + i] = scoreMoveForOrderingWithTT(
+      scoreBuf[start + i] = scoreMoveForOrderingKiller(
         moveBuf[start + i],
-        ttMove,
+        firstToSearch,
+        pos.searchPly,
+        this.killerMoves,
+        this.historyTable,
       );
     }
 
@@ -153,7 +198,7 @@ export class MinimaxV5 implements Engine {
       const hi = pos.zobristHistoryHi[i];
 
       // dont repeat positions or its a draw
-      // without this, the engine will repeat in a winning position because it thinks its winning
+      // without this, the engine will repeat in a winning position because it doesnt know repeating is a draw
       if (lo === currLo && hi === currHi) {
         return 0;
       }
@@ -221,9 +266,12 @@ export class MinimaxV5 implements Engine {
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moves; i++) {
-      scoreBuf[start + i] = scoreMoveForOrderingWithTT(
+      scoreBuf[start + i] = scoreMoveForOrderingKiller(
         moveBuf[start + i],
         ttMove,
+        pos.searchPly,
+        this.killerMoves,
+        this.historyTable,
       );
     }
 
@@ -257,6 +305,24 @@ export class MinimaxV5 implements Engine {
           move,
           pos.searchPly,
         );
+
+        // if a quiet move, update killer moves and history heuristic
+        const captured = moveCaptured(move);
+        const promo = movePromotion(move);
+        if (captured === NO_PIECE && promo === NO_PIECE) {
+          const ply = pos.searchPly;
+          if (this.killerMoves[ply][0] !== move) {
+            this.killerMoves[ply][1] = this.killerMoves[ply][0];
+            this.killerMoves[ply][0] = move;
+          }
+
+          const piece = movePiece(move);
+          const toSq = moveTo(move);
+
+          // Add depth^2 to heavily reward moves that cause cutoffs near the root
+          this.historyTable[piece][toSq] += depth * depth;
+        }
+
         return beta;
       }
 
@@ -324,7 +390,13 @@ export class MinimaxV5 implements Engine {
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moves; i++) {
-      scoreBuf[start + i] = scoreMoveForOrderingBasic(moveBuf[start + i]);
+      scoreBuf[start + i] = scoreMoveForOrderingKiller(
+        moveBuf[start + i],
+        0, // no tt move
+        pos.searchPly,
+        this.killerMoves,
+        this.historyTable,
+      );
     }
 
     let legalCount = 0;
