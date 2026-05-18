@@ -8,6 +8,7 @@ import {
   type Result,
   type Square,
 } from "./chessConstants.ts";
+import { moveToUCI } from "./fenAndUCI/uciHelpers.ts";
 import { moveFrom, type Move } from "./moveMaking/move.ts";
 import { isWhite } from "./pieceUtils/pieceClassifiers.ts";
 import { Position } from "./Position.ts";
@@ -35,16 +36,23 @@ interface GameView {
 
 export class Game implements GameView {
   private position: Position;
+  private uciMoveHistory: string[];
 
   constructor(fen?: string) {
     this.position = new Position();
     if (fen) {
       this.position.loadFen(fen);
     }
+
+    this.uciMoveHistory = [];
   }
 
   get sideToMove(): Player {
     return this.position.sideToMove;
+  }
+
+  get moveHistory(): string[] {
+    return this.uciMoveHistory;
   }
 
   playMove(move: Move): boolean {
@@ -59,6 +67,10 @@ export class Game implements GameView {
 
     this.position.makeMove(move);
     this.position.checkGameOver();
+
+    const uciMove = moveToUCI(move);
+    this.uciMoveHistory.push(uciMove);
+
     return true;
   }
 
@@ -68,6 +80,7 @@ export class Game implements GameView {
     }
 
     this.position.unmakeMove();
+    this.uciMoveHistory.pop();
     return true;
   }
 

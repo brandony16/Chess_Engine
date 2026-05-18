@@ -14,10 +14,9 @@ import { moveToAlgebraic } from "./generalHelpers.ts";
 import { buildPGN } from "../game/fenAndUCI/pgn.ts";
 import type { Move } from "../game/moveMaking/move.ts";
 import { engineNames } from "../engines/bondmonkeyVersions/engineList.ts";
-import {
-  TRANSPOSITION_ENDGAME,
-} from "../__tests__/game_tests/fens.ts";
+import { START_POS } from "../__tests__/game_tests/fens.ts";
 import { MAX_SEARCH_PLY } from "../engines/Engine.ts";
+import { OpeningBook } from "../OpeningBook.ts";
 
 export type ModalType = "history" | "battle" | "new";
 export type HistoryEntry = {
@@ -33,8 +32,8 @@ type PromotionState =
   | { isHappening: true; square: Square };
 
 export const INITIAL_STATE = {
-  fen: TRANSPOSITION_ENDGAME,
-  userSide: BLACK,
+  fen: START_POS,
+  userSide: WHITE,
   engine: engineNames[engineNames.length - 1], // most recent engine
   depth: MAX_SEARCH_PLY, // time limited, not depth limited
   timeLimit: 1000,
@@ -42,6 +41,7 @@ export const INITIAL_STATE = {
 
 export interface GameStoreState {
   game: Game;
+  book: OpeningBook;
   userSide: Player;
 
   // ----- UI -----
@@ -79,9 +79,12 @@ export interface GameStoreState {
 
 export const useGameStore = create<GameStoreState>((set, get) => {
   const game = new Game(INITIAL_STATE.fen);
+  const book = new OpeningBook();
+  book.initialize();
 
   return {
     game: game,
+    book: book,
     userSide: INITIAL_STATE.userSide,
 
     // ----- UI -----

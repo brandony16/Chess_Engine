@@ -25,41 +25,38 @@ const Sidebar = () => {
     [sideToMove],
   );
 
-  const endText = useMemo((): string => {
-    const res = game.result();
+  const res = game.result();
+  let endText = "";
 
-    if (res.winner === IN_PROGRESS) {
-      return "";
-    }
-
+  if (res.winner !== IN_PROGRESS) {
     if (res.winner === DRAW) {
       switch (res.method) {
         case REPETITION:
-          return "Draw by Repetition";
+          endText = "Draw by Repetition";
+          break;
         case STALEMATE:
-          return "Draw by Stalemate";
+          endText = "Draw by Stalemate";
+          break;
         case INSUFFICIENT_MATERIAL:
-          return "Draw by Insufficient Material";
+          endText = "Draw by Insufficient Material";
+          break;
         case FIFTY_MOVE_RULE:
-          return "Draw by 50 Move Rule";
+          endText = "Draw by 50 Move Rule";
+          break;
         default:
-          throw new Error(
-            `Method does not match winner. M: ${res.method} W: ${res.winner}`,
-          );
+          throw new Error(`Method does not match...`);
+      }
+    } else {
+      const winnerSide = res.winner === WHITE ? "White" : "Black";
+      switch (res.method) {
+        case CHECKMATE:
+          endText = `${winnerSide} Wins by Checkmate`;
+          break;
+        default:
+          throw new Error(`Method does not match...`);
       }
     }
-
-    const winnerSide = res.winner === WHITE ? "White" : "Black";
-
-    switch (res.method) {
-      case CHECKMATE:
-        return `${winnerSide} Wins by Checkmate`;
-      default:
-        throw new Error(
-          `Method does not match winner. M: ${res.method} W: ${res.winner}`,
-        );
-    }
-  }, []);
+  }
 
   return (
     <aside className="sidebar">
