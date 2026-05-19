@@ -62,6 +62,8 @@ export class MinimaxV8 implements Engine {
   // indexed by [piece][square]
   private historyTable: Int32Array[];
 
+  nmpCuttoffs: number = 0;
+
   constructor(depth: number) {
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
@@ -90,6 +92,7 @@ export class MinimaxV8 implements Engine {
 
   search(pos: Position, evaluate: Evaluation, ctx: SearchContext): Move {
     pos.searchPly = 0;
+    this.nmpCuttoffs = 0;
     this.evaluate = evaluate;
 
     // clear killer moves before each search
@@ -119,7 +122,7 @@ export class MinimaxV8 implements Engine {
       }
     }
     // console.log(
-    //   `Depth Searched: ${maxD}\nNodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}`,
+    //   `Depth Searched: ${maxD}\nNodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}\nNMP Cutoffs: ${this.nmpCuttoffs}`,
     // );
 
     return bestMove;
@@ -280,6 +283,7 @@ export class MinimaxV8 implements Engine {
         if (ctx.aborted) return ABORT_SCORE;
 
         if (nullScore >= beta) {
+          this.nmpCuttoffs++;
           return beta;
         }
       }
@@ -287,10 +291,6 @@ export class MinimaxV8 implements Engine {
 
     // ----- END OF SEARCH (DEPTH IS 0) -----
     if (depth === 0) {
-      // const depth = Math.min(
-      //   this.MAX_QUIESCE_DEPTH,
-      //   MAX_SEARCH_PLY - pos.searchPly,
-      // );
       const score = this.#quiescence(
         pos,
         this.MAX_QUIESCE_DEPTH,

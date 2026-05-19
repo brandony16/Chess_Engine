@@ -47,10 +47,21 @@ export class TranspositionTable {
   ): void {
     const i = this.index(keyLo);
 
-    // If it's the exact same position, protect the deeper search
-    if (this.keyLo[i] === keyLo && this.keyHi[i] === keyHi) {
+    const isSamePosition = this.keyLo[i] === keyLo && this.keyHi[i] === keyHi;
+
+    if (isSamePosition) {
+      // Only overwrite if our new search is deeper or equal
       if (this.depth[i] > depth) {
         return;
+      }
+    } else {
+      // Collision
+      if (this.depth[i] !== 0) {
+        // Protect the old entry if it was significantly deeper
+        // We use a margin so we don't let the table completely ossify.
+        if (this.depth[i] > depth + 2) {
+          return;
+        }
       }
     }
 
@@ -62,7 +73,6 @@ export class TranspositionTable {
           ? score - ply
           : score;
 
-    // Always replace
     this.keyLo[i] = keyLo;
     this.keyHi[i] = keyHi;
     this.depth[i] = depth;

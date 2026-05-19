@@ -9,6 +9,7 @@ import { sq, WHITE_PAWN } from "../../game/chessConstants.ts";
 import { Position } from "../../game/Position.ts";
 import { MinimaxV5 } from "../../engines/minimaxEngines/transposTable.ts";
 import { SearchContext } from "../../engines/searchContext.ts";
+import { evaluateV1 } from "../../engines/evaluation/evaluationV1.ts";
 
 describe("tt basic functions", () => {
   test("TT stores and retrieves exact entry", () => {
@@ -74,7 +75,7 @@ describe("TT usage in search", () => {
 
     // First search populates tt
     const start1 = performance.now();
-    engine.search(pos, ctx);
+    engine.search(pos, evaluateV1, ctx);
     const end1 = performance.now();
     const searched1 = ctx.nodesSearched;
 
@@ -82,7 +83,7 @@ describe("TT usage in search", () => {
 
     // Fully populated tt should lead to much faster search
     const start2 = performance.now();
-    engine.search(pos, ctx);
+    engine.search(pos, evaluateV1, ctx);
     const end2 = performance.now();
     const searched2 = ctx.nodesSearched;
 
@@ -102,7 +103,7 @@ describe("TT usage in search", () => {
     const engine = new MinimaxV5(6);
     const ctx = new SearchContext();
 
-    engine.search(pos, ctx);
+    engine.search(pos, evaluateV1, ctx);
 
     // Root position should still be in TT
     const ttIdx = engine.tt.probe(pos.zobristLo, pos.zobristHi);
@@ -117,7 +118,7 @@ describe("TT usage in search", () => {
     const ctx = new SearchContext();
 
     // First search
-    const move = engine.search(pos, ctx);
+    const move = engine.search(pos, evaluateV1, ctx);
 
     console.log(`Nodes searched: ${ctx.nodesSearched}`);
     const ttEntriesAfterFirstSearch = engine.tt.keyLo.filter(
@@ -147,7 +148,7 @@ describe("TT usage in search", () => {
     engine.tt.misses = 0;
 
     // Second search
-    engine.search(pos, ctx);
+    engine.search(pos, evaluateV1, ctx);
 
     console.log(`Second search nodes: ${ctx.nodesSearched}`);
     console.log(`Second search probes: ${engine.tt.hits + engine.tt.misses}`);

@@ -16,6 +16,7 @@ import type { Move } from "../game/moveMaking/move.ts";
 import { engineNames } from "../engines/bondmonkeyVersions/engineList.ts";
 import {
   KIWIPETE_POS,
+  LOCKED_MIDDLEGAME,
   START_POS,
   TRANSPOSITION_ENDGAME,
 } from "../__tests__/game_tests/fens.ts";
@@ -36,8 +37,8 @@ type PromotionState =
   | { isHappening: true; square: Square };
 
 export const INITIAL_STATE = {
-  fen: KIWIPETE_POS,
-  userSide: WHITE,
+  fen: LOCKED_MIDDLEGAME,
+  userSide: BLACK,
   engine: engineNames[engineNames.length - 1], // most recent engine
   depth: MAX_SEARCH_PLY, // time limited, not depth limited
   timeLimit: 1000,

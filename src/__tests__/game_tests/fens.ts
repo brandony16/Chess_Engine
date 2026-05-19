@@ -22,6 +22,7 @@ export const TRANSPOSITION_ENDGAME = "8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1";
 export const BLACK_TWO_ROOK_ENDGAME = "3r4/3r4/3k4/8/8/3K4/8/8 w - - 0 1";
 export const ROOK_MATE_ENDGAME = "8/3r4/3k4/8/8/3K4/8/8 w - - 0 1";
 export const QUEEN_STOP_PROMOTION_ENDGAME = "8/3K4/4P3/8/8/8/6k1/7q w - - 0 1";
+export const LOCKED_MIDDLEGAME = "2r3k1/1q1nbppp/r3p3/3pP3/pPpP4/P1Q2N2/2RN1PPP/2R4K w - - 0 1";
 
 export const validateBitboards = (
   bbsLo: Int32Array,

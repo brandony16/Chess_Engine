@@ -1,13 +1,18 @@
-import { DRAW, WHITE_WIN, type Result } from "../../game/chessConstants.ts";
-import { Position } from "../../game/Position.ts";
+import {
+  BLACK_WIN,
+  DRAW,
+  WHITE_WIN,
+  type Result,
+} from "../../game/chessConstants.ts";
 import {
   fetchOpenings,
   getRandomOpening,
   playOpeningMoves,
 } from "./openings.ts";
 import { mulberry32 } from "../../random.ts";
-import { SearchContext } from "../searchContext.ts";
-import type { Bondmonkey } from "../bondmonkeyVersions/type.ts";
+import type { EngineConfig } from "./matchWorker.ts";
+import * as os from "os";
+import { Worker } from "worker_threads";
 
 type Stats = {
   wins: number;
@@ -46,127 +51,90 @@ const BOUNDS: sprtBounds = {
 const MAX_GAMES = 1000;
 
 export const sprt = async (
-  engine1: Bondmonkey,
-  engine2: Bondmonkey,
-  nodeLimit: number,
+  e1Config: EngineConfig,
+  e2Config: EngineConfig,
+  timeLimitMs: number,
 ): Promise<sprtResult> => {
-  const openings = await fetchOpenings();
-  const stats: Stats = {
-    wins: 0,
-    draws: 0,
-    losses: 0,
-  };
+  return new Promise(async (resolve) => {
+    const openings = await fetchOpenings();
+    const rng = mulberry32(16);
 
-  const rng = mulberry32(16);
+    const stats: Stats = { wins: 0, draws: 0, losses: 0 };
+    let llr = 0;
+    let gamesPlayed = 0;
 
-  const buildResult = (verdict: string, stats: Stats): sprtResult => {
-    const rate = scoreRate(stats);
-    return {
-      verdict: verdict,
-      ...stats,
-      scoreRate: rate,
-      eloDiff: eloFromScore(rate),
+    const NUM_CORES = os.cpus().length;
+    const workers: Worker[] = [];
+    let isFinished = false;
+
+    // Helper to kill all threads when SPRT reaches a conclusion
+    const terminateAll = (verdict: string) => {
+      if (isFinished) return;
+      isFinished = true;
+      workers.forEach((w) => w.terminate());
+
+      const rate = scoreRate(stats);
+      resolve({
+        verdict,
+        ...stats,
+        scoreRate: rate,
+        eloDiff: eloFromScore(rate),
+      });
     };
-  };
 
-  let llr = 0;
-  let games = 0;
-  while (games < MAX_GAMES) {
-    if (games % 50 === 0) {
-      console.log(
-        `Game ${games} started.\nStats: ${stats.wins} wins - ${stats.draws} draws - ${stats.losses} losses`,
-      );
+    const assignNextPair = async (worker: Worker) => {
+      if (isFinished || gamesPlayed >= MAX_GAMES) {
+        if (gamesPlayed >= MAX_GAMES) terminateAll("INCONCLUSIVE");
+        return;
+      }
+      const gameSeed = Math.floor(rng() * 1e9);
+      const openingMoves = await getRandomOpening(openings, gameSeed);
+      worker.postMessage({ e1Config, e2Config, openingMoves, timeLimitMs });
+    };
+
+    console.log(`Starting SPRT across ${NUM_CORES} CPU cores...`);
+    for (let i = 0; i < NUM_CORES; i++) {
+      const workerPath = new URL("./matchWorker.ts", import.meta.url);
+      const worker = new Worker(workerPath);
+
+      worker.on("message", (msg: { res1: Result; res2: Result }) => {
+        if (isFinished) return;
+        const { res1, res2 } = msg;
+
+        // Process Game 1 (E1 was White)
+        llr = updateLLR(llr, res1, true);
+        updateStats(stats, res1, true);
+
+        // Process Game 2 (E1 was Black)
+        llr = updateLLR(llr, res2, false);
+        updateStats(stats, res2, false);
+
+        gamesPlayed += 2;
+
+        if (gamesPlayed % 10 === 0) {
+          console.log(
+            `Games: ${gamesPlayed} | W: ${stats.wins} D: ${stats.draws} L: ${stats.losses} | LLR: ${llr.toFixed(2)}`,
+          );
+        }
+
+        // Check SPRT Bounds
+        if (llr >= BOUNDS.upper) terminateAll("ACCEPTED");
+        else if (llr <= BOUNDS.lower) terminateAll("REJECTED");
+        else assignNextPair(worker); // give the worker the next set of games
+      });
+
+      workers.push(worker);
+
+      // Kickstart the worker
+      assignNextPair(worker);
     }
-    const gameSeed = Math.floor(rng() * 1e9);
-    const openingMoves = await getRandomOpening(openings, gameSeed);
-
-    // Each engine plays the same opening with white and black
-    const result1 = await playSingleGame(
-      engine1,
-      engine2,
-      openingMoves,
-      nodeLimit,
-    );
-
-    llr = updateLLR(llr, result1, engine1, engine1);
-    updateStats(stats, result1, engine1, engine2, engine1);
-
-    if (llr >= BOUNDS.upper) return buildResult("ACCEPTED", stats);
-    if (llr <= BOUNDS.lower) return buildResult("REJECTED", stats);
-
-    const result2 = await playSingleGame(
-      engine2,
-      engine1,
-      openingMoves,
-      nodeLimit,
-    );
-
-    llr = updateLLR(llr, result2, engine2, engine1);
-    updateStats(stats, result2, engine2, engine1, engine1);
-
-    if (llr >= BOUNDS.upper) return buildResult("ACCEPTED", stats);
-    if (llr <= BOUNDS.lower) return buildResult("REJECTED", stats);
-
-    games += 2;
-  }
-
-  return buildResult("INCONCLUSIVE", stats);
+  });
 };
 
-async function playSingleGame(
-  white: Bondmonkey,
-  black: Bondmonkey,
-  openingMoves: string[],
-  nodeLimit: number,
-): Promise<Result> {
-  const pos = new Position();
-  const MAX_PLY = 512;
-
-  white.newGame();
-  black.newGame();
-
-  await playOpeningMoves(openingMoves, pos);
-
-  const ctx = new SearchContext(nodeLimit);
-  while (!pos.gameOver() && pos.fullmoveNumber * 2 < MAX_PLY) {
-    ctx.reset(nodeLimit);
-    const whiteMove = white.search(pos, ctx);
-    pos.makeMove(whiteMove);
-
-    pos.checkGameOver();
-    if (pos.gameOver()) break;
-    ctx.reset(nodeLimit);
-
-    const blackMove = black.search(pos, ctx);
-    pos.makeMove(blackMove);
-
-    pos.checkGameOver();
-  }
-
-  if (pos.fullmoveNumber * 2 >= MAX_PLY) {
-    return DRAW;
-  }
-
-  return pos.result;
-}
-
-function updateLLR(
-  llr: number,
-  result: Result,
-  white: Bondmonkey,
-  engine1: Bondmonkey,
-) {
-  const score =
-    result === DRAW
-      ? 0.5
-      : result === WHITE_WIN
-        ? white === engine1
-          ? 1
-          : 0
-        : white === engine1
-          ? 0
-          : 1;
-
+function updateLLR(llr: number, result: Result, isE1White: boolean) {
+  let score = 0.5; // Draw
+  if (result === WHITE_WIN) score = isE1White ? 1 : 0;
+  if (result === BLACK_WIN) score = isE1White ? 0 : 1;
   return llr + Math.log(scoreProb(score, p1) / scoreProb(score, p0));
 }
 
@@ -190,20 +158,13 @@ function scoreRate(stats: Stats): number {
   return score / total;
 }
 
-function updateStats(
-  stats: Stats,
-  result: Result,
-  white: Bondmonkey,
-  black: Bondmonkey,
-  engine1: Bondmonkey,
-) {
+function updateStats(stats: Stats, result: Result, isE1White: boolean) {
   if (result === DRAW) {
     stats.draws++;
     return;
   }
-
-  const winner = result === WHITE_WIN ? white : black;
-
-  if (winner === engine1) stats.wins++;
+  const isE1Win =
+    (result === WHITE_WIN && isE1White) || (result === BLACK_WIN && !isE1White);
+  if (isE1Win) stats.wins++;
   else stats.losses++;
 }

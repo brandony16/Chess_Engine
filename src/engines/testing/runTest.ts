@@ -8,23 +8,26 @@ import { BondmonkeyV8 } from "../bondmonkeyVersions/v8.ts";
 import { BondmonkeyV9 } from "../bondmonkeyVersions/v9.ts";
 import { MAX_SEARCH_PLY } from "../Engine.ts";
 import { runMatch } from "./fullMatches.ts";
+import type { EngineConfig } from "./matchWorker.ts";
 import { sprt } from "./SPRT.ts";
 
 async function main() {
-  const moveOrdering = new BondmonkeyV5(MAX_SEARCH_PLY);
-  const quiesce = new BondmonkeyV6(MAX_SEARCH_PLY);
-  const psqt = new BondmonkeyV7(MAX_SEARCH_PLY);
-  const endgameKingPos = new BondmonkeyV8(MAX_SEARCH_PLY);
-  const transpos = new BondmonkeyV9(MAX_SEARCH_PLY);
-  const v10 = new BondmonkeyV10(MAX_SEARCH_PLY);
-  const v11 = new BondmonkeyV11(MAX_SEARCH_PLY);
-  const v12 = new BondmonkeyV12(MAX_SEARCH_PLY);
+  const timeLimitMs = 250;
 
-  const nodeLimit = 25_000;
+  // v5 is a solid base version, with ab pruining and basic move ordering
+  const eng1: EngineConfig = {
+    version: BondmonkeyV12.name,
+    depth: MAX_SEARCH_PLY,
+  };
+
+  const eng2: EngineConfig = {
+    version: BondmonkeyV11.name,
+    depth: MAX_SEARCH_PLY,
+  };
 
   const start = performance.now();
-  // const result = await sprt(psqt, quiesce, nodeLimit);
-  const result = await runMatch(v12, v11, 100, nodeLimit, 16);
+  // const result = await sprt(eng1, eng2, timeLimitMs);
+  const result = await runMatch(eng1, eng2, 100, timeLimitMs, 16);
   const end = performance.now();
 
   const time = ((end - start) / 1000).toFixed(2); // get time in seconds
