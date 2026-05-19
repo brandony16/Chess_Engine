@@ -1,5 +1,6 @@
 import { BondmonkeyV10 } from "../bondmonkeyVersions/v10.ts";
 import { BondmonkeyV11 } from "../bondmonkeyVersions/v11.ts";
+import { BondmonkeyV12 } from "../bondmonkeyVersions/v12.ts";
 import { BondmonkeyV5 } from "../bondmonkeyVersions/v5.ts";
 import { BondmonkeyV6 } from "../bondmonkeyVersions/v6.ts";
 import { BondmonkeyV7 } from "../bondmonkeyVersions/v7.ts";
@@ -17,12 +18,13 @@ async function main() {
   const transpos = new BondmonkeyV9(MAX_SEARCH_PLY);
   const v10 = new BondmonkeyV10(MAX_SEARCH_PLY);
   const v11 = new BondmonkeyV11(MAX_SEARCH_PLY);
+  const v12 = new BondmonkeyV12(MAX_SEARCH_PLY);
 
-  const nodeLimit = 10_000;
+  const nodeLimit = 25_000;
 
   const start = performance.now();
   // const result = await sprt(psqt, quiesce, nodeLimit);
-  const result = await runMatch(v11, v10, 100, nodeLimit, 16);
+  const result = await runMatch(v12, v11, 100, nodeLimit, 16);
   const end = performance.now();
 
   const time = ((end - start) / 1000).toFixed(2); // get time in seconds

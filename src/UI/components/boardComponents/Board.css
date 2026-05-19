@@ -81,7 +81,7 @@
 }
 
 /* rank/file labels */
-.rowId,
+.rankId,
 .colId {
   position: absolute;
   font-family: "Segoe UI", sans-serif;
@@ -92,7 +92,7 @@
   pointer-events: none;
 }
 
-.rowId {
+.rankId {
   bottom: 0%;
   right: 5%;
 }
@@ -103,12 +103,12 @@
 }
 
 /* invert label color for contrast */
-.rowId.light,
+.rankId.light,
 .colId.light {
   color: var(--darkSquare);
 }
 
-.rowId.dark,
+.rankId.dark,
 .colId.dark {
   color: var(--lightSquare);
 }

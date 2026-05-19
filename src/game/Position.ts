@@ -114,8 +114,9 @@ import {
   generateQueenMoves,
   generateRookMoves,
 } from "./moveGen/totalPieceGen.ts";
+import { getFile } from "./helpers/boardUtils.ts";
+import { MAX_SEARCH_PLY } from "../engines/Engine.ts";
 
-const MAX_SEARCH_PLY = 32;
 const MAX_PLY = 512;
 export const MAX_MOVES = 256;
 
@@ -592,6 +593,62 @@ export class Position {
     this.ply--;
   }
 
+  makeNullMove(): void {
+    this.ply++;
+
+    this.undoEp[this.ply] = this.enPassantSquare;
+    this.undoHalfmove[this.ply] = this.halfmoveClock;
+
+    this.moveStack[this.ply] = 0;
+
+    this.zobristLo ^= SIDE_ZOBRIST_LO;
+    this.zobristHi ^= SIDE_ZOBRIST_HI;
+
+    // If there is an En Passant square active, hash it out and clear it
+    if (this.enPassantSquare !== NO_SQUARE) {
+      this.zobristLo ^= EN_PASSANT_ZOBRIST_LO[getFile(this.enPassantSquare)];
+      this.zobristHi ^= EN_PASSANT_ZOBRIST_HI[getFile(this.enPassantSquare)];
+
+      this.enPassantSquare = NO_SQUARE;
+    }
+    this.zobristLo >>>= 0;
+    this.zobristHi >>>= 0;
+
+    this.halfmoveClock++;
+    if (this.sideToMove === BLACK) {
+      this.fullmoveNumber++;
+    }
+
+    this.zobristHistoryLo[this.ply] = this.zobristLo;
+    this.zobristHistoryHi[this.ply] = this.zobristHi;
+
+    this.sideToMove ^= 1;
+    this.searchPly++;
+  }
+
+  unmakeNullMove(): void {
+    this.searchPly--;
+
+    const ep = this.undoEp[this.ply] as Square;
+    const halfmove = this.undoHalfmove[this.ply];
+
+    this.sideToMove ^= 1;
+
+    this.enPassantSquare = ep;
+    this.halfmoveClock = halfmove;
+    this.zobristLo = this.zobristHistoryLo[this.ply - 1];
+    this.zobristHi = this.zobristHistoryHi[this.ply - 1];
+
+    if (this.sideToMove === BLACK) {
+      this.fullmoveNumber--;
+    }
+
+    // If unmaking a move, the game cant be over (can't move if the game is over)
+    this.result = IN_PROGRESS;
+    this.endState = IN_PROGRESS;
+    this.ply--;
+  }
+
   isInCheck(player: Player = this.sideToMove): boolean {
     const opp = opponent(player);
     const kingSquare = this.kingSq[player] as Square;
@@ -840,6 +897,18 @@ export class Position {
   }
 
   validate(): boolean {
+    // ----- Zobrist Validity -----
+    const zobristLo = this.zobristLo;
+    const zobristHi = this.zobristHi;
+    this.computeZobrist();
+
+    if (this.zobristLo !== zobristLo || this.zobristHi !== zobristHi) {
+      console.error("Zobrist Mismatch");
+      console.error(`Computed Lo: ${this.zobristLo}\nStored Lo: ${zobristLo}`);
+      console.error(`Computed Hi: ${this.zobristHi}\nStored Hi: ${zobristHi}`);
+      return false;
+    }
+
     // ----- Recompute Occupancy from Bitboards -----
     let occLo = 0,
       occHi = 0;

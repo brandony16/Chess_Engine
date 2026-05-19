@@ -15,6 +15,7 @@ import { buildPGN } from "../game/fenAndUCI/pgn.ts";
 import type { Move } from "../game/moveMaking/move.ts";
 import { engineNames } from "../engines/bondmonkeyVersions/engineList.ts";
 import {
+  KIWIPETE_POS,
   START_POS,
   TRANSPOSITION_ENDGAME,
 } from "../__tests__/game_tests/fens.ts";
@@ -35,7 +36,7 @@ type PromotionState =
   | { isHappening: true; square: Square };
 
 export const INITIAL_STATE = {
-  fen: START_POS,
+  fen: KIWIPETE_POS,
   userSide: WHITE,
   engine: engineNames[engineNames.length - 1], // most recent engine
   depth: MAX_SEARCH_PLY, // time limited, not depth limited
