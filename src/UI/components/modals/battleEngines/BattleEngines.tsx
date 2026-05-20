@@ -14,9 +14,8 @@ type ModalStates = (typeof BattleModalStates)[keyof typeof BattleModalStates];
 const BattleEngines = () => {
   // Engine States
   const [engine1, setEngine1] = useState<EngineName>(INITIAL_STATE.engine);
-  const [depth1, setDepth1] = useState<number>(INITIAL_STATE.depth);
   const [engine2, setEngine2] = useState<EngineName>(INITIAL_STATE.engine);
-  const [depth2, setDepth2] = useState<number>(INITIAL_STATE.depth);
+  const [timeLimit, setTimeLimit] = useState<number>(INITIAL_STATE.timeLimit);
 
   // Game Settings
   const [numGames, setNumGames] = useState<number>(10);
@@ -72,12 +71,11 @@ const BattleEngines = () => {
 
     workerRef.current?.postMessage({
       engine1Name: engine1,
-      eng1Depth: depth1,
       engine2Name: engine2,
-      eng2Depth: depth2,
+      timeLimit: timeLimit,
       games: numGames,
     });
-  }, [workerRef, engine1, depth1, engine2, depth2, numGames]);
+  }, [workerRef, engine1, engine2, timeLimit, numGames]);
 
   let content;
   switch (modalState) {
@@ -102,12 +100,10 @@ const BattleEngines = () => {
         <Setting
           engine1={engine1}
           setEngine1={setEngine1}
-          depth1={depth1}
-          setDepth1={setDepth1}
           engine2={engine2}
           setEngine2={setEngine2}
-          depth2={depth2}
-          setDepth2={setDepth2}
+          timeLimit={timeLimit}
+          setTimeLimit={setTimeLimit}
           games={numGames}
           setGames={setNumGames}
           startBattle={startBattle}

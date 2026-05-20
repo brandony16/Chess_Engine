@@ -1,5 +1,6 @@
 import { getEngineByName } from "../../../engines/bondmonkeyVersions/engineList.ts";
 import type { Bondmonkey } from "../../../engines/bondmonkeyVersions/type.ts";
+import { MAX_SEARCH_PLY } from "../../../engines/Engine.ts";
 import { SearchContext } from "../../../engines/searchContext.ts";
 import {
   getRandomOpening,
@@ -20,13 +21,13 @@ export type BattleWorkerResponse = {
 };
 
 self.onmessage = async (e) => {
-  const { engine1Name, eng1Depth, engine2Name, eng2Depth, games } = e.data;
+  const { engine1Name, engine2Name, timeLimit, games } = e.data;
 
-  const engine1 = getEngineByName(engine1Name, eng1Depth);
-  const engine2 = getEngineByName(engine2Name, eng2Depth);
+  const engine1 = getEngineByName(engine1Name, MAX_SEARCH_PLY);
+  const engine2 = getEngineByName(engine2Name, MAX_SEARCH_PLY);
 
   // cap node limit at 100K so matches arent stupidly long
-  const result = await runMatch(engine1, engine2, games, 100_000);
+  const result = await runMatch(engine1, engine2, games, timeLimit);
 
   // Final stats
   const winRate = ((result.wins / games) * 100).toFixed(1);
@@ -45,7 +46,7 @@ const runMatch = async (
   engine1: Bondmonkey,
   engine2: Bondmonkey,
   numGames: number,
-  nodeLimit: number,
+  timeLimitMs: number,
   seed: number = 1,
 ): Promise<MatchResult> => {
   const openingRes = await fetch("/openings.json");
@@ -106,7 +107,7 @@ const runMatch = async (
       engine1,
       engine2,
       openingMoves,
-      nodeLimit,
+      timeLimitMs,
     );
 
     recordResult(result1, engine1, engine2);
@@ -117,7 +118,7 @@ const runMatch = async (
       engine2,
       engine1,
       openingMoves,
-      nodeLimit,
+      timeLimitMs,
     );
 
     recordResult(result2, engine2, engine1);
@@ -135,7 +136,7 @@ async function playSingleGame(
   white: Bondmonkey,
   black: Bondmonkey,
   openingMoves: string[],
-  maxNodeCt: number,
+  timeLimitMs: number,
 ): Promise<Result> {
   const pos = new Position();
   const MAX_PLY = 512;
@@ -145,15 +146,15 @@ async function playSingleGame(
 
   await playOpeningMoves(openingMoves, pos);
 
-  const ctx = new SearchContext(maxNodeCt);
+  const ctx = new SearchContext(Infinity, timeLimitMs);
   while (!pos.gameOver() && pos.fullmoveNumber * 2 < MAX_PLY) {
-    ctx.reset(maxNodeCt);
+    ctx.reset(Infinity, timeLimitMs);
     const whiteMove = white.search(pos, ctx);
     pos.makeMove(whiteMove);
 
     pos.checkGameOver();
     if (pos.gameOver()) break;
-    ctx.reset(maxNodeCt);
+    ctx.reset(Infinity, timeLimitMs);
 
     const blackMove = black.search(pos, ctx);
     pos.makeMove(blackMove);

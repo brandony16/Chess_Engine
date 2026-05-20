@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import React, { useCallback, type Dispatch, type SetStateAction } from "react";
 import {
   engineNames,
@@ -8,18 +7,10 @@ import {
 
 type EngineSettingProps = {
   engineValue: EngineName;
-  depthValue: number;
   setEngine: Dispatch<SetStateAction<EngineName>>;
-  setDepth: Dispatch<SetStateAction<number>>;
   id: string;
 };
-const EngineSettings = ({
-  engineValue,
-  depthValue,
-  setEngine,
-  setDepth,
-  id,
-}: EngineSettingProps) => {
+const EngineSettings = ({ engineValue, setEngine, id }: EngineSettingProps) => {
   const updateValue = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const value = e.target.value;
@@ -53,33 +44,8 @@ const EngineSettings = ({
           })}
         </select>
       </div>
-
-      <div className="labelWrap">
-        <label className="modalLabel" htmlFor={"depthSelect" + id}>
-          Depth:
-        </label>
-        <input
-          type="number"
-          name="depth"
-          step={1}
-          className="numInput"
-          max="10"
-          min="1"
-          value={depthValue}
-          id={"depthSelect" + id}
-          onChange={(e) => setDepth(Number(e.target.value))}
-        />
-      </div>
     </div>
   );
-};
-
-EngineSettings.propTypes = {
-  engineValue: PropTypes.string.isRequired,
-  depthValue: PropTypes.number.isRequired,
-  setEngine: PropTypes.func.isRequired,
-  setDepth: PropTypes.func.isRequired,
-  id: PropTypes.string.isRequired,
 };
 
 const MemoizedEngineSettings = React.memo(EngineSettings);

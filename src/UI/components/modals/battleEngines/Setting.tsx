@@ -6,13 +6,12 @@ import type { EngineName } from "../../../../engines/bondmonkeyVersions/engineLi
 type SettingProps = {
   engine1: EngineName;
   setEngine1: Dispatch<SetStateAction<EngineName>>;
-  depth1: number;
-  setDepth1: Dispatch<SetStateAction<number>>;
 
   engine2: EngineName;
   setEngine2: Dispatch<SetStateAction<EngineName>>;
-  depth2: number;
-  setDepth2: Dispatch<SetStateAction<number>>;
+
+  timeLimit: number;
+  setTimeLimit: Dispatch<SetStateAction<number>>;
 
   games: number;
   setGames: Dispatch<SetStateAction<number>>;
@@ -22,12 +21,10 @@ type SettingProps = {
 export const Setting = ({
   engine1,
   setEngine1,
-  depth1,
-  setDepth1,
   engine2,
   setEngine2,
-  depth2,
-  setDepth2,
+  timeLimit,
+  setTimeLimit,
   games,
   setGames,
   startBattle,
@@ -35,20 +32,25 @@ export const Setting = ({
   return (
     <>
       <div className="engineSettingsWrap">
-        <EngineSettings
-          engineValue={engine1}
-          depthValue={depth1}
-          setEngine={setEngine1}
-          setDepth={setDepth1}
-          id="one"
-        />
-        <EngineSettings
-          engineValue={engine2}
-          depthValue={depth2}
-          setEngine={setEngine2}
-          setDepth={setDepth2}
-          id="two"
-        />
+        <EngineSettings engineValue={engine1} setEngine={setEngine1} id="one" />
+        <EngineSettings engineValue={engine2} setEngine={setEngine2} id="two" />
+      </div>
+
+      <div className="paramWrap">
+        <div className="labelWrap">
+          <legend>Time Limit Per Move (ms):</legend>
+          <input
+            type="number"
+            name="games"
+            id="games"
+            step="10"
+            className="numInput"
+            max="10000"
+            min="50"
+            value={timeLimit}
+            onChange={(e) => setTimeLimit(Number(e.target.value))}
+          />
+        </div>
       </div>
 
       <div className="paramWrap">
