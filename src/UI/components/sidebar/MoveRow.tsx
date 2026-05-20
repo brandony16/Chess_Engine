@@ -21,8 +21,8 @@ const MoveRow = ({ halfMove, whiteMove, blackMove }: MoveRowProps) => {
     [goToMove, halfMove],
   );
 
-  const highlightWhite = halfMove === currIdxOfDisplayed;
-  const highlightBlack = halfMove + 1 === currIdxOfDisplayed;
+  const highlightWhite = halfMove + 1 === currIdxOfDisplayed;
+  const highlightBlack = halfMove + 2 === currIdxOfDisplayed;
 
   return (
     <li key={halfMove / 2} className="pastMove">

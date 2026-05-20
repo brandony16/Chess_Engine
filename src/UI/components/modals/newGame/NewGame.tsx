@@ -59,7 +59,7 @@ const NewGame = () => {
   }, [userSide]);
 
   const handleStart = useCallback(() => {
-    resetGame(START_POS);
+    resetGame(START_POS, getSide());
   }, [resetGame, getSide, engine, depth, timeLimit]);
 
   return (
@@ -82,11 +82,6 @@ const NewGame = () => {
               })
             }
           />
-          {depth >= 8 && (
-            <p className="depthWarning">
-              Warning: High depths may cause long engine thinking time!
-            </p>
-          )}
         </div>
         <div className="form-group">
           <label htmlFor="time-input">Time Limit (ms):</label>

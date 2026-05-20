@@ -39,7 +39,7 @@ type PromotionState =
 export const INITIAL_STATE = {
   fen: START_POS,
   userSide: WHITE,
-  engine: engineNames[engineNames.length - 1], // most recent engine
+  engine: engineNames[0], // most recent engine
   depth: MAX_SEARCH_PLY, // time limited, not depth limited
   timeLimit: 1000,
 } as const;
@@ -71,7 +71,11 @@ export interface GameStoreState {
 
   // ----- ACTIONS -----
   playMove: (move: Move) => void;
-  resetGame: (fen?: string, wasEngineGame?: boolean) => void;
+  resetGame: (
+    fen?: string,
+    newUserSide?: Player,
+    wasEngineGame?: boolean,
+  ) => void;
   flipBoard: () => void;
   openModal: (type: Exclude<ModalType, null>) => void;
   closeModal: () => void;
@@ -134,7 +138,11 @@ export const useGameStore = create<GameStoreState>((set, get) => {
       });
     },
 
-    resetGame: (fen?: string, wasEngineGame: boolean = false): void => {
+    resetGame: (
+      fen?: string,
+      newUserSide: Player = WHITE,
+      wasEngineGame: boolean = false,
+    ): void => {
       const { game, pastGames, algebraicMoves, userSide, selectedEngine } =
         get();
 
@@ -170,15 +178,17 @@ export const useGameStore = create<GameStoreState>((set, get) => {
 
       set({
         game: newGame,
+        userSide: newUserSide,
+        boardPerspective: newUserSide,
         selectedSquare: NO_SQUARE,
         legalMovesForSelected: [],
         pastGames: updatedPast,
-        pastPositions: [],
         algebraicMoves: [],
 
         modalState: { isOpen: false },
 
-        currIdxOfDisplayed: -1,
+        currIdxOfDisplayed: 0,
+        pastPositions: [newGame.getSnapshot()],
       });
     },
 
