@@ -2,8 +2,8 @@
  * Piece square tables store values for where pieces "should" be placed.
  * It rewards knights being centralized, for example.
  * Tables were inspired and tweaked from the Chess Programming Wiki's
- * Simplified Evaluation Function page. 
- * https://www.chessprogramming.org/Simplified_Evaluation_Function 
+ * Simplified Evaluation Function page.
+ * https://www.chessprogramming.org/Simplified_Evaluation_Function
  */
 
 /**
@@ -11,19 +11,20 @@
  * should not move frequently. Also pawns are rewarded for getting
  * closer to promotion
  */
+
+// prettier-ignore
 const WHITE_PAWN_PIECE_SQUARE_TABLE = [
    0,  0,  0,  0,  0,  0,  0,  0,
-   5, 10, 10,-20,-20, 10, 10,  5,
+   5, 10, 10,-20,-20, 10, 10,  5, // 2nd rank
    5, -5,-10,  0,  0,-10, -5,  5,
    0,  0, 10, 20, 20,  0,  0,  0,
    5,  5, 10, 25, 25, 10,  5,  5,
   10, 10, 20, 30, 30, 20, 10, 10,
-  50, 50, 50, 50, 50, 50, 50, 50,
+  50, 50, 50, 50, 50, 50, 50, 50, // 7th rank
    0,  0,  0,  0,  0,  0,  0,  0,
 ];
 
-
-
+// prettier-ignore
 const BLACK_PAWN_PIECE_SQUARE_TABLE = [
    0,  0,  0,  0,  0,  0,  0,  0,
   50, 50, 50, 50, 50, 50, 50, 50,
@@ -39,6 +40,7 @@ const BLACK_PAWN_PIECE_SQUARE_TABLE = [
  * Knights should be on central squares as they have limited use
  * at the edges of the board.
  */
+// prettier-ignore
 const WHITE_KNIGHT_PIECE_SQUARE_TABLE = [
   -50,-40,-30,-30,-30,-30,-40,-50,
   -40,-20,  0,  5,  5,  0,-20,-40,
@@ -50,6 +52,7 @@ const WHITE_KNIGHT_PIECE_SQUARE_TABLE = [
   -50,-40,-30,-30,-30,-30,-40,-50,
 ]
 
+// prettier-ignore
 const BLACK_KNIGHT_PIECE_SQUARE_TABLE = [
   -50,-40,-30,-30,-30,-30,-40,-50,
   -40,-20,  0,  0,  0,  0,-20,-40,
@@ -64,6 +67,7 @@ const BLACK_KNIGHT_PIECE_SQUARE_TABLE = [
 /**
  * Encourage bishops to centralize and be on good diagonals.
  */
+// prettier-ignore
 const WHITE_BISHOP_PIECE_SQUARE_TABLE = [
   -20,-10,-10,-10,-10,-10,-10,-20,
   -10,  5,  0,  0,  0,  0,  5,-10,
@@ -75,6 +79,7 @@ const WHITE_BISHOP_PIECE_SQUARE_TABLE = [
   -20,-10,-10,-10,-10,-10,-10,-20,
 ]
 
+// prettier-ignore
 const BLACK_BISHOP_PIECE_SQUARE_TABLE = [
   -20,-10,-10,-10,-10,-10,-10,-20,
   -10,  0,  0,  0,  0,  0,  0,-10,
@@ -90,6 +95,7 @@ const BLACK_BISHOP_PIECE_SQUARE_TABLE = [
  * Encourage the rooks to centralize and move to the opponent's
  * second rank.
  */
+// prettier-ignore
 const WHITE_ROOK_PIECE_SQUARE_TABLE = [
    0,  0,  5, 10, 10,  5,  0,  0,
   -5,  0,  0,  0,  0,  0,  0, -5,
@@ -101,6 +107,7 @@ const WHITE_ROOK_PIECE_SQUARE_TABLE = [
    0,  0,  0,  0,  0,  0,  0,  0,
 ]
 
+// prettier-ignore
 const BLACK_ROOK_PIECE_SQUARE_TABLE = [
    0,  0,  0,  0,  0,  0,  0,  0,
    5, 10, 10, 10, 10, 10, 10,  5,
@@ -116,6 +123,7 @@ const BLACK_ROOK_PIECE_SQUARE_TABLE = [
  * Generally encourage the queen to be centralized, where it can be
  * the most active.
  */
+// prettier-ignore
 const WHITE_QUEEN_PIECE_SQUARE_TABLE = [
   -20,-10,-10, -5, -5,-10,-10,-20,
   -10,  0,  0,  0,  0,  5,  0,-10,
@@ -127,6 +135,7 @@ const WHITE_QUEEN_PIECE_SQUARE_TABLE = [
   -20,-10,-10, -5, -5,-10,-10,-20,
 ]
 
+// prettier-ignore
 const BLACK_QUEEN_PIECE_SQUARE_TABLE = [
   -20,-10,-10, -5, -5,-10,-10,-20,
   -10,  0,  0,  0,  0,  0,  0,-10,
@@ -141,6 +150,7 @@ const BLACK_QUEEN_PIECE_SQUARE_TABLE = [
 /**
  * Encourage king to castle and be behind the pawns
  */
+// prettier-ignore
 const WHITE_KING_PIECE_SQUARE_TABLE = [
    20, 30, 10,  0,  0, 10, 30, 20,
    20, 20,  0,  0,  0,  0, 20, 20,
@@ -152,6 +162,7 @@ const WHITE_KING_PIECE_SQUARE_TABLE = [
   -30,-40,-40,-50,-50,-40,-40,-30,
 ]
 
+// prettier-ignore
 const BLACK_KING_PIECE_SQUARE_TABLE = [
   -30,-40,-40,-50,-50,-40,-40,-30,
   -30,-40,-40,-50,-50,-40,-40,-30,
@@ -180,4 +191,4 @@ export const PIECE_SQUARE_TABLES = [
   BLACK_ROOK_PIECE_SQUARE_TABLE,
   BLACK_QUEEN_PIECE_SQUARE_TABLE,
   BLACK_KING_PIECE_SQUARE_TABLE,
-]
+];

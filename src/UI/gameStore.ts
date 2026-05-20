@@ -37,8 +37,8 @@ type PromotionState =
   | { isHappening: true; square: Square };
 
 export const INITIAL_STATE = {
-  fen: LOCKED_MIDDLEGAME,
-  userSide: BLACK,
+  fen: START_POS,
+  userSide: WHITE,
   engine: engineNames[engineNames.length - 1], // most recent engine
   depth: MAX_SEARCH_PLY, // time limited, not depth limited
   timeLimit: 1000,
