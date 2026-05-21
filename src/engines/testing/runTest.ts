@@ -2,6 +2,7 @@ import { BondmonkeyV10 } from "../bondmonkeyVersions/v10.ts";
 import { BondmonkeyV11 } from "../bondmonkeyVersions/v11.ts";
 import { BondmonkeyV12 } from "../bondmonkeyVersions/v12.ts";
 import { BondmonkeyV13 } from "../bondmonkeyVersions/v13.ts";
+import { BondmonkeyV14 } from "../bondmonkeyVersions/v14.ts";
 import { BondmonkeyV5 } from "../bondmonkeyVersions/v5.ts";
 import { BondmonkeyV6 } from "../bondmonkeyVersions/v6.ts";
 import { BondmonkeyV7 } from "../bondmonkeyVersions/v7.ts";
@@ -17,18 +18,18 @@ async function main() {
 
   // v5 is a solid base version, with ab pruining and basic move ordering
   const eng1: EngineConfig = {
-    version: BondmonkeyV13.name,
+    version: BondmonkeyV14.name,
     depth: MAX_SEARCH_PLY,
   };
 
   const eng2: EngineConfig = {
-    version: BondmonkeyV12.name,
+    version: BondmonkeyV13.name,
     depth: MAX_SEARCH_PLY,
   };
 
   const start = performance.now();
-  // const result = await sprt(eng1, eng2, timeLimitMs);
-  const result = await runMatch(eng1, eng2, 100, timeLimitMs, 16);
+  const result = await sprt(eng1, eng2, timeLimitMs);
+  // const result = await runMatch(eng1, eng2, 100, timeLimitMs, 16);
   const end = performance.now();
 
   const time = ((end - start) / 1000).toFixed(2); // get time in seconds
