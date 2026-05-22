@@ -30,6 +30,7 @@ export class MinimaxV6 implements Engine {
   private evaluate: Evaluation;
 
   depth: number;
+  depthReached: number;
 
   private scoreBuffer = new Int32Array(MAX_SEARCH_PLY * MAX_MOVES);
   private readonly MAX_QUIESCE_DEPTH = 8;
@@ -38,6 +39,7 @@ export class MinimaxV6 implements Engine {
   constructor(depth: number) {
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
+    this.depthReached = 0;
     this.evaluate = evaluateV1;
 
     this.tt = new TranspositionTable();
@@ -47,14 +49,19 @@ export class MinimaxV6 implements Engine {
     this.tt.clear();
   }
 
-  search(pos: Position, evaluate: Evaluation, ctx: SearchContext): Move {
+  search(
+    pos: Position,
+    evaluate: Evaluation,
+    ctx: SearchContext,
+    log: boolean = false,
+  ): Move {
     pos.searchPly = 0;
     this.evaluate = evaluate;
 
     let bestMove = 0;
-    let maxD = 1;
+    this.depthReached = 0;
     for (let depth = 1; depth <= this.depth; depth++) {
-      maxD++;
+      this.depthReached++;
       const result = this.#searchRoot(pos, depth, ctx, bestMove);
 
       if (result) {
@@ -65,9 +72,11 @@ export class MinimaxV6 implements Engine {
         break;
       }
     }
-    // console.log(
-    //   `Depth Searched: ${maxD}\nNodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}`,
-    // );
+    if (log) {
+      console.log(
+        `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}`,
+      );
+    }
 
     return bestMove;
   }

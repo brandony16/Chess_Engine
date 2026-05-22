@@ -4,7 +4,8 @@ import type { Evaluation } from "./evaluation/Evaluation.ts";
 import type { SearchContext } from "./searchContext.ts";
 
 export type Engine = {
-  depth?: number;
+  depth: number;
+  depthReached: number;
 
   search(pos: Position, evaluate: Evaluation, ctx: SearchContext): Move;
   newGame(): void;

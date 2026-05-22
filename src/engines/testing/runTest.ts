@@ -14,7 +14,7 @@ import type { EngineConfig } from "./matchWorker.ts";
 import { sprt } from "./SPRT.ts";
 
 async function main() {
-  const timeLimitMs = 200;
+  const timeLimitMs = 250;
 
   // v5 is a solid base version, with ab pruining and basic move ordering
   const eng1: EngineConfig = {
@@ -29,7 +29,7 @@ async function main() {
 
   const start = performance.now();
   // const result = await sprt(eng1, eng2, timeLimitMs);
-  const result = await runMatch(eng1, eng2, 100, timeLimitMs, 16);
+  const result = await runMatch(eng1, eng2, 20, timeLimitMs, 16);
   const end = performance.now();
 
   const time = ((end - start) / 1000).toFixed(2); // get time in seconds

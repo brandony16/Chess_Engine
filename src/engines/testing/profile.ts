@@ -6,6 +6,7 @@ import {
   TRANSPOSITION_ENDGAME,
 } from "../../__tests__/game_tests/fens.ts";
 import { moreThanOne } from "../../game/bb.ts";
+import { moveToUCI } from "../../game/fenAndUCI/uciHelpers.ts";
 import { MAX_MOVES, Position } from "../../game/Position.ts";
 import { MAX_SEARCH_PLY } from "../Engine.ts";
 import { evaluateV3 } from "../evaluation/evaluationV3.ts";
@@ -18,31 +19,31 @@ import { MinimaxV8 } from "../minimaxEngines/v8.ts";
 import { MinimaxV9 } from "../minimaxEngines/v9.ts";
 import { SearchContext } from "../searchContext.ts";
 
-const nmp = new MinimaxV8(7);
-const normal = new MinimaxV8(7);
+const nmp = new MinimaxV9(MAX_SEARCH_PLY);
+const normal = new MinimaxV8(MAX_SEARCH_PLY);
 const pos = new Position();
-pos.loadFen(
-  KIWIPETE_POS,
-);
+pos.loadFen(OPEN_MIDGAME);
 
 // warm up JIT
 nmp.search(pos, evaluateV4, new SearchContext(100_000));
 
 console.log("Starting PVS + LMR search");
-const ctx = new SearchContext(Infinity, Infinity);
+const ctx = new SearchContext(Infinity, 250);
 const start = performance.now();
-const move1 = nmp.search(pos, evaluateV5, ctx);
+const move1 = nmp.search(pos, evaluateV4, ctx, true);
 const end = performance.now();
 
 console.log("\nStarting Other search");
-const ctx2 = new SearchContext(Infinity, Infinity);
+const ctx2 = new SearchContext(Infinity, 250);
 const start2 = performance.now();
-const move2 = normal.search(pos, evaluateV4, ctx2);
+const move2 = normal.search(pos, evaluateV4, ctx2, true);
 const end2 = performance.now();
 console.log();
 
 console.log(`Moves Match: ${move1 === move2}`);
-console.log(`PVS + LMR Move: ${move1}\nOther Move: ${move2}\n`);
+console.log(
+  `PVS + LMR Move: ${moveToUCI(move1)}\nOther Move: ${moveToUCI(move2)}\n`,
+);
 
 console.log(
   `\nPVS + LMR Time: ${((end - start) / 1000).toFixed(2)}\nOther Time: ${((end2 - start2) / 1000).toFixed(2)}`,

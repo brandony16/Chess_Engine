@@ -5,6 +5,7 @@ import type { Evaluation } from "../evaluation/Evaluation.ts";
 import { evaluateV3 } from "../evaluation/evaluationV3.ts";
 import { MinimaxV4 } from "../minimaxEngines/quiescence.ts";
 import type { SearchContext } from "../searchContext.ts";
+import type { EngineName } from "./engineList.ts";
 import type { Bondmonkey } from "./type.ts";
 
 export class BondmonkeyV8 implements Bondmonkey {
@@ -25,5 +26,13 @@ export class BondmonkeyV8 implements Bondmonkey {
 
   search(pos: Position, ctx: SearchContext): Move {
     return this.engine.search(pos, this.evaluation, ctx);
+  }
+
+  get name(): EngineName {
+    return BondmonkeyV8.name;
+  }
+  
+  get depthOfPrevSearch(): number {
+    return this.engine.depthReached;
   }
 }

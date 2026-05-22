@@ -10,10 +10,10 @@ import {
   W_PASSED_LO,
 } from "./masks.ts";
 
-const PENALTY_DOUBLED = -15;
-const PENALTY_ISOLATED = -20;
+export const PENALTY_DOUBLED = -15;
+export const PENALTY_ISOLATED = -20;
 
-const PASSED_PAWN_BONUS = [
+export const PASSED_PAWN_BONUS = [
   0, // Rank 1
   5, // Rank 2
   10, // Rank 3

@@ -6,10 +6,10 @@ import {
 } from "../../game/chessConstants.ts";
 import { fetchOpenings, getRandomOpening } from "./openings.ts";
 import { mulberry32 } from "../../random.ts";
-import type { Bondmonkey } from "../bondmonkeyVersions/type.ts";
 import * as os from "os";
 import type { EngineConfig } from "./matchWorker.ts";
 import { Worker } from "worker_threads";
+import * as fs from "fs";
 
 type MatchResult = {
   games: number;
@@ -63,13 +63,25 @@ export const runMatch = async (
     };
 
     // Helper to shut everything down and return the final object
-    const terminateAll = () => {
+    const terminateAll = (
+      pgns: string[],
+      wAvgDepthTotal: number,
+      bAvgDepthTotal: number,
+    ) => {
       workers.forEach((w) => w.terminate());
       res.score = res.wins + 0.5 * res.draws;
       console.log(`\nMatch Complete! Score: ${res.score} / ${res.games}`);
       console.log(
         `Wins: ${res.wins} | Draws: ${res.draws} | Losses: ${res.losses}`,
       );
+      console.log(
+        `E1 Avg Search Depth: ${(wAvgDepthTotal / pairsCompleted).toFixed(2)}\nE2 Avg Search Depth: ${(bAvgDepthTotal / pairsCompleted).toFixed(2)}`,
+      );
+
+      const pgnOutput = pgns.join("\n\n");
+      fs.writeFileSync("match_results.pgn", pgnOutput, "utf8");
+      console.log("Saved all games to match_results.pgn");
+
       resolve(res);
     };
 
@@ -92,6 +104,10 @@ export const runMatch = async (
       });
     };
 
+    const pgns: string[] = [];
+    let e1AvgDepthTotal = 0;
+    let e2AvgDepthTotal = 0;
+
     // --- INITIALIZE WORKER POOL ---
     for (let i = 0; i < NUM_CORES; i++) {
       // Safely resolve the path based on the current file
@@ -99,10 +115,15 @@ export const runMatch = async (
       const worker = new Worker(workerPath);
 
       worker.on("message", (msg) => {
-        const { res1, res2 } = msg;
+        const { res1, res2, pgn1, pgn2, e1AvgDepth, e2AvgDepth } = msg;
 
         recordResult(res1, true); // Game 1: E1 was White
         recordResult(res2, false); // Game 2: E1 was Black
+
+        pgns.push(pgn1, pgn2);
+        e1AvgDepthTotal += e1AvgDepth;
+        e2AvgDepthTotal += e2AvgDepth;
+
         pairsCompleted++;
 
         // Status update
@@ -115,7 +136,7 @@ export const runMatch = async (
 
         // Check if the match is entirely finished
         if (pairsCompleted >= targetPairs) {
-          terminateAll();
+          terminateAll(pgns, e1AvgDepthTotal, e2AvgDepthTotal);
         } else {
           // Worker is free, give it another pair!
           assignNextPair(worker);

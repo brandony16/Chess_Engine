@@ -8,6 +8,9 @@ import type { Evaluation } from "./evaluation/Evaluation.ts";
 
 export function createMaterialEngine(): Engine {
   return {
+    depth: 0,
+    depthReached: 0,
+
     newGame(): void {},
 
     search(pos: Position, evaluate: Evaluation, ctx: SearchContext): Move {

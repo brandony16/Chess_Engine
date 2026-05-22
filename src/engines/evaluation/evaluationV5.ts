@@ -70,7 +70,7 @@ export function evaluateV5(pos: Position, weights: EvalWeights): number {
   evaluation -= bMgPSQT * (1 - endgameWeight) + bEgPSQT * endgameWeight;
 
   // pawn structure
-  evaluation += evaluatePawnStructure(pos);
+  evaluation += evaluatePawnStructure(pos) * endgameWeight;
 
   // convert eval to be relative to the side to move (positive if winning, negative if losing)
   const friendlySide = pos.sideToMove;

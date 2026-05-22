@@ -2,7 +2,7 @@ import { parentPort } from "worker_threads";
 import { Position } from "../../game/Position.ts";
 import { SearchContext } from "../searchContext.ts";
 import { playOpeningMoves } from "./openings.ts";
-import { DRAW } from "../../game/chessConstants.ts";
+import { DRAW, type Result } from "../../game/chessConstants.ts";
 import {
   getEngineByName,
   type EngineName,
@@ -10,6 +10,7 @@ import {
 import type { Bondmonkey } from "../bondmonkeyVersions/type.ts";
 import { MinimaxV8 } from "../minimaxEngines/v8.ts";
 import { evaluateV4 } from "../evaluation/evaluationv4.ts";
+import { buildPGNFromEngineGame } from "../../game/fenAndUCI/pgn.ts";
 
 function warmupJIT() {
   const warmupPos = new Position();
@@ -41,9 +42,20 @@ async function playSingleGame(
   await playOpeningMoves(openingMoves, pos);
   const ctx = new SearchContext(Infinity, timeLimitMs);
 
+  const moveList = [];
+
+  let whiteDepthReachedTotal = 0;
+  let blackDepthReachedTotal = 0;
+  let numWhiteMoves = 0;
+  let numBlackMoves = 0;
   while (!pos.gameOver() && pos.fullmoveNumber * 2 < MAX_PLY) {
     ctx.reset(Infinity, timeLimitMs);
     const whiteMove = white.search(pos, ctx);
+
+    moveList.push(whiteMove);
+    whiteDepthReachedTotal += white.depthOfPrevSearch;
+    numWhiteMoves++;
+
     pos.makeMove(whiteMove);
 
     pos.checkGameOver();
@@ -51,13 +63,28 @@ async function playSingleGame(
 
     ctx.reset(Infinity, timeLimitMs);
     const blackMove = black.search(pos, ctx);
+
+    moveList.push(blackMove);
+    blackDepthReachedTotal += black.depthOfPrevSearch;
+    numBlackMoves++;
+
     pos.makeMove(blackMove);
 
     pos.checkGameOver();
   }
 
-  if (pos.fullmoveNumber * 2 >= MAX_PLY) return DRAW;
-  return pos.result;
+  const result: Result = pos.fullmoveNumber * 2 >= MAX_PLY ? DRAW : pos.result;
+
+  const pgn = buildPGNFromEngineGame(openingMoves, moveList, {
+    white: white.name,
+    black: black.name,
+    result,
+  });
+
+  const wAvgDepth = whiteDepthReachedTotal / numWhiteMoves;
+  const bAvgDepth = blackDepthReachedTotal / numBlackMoves;
+
+  return { result, pgn, wAvgDepth, bAvgDepth };
 }
 
 export type EngineConfig = {
@@ -76,25 +103,35 @@ parentPort?.on("message", async (task: MatchMessage) => {
   const { e1Config, e2Config, openingMoves, timeLimitMs } = task;
 
   // --- GAME 1: Engine 1 is White ---
-  const e1_White = getEngineByName(e1Config.version, e1Config.depth);
-  const e2_Black = getEngineByName(e2Config.version, e2Config.depth);
-  const res1 = await playSingleGame(
-    e1_White,
-    e2_Black,
+  const g1_White = getEngineByName(e1Config.version, e1Config.depth);
+  const g1_Black = getEngineByName(e2Config.version, e2Config.depth);
+  const gameRes1 = await playSingleGame(
+    g1_White,
+    g1_Black,
     openingMoves,
     timeLimitMs,
   );
 
   // --- GAME 2: Engine 1 is Black ---
-  const e2_White = getEngineByName(e2Config.version, e2Config.depth);
-  const e1_Black = getEngineByName(e1Config.version, e1Config.depth);
-  const res2 = await playSingleGame(
-    e2_White,
-    e1_Black,
+  const g2_White = getEngineByName(e2Config.version, e2Config.depth);
+  const g2_Black = getEngineByName(e1Config.version, e1Config.depth);
+  const gameRes2 = await playSingleGame(
+    g2_White,
+    g2_Black,
     openingMoves,
     timeLimitMs,
   );
 
-  // Send results back to the Coordinator!
-  parentPort?.postMessage({ res1, res2 });
+  const e1AvgDepth = (gameRes1.wAvgDepth + gameRes2.bAvgDepth) / 2;
+  const e2AvgDepth = (gameRes1.bAvgDepth + gameRes2.wAvgDepth) / 2;
+
+  // Send results back
+  parentPort?.postMessage({
+    res1: gameRes1.result,
+    res2: gameRes2.result,
+    pgn1: gameRes1.pgn,
+    pgn2: gameRes2.pgn,
+    e1AvgDepth,
+    e2AvgDepth,
+  });
 });

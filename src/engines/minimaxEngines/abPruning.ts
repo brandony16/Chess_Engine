@@ -19,22 +19,31 @@ export class MinimaxV2 implements Engine {
   private evaluate: Evaluation;
 
   depth: number;
+  depthReached: number;
 
   constructor(depth: number) {
     this.weights = DEFAULT_EVAL_WEIGHTS;
     this.depth = depth;
+    this.depthReached = 0;
     this.evaluate = evaluateV1;
   }
 
   newGame(): void {}
 
-  search(pos: Position, evaluate: Evaluation, ctx: SearchContext): Move {
+  search(
+    pos: Position,
+    evaluate: Evaluation,
+    ctx: SearchContext,
+    log: boolean = false,
+  ): Move {
     pos.searchPly = 0;
     this.evaluate = evaluate;
 
     let bestMove = 0;
 
+    this.depthReached = 0;
     for (let depth = 1; depth <= this.depth; depth++) {
+      this.depthReached++;
       const result = this.#searchRoot(pos, depth, ctx);
 
       if (ctx.aborted) {
@@ -42,6 +51,11 @@ export class MinimaxV2 implements Engine {
       }
 
       bestMove = result;
+    }
+    if (log) {
+      console.log(
+        `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\n`,
+      );
     }
 
     return bestMove;
