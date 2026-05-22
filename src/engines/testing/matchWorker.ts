@@ -32,6 +32,7 @@ async function playSingleGame(
   black: Bondmonkey,
   openingMoves: string[],
   timeLimitMs: number,
+  maxNodes: number,
 ) {
   const pos = new Position();
   const MAX_PLY = 512;
@@ -40,7 +41,7 @@ async function playSingleGame(
   black.newGame();
 
   await playOpeningMoves(openingMoves, pos);
-  const ctx = new SearchContext(Infinity, timeLimitMs);
+  const ctx = new SearchContext(maxNodes, timeLimitMs);
 
   const moveList = [];
 
@@ -49,7 +50,7 @@ async function playSingleGame(
   let numWhiteMoves = 0;
   let numBlackMoves = 0;
   while (!pos.gameOver() && pos.fullmoveNumber * 2 < MAX_PLY) {
-    ctx.reset(Infinity, timeLimitMs);
+    ctx.reset(maxNodes, timeLimitMs);
     const whiteMove = white.search(pos, ctx);
 
     moveList.push(whiteMove);
@@ -61,7 +62,7 @@ async function playSingleGame(
     pos.checkGameOver();
     if (pos.gameOver()) break;
 
-    ctx.reset(Infinity, timeLimitMs);
+    ctx.reset(maxNodes, timeLimitMs);
     const blackMove = black.search(pos, ctx);
 
     moveList.push(blackMove);
@@ -97,10 +98,20 @@ export type MatchMessage = {
   e2Config: EngineConfig;
   openingMoves: string[];
   timeLimitMs: number;
+  maxNodes: number;
+};
+
+export type MatchResponse = {
+  res1: Result;
+  res2: Result;
+  pgn1: string;
+  pgn2: string;
+  e1AvgDepth: number;
+  e2AvgDepth: number;
 };
 
 parentPort?.on("message", async (task: MatchMessage) => {
-  const { e1Config, e2Config, openingMoves, timeLimitMs } = task;
+  const { e1Config, e2Config, openingMoves, timeLimitMs, maxNodes } = task;
 
   // --- GAME 1: Engine 1 is White ---
   const g1_White = getEngineByName(e1Config.version, e1Config.depth);
@@ -110,6 +121,7 @@ parentPort?.on("message", async (task: MatchMessage) => {
     g1_Black,
     openingMoves,
     timeLimitMs,
+    maxNodes,
   );
 
   // --- GAME 2: Engine 1 is Black ---
@@ -120,18 +132,21 @@ parentPort?.on("message", async (task: MatchMessage) => {
     g2_Black,
     openingMoves,
     timeLimitMs,
+    maxNodes,
   );
 
   const e1AvgDepth = (gameRes1.wAvgDepth + gameRes2.bAvgDepth) / 2;
   const e2AvgDepth = (gameRes1.bAvgDepth + gameRes2.wAvgDepth) / 2;
 
-  // Send results back
-  parentPort?.postMessage({
+  const res: MatchResponse = {
     res1: gameRes1.result,
     res2: gameRes2.result,
     pgn1: gameRes1.pgn,
     pgn2: gameRes2.pgn,
     e1AvgDepth,
     e2AvgDepth,
-  });
+  };
+
+  // Send results back
+  parentPort?.postMessage(res);
 });

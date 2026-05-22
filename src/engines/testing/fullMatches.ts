@@ -7,7 +7,7 @@ import {
 import { fetchOpenings, getRandomOpening } from "./openings.ts";
 import { mulberry32 } from "../../random.ts";
 import * as os from "os";
-import type { EngineConfig } from "./matchWorker.ts";
+import type { EngineConfig, MatchResponse } from "./matchWorker.ts";
 import { Worker } from "worker_threads";
 import * as fs from "fs";
 
@@ -23,6 +23,7 @@ export const runMatch = async (
   e2Config: EngineConfig,
   numGames: number,
   timeLimitMs: number,
+  maxNodes: number,
   seed: number = 1,
 ): Promise<MatchResult> => {
   return new Promise(async (resolve) => {
@@ -65,8 +66,8 @@ export const runMatch = async (
     // Helper to shut everything down and return the final object
     const terminateAll = (
       pgns: string[],
-      wAvgDepthTotal: number,
-      bAvgDepthTotal: number,
+      e1AvgDepthTotal: number,
+      e2AvgDepthTotal: number,
     ) => {
       workers.forEach((w) => w.terminate());
       res.score = res.wins + 0.5 * res.draws;
@@ -75,7 +76,7 @@ export const runMatch = async (
         `Wins: ${res.wins} | Draws: ${res.draws} | Losses: ${res.losses}`,
       );
       console.log(
-        `E1 Avg Search Depth: ${(wAvgDepthTotal / pairsCompleted).toFixed(2)}\nE2 Avg Search Depth: ${(bAvgDepthTotal / pairsCompleted).toFixed(2)}`,
+        `E1 Avg Search Depth: ${(e1AvgDepthTotal / pairsCompleted).toFixed(2)}\nE2 Avg Search Depth: ${(e2AvgDepthTotal / pairsCompleted).toFixed(2)}`,
       );
 
       const pgnOutput = pgns.join("\n\n");
@@ -101,6 +102,7 @@ export const runMatch = async (
         e2Config,
         openingMoves,
         timeLimitMs,
+        maxNodes,
       });
     };
 
@@ -114,7 +116,7 @@ export const runMatch = async (
       const workerPath = new URL("./matchWorker.ts", import.meta.url);
       const worker = new Worker(workerPath);
 
-      worker.on("message", (msg) => {
+      worker.on("message", (msg: MatchResponse) => {
         const { res1, res2, pgn1, pgn2, e1AvgDepth, e2AvgDepth } = msg;
 
         recordResult(res1, true); // Game 1: E1 was White

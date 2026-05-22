@@ -10,9 +10,10 @@ import {
   playOpeningMoves,
 } from "./openings.ts";
 import { mulberry32 } from "../../random.ts";
-import type { EngineConfig } from "./matchWorker.ts";
+import type { EngineConfig, MatchResponse } from "./matchWorker.ts";
 import * as os from "os";
 import { Worker } from "worker_threads";
+import * as fs from "fs";
 
 type Stats = {
   wins: number;
@@ -48,30 +49,49 @@ const BOUNDS: sprtBounds = {
   upper: Math.log((1 - BETA) / ALPHA),
 };
 
-const MAX_GAMES = 1000;
+const MAX_PAIRS = 5_000;
 
 export const sprt = async (
   e1Config: EngineConfig,
   e2Config: EngineConfig,
   timeLimitMs: number,
+  maxNodes: number,
 ): Promise<sprtResult> => {
   return new Promise(async (resolve) => {
     const openings = await fetchOpenings();
     const rng = mulberry32(16);
 
     const stats: Stats = { wins: 0, draws: 0, losses: 0 };
+
+    // Pentanomial tracking arrays [WW, WD, WL/DD, LD, LL]
+    const penta = [0, 0, 0, 0, 0];
+    let pairsPlayed = 0;
+
+    let sumX = 0;
+    let sumX2 = 0;
     let llr = 0;
-    let gamesPlayed = 0;
 
     const NUM_CORES = os.cpus().length;
     const workers: Worker[] = [];
     let isFinished = false;
 
     // Helper to kill all threads when SPRT reaches a conclusion
-    const terminateAll = (verdict: string) => {
+    const terminateAll = (
+      verdict: string,
+      pgns: string[],
+      e1AvgDepthTotal: number,
+      e2AvgDepthTotal: number,
+    ) => {
       if (isFinished) return;
       isFinished = true;
       workers.forEach((w) => w.terminate());
+
+      console.log(
+        `E1 Avg Search Depth: ${(e1AvgDepthTotal / pairsPlayed).toFixed(2)}\nE2 Avg Search Depth: ${(e2AvgDepthTotal / pairsPlayed).toFixed(2)}`,
+      );
+      const pgnOutput = pgns.join("\n\n");
+      fs.writeFileSync("sprt_results.pgn", pgnOutput, "utf8");
+      console.log("Saved all games to sprt_results.pgn");
 
       const rate = scoreRate(stats);
       resolve({
@@ -82,66 +102,105 @@ export const sprt = async (
       });
     };
 
-    const assignNextPair = async (worker: Worker) => {
-      if (isFinished || gamesPlayed >= MAX_GAMES) {
-        if (gamesPlayed >= MAX_GAMES) terminateAll("INCONCLUSIVE");
+    const assignNextPair = async (
+      worker: Worker,
+      pgns: string[],
+      e1AvgDepthTotal: number,
+      e2AvgDepthTotal: number,
+    ) => {
+      if (isFinished || pairsPlayed >= MAX_PAIRS) {
+        if (pairsPlayed >= MAX_PAIRS)
+          terminateAll("INCONCLUSIVE", pgns, e1AvgDepthTotal, e2AvgDepthTotal);
         return;
       }
       const gameSeed = Math.floor(rng() * 1e9);
       const openingMoves = await getRandomOpening(openings, gameSeed);
-      worker.postMessage({ e1Config, e2Config, openingMoves, timeLimitMs });
+      worker.postMessage({
+        e1Config,
+        e2Config,
+        openingMoves,
+        timeLimitMs,
+        maxNodes,
+      });
     };
 
     console.log(`Starting SPRT across ${NUM_CORES} CPU cores...`);
+    const pgns: string[] = [];
+    let e1AvgDepthTotal = 0;
+    let e2AvgDepthTotal = 0;
+
     for (let i = 0; i < NUM_CORES; i++) {
       const workerPath = new URL("./matchWorker.ts", import.meta.url);
       const worker = new Worker(workerPath);
 
-      worker.on("message", (msg: { res1: Result; res2: Result }) => {
+      worker.on("message", (msg: MatchResponse) => {
         if (isFinished) return;
-        const { res1, res2 } = msg;
+        const { res1, res2, pgn1, pgn2, e1AvgDepth, e2AvgDepth } = msg;
 
-        // Process Game 1 (E1 was White)
-        llr = updateLLR(llr, res1, true);
+        // for logging w/d/l at the end
         updateStats(stats, res1, true);
-
-        // Process Game 2 (E1 was Black)
-        llr = updateLLR(llr, res2, false);
         updateStats(stats, res2, false);
 
-        gamesPlayed += 2;
+        pgns.push(pgn1, pgn2);
+        e1AvgDepthTotal += e1AvgDepth;
+        e2AvgDepthTotal += e2AvgDepth;
 
-        if (gamesPlayed % 10 === 0) {
+        // Calculate Pentanomial Pair Score
+        const s1 = getGameScore(res1, true); // E1 as White
+        const s2 = getGameScore(res2, false); // E1 as Black
+
+        const pairScore = s1 + s2; // Range: 0.0 to 2.0
+        const x = pairScore / 2.0; // Normalized: 0.0 to 1.0
+
+        if (pairScore === 2) penta[0]++;
+        else if (pairScore === 1.5) penta[1]++;
+        else if (pairScore === 1) penta[2]++;
+        else if (pairScore === 0.5) penta[3]++;
+        else penta[4]++;
+
+        pairsPlayed++;
+        sumX += x;
+        sumX2 += x * x;
+
+        if (pairsPlayed > 1) {
+          const variance =
+            (sumX2 - (sumX * sumX) / pairsPlayed) / (pairsPlayed - 1);
+
+          if (variance > 0) {
+            // Standard Pentanomial LLR Formula
+            llr =
+              ((p1 - p0) / variance) * (sumX - (pairsPlayed * (p0 + p1)) / 2);
+          }
+        }
+
+        if (pairsPlayed % 5 === 0) {
+          const gamesPlayed = pairsPlayed * 2;
           console.log(
-            `Games: ${gamesPlayed} | W: ${stats.wins} D: ${stats.draws} L: ${stats.losses} | LLR: ${llr.toFixed(2)}`,
+            `Games: ${gamesPlayed} | W: ${stats.wins} D: ${stats.draws} L: ${stats.losses} | LLR: ${llr.toFixed(2)} | Penta: [${penta.join(", ")}]`,
           );
         }
 
         // Check SPRT Bounds
-        if (llr >= BOUNDS.upper) terminateAll("ACCEPTED");
-        else if (llr <= BOUNDS.lower) terminateAll("REJECTED");
-        else assignNextPair(worker); // give the worker the next set of games
+        if (llr >= BOUNDS.upper)
+          terminateAll("ACCEPTED", pgns, e1AvgDepthTotal, e2AvgDepthTotal);
+        else if (llr <= BOUNDS.lower)
+          terminateAll("REJECTED", pgns, e1AvgDepthTotal, e2AvgDepthTotal);
+        else assignNextPair(worker, pgns, e1AvgDepthTotal, e2AvgDepthTotal); // give the worker the next set of games
       });
 
       workers.push(worker);
 
       // Kickstart the worker
-      assignNextPair(worker);
+      assignNextPair(worker, pgns, e1AvgDepthTotal, e2AvgDepthTotal);
     }
   });
 };
 
-function updateLLR(llr: number, result: Result, isE1White: boolean) {
-  let score = 0.5; // Draw
-  if (result === WHITE_WIN) score = isE1White ? 1 : 0;
-  if (result === BLACK_WIN) score = isE1White ? 0 : 1;
-  return llr + Math.log(scoreProb(score, p1) / scoreProb(score, p0));
-}
-
-function scoreProb(score: number, p: number) {
-  if (score === 1) return p;
-  if (score === 0) return 1 - p;
-  return 0.5; // draw approximation
+function getGameScore(result: Result, isE1White: boolean): number {
+  if (result === DRAW) return 0.5;
+  if (result === WHITE_WIN) return isE1White ? 1.0 : 0.0;
+  if (result === BLACK_WIN) return isE1White ? 0.0 : 1.0;
+  return 0.5; // fallback
 }
 
 function eloFromScore(score: number) {

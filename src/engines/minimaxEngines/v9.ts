@@ -193,9 +193,9 @@ export class MinimaxV9 implements Engine {
         score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
       } else {
         // --- LATE MOVE REDUCTIONS (LMR) ---
-        const givesCheck = pos.isInCheck();
-        const isQuiet =
-          moveCaptured(move) === NO_PIECE && movePromotion(move) === NO_PIECE;
+        // const givesCheck = pos.isInCheck();
+        // const isQuiet =
+        //   moveCaptured(move) === NO_PIECE && movePromotion(move) === NO_PIECE;
         let doFullDepthSearch = true;
 
         // Check LMR Conditions
@@ -203,28 +203,28 @@ export class MinimaxV9 implements Engine {
         // 2. We are late in the move order (e.g., move 4 or later)
         // 3. The move is quiet (no captures/promos)
         // 4. We are not currently in check
-        if (
-          depth >= 3 &&
-          legalCount >= 4 &&
-          isQuiet &&
-          checkers[0] === 0 &&
-          checkers[1] === 0 &&
-          !givesCheck
-        ) {
-          // Calculate how much to reduce.
-          // Start with a reduction of 1. If we are late in the list, reduce by 2.
-          let R = 1;
-          if (legalCount >= 7) R = 2;
+        // if (
+        //   depth >= 3 &&
+        //   legalCount >= 4 &&
+        //   isQuiet &&
+        //   checkers[0] === 0 &&
+        //   checkers[1] === 0 &&
+        //   !givesCheck
+        // ) {
+        //   // Calculate how much to reduce.
+        //   // Start with a reduction of 1. If we are late in the list, reduce by 2.
+        //   let R = 1;
+        //   if (legalCount >= 7) R = 2;
 
-          // Do a zero-window search at a lower depth
-          score = -this.#negamax(pos, depth - 1 - R, -alpha - 1, -alpha, ctx);
+        //   // Do a zero-window search at a lower depth
+        //   score = -this.#negamax(pos, depth - 1 - R, -alpha - 1, -alpha, ctx);
 
-          // If the score is <= alpha, the move was bad and we can prune it
-          if (score <= alpha) {
-            doFullDepthSearch = false;
-            lmrFailedLow = true;
-          }
-        }
+        //   // If the score is <= alpha, the move was bad and we can prune it
+        //   if (score <= alpha) {
+        //     doFullDepthSearch = false;
+        //     lmrFailedLow = true;
+        //   }
+        // }
 
         if (doFullDepthSearch) {
           // PVS Zero-Window Search (at a full depth)
@@ -427,9 +427,9 @@ export class MinimaxV9 implements Engine {
         score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
       } else {
         // --- LATE MOVE REDUCTIONS (LMR) ---
-        const givesCheck = pos.isInCheck();
-        const isQuiet =
-          moveCaptured(move) === NO_PIECE && movePromotion(move) === NO_PIECE;
+        // const givesCheck = pos.isInCheck();
+        // const isQuiet =
+        //   moveCaptured(move) === NO_PIECE && movePromotion(move) === NO_PIECE;
         let doFullDepthSearch = true;
 
         // Check LMR Conditions
@@ -438,28 +438,28 @@ export class MinimaxV9 implements Engine {
         // 3. The move is quiet (no captures/promos)
         // 4. We are not currently in check
         // 5. The move we made does not give check (dont want to miss a mate because we search shallower)
-        if (
-          depth >= 3 &&
-          legalCount >= 4 &&
-          isQuiet &&
-          checkers[0] === 0 &&
-          checkers[1] === 0 &&
-          !givesCheck
-        ) {
-          // Calculate how much to reduce.
-          // Start with a reduction of 1. If we are late in the list, reduce by 2.
-          let R = 1;
-          if (legalCount >= 7) R = 2;
+        // if (
+        //   depth >= 3 &&
+        //   legalCount >= 4 &&
+        //   isQuiet &&
+        //   checkers[0] === 0 &&
+        //   checkers[1] === 0 &&
+        //   !givesCheck
+        // ) {
+        //   // Calculate how much to reduce.
+        //   // Start with a reduction of 1. If we are late in the list, reduce by 2.
+        //   let R = 1;
+        //   if (legalCount >= 7) R = 2;
 
-          // Do a zero-window search at a lower depth
-          score = -this.#negamax(pos, depth - 1 - R, -alpha - 1, -alpha, ctx);
+        //   // Do a zero-window search at a lower depth
+        //   score = -this.#negamax(pos, depth - 1 - R, -alpha - 1, -alpha, ctx);
 
-          // If the score is <= alpha, the move was bad and we can prune it
-          if (score <= alpha) {
-            doFullDepthSearch = false;
-            lmrFailedLow = true; // Flag this score as shallow/unreliable
-          }
-        }
+        //   // If the score is <= alpha, the move was bad and we can prune it
+        //   if (score <= alpha) {
+        //     doFullDepthSearch = false;
+        //     lmrFailedLow = true; // Flag this score as shallow/unreliable
+        //   }
+        // }
 
         if (doFullDepthSearch) {
           // For other moves, assume its worse than alpha, so test that with a zero window search
