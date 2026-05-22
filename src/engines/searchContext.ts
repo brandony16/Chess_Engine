@@ -1,5 +1,6 @@
 export class SearchContext {
   nodesSearched = 0;
+  quiescenceNodes = 0;
   nodeLimit = Infinity;
   timeLimit = Infinity; // in milliseconds
   startTime = 0;
@@ -22,11 +23,15 @@ export class SearchContext {
     this.aborted = false;
   }
 
-  tick(): boolean {
+  tick(isQuiesce: boolean = false): boolean {
     // If we've already aborted, just return true
     if (this.aborted) return true;
 
     this.nodesSearched++;
+
+    if (isQuiesce) {
+      this.quiescenceNodes++;
+    }
 
     // Check node limit
     if (this.nodesSearched >= this.nodeLimit) {

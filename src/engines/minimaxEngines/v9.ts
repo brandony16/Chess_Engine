@@ -177,11 +177,13 @@ export class MinimaxV9 implements Engine {
       pos.makeMove(move);
 
       let score: number = 0;
+      let lmrFailedLow = false;
       if (legalCount === 1) {
         bestMove = move; // Failsafe: always have at least 1 legal move selected
         score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
       } else {
         // --- LATE MOVE REDUCTIONS (LMR) ---
+        const givesCheck = pos.isInCheck();
         const isQuiet =
           moveCaptured(move) === NO_PIECE && movePromotion(move) === NO_PIECE;
         let doFullDepthSearch = true;
@@ -195,7 +197,9 @@ export class MinimaxV9 implements Engine {
           depth >= 3 &&
           legalCount >= 4 &&
           isQuiet &&
-          (checkers[0] === 0 && checkers[1] === 0)
+          checkers[0] === 0 &&
+          checkers[1] === 0 &&
+          !givesCheck
         ) {
           // Calculate how much to reduce.
           // Start with a reduction of 1. If we are late in the list, reduce by 2.
@@ -208,6 +212,7 @@ export class MinimaxV9 implements Engine {
           // If the score is <= alpha, the move was bad and we can prune it
           if (score <= alpha) {
             doFullDepthSearch = false;
+            lmrFailedLow = true;
           }
         }
 
@@ -226,9 +231,11 @@ export class MinimaxV9 implements Engine {
 
       if (ctx.aborted) return bestMove;
 
-      if (score > alpha) {
-        alpha = score;
-        bestMove = move;
+      if (!lmrFailedLow) {
+        if (score > alpha) {
+          alpha = score;
+          bestMove = move;
+        }
       }
     }
 
@@ -386,6 +393,8 @@ export class MinimaxV9 implements Engine {
 
     let legalCount = 0;
     let bestMove = 0;
+    let bestScore = -INFINITY;
+
     for (let i = 0; i < moves; i++) {
       // Move best (highest scoring) move to the front of moveBuffer
       this.#pickBestMove(moveBuf, start, i, moves);
@@ -397,13 +406,18 @@ export class MinimaxV9 implements Engine {
 
       pos.makeMove(move);
 
+      // did this move give a check to the king
+
       // Principal Variation Search
       let score: number = 0;
+      let lmrFailedLow = false;
+
       if (legalCount === 1) {
         // Search first move with full window
         score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
       } else {
         // --- LATE MOVE REDUCTIONS (LMR) ---
+        const givesCheck = pos.isInCheck();
         const isQuiet =
           moveCaptured(move) === NO_PIECE && movePromotion(move) === NO_PIECE;
         let doFullDepthSearch = true;
@@ -413,11 +427,14 @@ export class MinimaxV9 implements Engine {
         // 2. We are late in the move order (e.g., move 4 or later)
         // 3. The move is quiet (no captures/promos)
         // 4. We are not currently in check
+        // 5. The move we made does not give check (dont want to miss a mate because we search shallower)
         if (
           depth >= 3 &&
           legalCount >= 4 &&
           isQuiet &&
-          (checkers[0] === 0 && checkers[1] === 0)
+          checkers[0] === 0 &&
+          checkers[1] === 0 &&
+          !givesCheck
         ) {
           // Calculate how much to reduce.
           // Start with a reduction of 1. If we are late in the list, reduce by 2.
@@ -430,6 +447,7 @@ export class MinimaxV9 implements Engine {
           // If the score is <= alpha, the move was bad and we can prune it
           if (score <= alpha) {
             doFullDepthSearch = false;
+            lmrFailedLow = true; // Flag this score as shallow/unreliable
           }
         }
 
@@ -450,41 +468,36 @@ export class MinimaxV9 implements Engine {
 
       if (ctx.aborted) return ABORT_SCORE;
 
-      if (score >= beta) {
-        // Store this move in tt table as it caused a cutoff
-        this.tt.store(
-          pos.zobristLo,
-          pos.zobristHi,
-          depth,
-          score,
-          TT_LOWERBOUND,
-          move,
-          pos.searchPly,
-        );
-
-        // if a quiet move, update killer moves and history heuristic
-        const captured = moveCaptured(move);
-        const promo = movePromotion(move);
-        if (captured === NO_PIECE && promo === NO_PIECE) {
-          const ply = pos.searchPly;
-          if (this.killerMoves[ply][0] !== move) {
-            this.killerMoves[ply][1] = this.killerMoves[ply][0];
-            this.killerMoves[ply][0] = move;
-          }
-
-          const piece = movePiece(move);
-          const toSq = moveTo(move);
-
-          // Add depth^2 to heavily reward moves that cause cutoffs near the root
-          this.historyTable[piece][toSq] += depth * depth;
+      // only update best score with results from a full bounds search
+      if (!lmrFailedLow) {
+        if (score > bestScore) {
+          bestScore = score;
+        }
+        if (score > alpha) {
+          alpha = score;
+          bestMove = move;
         }
 
-        return beta;
-      }
+        if (score >= beta) {
+          // if a quiet move, update killer moves and history heuristic
+          const captured = moveCaptured(move);
+          const promo = movePromotion(move);
+          if (captured === NO_PIECE && promo === NO_PIECE) {
+            const ply = pos.searchPly;
+            if (this.killerMoves[ply][0] !== move) {
+              this.killerMoves[ply][1] = this.killerMoves[ply][0];
+              this.killerMoves[ply][0] = move;
+            }
 
-      if (score > alpha) {
-        alpha = score;
-        bestMove = move;
+            const piece = movePiece(move);
+            const toSq = moveTo(move);
+
+            // Add depth^2 to heavily reward moves that cause cutoffs near the root
+            this.historyTable[piece][toSq] += depth * depth;
+          }
+
+          break;
+        }
       }
     }
 
@@ -499,19 +512,24 @@ export class MinimaxV9 implements Engine {
 
     // Determine flag based on how alpha changed relative to original
     // No lowerbound as beta cutoffs are returned immediately
-    const flag = alpha === originalAlpha ? TT_UPPERBOUND : TT_EXACT;
+    const flag =
+      bestScore >= beta
+        ? TT_LOWERBOUND
+        : bestScore > originalAlpha
+          ? TT_EXACT
+          : TT_UPPERBOUND;
 
     this.tt.store(
       pos.zobristLo,
       pos.zobristHi,
       depth,
-      alpha,
+      bestScore,
       flag,
       bestMove,
       pos.searchPly,
     );
 
-    return alpha;
+    return bestScore;
   }
 
   #quiescence(
@@ -521,28 +539,39 @@ export class MinimaxV9 implements Engine {
     beta: number,
     ctx: SearchContext,
   ): number {
-    if (ctx.tick()) return ABORT_SCORE;
+    if (ctx.tick(true)) return ABORT_SCORE;
 
     if (depth === 0) {
       return this.evaluate(pos, this.weights);
     }
 
-    const inCheck = pos.isInCheck();
+    let bestScore = -INFINITY;
 
-    if (!inCheck) {
-      const standPat = this.evaluate(pos, this.weights);
-
-      // if doing nothing beats beta, opp wont allow this pos
-      if (standPat >= beta) return beta;
-      if (standPat > alpha) alpha = standPat;
-    }
-
-    const start = pos.searchPly * MAX_MOVES;
-    const moves = pos.generatePseudoLegalMoves();
     const checkers = pos.getCheckers();
     const pinned = pos.getPinnedPieces();
     const doubleCheck = moreThanOne(checkers[0], checkers[1]);
 
+    const inCheck = checkers[0] !== 0 || checkers[1] !== 0;
+
+    if (!inCheck) {
+      const standPat = this.evaluate(pos, this.weights);
+      bestScore = standPat; // Initialize bestScore
+
+      // if doing nothing beats beta, opp wont allow this pos
+      if (standPat >= beta) return bestScore;
+      if (standPat > alpha) alpha = standPat;
+    }
+
+    const start = pos.searchPly * MAX_MOVES;
+    let moves = 0;
+
+    if (inCheck) {
+      // If in check, need to generate quiet moves to evade, or we will hallucinate mate
+      moves = pos.generatePseudoLegalMoves();
+    } else {
+      // Generate only tactical moves (captures and promotions)
+      moves = pos.generateTacticalMoves();
+    }
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moves; i++) {
@@ -556,9 +585,6 @@ export class MinimaxV9 implements Engine {
 
       const move = moveBuf[start + i];
 
-      // Only care about captures or if in check, search all evasions
-      if (!inCheck && moveCaptured(move) === NO_PIECE) continue;
-
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
       legalCount++;
 
@@ -570,15 +596,14 @@ export class MinimaxV9 implements Engine {
 
       if (ctx.aborted) return ABORT_SCORE;
 
-      if (score >= beta) {
-        // Beta cutoff: opponent won't allow this position because we already
-        // have a move that's too good. Stop searching immediately.
-        return score;
+      if (score > bestScore) {
+        bestScore = score;
       }
-
       if (score > alpha) {
-        // Found a better move than our current best - raise the lower bound.
         alpha = score;
+      }
+      if (alpha >= beta) {
+        return bestScore; // Fail-soft return
       }
     }
 
@@ -589,7 +614,7 @@ export class MinimaxV9 implements Engine {
       // cant return 0 for stalemate as it could just be that we are not in check and have no captures
     }
 
-    return alpha;
+    return bestScore;
   }
 
   // Do 1 step of selection sort to search for the move to search

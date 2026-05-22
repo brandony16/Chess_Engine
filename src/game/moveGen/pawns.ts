@@ -367,3 +367,49 @@ export const generateEpMoves = (pos: Position, start: number): number => {
 
   return count;
 };
+
+export const generatePushPromotion = (pos: Position, start: number): number => {
+  const side = pos.sideToMove;
+  const emptyLo = ~pos.occupiedLo;
+  const emptyHi = ~pos.occupiedHi;
+
+  let promos;
+  if (side === WHITE) {
+    // every pawn on 7th rank that could promote is in the hi bb
+    const pawnHi = pos.bbsHi[WHITE_PAWN];
+    promos = (pawnHi << 8) & 0xff000000 & emptyHi;
+  } else {
+    // every pawn on 2nd rank that could promote is in the lo bb
+    const pawnLo = pos.bbsLo[BLACK_PAWN];
+    promos = (pawnLo >> 8) & 0xff & emptyLo;
+  }
+
+  if (!promos) return 0;
+
+  const promoList = PROMO_PIECES[side];
+  const pawn = side === WHITE ? WHITE_PAWN : BLACK_PAWN;
+  const rankOffset = side === WHITE ? 32 : 0;
+
+  const buffer = pos.moveBuffer;
+  let count = 0;
+  while (promos) {
+    const to = lsb(promos, 0) + rankOffset;
+
+    const from = side == WHITE ? to - 8 : to + 8;
+
+    for (let k = 0; k < promoList.length; k++) {
+      buffer[start + count++] = encodeMove(
+        from,
+        to,
+        pawn,
+        NO_PIECE,
+        promoList[k],
+        0, // no flags
+      );
+    }
+
+    promos &= promos - 1;
+  }
+
+  return count;
+};

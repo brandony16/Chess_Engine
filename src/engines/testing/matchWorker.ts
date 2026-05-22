@@ -8,6 +8,23 @@ import {
   type EngineName,
 } from "../bondmonkeyVersions/engineList.ts";
 import type { Bondmonkey } from "../bondmonkeyVersions/type.ts";
+import { MinimaxV8 } from "../minimaxEngines/v8.ts";
+import { evaluateV4 } from "../evaluation/evaluationv4.ts";
+
+function warmupJIT() {
+  const warmupPos = new Position();
+  const warmupV8 = new MinimaxV8(32);
+  const ctx = new SearchContext(Infinity, 100); // 100ms per move
+
+  // Play 10 moves to force V8 to compile the negamax function
+  for (let i = 0; i < 10; i++) {
+    ctx.reset(Infinity, 100);
+    const move = warmupV8.search(warmupPos, evaluateV4, ctx);
+    warmupPos.makeMove(move);
+  }
+}
+
+warmupJIT();
 
 async function playSingleGame(
   white: Bondmonkey,

@@ -28,8 +28,8 @@ async function main() {
   };
 
   const start = performance.now();
-  const result = await sprt(eng1, eng2, timeLimitMs);
-  // const result = await runMatch(eng1, eng2, 100, timeLimitMs, 16);
+  // const result = await sprt(eng1, eng2, timeLimitMs);
+  const result = await runMatch(eng1, eng2, 100, timeLimitMs, 16);
   const end = performance.now();
 
   const time = ((end - start) / 1000).toFixed(2); // get time in seconds

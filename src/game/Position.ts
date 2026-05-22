@@ -116,6 +116,13 @@ import {
 } from "./moveGen/totalPieceGen.ts";
 import { getFile } from "./helpers/boardUtils.ts";
 import { MAX_SEARCH_PLY } from "../engines/Engine.ts";
+import {
+  generateBishopTacticals,
+  generateKnightTacticals,
+  generatePawnTacticals,
+  generateQueenTacticals,
+  generateRookTacticals,
+} from "./moveGen/tacticalMoves.ts";
 
 const MAX_PLY = 512;
 export const MAX_MOVES = 256;
@@ -447,6 +454,27 @@ export class Position {
     return (
       pawnCount + knightCount + bishopCount + rookCount + queenCount + kingCount
     );
+  }
+
+  generateTacticalMoves(): number {
+    let start = this.searchPly * MAX_MOVES;
+
+    const pawnCt = generatePawnTacticals(this, start);
+    start += pawnCt;
+
+    const knightCt = generateKnightTacticals(this, start);
+    start += knightCt;
+
+    const bishopCt = generateBishopTacticals(this, start);
+    start += bishopCt;
+
+    const rookCt = generateRookTacticals(this, start);
+    start += rookCt;
+
+    const queenCt = generateQueenTacticals(this, start);
+    start += queenCt;
+
+    return pawnCt + knightCt + bishopCt + rookCt + queenCt;
   }
 
   isLegal(

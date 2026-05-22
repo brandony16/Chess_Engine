@@ -299,13 +299,17 @@ export class MinimaxV5 implements Engine {
     beta: number,
     ctx: SearchContext,
   ): number {
-    if (ctx.tick()) return ABORT_SCORE;
+    if (ctx.tick(true)) return ABORT_SCORE;
 
     if (depth === 0) {
       return this.evaluate(pos, this.weights);
     }
 
-    const inCheck = pos.isInCheck();
+    const checkers = pos.getCheckers();
+    const pinned = pos.getPinnedPieces();
+    const doubleCheck = moreThanOne(checkers[0], checkers[1]);
+
+    const inCheck = checkers[0] !== 0 || checkers[1] !== 0;
 
     if (!inCheck) {
       const standPat = this.evaluate(pos, this.weights);
@@ -316,11 +320,15 @@ export class MinimaxV5 implements Engine {
     }
 
     const start = pos.searchPly * MAX_MOVES;
-    const moves = pos.generatePseudoLegalMoves();
-    const checkers = pos.getCheckers();
-    const pinned = pos.getPinnedPieces();
-    const doubleCheck = moreThanOne(checkers[0], checkers[1]);
+    let moves = 0;
 
+    if (inCheck) {
+      // If in check, need to generate quiet moves to evade, or we will hallucinate mate
+      moves = pos.generatePseudoLegalMoves();
+    } else {
+      // Generate only tactical moves (captures and promotions)
+      moves = pos.generateTacticalMoves();
+    }
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moves; i++) {
@@ -333,9 +341,6 @@ export class MinimaxV5 implements Engine {
       this.#pickBestMove(moveBuf, start, i, moves);
 
       const move = moveBuf[start + i];
-
-      // Only care about captures or if in check, search all evasions
-      if (!inCheck && moveCaptured(move) === NO_PIECE) continue;
 
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
       legalCount++;

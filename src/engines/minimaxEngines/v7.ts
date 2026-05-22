@@ -16,7 +16,10 @@ import {
   type EvalWeights,
 } from "../evaluation/Evaluation.ts";
 import { evaluateV1 } from "../evaluation/evaluationV1.ts";
-import { scoreMoveForOrderingKiller } from "../moveScoring/basicScoring.ts";
+import {
+  scoreMoveForOrderingBasic,
+  scoreMoveForOrderingKiller,
+} from "../moveScoring/basicScoring.ts";
 import type { SearchContext } from "../searchContext.ts";
 import { TranspositionTable } from "../transpositionTable/table.ts";
 import {
@@ -365,13 +368,17 @@ export class MinimaxV7 implements Engine {
     beta: number,
     ctx: SearchContext,
   ): number {
-    if (ctx.tick()) return ABORT_SCORE;
+    if (ctx.tick(true)) return ABORT_SCORE;
 
     if (depth === 0) {
       return this.evaluate(pos, this.weights);
     }
 
-    const inCheck = pos.isInCheck();
+    const checkers = pos.getCheckers();
+    const pinned = pos.getPinnedPieces();
+    const doubleCheck = moreThanOne(checkers[0], checkers[1]);
+
+    const inCheck = checkers[0] !== 0 || checkers[1] !== 0;
 
     if (!inCheck) {
       const standPat = this.evaluate(pos, this.weights);
@@ -382,21 +389,19 @@ export class MinimaxV7 implements Engine {
     }
 
     const start = pos.searchPly * MAX_MOVES;
-    const moves = pos.generatePseudoLegalMoves();
-    const checkers = pos.getCheckers();
-    const pinned = pos.getPinnedPieces();
-    const doubleCheck = moreThanOne(checkers[0], checkers[1]);
+    let moves = 0;
 
+    if (inCheck) {
+      // If in check, need to generate quiet moves to evade, or we will hallucinate mate
+      moves = pos.generatePseudoLegalMoves();
+    } else {
+      // Generate only tactical moves (captures and promotions)
+      moves = pos.generateTacticalMoves();
+    }
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moves; i++) {
-      scoreBuf[start + i] = scoreMoveForOrderingKiller(
-        moveBuf[start + i],
-        0, // no tt move
-        pos.searchPly,
-        this.killerMoves,
-        this.historyTable,
-      );
+      scoreBuf[start + i] = scoreMoveForOrderingBasic(moveBuf[start + i]);
     }
 
     let legalCount = 0;
@@ -405,9 +410,6 @@ export class MinimaxV7 implements Engine {
       this.#pickBestMove(moveBuf, start, i, moves);
 
       const move = moveBuf[start + i];
-
-      // Only care about captures or if in check, search all evasions
-      if (!inCheck && moveCaptured(move) === NO_PIECE) continue;
 
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
       legalCount++;
