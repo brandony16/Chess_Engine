@@ -9,11 +9,12 @@ import {
   PESTO_EG_TABLES,
   PESTO_MG_TABLES,
 } from "./evalComponents/PestoTables.ts";
+import { evaluatePawnStructure } from "./evalComponents/pawnStructure/evalPawnStructure.ts";
 
 /**
- * Version 4 of evaluation. Uses PeSTO tables for both mg and eg, interpolating between each
+ * Version 5 of evaluation. Penalizes doubled and isolated pawns
  */
-export function evaluateV4(pos: Position, weights: EvalWeights): number {
+export function evaluateV5(pos: Position, weights: EvalWeights): number {
   let evaluation = 0;
   const pieceWeights = weights.pieceWeights;
 
@@ -67,6 +68,9 @@ export function evaluateV4(pos: Position, weights: EvalWeights): number {
 
   evaluation += wMgPSQT * (1 - endgameWeight) + wEgPSQT * endgameWeight;
   evaluation -= bMgPSQT * (1 - endgameWeight) + bEgPSQT * endgameWeight;
+
+  // pawn structure
+  evaluation += evaluatePawnStructure(pos);
 
   // convert eval to be relative to the side to move (positive if winning, negative if losing)
   const friendlySide = pos.sideToMove;

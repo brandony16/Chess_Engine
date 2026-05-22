@@ -14,7 +14,7 @@ import type { EngineConfig } from "./matchWorker.ts";
 import { sprt } from "./SPRT.ts";
 
 async function main() {
-  const timeLimitMs = 100;
+  const timeLimitMs = 200;
 
   // v5 is a solid base version, with ab pruining and basic move ordering
   const eng1: EngineConfig = {

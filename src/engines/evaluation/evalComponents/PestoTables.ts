@@ -3,6 +3,12 @@
  * These tables were tuned using Texel's Tuning Method, meaning the values at each square were learned (hence why they are a bit erratic)
  */
 
+import type { Square } from "../../../game/chessConstants.ts";
+
+export function flip(sq: Square): Square {
+  return (sq ^ 56) as Square; // flip rank, but not file
+}
+
 // prettier-ignore
 const MG_PAWN_TABLE = new Int32Array([
       0,   0,   0,   0,   0,   0,  0,   0,

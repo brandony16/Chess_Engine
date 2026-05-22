@@ -112,15 +112,15 @@ for (let sq = 0; sq < 64; sq++) {
 
 export function lsb(lo: number, hi: number): Square {
   // Index of least significant bit
-  if (lo !== 0) return 31 - Math.clz32(lo & -lo) as Square;
-  if (hi !== 0) return 31 - Math.clz32(hi & -hi) + 32 as Square;
+  if (lo !== 0) return (31 - Math.clz32(lo & -lo)) as Square;
+  if (hi !== 0) return (31 - Math.clz32(hi & -hi) + 32) as Square;
   return -1; // empty BB
 }
 
 export function msb(lo: number, hi: number): Square {
   // Index of most significant bit
-  if (hi !== 0) return 63 - Math.clz32(hi) as Square;
-  if (lo !== 0) return 31 - Math.clz32(lo) as Square;
+  if (hi !== 0) return (63 - Math.clz32(hi)) as Square;
+  if (lo !== 0) return (31 - Math.clz32(lo)) as Square;
   return -1; // empty BB
 }
 
@@ -179,11 +179,10 @@ export function popcount(lo: number, hi: number): number {
   return popcnt32(lo) + popcnt32(hi);
 }
 
-function popcnt32(x: number): number {
+export function popcnt32(x: number): number {
   x = x - ((x >>> 1) & 0x55555555);
   x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
-  x = (x + (x >>> 4)) & 0x0f0f0f0f;
-  return (x * 0x01010101) >>> 24;
+  return Math.imul((x + (x >>> 4)) & 0x0f0f0f0f, 0x01010101) >>> 24;
 }
 
 // Conversion
