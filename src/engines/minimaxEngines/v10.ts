@@ -1,5 +1,13 @@
 import { moreThanOne } from "../../game/bb.ts";
-import { NO_PIECE, PIECE_N } from "../../game/chessConstants.ts";
+import {
+  BLACK_KING,
+  BLACK_PAWN,
+  NO_PIECE,
+  PIECE_N,
+  WHITE,
+  WHITE_KING,
+  WHITE_PAWN,
+} from "../../game/chessConstants.ts";
 import {
   moveCaptured,
   movePiece,
@@ -8,7 +16,12 @@ import {
   type Move,
 } from "../../game/moveMaking/move.ts";
 import { MAX_MOVES, type Position } from "../../game/Position.ts";
-import { ABORT_SCORE, MAX_SEARCH_PLY, type Engine } from "../Engine.ts";
+import {
+  ABORT_SCORE,
+  INFINITY,
+  MAX_SEARCH_PLY,
+  type Engine,
+} from "../Engine.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
@@ -29,16 +42,20 @@ import {
 } from "../transpositionTable/ttTypes.ts";
 
 /**
- * Evolution of minimaxV6 that improves move ordering by implementing killer moves and history heuristic
+ * Evolution of minimaxV9 that implements Late Move Reductions
  */
-export class MinimaxV7 implements Engine {
+export class MinimaxV10 implements Engine {
   private readonly weights: EvalWeights;
   private evaluate: Evaluation;
 
   depth: number;
+
   depthReached: number;
 
-  private scoreBuffer = new Int32Array(MAX_SEARCH_PLY * MAX_MOVES);
+  private readonly MAX_QUIESCE_DEPTH = 8;
+  private scoreBuffer = new Int32Array(
+    (MAX_SEARCH_PLY + this.MAX_QUIESCE_DEPTH) * MAX_MOVES,
+  );
   tt: TranspositionTable;
 
   // [ply][slot]. store 2 killer moves per ply
@@ -46,6 +63,12 @@ export class MinimaxV7 implements Engine {
 
   // indexed by [piece][square]
   private historyTable: Int32Array[];
+
+  private lmrTable: number[][];
+
+  nmpCutoffs: number = 0;
+  lmrAttempts: number = 0;
+  lmrResearches: number = 0;
 
   constructor(depth: number) {
     this.weights = DEFAULT_EVAL_WEIGHTS;
@@ -63,6 +86,15 @@ export class MinimaxV7 implements Engine {
       { length: PIECE_N },
       () => new Int32Array(64),
     );
+
+    this.lmrTable = new Array(64).fill(0).map(() => new Array(64).fill(0));
+    for (let d = 1; d < 64; d++) {
+      for (let m = 1; m < 64; m++) {
+        // Basic logarithmic scaling
+        let reduction = 1 + (Math.log(d) * Math.log(m)) / 2.25;
+        this.lmrTable[d][m] = Math.floor(reduction);
+      }
+    }
   }
 
   newGame(): void {
@@ -81,6 +113,9 @@ export class MinimaxV7 implements Engine {
     log: boolean = false,
   ): Move {
     pos.searchPly = 0;
+    this.nmpCutoffs = 0;
+    this.lmrAttempts = 0;
+    this.lmrResearches = 0;
     this.evaluate = evaluate;
 
     // clear killer moves before each search
@@ -111,7 +146,7 @@ export class MinimaxV7 implements Engine {
     }
     if (log) {
       console.log(
-        `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}`,
+        `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}\nNMP Cutoffs: ${this.nmpCutoffs}`,
       );
     }
 
@@ -134,12 +169,15 @@ export class MinimaxV7 implements Engine {
     const pinned = pos.getPinnedPieces();
     const doubleCheck = moreThanOne(checkers[0], checkers[1]);
 
+    const isInCheck = checkers[0] !== 0 || checkers[1] !== 0;
+
     // Get TT move for ordering — don't use score at root
     const ttIdx = this.tt.probe(pos.zobristLo, pos.zobristHi);
     const ttMove = ttIdx !== -1 ? this.tt.getMove(ttIdx) : 0;
 
     let bestMove = 0;
-    let bestScore = -Infinity;
+    let alpha = -INFINITY;
+    const beta = INFINITY;
 
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
@@ -154,24 +192,36 @@ export class MinimaxV7 implements Engine {
       );
     }
 
+    let legalCount = 0;
     for (let i = 0; i < moveNum; i++) {
       this.#pickBestMove(moveBuf, start, i, moveNum);
 
       const move = moveBuf[start + i];
 
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
+      legalCount++;
 
       pos.makeMove(move);
 
-      const score = -this.#negamax(pos, depth - 1, -Infinity, -bestScore, ctx);
+      let score: number = 0;
+      if (legalCount === 1) {
+        bestMove = move; // make sure bestMove exists
+        score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
+      } else {
+        // PVS only, no reductions
+        score = -this.#negamax(pos, depth - 1, -alpha - 1, -alpha, ctx);
+        if (score > alpha && score < beta) {
+          score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
+        }
+      }
 
       pos.unmakeMove();
 
       if (ctx.aborted) return bestMove;
 
-      if (score > bestScore) {
+      if (score > alpha) {
+        alpha = score;
         bestMove = move;
-        bestScore = score;
       }
     }
 
@@ -180,7 +230,7 @@ export class MinimaxV7 implements Engine {
       pos.zobristLo,
       pos.zobristHi,
       depth,
-      bestScore,
+      alpha,
       TT_EXACT,
       bestMove,
       pos.searchPly,
@@ -195,11 +245,13 @@ export class MinimaxV7 implements Engine {
     alpha: number,
     beta: number,
     ctx: SearchContext,
+    isNullSearch: boolean = false,
   ): number {
     if (ctx.tick()) {
       return ABORT_SCORE;
     }
 
+    // ----- REPETITION CHECK -----
     const currHi = pos.zobristHi,
       currLo = pos.zobristLo;
     const currPly = pos.ply;
@@ -215,6 +267,7 @@ export class MinimaxV7 implements Engine {
       }
     }
 
+    // ----- TT PROBE -----
     const originalAlpha = alpha;
     const ttIdx = this.tt.probe(pos.zobristLo, pos.zobristHi);
     let ttMove = 0;
@@ -239,8 +292,52 @@ export class MinimaxV7 implements Engine {
     }
     if (ttIdx !== -1) ttMove = this.tt.getMove(ttIdx);
 
+    // ---- NULL MOVE PRUNING -----
+    const inCheck = pos.isInCheck(pos.sideToMove);
+
+    // Only do NMP if:
+    // 1. We are not already doing a NMP search
+    // 2. We are not in check (doing nothing leads to king capture)
+    // 3. Depth is high enough to benefit from NMP
+    // 4. We have non-pawn material (guards against zugzwang in endgames not being calculated correctly)
+    // 5. This is not a root search (with beta === infinity)
+    if (!isNullSearch && !inCheck && depth >= 3 && beta !== INFINITY) {
+      if (this.#hasNonPawnMaterial(pos)) {
+        // reduction factor
+        const R = 2;
+
+        pos.makeNullMove();
+
+        // we only care if score >= beta, so pass -beta and -beta + 1 as our bounds for speed
+        const nullScore = -this.#negamax(
+          pos,
+          depth - 1 - R,
+          -beta,
+          -beta + 1,
+          ctx,
+          true,
+        );
+
+        pos.unmakeNullMove();
+
+        if (ctx.aborted) return ABORT_SCORE;
+
+        if (nullScore >= beta) {
+          this.nmpCutoffs++;
+          return beta;
+        }
+      }
+    }
+
+    // ----- END OF SEARCH (DEPTH IS 0) -----
     if (depth === 0) {
-      const score = this.#quiescence(pos, alpha, beta, ctx);
+      const score = this.#quiescence(
+        pos,
+        this.MAX_QUIESCE_DEPTH,
+        alpha,
+        beta,
+        ctx,
+      );
 
       const flag =
         score >= beta
@@ -268,6 +365,8 @@ export class MinimaxV7 implements Engine {
     const pinned = pos.getPinnedPieces();
     const doubleCheck = moreThanOne(checkers[0], checkers[1]);
 
+    const isInCheck = checkers[0] !== 0 || checkers[1] !== 0;
+
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moves; i++) {
@@ -282,6 +381,8 @@ export class MinimaxV7 implements Engine {
 
     let legalCount = 0;
     let bestMove = 0;
+    let bestScore = -INFINITY;
+
     for (let i = 0; i < moves; i++) {
       // Move best (highest scoring) move to the front of moveBuffer
       this.#pickBestMove(moveBuf, start, i, moves);
@@ -293,24 +394,78 @@ export class MinimaxV7 implements Engine {
 
       pos.makeMove(move);
 
-      const score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
+      // Principal Variation Search
+      let score: number = 0;
+
+      if (legalCount === 1) {
+        // Search first move with full window
+        score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
+      } else {
+        // --- LATE MOVE REDUCTIONS (LMR) ---
+        const isQuiet =
+          moveCaptured(move) === NO_PIECE && movePromotion(move) === NO_PIECE;
+        const isKiller =
+          move === this.killerMoves[pos.searchPly]?.[0] ||
+          move === this.killerMoves[pos.searchPly]?.[1];
+        const isPvNode = beta - alpha > 1;
+        const isTTMove = move === ttMove; // TT move from hash table
+
+        let doFullDepthSearch = true;
+
+        // Check LMR Conditions
+        // 1. Depth is at least 3
+        // 2. We are late in the move order (e.g., move 6 or later)
+        // 3. The move is quiet (no captures/promos)
+        // 4. We are not currently in check
+        // 5. The move we made does not give check (dont want to miss a mate because we search shallower)
+        if (
+          // !isInCheck &&
+          // !isPvNode &&
+          depth >= 3 &&
+          legalCount >= 3 &&
+          isQuiet
+          // !isKiller &&
+          // !isTTMove
+        ) {
+          // const givesCheck = pos.isInCheck();
+          // if (!givesCheck) {
+          // Calculate how much to reduce.
+          // let R = this.lmrTable[Math.min(depth, 63)][Math.min(legalCount, 63)];
+          // R = Math.max(1, Math.min(R, depth - 2));
+          let R = 1;
+          this.lmrAttempts++;
+
+          // Do a zero-window search at a lower depth
+          score = -this.#negamax(pos, depth - 1 - R, -alpha - 1, -alpha, ctx);
+
+          if (score > alpha) {
+            this.lmrResearches++;
+            doFullDepthSearch = true;
+          } else {
+            // If the score is <= alpha, the move was bad and we can prune it
+            doFullDepthSearch = false;
+          }
+          // }
+        }
+
+        if (doFullDepthSearch) {
+          // For other moves, assume its worse than alpha, so test that with a zero window search
+          // This tight window causes massive pruning, and if the move is worse (score < alpha) we can just move on
+          score = -this.#negamax(pos, depth - 1, -alpha - 1, -alpha, ctx);
+
+          // If the zero window search proved us wrong (score > alpha) and it wasnt a beta cutoff,
+          // we must research with the full window to get the exact score
+          if (score > alpha && score < beta) {
+            score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
+          }
+        }
+      }
 
       pos.unmakeMove();
 
       if (ctx.aborted) return ABORT_SCORE;
 
       if (score >= beta) {
-        // Store this move in tt table as it caused a cutoff
-        this.tt.store(
-          pos.zobristLo,
-          pos.zobristHi,
-          depth,
-          score,
-          TT_LOWERBOUND,
-          move,
-          pos.searchPly,
-        );
-
         // if a quiet move, update killer moves and history heuristic
         const captured = moveCaptured(move);
         const promo = movePromotion(move);
@@ -328,7 +483,11 @@ export class MinimaxV7 implements Engine {
           this.historyTable[piece][toSq] += depth * depth;
         }
 
-        return beta;
+        break;
+      }
+
+      if (score > bestScore) {
+        bestScore = score;
       }
 
       if (score > alpha) {
@@ -348,28 +507,40 @@ export class MinimaxV7 implements Engine {
 
     // Determine flag based on how alpha changed relative to original
     // No lowerbound as beta cutoffs are returned immediately
-    const flag = alpha === originalAlpha ? TT_UPPERBOUND : TT_EXACT;
+    const flag =
+      bestScore >= beta
+        ? TT_LOWERBOUND
+        : bestScore > originalAlpha
+          ? TT_EXACT
+          : TT_UPPERBOUND;
 
     this.tt.store(
       pos.zobristLo,
       pos.zobristHi,
       depth,
-      alpha,
+      bestScore,
       flag,
       bestMove,
       pos.searchPly,
     );
 
-    return alpha;
+    return bestScore;
   }
 
   #quiescence(
     pos: Position,
+    depth: number,
     alpha: number,
     beta: number,
     ctx: SearchContext,
   ): number {
     if (ctx.tick(true)) return ABORT_SCORE;
+
+    if (depth === 0) {
+      return this.evaluate(pos, this.weights);
+    }
+
+    let bestScore = -INFINITY;
 
     const checkers = pos.getCheckers();
     const pinned = pos.getPinnedPieces();
@@ -379,9 +550,10 @@ export class MinimaxV7 implements Engine {
 
     if (!inCheck) {
       const standPat = this.evaluate(pos, this.weights);
+      bestScore = standPat; // Initialize bestScore
 
       // if doing nothing beats beta, opp wont allow this pos
-      if (standPat >= beta) return beta;
+      if (standPat >= beta) return bestScore;
       if (standPat > alpha) alpha = standPat;
     }
 
@@ -413,21 +585,20 @@ export class MinimaxV7 implements Engine {
 
       pos.makeMove(move);
 
-      const score = -this.#quiescence(pos, -beta, -alpha, ctx);
+      const score = -this.#quiescence(pos, depth - 1, -beta, -alpha, ctx);
 
       pos.unmakeMove();
 
       if (ctx.aborted) return ABORT_SCORE;
 
-      if (score >= beta) {
-        // Beta cutoff: opponent won't allow this position because we already
-        // have a move that's too good. Stop searching immediately.
-        return score;
+      if (score > bestScore) {
+        bestScore = score;
       }
-
       if (score > alpha) {
-        // Found a better move than our current best - raise the lower bound.
         alpha = score;
+      }
+      if (alpha >= beta) {
+        return bestScore; // Fail-soft return
       }
     }
 
@@ -438,7 +609,7 @@ export class MinimaxV7 implements Engine {
       // cant return 0 for stalemate as it could just be that we are not in check and have no captures
     }
 
-    return alpha;
+    return bestScore;
   }
 
   // Do 1 step of selection sort to search for the move to search
@@ -447,7 +618,7 @@ export class MinimaxV7 implements Engine {
     start: number,
     current: number,
     end: number,
-  ) {
+  ): void {
     let bestIdx = current;
     const buf = this.scoreBuffer;
     let bestScore = buf[start + current];
@@ -469,5 +640,23 @@ export class MinimaxV7 implements Engine {
       buf[start + current] = buf[start + bestIdx];
       buf[start + bestIdx] = tmpScore;
     }
+  }
+
+  #hasNonPawnMaterial(pos: Position): boolean {
+    const side = pos.sideToMove;
+
+    const pawnMaterialLo = pos.bbsLo[side === WHITE ? WHITE_PAWN : BLACK_PAWN];
+    const pawnMaterialHi = pos.bbsHi[side === WHITE ? WHITE_PAWN : BLACK_PAWN];
+    const kingLo = pos.bbsLo[side === WHITE ? WHITE_KING : BLACK_KING];
+    const kingHi = pos.bbsHi[side === WHITE ? WHITE_KING : BLACK_KING];
+
+    const nonPawnOccLo = pos.playerOccLo[side] & ~(pawnMaterialLo | kingLo);
+    const nonPawnOccHi = pos.playerOccHi[side] & ~(pawnMaterialHi | kingHi);
+
+    if (nonPawnOccLo !== 0 || nonPawnOccHi !== 0) {
+      return true;
+    }
+
+    return false;
   }
 }

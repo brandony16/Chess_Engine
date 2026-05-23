@@ -173,10 +173,10 @@ export const sprt = async (
           }
         }
 
-        if (pairsPlayed % 5 === 0) {
+        if (pairsPlayed % 25 === 0) {
           const gamesPlayed = pairsPlayed * 2;
           console.log(
-            `Games: ${gamesPlayed} | W: ${stats.wins} D: ${stats.draws} L: ${stats.losses} | LLR: ${llr.toFixed(2)} | Penta: [${penta.join(", ")}]`,
+            `Games: ${gamesPlayed} | W: ${stats.wins} D: ${stats.draws} L: ${stats.losses} | LLR: ${llr.toFixed(2)} | Penta ([WW, WD, WL/DD, LD, LL]): [${penta.join(", ")}]`,
           );
         }
 

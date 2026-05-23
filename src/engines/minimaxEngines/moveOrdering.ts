@@ -1,7 +1,12 @@
 import { moreThanOne } from "../../game/bb.ts";
 import type { Move } from "../../game/moveMaking/move.ts";
 import { MAX_MOVES, type Position } from "../../game/Position.ts";
-import { ABORT_SCORE, MAX_SEARCH_PLY, type Engine } from "../Engine.ts";
+import {
+  ABORT_SCORE,
+  INFINITY,
+  MAX_SEARCH_PLY,
+  type Engine,
+} from "../Engine.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
@@ -65,6 +70,10 @@ export class MinimaxV3 implements Engine {
   }
 
   #searchRoot(pos: Position, depth: number, ctx: SearchContext): Move {
+    if (ctx.tick()) {
+      return ABORT_SCORE;
+    }
+
     const start = pos.searchPly * MAX_MOVES;
     const moveNum = pos.generatePseudoLegalMoves();
     const checkers = pos.getCheckers();
@@ -72,7 +81,7 @@ export class MinimaxV3 implements Engine {
     const doubleCheck = moreThanOne(checkers[0], checkers[1]);
 
     let bestMove = 0;
-    let bestScore = -Infinity;
+    let bestScore = -INFINITY;
 
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
@@ -89,7 +98,7 @@ export class MinimaxV3 implements Engine {
 
       pos.makeMove(move);
 
-      const score = -this.#negamax(pos, depth - 1, -Infinity, -bestScore, ctx);
+      const score = -this.#negamax(pos, depth - 1, -INFINITY, -bestScore, ctx);
 
       pos.unmakeMove();
 
@@ -130,8 +139,9 @@ export class MinimaxV3 implements Engine {
     }
 
     let legalCount = 0;
+    let bestMove = 0;
+    let bestScore = -INFINITY;
     for (let i = 0; i < moves; i++) {
-      // Move best (highest scoring) move to the front of moveBuffer
       this.#pickBestMove(moveBuf, start, i, moves);
 
       const move = moveBuf[start + i];
@@ -147,15 +157,20 @@ export class MinimaxV3 implements Engine {
 
       if (ctx.aborted) return ABORT_SCORE;
 
+      // found a better move than out previous best - raise the lower bound
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = move;
+
+        if (score > alpha) {
+          alpha = score;
+        }
+      }
+
       if (score >= beta) {
         // Beta cutoff: opponent won't allow this position because we already
         // have a move that's too good. Stop searching immediately.
-        return beta;
-      }
-
-      if (score > alpha) {
-        // Found a better move than our current best - raise the lower bound.
-        alpha = score;
+        return bestScore;
       }
     }
 
@@ -168,7 +183,7 @@ export class MinimaxV3 implements Engine {
       return 0; // stalemate
     }
 
-    return alpha;
+    return bestScore;
   }
 
   // Do 1 step of selection sort to search for the move to search

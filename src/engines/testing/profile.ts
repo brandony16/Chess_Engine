@@ -14,27 +14,28 @@ import { evaluateV4 } from "../evaluation/evaluationv4.ts";
 import { evaluateV5 } from "../evaluation/evaluationV5.ts";
 import { MinimaxV4 } from "../minimaxEngines/quiescence.ts";
 import { MinimaxV5 } from "../minimaxEngines/transposTable.ts";
+import { MinimaxV10 } from "../minimaxEngines/v10.ts";
 import { MinimaxV7 } from "../minimaxEngines/v7.ts";
 import { MinimaxV8 } from "../minimaxEngines/v8.ts";
 import { MinimaxV9 } from "../minimaxEngines/v9.ts";
 import { SearchContext } from "../searchContext.ts";
 
-const nmp = new MinimaxV9(MAX_SEARCH_PLY);
-const normal = new MinimaxV8(MAX_SEARCH_PLY);
+const nmp = new MinimaxV9(8);
+const normal = new MinimaxV8(8);
 const pos = new Position();
-pos.loadFen(OPEN_MIDGAME);
+pos.loadFen(KIWIPETE_POS);
 
 // warm up JIT
 nmp.search(pos, evaluateV4, new SearchContext(100_000));
 
 console.log("Starting PVS + LMR search");
-const ctx = new SearchContext(Infinity, 250);
+const ctx = new SearchContext(Infinity, Infinity);
 const start = performance.now();
 const move1 = nmp.search(pos, evaluateV4, ctx, true);
 const end = performance.now();
 
 console.log("\nStarting Other search");
-const ctx2 = new SearchContext(Infinity, 250);
+const ctx2 = new SearchContext(Infinity, Infinity);
 const start2 = performance.now();
 const move2 = normal.search(pos, evaluateV4, ctx2, true);
 const end2 = performance.now();

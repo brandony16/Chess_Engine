@@ -63,6 +63,10 @@ export class MinimaxV1 implements Engine {
   }
 
   #searchRoot(pos: Position, depth: number, ctx: SearchContext): Move {
+    if (ctx.tick()) {
+      return ABORT_SCORE;
+    }
+
     const start = pos.searchPly * MAX_MOVES;
     const moveNum = pos.generatePseudoLegalMoves();
     const checkers = pos.getCheckers();

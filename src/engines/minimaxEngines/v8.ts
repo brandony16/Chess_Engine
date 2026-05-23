@@ -51,10 +51,7 @@ export class MinimaxV8 implements Engine {
   depth: number;
   depthReached: number;
 
-  private readonly MAX_QUIESCE_DEPTH = 8;
-  private scoreBuffer = new Int32Array(
-    (MAX_SEARCH_PLY + this.MAX_QUIESCE_DEPTH) * MAX_MOVES,
-  );
+  private scoreBuffer = new Int32Array(MAX_SEARCH_PLY * MAX_MOVES);
   tt: TranspositionTable;
 
   // [ply][slot]. store 2 killer moves per ply
@@ -130,7 +127,9 @@ export class MinimaxV8 implements Engine {
     }
     if (log) {
       console.log(
-        `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}\nNMP Cutoffs: ${this.nmpCuttoffs}`,
+        `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\n` +
+          `Quiesce Nodes: ${ctx.quiescenceNodes}\n` +
+          `Transpositions: ${this.tt.hits}\nNMP Cutoffs: ${this.nmpCuttoffs}`,
       );
     }
 
@@ -300,13 +299,7 @@ export class MinimaxV8 implements Engine {
 
     // ----- END OF SEARCH (DEPTH IS 0) -----
     if (depth === 0) {
-      const score = this.#quiescence(
-        pos,
-        this.MAX_QUIESCE_DEPTH,
-        alpha,
-        beta,
-        ctx,
-      );
+      const score = this.#quiescence(pos, alpha, beta, ctx);
 
       const flag =
         score >= beta
@@ -348,6 +341,7 @@ export class MinimaxV8 implements Engine {
 
     let legalCount = 0;
     let bestMove = 0;
+    let bestScore = -INFINITY;
     for (let i = 0; i < moves; i++) {
       // Move best (highest scoring) move to the front of moveBuffer
       this.#pickBestMove(moveBuf, start, i, moves);
@@ -364,6 +358,15 @@ export class MinimaxV8 implements Engine {
       pos.unmakeMove();
 
       if (ctx.aborted) return ABORT_SCORE;
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = move;
+
+        if (score > alpha) {
+          alpha = score;
+        }
+      }
 
       if (score >= beta) {
         // Store this move in tt table as it caused a cutoff
@@ -394,12 +397,7 @@ export class MinimaxV8 implements Engine {
           this.historyTable[piece][toSq] += depth * depth;
         }
 
-        return beta;
-      }
-
-      if (score > alpha) {
-        alpha = score;
-        bestMove = move;
+        return bestScore;
       }
     }
 
@@ -420,27 +418,22 @@ export class MinimaxV8 implements Engine {
       pos.zobristLo,
       pos.zobristHi,
       depth,
-      alpha,
+      bestScore,
       flag,
       bestMove,
       pos.searchPly,
     );
 
-    return alpha;
+    return bestScore;
   }
 
   #quiescence(
     pos: Position,
-    depth: number,
     alpha: number,
     beta: number,
     ctx: SearchContext,
   ): number {
     if (ctx.tick(true)) return ABORT_SCORE;
-
-    if (depth === 0) {
-      return this.evaluate(pos, this.weights);
-    }
 
     const checkers = pos.getCheckers();
     const pinned = pos.getPinnedPieces();
@@ -484,7 +477,7 @@ export class MinimaxV8 implements Engine {
 
       pos.makeMove(move);
 
-      const score = -this.#quiescence(pos, depth - 1, -beta, -alpha, ctx);
+      const score = -this.#quiescence(pos, -beta, -alpha, ctx);
 
       pos.unmakeMove();
 

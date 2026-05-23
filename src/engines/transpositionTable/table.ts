@@ -1,5 +1,11 @@
 import type { Move } from "../../game/moveMaking/move.ts";
 import { MATE_THRESHOLD } from "../evaluation/Evaluation.ts";
+import {
+  LOOKUP_FAILED,
+  TT_EXACT,
+  TT_LOWERBOUND,
+  TT_UPPERBOUND,
+} from "./ttTypes.ts";
 
 export class TranspositionTable {
   private readonly ENTRY_BYTES = 18; // 8 for key, 4 each for depth and move, 1 each for depth and flag
@@ -111,6 +117,41 @@ export class TranspositionTable {
   }
   getMove(i: number): Move {
     return this.move[i];
+  }
+
+  lookupEvaluation(
+    keyLo: number,
+    keyHi: number,
+    depth: number,
+    plyFromRoot: number,
+    alpha: number,
+    beta: number,
+  ): number {
+    const idx = this.probe(keyLo, keyHi);
+    if (idx !== -1 && this.depth[idx] >= depth) {
+      // only use tt entry if its been searched to at least the depth we are searching now
+      const score = this.getScore(idx, plyFromRoot);
+      const flag = this.flag[idx];
+
+      switch (flag) {
+        case TT_EXACT:
+          return score;
+        case TT_UPPERBOUND:
+          if (score <= alpha) return score;
+        case TT_LOWERBOUND:
+          if (score >= beta) return score;
+      }
+    }
+
+    return LOOKUP_FAILED;
+  }
+
+  lookupMove(keyLo: number, keyHi: number) {
+    const idx = this.probe(keyLo, keyHi);
+    if (idx !== -1) {
+      return this.move[idx];
+    }
+    return 0;
   }
 
   clear(): void {

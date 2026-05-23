@@ -25,6 +25,7 @@ import {
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
+  MATE_THRESHOLD,
   type Evaluation,
   type EvalWeights,
 } from "../evaluation/Evaluation.ts";
@@ -42,7 +43,7 @@ import {
 } from "../transpositionTable/ttTypes.ts";
 
 /**
- * Evolution of minimaxV8 that implements Principal Variation Search and Late Move Reductions
+ * Evolution of minimaxV8 that implements Principal Variation Search
  */
 export class MinimaxV9 implements Engine {
   private readonly weights: EvalWeights;
@@ -52,10 +53,7 @@ export class MinimaxV9 implements Engine {
 
   depthReached: number;
 
-  private readonly MAX_QUIESCE_DEPTH = 8;
-  private scoreBuffer = new Int32Array(
-    (MAX_SEARCH_PLY + this.MAX_QUIESCE_DEPTH) * MAX_MOVES,
-  );
+  private scoreBuffer = new Int32Array(MAX_SEARCH_PLY * MAX_MOVES);
   tt: TranspositionTable;
 
   // [ply][slot]. store 2 killer moves per ply
@@ -65,6 +63,8 @@ export class MinimaxV9 implements Engine {
   private historyTable: Int32Array[];
 
   nmpCuttoffs: number = 0;
+  pvsTries: number = 0;
+  pvsResearches: number = 0;
 
   constructor(depth: number) {
     this.weights = DEFAULT_EVAL_WEIGHTS;
@@ -124,14 +124,16 @@ export class MinimaxV9 implements Engine {
       if (result) {
         bestMove = result;
       }
-
       if (ctx.aborted) {
         break;
       }
     }
     if (log) {
       console.log(
-        `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}\nNMP Cutoffs: ${this.nmpCuttoffs}`,
+        `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\n` +
+          `Quiesce Nodes: ${ctx.quiescenceNodes}\n` +
+          `Transpositions: ${this.tt.hits}\nNMP Cutoffs: ${this.nmpCuttoffs}\n` +
+          `PVS Tries: ${this.pvsTries}\nPVS Researches: ${this.pvsResearches}`,
       );
     }
 
@@ -186,54 +188,20 @@ export class MinimaxV9 implements Engine {
 
       pos.makeMove(move);
 
+      // PVS
       let score: number = 0;
-      let lmrFailedLow = false;
       if (legalCount === 1) {
-        bestMove = move; // Failsafe: always have at least 1 legal move selected
         score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
       } else {
-        // --- LATE MOVE REDUCTIONS (LMR) ---
-        // const givesCheck = pos.isInCheck();
-        // const isQuiet =
-        //   moveCaptured(move) === NO_PIECE && movePromotion(move) === NO_PIECE;
-        let doFullDepthSearch = true;
+        this.pvsTries++;
 
-        // Check LMR Conditions
-        // 1. Depth is at least 3
-        // 2. We are late in the move order (e.g., move 4 or later)
-        // 3. The move is quiet (no captures/promos)
-        // 4. We are not currently in check
-        // if (
-        //   depth >= 3 &&
-        //   legalCount >= 4 &&
-        //   isQuiet &&
-        //   checkers[0] === 0 &&
-        //   checkers[1] === 0 &&
-        //   !givesCheck
-        // ) {
-        //   // Calculate how much to reduce.
-        //   // Start with a reduction of 1. If we are late in the list, reduce by 2.
-        //   let R = 1;
-        //   if (legalCount >= 7) R = 2;
+        // PVS Zero-Window Search (at a full depth)
+        score = -this.#negamax(pos, depth - 1, -alpha - 1, -alpha, ctx);
 
-        //   // Do a zero-window search at a lower depth
-        //   score = -this.#negamax(pos, depth - 1 - R, -alpha - 1, -alpha, ctx);
-
-        //   // If the score is <= alpha, the move was bad and we can prune it
-        //   if (score <= alpha) {
-        //     doFullDepthSearch = false;
-        //     lmrFailedLow = true;
-        //   }
-        // }
-
-        if (doFullDepthSearch) {
-          // PVS Zero-Window Search (at a full depth)
-          score = -this.#negamax(pos, depth - 1, -alpha - 1, -alpha, ctx);
-
-          // PVS Re-Search if necessary
-          if (score > alpha && score < beta) {
-            score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
-          }
+        // PVS Re-Search if necessary
+        if (score > alpha && score < beta) {
+          this.pvsResearches++;
+          score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
         }
       }
 
@@ -241,11 +209,9 @@ export class MinimaxV9 implements Engine {
 
       if (ctx.aborted) return bestMove;
 
-      if (!lmrFailedLow) {
-        if (score > alpha) {
-          alpha = score;
-          bestMove = move;
-        }
+      if (score > alpha) {
+        alpha = score;
+        bestMove = move;
       }
     }
 
@@ -292,11 +258,10 @@ export class MinimaxV9 implements Engine {
     }
 
     // ----- TT PROBE -----
-    const originalAlpha = alpha;
     const ttIdx = this.tt.probe(pos.zobristLo, pos.zobristHi);
     let ttMove = 0;
     if (ttIdx !== -1 && this.tt.getDepth(ttIdx) >= depth) {
-      const ttScore = this.tt.getScore(ttIdx, pos.searchPly);
+      let ttScore = this.tt.getScore(ttIdx, pos.searchPly);
       const ttFlag = this.tt.getFlag(ttIdx);
 
       if (ttFlag === TT_EXACT) {
@@ -348,37 +313,14 @@ export class MinimaxV9 implements Engine {
 
         if (nullScore >= beta) {
           this.nmpCuttoffs++;
-          return beta;
+          return nullScore;
         }
       }
     }
 
     // ----- END OF SEARCH (DEPTH IS 0) -----
     if (depth === 0) {
-      const score = this.#quiescence(
-        pos,
-        this.MAX_QUIESCE_DEPTH,
-        alpha,
-        beta,
-        ctx,
-      );
-
-      const flag =
-        score >= beta
-          ? TT_LOWERBOUND
-          : score > alpha
-            ? TT_EXACT
-            : TT_UPPERBOUND;
-
-      this.tt.store(
-        pos.zobristLo,
-        pos.zobristHi,
-        depth,
-        score,
-        flag,
-        0,
-        pos.searchPly,
-      );
+      const score = this.#quiescence(pos, alpha, beta, ctx);
 
       return score;
     }
@@ -404,6 +346,7 @@ export class MinimaxV9 implements Engine {
     let legalCount = 0;
     let bestMove = 0;
     let bestScore = -INFINITY;
+    let evaluationBound = TT_UPPERBOUND;
 
     for (let i = 0; i < moves; i++) {
       // Move best (highest scoring) move to the front of moveBuffer
@@ -416,61 +359,24 @@ export class MinimaxV9 implements Engine {
 
       pos.makeMove(move);
 
-      // did this move give a check to the king
-
       // Principal Variation Search
       let score: number = 0;
-      let lmrFailedLow = false;
 
       if (legalCount === 1) {
         // Search first move with full window
         score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
       } else {
-        // --- LATE MOVE REDUCTIONS (LMR) ---
-        // const givesCheck = pos.isInCheck();
-        // const isQuiet =
-        //   moveCaptured(move) === NO_PIECE && movePromotion(move) === NO_PIECE;
-        let doFullDepthSearch = true;
+        this.pvsTries++;
 
-        // Check LMR Conditions
-        // 1. Depth is at least 3
-        // 2. We are late in the move order (e.g., move 4 or later)
-        // 3. The move is quiet (no captures/promos)
-        // 4. We are not currently in check
-        // 5. The move we made does not give check (dont want to miss a mate because we search shallower)
-        // if (
-        //   depth >= 3 &&
-        //   legalCount >= 4 &&
-        //   isQuiet &&
-        //   checkers[0] === 0 &&
-        //   checkers[1] === 0 &&
-        //   !givesCheck
-        // ) {
-        //   // Calculate how much to reduce.
-        //   // Start with a reduction of 1. If we are late in the list, reduce by 2.
-        //   let R = 1;
-        //   if (legalCount >= 7) R = 2;
+        // For other moves, assume its worse than alpha, so test that with a zero window search
+        // This tight window causes massive pruning, and if the move is worse (score < alpha) we can just move on
+        score = -this.#negamax(pos, depth - 1, -alpha - 1, -alpha, ctx);
 
-        //   // Do a zero-window search at a lower depth
-        //   score = -this.#negamax(pos, depth - 1 - R, -alpha - 1, -alpha, ctx);
-
-        //   // If the score is <= alpha, the move was bad and we can prune it
-        //   if (score <= alpha) {
-        //     doFullDepthSearch = false;
-        //     lmrFailedLow = true; // Flag this score as shallow/unreliable
-        //   }
-        // }
-
-        if (doFullDepthSearch) {
-          // For other moves, assume its worse than alpha, so test that with a zero window search
-          // This tight window causes massive pruning, and if the move is worse (score < alpha) we can just move on
-          score = -this.#negamax(pos, depth - 1, -alpha - 1, -alpha, ctx);
-
-          // If the zero window search proved us wrong (score > alpha) and it wasnt a beta cutoff,
-          // we must research with the full window to get the exact score
-          if (score > alpha && score < beta) {
-            score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
-          }
+        // If the zero window search proved us wrong (score > alpha) and it wasnt a beta cutoff,
+        // we must research with the full window to get the exact score
+        if (score > alpha && score < beta) {
+          this.pvsResearches++;
+          score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
         }
       }
 
@@ -478,36 +384,48 @@ export class MinimaxV9 implements Engine {
 
       if (ctx.aborted) return ABORT_SCORE;
 
-      // only update best score with results from a full bounds search
-      if (!lmrFailedLow) {
-        if (score > bestScore) {
-          bestScore = score;
-        }
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = move;
+
         if (score > alpha) {
+          evaluationBound = TT_EXACT;
           alpha = score;
-          bestMove = move;
         }
+      }
 
-        if (score >= beta) {
-          // if a quiet move, update killer moves and history heuristic
-          const captured = moveCaptured(move);
-          const promo = movePromotion(move);
-          if (captured === NO_PIECE && promo === NO_PIECE) {
-            const ply = pos.searchPly;
-            if (this.killerMoves[ply][0] !== move) {
-              this.killerMoves[ply][1] = this.killerMoves[ply][0];
-              this.killerMoves[ply][0] = move;
-            }
+      if (score >= beta) {
+        this.tt.store(
+          pos.zobristLo,
+          pos.zobristHi,
+          depth,
+          bestScore,
+          TT_LOWERBOUND,
+          move,
+          pos.searchPly,
+        );
 
-            const piece = movePiece(move);
-            const toSq = moveTo(move);
-
-            // Add depth^2 to heavily reward moves that cause cutoffs near the root
-            this.historyTable[piece][toSq] += depth * depth;
+        // if a quiet move, update killer moves and history heuristic
+        const captured = moveCaptured(move);
+        const promo = movePromotion(move);
+        if (captured === NO_PIECE && promo === NO_PIECE) {
+          const ply = pos.searchPly;
+          if (this.killerMoves[ply][0] !== move) {
+            this.killerMoves[ply][1] = this.killerMoves[ply][0];
+            this.killerMoves[ply][0] = move;
           }
 
-          break;
+          const piece = movePiece(move);
+          const toSq = moveTo(move);
+
+          // Add depth^2 to heavily reward moves that cause cutoffs near the root
+          const bonus = depth * depth;
+          const MAX_HISTORY = 16384;
+          this.historyTable[piece][toSq] +=
+            bonus - (this.historyTable[piece][toSq] * bonus) / MAX_HISTORY;
         }
+
+        return bestScore;
       }
     }
 
@@ -520,21 +438,12 @@ export class MinimaxV9 implements Engine {
       return 0; // stalemate
     }
 
-    // Determine flag based on how alpha changed relative to original
-    // No lowerbound as beta cutoffs are returned immediately
-    const flag =
-      bestScore >= beta
-        ? TT_LOWERBOUND
-        : bestScore > originalAlpha
-          ? TT_EXACT
-          : TT_UPPERBOUND;
-
     this.tt.store(
       pos.zobristLo,
       pos.zobristHi,
       depth,
       bestScore,
-      flag,
+      evaluationBound,
       bestMove,
       pos.searchPly,
     );
@@ -544,16 +453,11 @@ export class MinimaxV9 implements Engine {
 
   #quiescence(
     pos: Position,
-    depth: number,
     alpha: number,
     beta: number,
     ctx: SearchContext,
   ): number {
     if (ctx.tick(true)) return ABORT_SCORE;
-
-    if (depth === 0) {
-      return this.evaluate(pos, this.weights);
-    }
 
     let bestScore = -INFINITY;
 
@@ -600,7 +504,7 @@ export class MinimaxV9 implements Engine {
 
       pos.makeMove(move);
 
-      const score = -this.#quiescence(pos, depth - 1, -beta, -alpha, ctx);
+      const score = -this.#quiescence(pos, -beta, -alpha, ctx);
 
       pos.unmakeMove();
 

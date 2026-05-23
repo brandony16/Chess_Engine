@@ -33,7 +33,6 @@ export class MinimaxV6 implements Engine {
   depthReached: number;
 
   private scoreBuffer = new Int32Array(MAX_SEARCH_PLY * MAX_MOVES);
-  private readonly MAX_QUIESCE_DEPTH = 8;
   tt: TranspositionTable;
 
   constructor(depth: number) {
@@ -200,13 +199,7 @@ export class MinimaxV6 implements Engine {
     if (ttIdx !== -1) ttMove = this.tt.getMove(ttIdx);
 
     if (depth === 0) {
-      const score = this.#quiescence(
-        pos,
-        this.MAX_QUIESCE_DEPTH,
-        alpha,
-        beta,
-        ctx,
-      );
+      const score = this.#quiescence(pos, alpha, beta, ctx);
 
       const flag =
         score >= beta
@@ -310,16 +303,11 @@ export class MinimaxV6 implements Engine {
 
   #quiescence(
     pos: Position,
-    depth: number,
     alpha: number,
     beta: number,
     ctx: SearchContext,
   ): number {
     if (ctx.tick(true)) return ABORT_SCORE;
-
-    if (depth === 0) {
-      return this.evaluate(pos, this.weights);
-    }
 
     const checkers = pos.getCheckers();
     const pinned = pos.getPinnedPieces();
@@ -363,7 +351,7 @@ export class MinimaxV6 implements Engine {
 
       pos.makeMove(move);
 
-      const score = -this.#quiescence(pos, depth - 1, -beta, -alpha, ctx);
+      const score = -this.#quiescence(pos, -beta, -alpha, ctx);
 
       pos.unmakeMove();
 
