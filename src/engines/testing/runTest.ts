@@ -23,12 +23,12 @@ async function main() {
 
   // v5 is a solid base version, with ab pruining and basic move ordering
   const eng1: EngineConfig = {
-    version: BondmonkeyV9.name,
+    version: BondmonkeyV11.name,
     depth: MAX_SEARCH_PLY,
   };
 
   const eng2: EngineConfig = {
-    version: BondmonkeyV8.name,
+    version: BondmonkeyV10.name,
     depth: MAX_SEARCH_PLY,
   };
 

@@ -76,7 +76,8 @@ export class MinimaxV5 implements Engine {
     }
     if (log) {
       console.log(
-        `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}`,
+        `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\n` +
+          `Transpositions: ${this.tt.hits}\nTT Cutoff Rate: ${((this.tt.cutoffs / this.tt.hits) * 100).toFixed(2)}`,
       );
     }
 
@@ -353,11 +354,12 @@ export class MinimaxV5 implements Engine {
 
     const inCheck = checkers[0] !== 0 || checkers[1] !== 0;
 
+    let standPat = -INFINITY;
     if (!inCheck) {
-      const standPat = this.evaluate(pos, this.weights);
+      standPat = this.evaluate(pos, this.weights);
 
       // if doing nothing beats beta, opp wont allow this pos
-      if (standPat >= beta) return beta;
+      if (standPat >= beta) return standPat;
       if (standPat > alpha) alpha = standPat;
     }
 
@@ -378,6 +380,7 @@ export class MinimaxV5 implements Engine {
     }
 
     let legalCount = 0;
+    let bestScore = standPat;
     for (let i = 0; i < moves; i++) {
       // Move best (highest scoring) move to the front of moveBuffer
       this.#pickBestMove(moveBuf, start, i, moves);
@@ -395,15 +398,19 @@ export class MinimaxV5 implements Engine {
 
       if (ctx.aborted) return ABORT_SCORE;
 
+      // found a better move than out previous best - raise the lower bound
+      if (score > bestScore) {
+        bestScore = score;
+
+        if (score > alpha) {
+          alpha = score;
+        }
+      }
+
       if (score >= beta) {
         // Beta cutoff: opponent won't allow this position because we already
         // have a move that's too good. Stop searching immediately.
-        return score;
-      }
-
-      if (score > alpha) {
-        // Found a better move than our current best - raise the lower bound.
-        alpha = score;
+        return bestScore;
       }
     }
 
@@ -414,7 +421,7 @@ export class MinimaxV5 implements Engine {
       // cant return 0 for stalemate as it could just be that we are not in check and have no captures
     }
 
-    return alpha;
+    return bestScore;
   }
 
   // Do 1 step of selection sort to search for the move to search

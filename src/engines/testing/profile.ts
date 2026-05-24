@@ -15,43 +15,52 @@ import { evaluateV5 } from "../evaluation/evaluationV5.ts";
 import { MinimaxV4 } from "../minimaxEngines/quiescence.ts";
 import { MinimaxV5 } from "../minimaxEngines/transposTable.ts";
 import { MinimaxV10 } from "../minimaxEngines/v10.ts";
+import { MinimaxV6 } from "../minimaxEngines/v6.ts";
 import { MinimaxV7 } from "../minimaxEngines/v7.ts";
+import { MinimaxV7_2 } from "../minimaxEngines/v7_2.ts";
 import { MinimaxV8 } from "../minimaxEngines/v8.ts";
 import { MinimaxV9 } from "../minimaxEngines/v9.ts";
 import { SearchContext } from "../searchContext.ts";
 
-const nmp = new MinimaxV9(8);
-const normal = new MinimaxV8(8);
+const eng1 = new MinimaxV7_2(8);
+const eng2 = new MinimaxV7(8);
 const pos = new Position();
-pos.loadFen(KIWIPETE_POS);
+pos.loadFen(OPEN_MIDGAME);
 
 // warm up JIT
-nmp.search(pos, evaluateV4, new SearchContext(100_000));
+eng1.search(pos, evaluateV4, new SearchContext(100_000));
+eng1.newGame(); // reset to clear tt
 
-console.log("Starting PVS + LMR search");
+console.log("Starting Eng 1 search");
 const ctx = new SearchContext(Infinity, Infinity);
 const start = performance.now();
-const move1 = nmp.search(pos, evaluateV4, ctx, true);
+const move1 = eng1.search(pos, evaluateV4, ctx, true);
 const end = performance.now();
 
-console.log("\nStarting Other search");
+console.log("\nStarting Eng 2 search");
 const ctx2 = new SearchContext(Infinity, Infinity);
 const start2 = performance.now();
-const move2 = normal.search(pos, evaluateV4, ctx2, true);
+const move2 = eng2.search(pos, evaluateV4, ctx2, true);
 const end2 = performance.now();
 console.log();
 
+const time1 = (end - start) / 1000;
+const time2 = (end2 - start2) / 1000;
+
 console.log(`Moves Match: ${move1 === move2}`);
 console.log(
-  `PVS + LMR Move: ${moveToUCI(move1)}\nOther Move: ${moveToUCI(move2)}\n`,
+  `Eng 1 Move: ${moveToUCI(move1)}\nEng 2 Move: ${moveToUCI(move2)}\n`,
 );
 
 console.log(
-  `\nPVS + LMR Time: ${((end - start) / 1000).toFixed(2)}\nOther Time: ${((end2 - start2) / 1000).toFixed(2)}`,
+  `\nEng 1 Time: ${time1.toFixed(2)}\nEng 2 Time: ${time2.toFixed(2)}`,
 );
 console.log(
-  `PVS + LMR Nodes: ${ctx.nodesSearched}\nOther Nodes: ${ctx2.nodesSearched}`,
+  `Eng 1 Nodes: ${ctx.nodesSearched}\nEng 2 Nodes: ${ctx2.nodesSearched}`,
 );
 console.log(
-  `PVS + LMR QNodes: ${ctx.quiescenceNodes}\nOther QNodes: ${ctx2.quiescenceNodes}`,
+  `Eng 1 NPS: ${(ctx.nodesSearched / time1).toFixed(0)}\nEng 2 NPS: ${(ctx2.nodesSearched / time2).toFixed(0)}`,
+);
+console.log(
+  `Eng 1 QNodes: ${ctx.quiescenceNodes}\nEng 2 QNodes: ${ctx2.quiescenceNodes}`,
 );

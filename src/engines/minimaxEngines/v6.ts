@@ -2,7 +2,12 @@ import { moreThanOne } from "../../game/bb.ts";
 import { NO_PIECE } from "../../game/chessConstants.ts";
 import { moveCaptured, type Move } from "../../game/moveMaking/move.ts";
 import { MAX_MOVES, type Position } from "../../game/Position.ts";
-import { ABORT_SCORE, MAX_SEARCH_PLY, type Engine } from "../Engine.ts";
+import {
+  ABORT_SCORE,
+  INFINITY,
+  MAX_SEARCH_PLY,
+  type Engine,
+} from "../Engine.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
@@ -17,6 +22,7 @@ import {
 import type { SearchContext } from "../searchContext.ts";
 import { TranspositionTable } from "../transpositionTable/table.ts";
 import {
+  LOOKUP_FAILED,
   TT_EXACT,
   TT_LOWERBOUND,
   TT_UPPERBOUND,
@@ -63,6 +69,7 @@ export class MinimaxV6 implements Engine {
       this.depthReached++;
       const result = this.#searchRoot(pos, depth, ctx, bestMove);
 
+      // keep result from search, even if it was a partial search
       if (result) {
         bestMove = result;
       }
@@ -73,7 +80,8 @@ export class MinimaxV6 implements Engine {
     }
     if (log) {
       console.log(
-        `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}`,
+        `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\n` +
+          `Transpositions: ${this.tt.hits}\nTT Cutoff Rate: ${((this.tt.cutoffs / this.tt.hits) * 100).toFixed(2)}`,
       );
     }
 
@@ -101,7 +109,7 @@ export class MinimaxV6 implements Engine {
     const ttMove = ttIdx !== -1 ? this.tt.getMove(ttIdx) : 0;
 
     let bestMove = 0;
-    let bestScore = -Infinity;
+    let bestScore = -INFINITY;
 
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
@@ -122,7 +130,7 @@ export class MinimaxV6 implements Engine {
 
       pos.makeMove(move);
 
-      const score = -this.#negamax(pos, depth - 1, -Infinity, -bestScore, ctx);
+      const score = -this.#negamax(pos, depth - 1, -INFINITY, -bestScore, ctx);
 
       pos.unmakeMove();
 
@@ -159,6 +167,10 @@ export class MinimaxV6 implements Engine {
       return ABORT_SCORE;
     }
 
+    // Draw check
+    if (pos.halfmoveClock >= 100) {
+      return 0;
+    }
     const currHi = pos.zobristHi,
       currLo = pos.zobristLo;
     const currPly = pos.ply;
@@ -168,35 +180,24 @@ export class MinimaxV6 implements Engine {
       const hi = pos.zobristHistoryHi[i];
 
       // dont repeat positions or its a draw
-      // without this, the engine will repeat in a winning position because it doesnt know repeating is a draw
+      // without this, the engine will repeat in a winning position because it thinks its winning
       if (lo === currLo && hi === currHi) {
-        return 0;
+        return 0; // for simplicity, only check 1 repetition
       }
     }
 
-    const originalAlpha = alpha;
-    const ttIdx = this.tt.probe(pos.zobristLo, pos.zobristHi);
-    let ttMove = 0;
-    if (ttIdx !== -1 && this.tt.getDepth(ttIdx) >= depth) {
-      const ttScore = this.tt.getScore(ttIdx, pos.searchPly);
-      const ttFlag = this.tt.getFlag(ttIdx);
-
-      if (ttFlag === TT_EXACT) {
-        this.tt.cutoffs++;
-        return ttScore;
-      }
-      // Cutoff if the lower bound is already too good for the opponent
-      if (ttFlag === TT_LOWERBOUND && ttScore >= beta) {
-        this.tt.cutoffs++;
-        return ttScore;
-      }
-      // Cutoff if the upper bound is already worse than our guaranteed alpha
-      if (ttFlag === TT_UPPERBOUND && ttScore <= alpha) {
-        this.tt.cutoffs++;
-        return ttScore;
-      }
+    const ttEval = this.tt.lookupEvaluation(
+      pos.zobristLo,
+      pos.zobristHi,
+      depth,
+      pos.searchPly,
+      alpha,
+      beta,
+    );
+    if (ttEval !== LOOKUP_FAILED) {
+      this.tt.cutoffs++;
+      return ttEval;
     }
-    if (ttIdx !== -1) ttMove = this.tt.getMove(ttIdx);
 
     if (depth === 0) {
       const score = this.#quiescence(pos, alpha, beta, ctx);
@@ -214,35 +215,81 @@ export class MinimaxV6 implements Engine {
         depth,
         score,
         flag,
-        0,
+        depth,
         pos.searchPly,
       );
 
       return score;
     }
 
-    const start = pos.searchPly * MAX_MOVES;
-    const moves = pos.generatePseudoLegalMoves();
+    let legalCount = 0;
     const checkers = pos.getCheckers();
     const pinned = pos.getPinnedPieces();
     const doubleCheck = moreThanOne(checkers[0], checkers[1]);
 
+    let bestMove = 0;
+    let bestScore = -INFINITY;
+    let ttFlag = TT_UPPERBOUND;
+
+    // if a tt move exists, its probably good has a high chance of causing a cutoff
+    // therefore, search this move before generating moves to save time
+    const ttMove = this.tt.lookupMove(pos.zobristLo, pos.zobristHi);
+    if (ttMove !== 0) {
+      if (pos.isLegal(ttMove, checkers, pinned, doubleCheck)) {
+        legalCount++;
+
+        pos.makeMove(ttMove);
+
+        const score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
+
+        pos.unmakeMove();
+
+        if (ctx.aborted) return ABORT_SCORE;
+
+        if (score >= beta) {
+          // Store this move in tt table as it caused a cutoff
+          this.tt.store(
+            pos.zobristLo,
+            pos.zobristHi,
+            depth,
+            score,
+            TT_LOWERBOUND,
+            ttMove,
+            pos.searchPly,
+          );
+          return score;
+        }
+
+        if (score > bestScore) {
+          bestScore = score;
+          bestMove = ttMove;
+
+          if (score > alpha) {
+            alpha = score;
+            // move better than previous alpha means score will be exact
+            ttFlag = TT_EXACT;
+          }
+        }
+      }
+    }
+
+    const start = pos.searchPly * MAX_MOVES;
+    const moves = pos.generatePseudoLegalMoves();
+
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moves; i++) {
-      scoreBuf[start + i] = scoreMoveForOrderingWithTT(
-        moveBuf[start + i],
-        ttMove,
-      );
+      scoreBuf[start + i] = scoreMoveForOrderingBasic(moveBuf[start + i]);
     }
 
-    let legalCount = 0;
-    let bestMove = 0;
     for (let i = 0; i < moves; i++) {
       // Move best (highest scoring) move to the front of moveBuffer
       this.#pickBestMove(moveBuf, start, i, moves);
 
       const move = moveBuf[start + i];
+
+      // already searched the tt move
+      if (move === ttMove) continue;
 
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
       legalCount++;
@@ -266,12 +313,18 @@ export class MinimaxV6 implements Engine {
           move,
           pos.searchPly,
         );
-        return beta;
+        return score;
       }
 
-      if (score > alpha) {
-        alpha = score;
+      if (score > bestScore) {
+        bestScore = score;
         bestMove = move;
+
+        if (score > alpha) {
+          alpha = score;
+          // move better than previous alpha means score will be exact
+          ttFlag = TT_EXACT;
+        }
       }
     }
 
@@ -284,21 +337,17 @@ export class MinimaxV6 implements Engine {
       return 0; // stalemate
     }
 
-    // Determine flag based on how alpha changed relative to original
-    // No lowerbound as beta cutoffs are returned immediately
-    const flag = alpha === originalAlpha ? TT_UPPERBOUND : TT_EXACT;
-
     this.tt.store(
       pos.zobristLo,
       pos.zobristHi,
       depth,
-      alpha,
-      flag,
+      bestScore,
+      ttFlag,
       bestMove,
       pos.searchPly,
     );
 
-    return alpha;
+    return bestScore;
   }
 
   #quiescence(
@@ -315,11 +364,12 @@ export class MinimaxV6 implements Engine {
 
     const inCheck = checkers[0] !== 0 || checkers[1] !== 0;
 
+    let standPat = -INFINITY;
     if (!inCheck) {
-      const standPat = this.evaluate(pos, this.weights);
+      standPat = this.evaluate(pos, this.weights);
 
       // if doing nothing beats beta, opp wont allow this pos
-      if (standPat >= beta) return beta;
+      if (standPat >= beta) return standPat;
       if (standPat > alpha) alpha = standPat;
     }
 
@@ -340,6 +390,7 @@ export class MinimaxV6 implements Engine {
     }
 
     let legalCount = 0;
+    let bestScore = standPat;
     for (let i = 0; i < moves; i++) {
       // Move best (highest scoring) move to the front of moveBuffer
       this.#pickBestMove(moveBuf, start, i, moves);
@@ -357,15 +408,19 @@ export class MinimaxV6 implements Engine {
 
       if (ctx.aborted) return ABORT_SCORE;
 
+      // found a better move than out previous best - raise the lower bound
+      if (score > bestScore) {
+        bestScore = score;
+
+        if (score > alpha) {
+          alpha = score;
+        }
+      }
+
       if (score >= beta) {
         // Beta cutoff: opponent won't allow this position because we already
         // have a move that's too good. Stop searching immediately.
-        return score;
-      }
-
-      if (score > alpha) {
-        // Found a better move than our current best - raise the lower bound.
-        alpha = score;
+        return bestScore;
       }
     }
 
@@ -376,9 +431,8 @@ export class MinimaxV6 implements Engine {
       // cant return 0 for stalemate as it could just be that we are not in check and have no captures
     }
 
-    return alpha;
+    return bestScore;
   }
-
   // Do 1 step of selection sort to search for the move to search
   #pickBestMove(
     moveBuffer: Uint32Array,

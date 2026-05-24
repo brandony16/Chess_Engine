@@ -23,7 +23,7 @@ import {
 import { evaluateV1 } from "../evaluation/evaluationV1.ts";
 import {
   scoreMoveForOrderingBasic,
-  scoreMoveKiller,
+  scoreMoveWithHeuristics,
 } from "../moveScoring/basicScoring.ts";
 import type { SearchContext } from "../searchContext.ts";
 import { TranspositionTable } from "../transpositionTable/table.ts";
@@ -37,7 +37,7 @@ import {
 /**
  * Evolution of minimaxV6 that improves move ordering by implementing killer moves and history heuristic
  */
-export class MinimaxV7 implements Engine {
+export class MinimaxV7_2 implements Engine {
   private readonly weights: EvalWeights;
   private evaluate: Evaluation;
 
@@ -49,6 +49,9 @@ export class MinimaxV7 implements Engine {
 
   // [ply][slot]. store 2 killer moves per ply
   private killerMoves: Uint32Array[];
+
+  // indexed by [piece][square]
+  private historyTable: Int32Array[];
 
   constructor(depth: number) {
     this.weights = DEFAULT_EVAL_WEIGHTS;
@@ -62,10 +65,19 @@ export class MinimaxV7 implements Engine {
       { length: MAX_SEARCH_PLY },
       () => new Uint32Array(2),
     );
+    this.historyTable = Array.from(
+      { length: PIECE_N },
+      () => new Int32Array(64),
+    );
   }
 
   newGame(): void {
     this.tt.clear();
+
+    // clear history between games
+    for (let i = 0; i < this.historyTable.length; i++) {
+      this.historyTable[i].fill(0);
+    }
   }
 
   search(
@@ -80,6 +92,13 @@ export class MinimaxV7 implements Engine {
     // clear killer moves before each search
     for (let i = 0; i < this.killerMoves.length; i++) {
       this.killerMoves[i].fill(0);
+    }
+
+    // age table to prevent exploding scores and not have the engine hold on to old useless ideas
+    for (let p = 0; p < this.historyTable.length; p++) {
+      for (let s = 0; s < 64; s++) {
+        this.historyTable[p][s] >>= 1; // divide by 2
+      }
     }
 
     let bestMove = 0;
@@ -132,10 +151,11 @@ export class MinimaxV7 implements Engine {
     const scoreBuf = this.scoreBuffer;
     const firstToSearch = prevBest !== 0 ? prevBest : ttMove; // search previous best first, then ttMove
     for (let i = 0; i < moveNum; i++) {
-      scoreBuf[start + i] = scoreMoveKiller(
+      scoreBuf[start + i] = scoreMoveWithHeuristics(
         moveBuf[start + i],
         pos.searchPly,
         this.killerMoves,
+        this.historyTable,
         firstToSearch,
       );
     }
@@ -278,7 +298,7 @@ export class MinimaxV7 implements Engine {
           );
 
           // if a quiet move, update killer moves and history heuristic
-          this.#updateKillers(ttMove, pos.searchPly);
+          this.#updateOrderingHeuristics(ttMove, pos.searchPly, depth);
 
           return score;
         }
@@ -302,10 +322,11 @@ export class MinimaxV7 implements Engine {
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moves; i++) {
-      scoreBuf[start + i] = scoreMoveKiller(
+      scoreBuf[start + i] = scoreMoveWithHeuristics(
         moveBuf[start + i],
         pos.searchPly,
         this.killerMoves,
+        this.historyTable,
       );
     }
 
@@ -342,7 +363,7 @@ export class MinimaxV7 implements Engine {
         );
 
         // if a quiet move, update killer moves and history heuristic
-        this.#updateKillers(move, pos.searchPly);
+        this.#updateOrderingHeuristics(ttMove, pos.searchPly, depth);
 
         return score;
       }
@@ -495,7 +516,7 @@ export class MinimaxV7 implements Engine {
     }
   }
 
-  #updateKillers(move: Move, ply: number) {
+  #updateOrderingHeuristics(move: Move, ply: number, depth: number) {
     const captured = moveCaptured(move);
     const promo = movePromotion(move);
     if (captured === NO_PIECE && promo === NO_PIECE) {
@@ -503,6 +524,12 @@ export class MinimaxV7 implements Engine {
         this.killerMoves[ply][1] = this.killerMoves[ply][0];
         this.killerMoves[ply][0] = move;
       }
+
+      const piece = movePiece(move);
+      const toSq = moveTo(move);
+
+      // Add depth^2 to heavily reward moves that cause cutoffs near the root
+      this.historyTable[piece][toSq] += depth * depth;
     }
   }
 }

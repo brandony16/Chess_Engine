@@ -31,7 +31,7 @@ import {
 import { evaluateV1 } from "../evaluation/evaluationV1.ts";
 import {
   scoreMoveForOrderingBasic,
-  scoreMoveForOrderingKiller,
+  scoreMoveWithHeuristics,
 } from "../moveScoring/basicScoring.ts";
 import type { SearchContext } from "../searchContext.ts";
 import { TranspositionTable } from "../transpositionTable/table.ts";
@@ -163,12 +163,12 @@ export class MinimaxV8 implements Engine {
     const scoreBuf = this.scoreBuffer;
     const firstToSearch = prevBest !== 0 ? prevBest : ttMove; // search previous best first, then ttMove
     for (let i = 0; i < moveNum; i++) {
-      scoreBuf[start + i] = scoreMoveForOrderingKiller(
+      scoreBuf[start + i] = scoreMoveWithHeuristics(
         moveBuf[start + i],
-        firstToSearch,
         pos.searchPly,
         this.killerMoves,
         this.historyTable,
+        firstToSearch,
       );
     }
 
@@ -330,12 +330,12 @@ export class MinimaxV8 implements Engine {
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
     for (let i = 0; i < moves; i++) {
-      scoreBuf[start + i] = scoreMoveForOrderingKiller(
+      scoreBuf[start + i] = scoreMoveWithHeuristics(
         moveBuf[start + i],
-        ttMove,
         pos.searchPly,
         this.killerMoves,
         this.historyTable,
+        ttMove,
       );
     }
 

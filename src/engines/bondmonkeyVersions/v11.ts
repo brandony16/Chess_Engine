@@ -10,7 +10,7 @@ import type { Bondmonkey } from "./type.ts";
 
 export class BondmonkeyV11 implements Bondmonkey {
   static readonly name = "BondmonkeyV11";
-  static readonly description = "Adds killer moves and history heuristic";
+  static readonly description = "Adds killer moves for better move ordering";
 
   private readonly engine: Engine;
   private readonly evaluation: Evaluation;
@@ -31,7 +31,7 @@ export class BondmonkeyV11 implements Bondmonkey {
   get name(): EngineName {
     return BondmonkeyV11.name;
   }
-  
+
   get depthOfPrevSearch(): number {
     return this.engine.depthReached;
   }
