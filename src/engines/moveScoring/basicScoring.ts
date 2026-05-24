@@ -92,19 +92,19 @@ export function scoreMoveKiller(
     return 70_000;
   }
 
-  return total;
+  return 0;
 }
 
 export function scoreMoveWithHeuristics(
   move: Move,
   ply: number,
   killerMoves: Uint32Array[],
-  historyTable: Int32Array[],
+  historyTable: Uint32Array[],
   hashMove: Move = 0,
 ): number {
   const captured = moveCaptured(move);
 
-  // Always do hash move first
+  // Always do TT move first
   if (move === hashMove) {
     return 10_000_000;
   }
@@ -120,7 +120,7 @@ export function scoreMoveWithHeuristics(
   // Promotions
   const promo = movePromotion(move);
   if (promo !== NO_PIECE) {
-    total += ORDERING_VALUES[promo] + 90_000;
+    total += ORDERING_VALUES[promo] + 100_000;
   }
 
   if (promo !== NO_PIECE || captured !== NO_PIECE) {

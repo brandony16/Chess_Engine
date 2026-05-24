@@ -1,5 +1,6 @@
 import { BondmonkeyV10 } from "../bondmonkeyVersions/v10.ts";
 import { BondmonkeyV11 } from "../bondmonkeyVersions/v11.ts";
+import { BondmonkeyV11_2 } from "../bondmonkeyVersions/v11_2.ts";
 import { BondmonkeyV12 } from "../bondmonkeyVersions/v12.ts";
 import { BondmonkeyV13 } from "../bondmonkeyVersions/v13.ts";
 import { BondmonkeyV14 } from "../bondmonkeyVersions/v14.ts";
@@ -19,16 +20,16 @@ import { sprt } from "./SPRT.ts";
 
 async function main() {
   const timeLimitMs = Infinity;
-  const nodeLimit = 50000;
+  const nodeLimit = 25000;
 
   // v5 is a solid base version, with ab pruining and basic move ordering
   const eng1: EngineConfig = {
-    version: BondmonkeyV11.name,
+    version: BondmonkeyV11_2.name,
     depth: MAX_SEARCH_PLY,
   };
 
   const eng2: EngineConfig = {
-    version: BondmonkeyV10.name,
+    version: BondmonkeyV11.name,
     depth: MAX_SEARCH_PLY,
   };
 

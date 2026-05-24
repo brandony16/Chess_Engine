@@ -126,7 +126,7 @@ export class MinimaxV7 implements Engine {
     const ttMove = ttIdx !== -1 ? this.tt.getMove(ttIdx) : 0;
 
     let bestMove = 0;
-    let bestScore = -Infinity;
+    let bestScore = -INFINITY;
 
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
@@ -149,7 +149,7 @@ export class MinimaxV7 implements Engine {
 
       pos.makeMove(move);
 
-      const score = -this.#negamax(pos, depth - 1, -Infinity, -bestScore, ctx);
+      const score = -this.#negamax(pos, depth - 1, -INFINITY, -bestScore, ctx);
 
       pos.unmakeMove();
 

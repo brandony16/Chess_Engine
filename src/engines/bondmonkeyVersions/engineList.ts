@@ -2,6 +2,7 @@ import type { Bondmonkey } from "./type.ts";
 import { BondmonkeyV1 } from "./v1.ts";
 import { BondmonkeyV10 } from "./v10.ts";
 import { BondmonkeyV11 } from "./v11.ts";
+import { BondmonkeyV11_2 } from "./v11_2.ts";
 import { BondmonkeyV12 } from "./v12.ts";
 import { BondmonkeyV13 } from "./v13.ts";
 import { BondmonkeyV14 } from "./v14.ts";
@@ -20,6 +21,7 @@ export const engineNames = [
   BondmonkeyV14.name,
   BondmonkeyV13.name,
   BondmonkeyV12.name,
+  BondmonkeyV11_2.name,
   BondmonkeyV11.name,
   BondmonkeyV10.name,
   BondmonkeyV9.name,
@@ -66,6 +68,8 @@ export const getEngineByName = (
       return new BondmonkeyV10(depth);
     case BondmonkeyV11.name:
       return new BondmonkeyV11(depth);
+    case BondmonkeyV11_2.name:
+      return new BondmonkeyV11_2(depth);
     case BondmonkeyV12.name:
       return new BondmonkeyV12(depth);
     case BondmonkeyV13.name:
@@ -103,6 +107,8 @@ export const getEngineDescription = (name: string): string => {
       return BondmonkeyV10.description;
     case BondmonkeyV11.name:
       return BondmonkeyV11.description;
+    case BondmonkeyV11_2.name:
+      return BondmonkeyV11_2.description;
     case BondmonkeyV12.name:
       return BondmonkeyV12.description;
     case BondmonkeyV13.name:

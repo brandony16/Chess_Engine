@@ -51,7 +51,7 @@ export class MinimaxV7_2 implements Engine {
   private killerMoves: Uint32Array[];
 
   // indexed by [piece][square]
-  private historyTable: Int32Array[];
+  private historyTable: Uint32Array[];
 
   constructor(depth: number) {
     this.weights = DEFAULT_EVAL_WEIGHTS;
@@ -67,7 +67,7 @@ export class MinimaxV7_2 implements Engine {
     );
     this.historyTable = Array.from(
       { length: PIECE_N },
-      () => new Int32Array(64),
+      () => new Uint32Array(64),
     );
   }
 
@@ -145,7 +145,7 @@ export class MinimaxV7_2 implements Engine {
     const ttMove = ttIdx !== -1 ? this.tt.getMove(ttIdx) : 0;
 
     let bestMove = 0;
-    let bestScore = -Infinity;
+    let bestScore = -INFINITY;
 
     const moveBuf = pos.moveBuffer;
     const scoreBuf = this.scoreBuffer;
@@ -169,7 +169,7 @@ export class MinimaxV7_2 implements Engine {
 
       pos.makeMove(move);
 
-      const score = -this.#negamax(pos, depth - 1, -Infinity, -bestScore, ctx);
+      const score = -this.#negamax(pos, depth - 1, -INFINITY, -bestScore, ctx);
 
       pos.unmakeMove();
 
@@ -363,7 +363,7 @@ export class MinimaxV7_2 implements Engine {
         );
 
         // if a quiet move, update killer moves and history heuristic
-        this.#updateOrderingHeuristics(ttMove, pos.searchPly, depth);
+        this.#updateOrderingHeuristics(move, pos.searchPly, depth);
 
         return score;
       }
@@ -528,8 +528,14 @@ export class MinimaxV7_2 implements Engine {
       const piece = movePiece(move);
       const toSq = moveTo(move);
 
-      // Add depth^2 to heavily reward moves that cause cutoffs near the root
-      this.historyTable[piece][toSq] += depth * depth;
+      const bonus = depth * depth;
+      this.historyTable[piece][toSq] += bonus;
+
+      // Keeps history strictly below killer moves
+      const MAX_HISTORY = 20_000;
+      if (this.historyTable[piece][toSq] > MAX_HISTORY) {
+        this.historyTable[piece][toSq] = MAX_HISTORY;
+      }
     }
   }
 }
