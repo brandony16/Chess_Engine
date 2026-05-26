@@ -20,22 +20,22 @@ import { sprt } from "./SPRT.ts";
 
 async function main() {
   const timeLimitMs = Infinity;
-  const nodeLimit = 25000;
+  const nodeLimit = 50000;
 
   // v5 is a solid base version, with ab pruining and basic move ordering
   const eng1: EngineConfig = {
-    version: BondmonkeyV11_2.name,
+    version: BondmonkeyV14.name,
     depth: MAX_SEARCH_PLY,
   };
 
   const eng2: EngineConfig = {
-    version: BondmonkeyV11.name,
+    version: BondmonkeyV13.name,
     depth: MAX_SEARCH_PLY,
   };
 
   const start = performance.now();
   const result = await sprt(eng1, eng2, timeLimitMs, nodeLimit);
-  // const result = await runMatch(eng1, eng2, 100, timeLimitMs, nodeLimit);
+  // const result = await runMatch(eng1, eng2, 100, timeLimitMs, nodeLimit, 16);
   const end = performance.now();
 
   const time = ((end - start) / 1000).toFixed(2); // get time in seconds

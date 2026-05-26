@@ -22,8 +22,8 @@ import { MinimaxV8 } from "../minimaxEngines/v8.ts";
 import { MinimaxV9 } from "../minimaxEngines/v9.ts";
 import { SearchContext } from "../searchContext.ts";
 
-const eng1 = new MinimaxV7_2(8);
-const eng2 = new MinimaxV7(8);
+const eng1 = new MinimaxV9(8);
+const eng2 = new MinimaxV8(8);
 const pos = new Position();
 pos.loadFen(OPEN_MIDGAME);
 

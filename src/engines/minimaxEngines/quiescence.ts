@@ -192,6 +192,30 @@ export class MinimaxV4 implements Engine {
   ): number {
     if (ctx.tick(true)) return ABORT_SCORE;
 
+    // Draw check
+    if (pos.halfmoveClock >= 100) {
+      return 0;
+    }
+    const currHi = pos.zobristHi,
+      currLo = pos.zobristLo;
+    const currPly = pos.ply;
+    const minPly = currPly - pos.halfmoveClock;
+    for (let i = currPly - 2; i >= minPly; i -= 2) {
+      const lo = pos.zobristHistoryLo[i];
+      const hi = pos.zobristHistoryHi[i];
+
+      // dont repeat positions or its a draw
+      // without this, the engine will repeat in a winning position because it doesnt know repeating is a draw
+      if (lo === currLo && hi === currHi) {
+        return 0;
+      }
+    }
+
+    // prevent infinite recursion in the case of checks
+    if (pos.searchPly >= MAX_SEARCH_PLY - 1) {
+      return this.evaluate(pos, this.weights);
+    }
+
     const checkers = pos.getCheckers();
     const pinned = pos.getPinnedPieces();
     const doubleCheck = moreThanOne(checkers[0], checkers[1]);
