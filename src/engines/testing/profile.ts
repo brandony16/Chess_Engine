@@ -22,8 +22,8 @@ import { MinimaxV8 } from "../minimaxEngines/v8.ts";
 import { MinimaxV9 } from "../minimaxEngines/v9.ts";
 import { SearchContext } from "../searchContext.ts";
 
-const eng1 = new MinimaxV9(8);
-const eng2 = new MinimaxV8(8);
+const eng1 = new MinimaxV10(12);
+const eng2 = new MinimaxV10(12);
 const pos = new Position();
 pos.loadFen(OPEN_MIDGAME);
 
@@ -36,6 +36,9 @@ const ctx = new SearchContext(Infinity, Infinity);
 const start = performance.now();
 const move1 = eng1.search(pos, evaluateV4, ctx, true);
 const end = performance.now();
+
+eng2.search(pos, evaluateV4, new SearchContext(100_000));
+eng2.newGame(); // reset to clear tt
 
 console.log("\nStarting Eng 2 search");
 const ctx2 = new SearchContext(Infinity, Infinity);

@@ -441,7 +441,7 @@ export class MinimaxV9 implements Engine {
 
         // If the zero window search proved us wrong (score > alpha) and it wasnt a beta cutoff,
         // we must research with the full window to get the exact score
-        if (score > alpha && score < beta) {
+        if (score > alpha && score < beta && isPvNode) {
           this.pvsResearches++;
           score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
         }

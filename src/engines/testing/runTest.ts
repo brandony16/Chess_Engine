@@ -20,16 +20,16 @@ import { sprt } from "./SPRT.ts";
 
 async function main() {
   const timeLimitMs = Infinity;
-  const nodeLimit = 50000;
+  const nodeLimit = 25000;
 
   // v5 is a solid base version, with ab pruining and basic move ordering
   const eng1: EngineConfig = {
-    version: BondmonkeyV14.name,
+    version: BondmonkeyV15.name,
     depth: MAX_SEARCH_PLY,
   };
 
   const eng2: EngineConfig = {
-    version: BondmonkeyV13.name,
+    version: BondmonkeyV14.name,
     depth: MAX_SEARCH_PLY,
   };
 

@@ -11,6 +11,6 @@ export type Engine = {
   newGame(): void;
 };
 
-export const ABORT_SCORE = 99_999_999;
+export const ABORT_SCORE = 90_000_000;
 export const MAX_SEARCH_PLY = 64;
-export const INFINITY = 1_000_000_000;
+export const INFINITY = 100_000_000;

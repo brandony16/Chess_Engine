@@ -8,7 +8,7 @@ import {
 } from "../../game/moveMaking/move.ts";
 import { pieceType } from "../evaluation/Evaluation.ts";
 
-const ORDERING_VALUES = [0, 1, 3, 3, 5, 9, 100];
+const ORDERING_VALUES = [0, 1, 3, 3, 5, 9, 100, 1, 3, 3, 5, 9, 100];
 
 // Score each move for ordering
 export function scoreMoveForOrderingBasic(move: Move): number {
@@ -137,6 +137,96 @@ export function scoreMoveWithHeuristics(
   const piece = movePiece(move);
   const square = moveTo(move);
   return historyTable[piece][square];
+}
+
+export function scoreMoveWithHeuristicsFlat(
+  move: Move,
+  ply: number,
+  killerMoves: Uint32Array,
+  historyTable: Uint32Array,
+  hashMove: Move = 0,
+): number {
+  const captured = moveCaptured(move);
+
+  // Always do TT move first
+  if (move === hashMove) {
+    return 10_000_000;
+  }
+
+  let total = 0;
+
+  // Captures next, ordered by MVV-LVA
+  // (Most Valuable Victim - Least Valuable Attacker)
+  if (captured !== NO_PIECE) {
+    total += MVV_LVA[captured * PIECE_N + movePiece(move)] + 100_000;
+  }
+
+  // Promotions
+  const promo = movePromotion(move);
+  if (promo !== NO_PIECE) {
+    total += ORDERING_VALUES[promo] + 100_000;
+  }
+
+  if (promo !== NO_PIECE || captured !== NO_PIECE) {
+    return total;
+  }
+
+  // quiet moves only now
+  const killerPly = ply << 1;
+  if (killerMoves[killerPly] === move) {
+    return 80_000;
+  } else if (killerMoves[killerPly + 1] === move) {
+    return 70_000;
+  }
+
+  const piece = movePiece(move);
+  const square = moveTo(move);
+  return historyTable[(piece << 6) + square];
+}
+
+export function scoreMoveWithHeuristics1D(
+  move: Move,
+  ply: number,
+  killerMoves: Uint32Array,
+  historyTable: Uint32Array,
+  hashMove: Move = 0,
+): number {
+  const captured = moveCaptured(move);
+
+  // Always do TT move first
+  if (move === hashMove) {
+    return 10_000_000;
+  }
+
+  let total = 0;
+
+  // Captures next, ordered by MVV-LVA
+  // (Most Valuable Victim - Least Valuable Attacker)
+  if (captured !== NO_PIECE) {
+    total += MVV_LVA[captured * PIECE_N + movePiece(move)] + 100_000;
+  }
+
+  // Promotions
+  const promo = movePromotion(move);
+  if (promo !== NO_PIECE) {
+    total += ORDERING_VALUES[promo] + 100_000;
+  }
+
+  if (promo !== NO_PIECE || captured !== NO_PIECE) {
+    return total;
+  }
+
+  // quiet moves only now
+  const killerStart = ply << 1;
+  if (killerMoves[killerStart] === move) {
+    return 80_000;
+  } else if (killerMoves[killerStart + 1] === move) {
+    return 70_000;
+  }
+
+  const piece = movePiece(move);
+  const square = moveTo(move);
+  return historyTable[piece * 64 + square];
 }
 
 // MVV-LVA table: indexed by [victim][attacker]
