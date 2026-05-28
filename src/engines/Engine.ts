@@ -1,13 +1,17 @@
 import type { Move } from "../game/moveMaking/move.ts";
 import type { Position } from "../game/Position.ts";
-import type { Evaluation } from "./evaluation/Evaluation.ts";
+import type { Evaluation, EvaluationModule } from "./evaluation/Evaluation.ts";
 import type { SearchContext } from "./searchContext.ts";
 
 export type Engine = {
   depth: number;
   depthReached: number;
 
-  search(pos: Position, evaluate: Evaluation, ctx: SearchContext): Move;
+  search(
+    pos: Position,
+    evaluate: Evaluation | EvaluationModule,
+    ctx: SearchContext,
+  ): Move;
   newGame(): void;
 };
 

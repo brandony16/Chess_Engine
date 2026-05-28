@@ -9,12 +9,14 @@ import { moreThanOne } from "../../game/bb.ts";
 import { moveToUCI } from "../../game/fenAndUCI/uciHelpers.ts";
 import { MAX_MOVES, Position } from "../../game/Position.ts";
 import { MAX_SEARCH_PLY } from "../Engine.ts";
+import EvaluationV1 from "../evaluation/evalModules/v1.ts";
 import { evaluateV3 } from "../evaluation/evaluationV3.ts";
 import { evaluateV4 } from "../evaluation/evaluationv4.ts";
 import { evaluateV5 } from "../evaluation/evaluationV5.ts";
 import { MinimaxV4 } from "../minimaxEngines/quiescence.ts";
 import { MinimaxV5 } from "../minimaxEngines/transposTable.ts";
 import { MinimaxV10 } from "../minimaxEngines/v10.ts";
+import { MinimaxV11 } from "../minimaxEngines/v11.ts";
 import { MinimaxV6 } from "../minimaxEngines/v6.ts";
 import { MinimaxV7 } from "../minimaxEngines/v7.ts";
 import { MinimaxV7_2 } from "../minimaxEngines/v7_2.ts";
@@ -22,19 +24,19 @@ import { MinimaxV8 } from "../minimaxEngines/v8.ts";
 import { MinimaxV9 } from "../minimaxEngines/v9.ts";
 import { SearchContext } from "../searchContext.ts";
 
-const eng1 = new MinimaxV10(12);
+const eng1 = new MinimaxV11(12);
 const eng2 = new MinimaxV10(12);
 const pos = new Position();
 pos.loadFen(OPEN_MIDGAME);
 
 // warm up JIT
-eng1.search(pos, evaluateV4, new SearchContext(100_000));
+eng1.search(pos, new EvaluationV1(), new SearchContext(100_000));
 eng1.newGame(); // reset to clear tt
 
 console.log("Starting Eng 1 search");
 const ctx = new SearchContext(Infinity, Infinity);
 const start = performance.now();
-const move1 = eng1.search(pos, evaluateV4, ctx, true);
+const move1 = eng1.search(pos, new EvaluationV1(), ctx, true);
 const end = performance.now();
 
 eng2.search(pos, evaluateV4, new SearchContext(100_000));

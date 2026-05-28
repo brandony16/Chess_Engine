@@ -1,4 +1,9 @@
-import { WHITE_KING, type Piece } from "../../game/chessConstants.ts";
+import {
+  WHITE_KING,
+  type Piece,
+  type Player,
+} from "../../game/chessConstants.ts";
+import type { Move } from "../../game/moveMaking/move.ts";
 import type { Position } from "../../game/Position.ts";
 
 export type Evaluation = (pos: Position, weights: EvalWeights) => number;
@@ -13,6 +18,17 @@ export const pieceType = (piece: Piece): number =>
 export interface EvalWeights {
   pieceWeights: Int32Array;
 }
+export const DEFAULT_PIECE_WEIGHTS = new Int32Array([
+  0, 100, 320, 330, 500, 900, 20_000,
+]);
+
 export const DEFAULT_EVAL_WEIGHTS: EvalWeights = {
   pieceWeights: new Int32Array([0, 100, 320, 330, 500, 900, 20_000]),
 };
+
+export interface EvaluationModule {
+  initializeEval: (pos: Position) => void;
+  makeMoveUpdateEval: (move: Move, ply: number, side: Player) => void;
+  unmakeMoveUpdateEval: (ply: number) => void;
+  getEval: (pos: Position) => number;
+}

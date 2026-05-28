@@ -134,7 +134,6 @@ export const evaluatePawnStructure = (pos: Position): number => {
     bLo &= bLo - 1;
   }
 
-  // --- BLACK PAWNS (Hi Board: Ranks 5-8) ---
   let bHi = bPawnsHi;
   while (bHi) {
     const sq = lsb(0, bHi);
