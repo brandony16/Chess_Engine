@@ -27,7 +27,7 @@ import { SearchContext } from "../searchContext.ts";
 const eng1 = new MinimaxV11(12);
 const eng2 = new MinimaxV10(12);
 const pos = new Position();
-pos.loadFen(OPEN_MIDGAME);
+pos.loadFen("r4k1r/pp2q1pp/2npb3/6Q1/4Pp2/P1N2N2/1PP2PPP/2KR3R b - - 0 1");
 
 // warm up JIT
 eng1.search(pos, new EvaluationV1(), new SearchContext(100_000));

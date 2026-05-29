@@ -29,6 +29,7 @@ export const DEFAULT_EVAL_WEIGHTS: EvalWeights = {
 export interface EvaluationModule {
   initializeEval: (pos: Position) => void;
   makeMoveUpdateEval: (move: Move, ply: number, side: Player) => void;
-  unmakeMoveUpdateEval: (ply: number) => void;
+  restoreEval: (ply: number) => void;
+  makeNullMove: (ply: number) => void;
   getEval: (pos: Position) => number;
 }

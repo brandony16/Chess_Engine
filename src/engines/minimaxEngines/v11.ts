@@ -225,7 +225,7 @@ export class MinimaxV11 implements Engine {
       }
 
       pos.unmakeMove();
-      this.evaluation.unmakeMoveUpdateEval(pos.searchPly);
+      this.evaluation.restoreEval(pos.searchPly);
 
       if (ctx.aborted) return bestMove;
 
@@ -322,7 +322,6 @@ export class MinimaxV11 implements Engine {
 
     // ---- NULL MOVE PRUNING -----
     const inCheck = checkers[0] !== 0 || checkers[1] !== 0;
-    const isPvNode = beta - alpha > 1;
 
     // Only do NMP if:
     // 1. We are not already doing a NMP search
@@ -335,6 +334,7 @@ export class MinimaxV11 implements Engine {
         // reduction factor
         const R = 2;
 
+        this.evaluation.makeNullMove(pos.searchPly);
         pos.makeNullMove();
 
         // we only care if score >= beta, so pass -beta and -beta + 1 as our bounds for speed
@@ -348,6 +348,7 @@ export class MinimaxV11 implements Engine {
         );
 
         pos.unmakeNullMove();
+        this.evaluation.restoreEval(pos.searchPly);
 
         if (ctx.aborted) return ABORT_SCORE;
 
@@ -385,7 +386,7 @@ export class MinimaxV11 implements Engine {
         const score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
 
         pos.unmakeMove();
-        this.evaluation.unmakeMoveUpdateEval(pos.searchPly);
+        this.evaluation.restoreEval(pos.searchPly);
 
         if (ctx.aborted) return ABORT_SCORE;
 
@@ -505,7 +506,7 @@ export class MinimaxV11 implements Engine {
       }
 
       pos.unmakeMove();
-      this.evaluation.unmakeMoveUpdateEval(pos.searchPly);
+      this.evaluation.restoreEval(pos.searchPly);
 
       if (ctx.aborted) return ABORT_SCORE;
 
@@ -641,7 +642,7 @@ export class MinimaxV11 implements Engine {
       const score = -this.#quiescence(pos, -beta, -alpha, ctx);
 
       pos.unmakeMove();
-      this.evaluation.unmakeMoveUpdateEval(pos.searchPly);
+      this.evaluation.restoreEval(pos.searchPly);
 
       if (ctx.aborted) return ABORT_SCORE;
 

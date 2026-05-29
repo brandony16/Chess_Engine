@@ -62,11 +62,18 @@ export function evaluateV4(pos: Position, weights: EvalWeights): number {
     }
   }
 
-  // endgame weight is 1 when just kings and pawns and 0 when all pieces
-  const endgameWeight = (MAX_PHASE - totalPhase) / MAX_PHASE;
+  // Setup integer weights
+  const mgWeight = totalPhase;
+  const egWeight = MAX_PHASE - totalPhase;
 
-  evaluation += wMgPSQT * (1 - endgameWeight) + wEgPSQT * endgameWeight;
-  evaluation -= bMgPSQT * (1 - endgameWeight) + bEgPSQT * endgameWeight;
+  // Group by (White - Black) first
+  const mgEval = wMgPSQT - bMgPSQT;
+  const egEval = wEgPSQT - bEgPSQT;
+
+  // Multiply, divide, force Smi
+  const psqtEval = ((mgEval * mgWeight + egEval * egWeight) / MAX_PHASE) | 0;
+
+  evaluation += psqtEval;
 
   // convert eval to be relative to the side to move (positive if winning, negative if losing)
   const friendlySide = pos.sideToMove;
@@ -74,12 +81,13 @@ export function evaluateV4(pos: Position, weights: EvalWeights): number {
 
   if (relativeEval > 0) {
     // returns relative to friendly side
+    const endgameWeight = egWeight / MAX_PHASE;
     const kingPosWeight = forceKingToEdgeEndgameEval(
       pos.kingSq[friendlySide] as Square,
       pos.kingSq[friendlySide ^ 1] as Square,
       endgameWeight,
     );
-    relativeEval += kingPosWeight;
+    relativeEval += kingPosWeight | 0;
   }
 
   return relativeEval;

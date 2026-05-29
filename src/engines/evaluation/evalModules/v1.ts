@@ -187,17 +187,28 @@ export default class EvaluationV1 implements EvaluationModule {
     this.material = material;
   }
 
-  unmakeMoveUpdateEval(ply: number): void {
+  restoreEval(ply: number): void {
     this.mgScore = this.mgHistory[ply];
     this.egScore = this.egHistory[ply];
     this.phase = this.phaseHistory[ply];
     this.material = this.materialHistory[ply];
   }
 
+  makeNullMove(ply: number) {
+    // for null move, just need to store current scores
+    this.mgHistory[ply] = this.mgScore;
+    this.egHistory[ply] = this.egScore;
+    this.phaseHistory[ply] = this.phase;
+    this.materialHistory[ply] = this.material;
+  }
+
   getEval(pos: Position): number {
-    const endgameWeight = (MAX_PHASE - this.phase) / MAX_PHASE;
+    const mgWeight = this.phase;
+    const egWeight = MAX_PHASE - this.phase;
+
+    // Multiply first, divide at the end, and force Smi with bitwise OR
     const psqtEval =
-      this.mgScore * (1 - endgameWeight) + this.egScore * endgameWeight;
+      ((this.mgScore * mgWeight + this.egScore * egWeight) / MAX_PHASE) | 0;
 
     const evaluation = this.material + psqtEval;
 
@@ -206,13 +217,15 @@ export default class EvaluationV1 implements EvaluationModule {
     let relativeEval = friendlySide === WHITE ? evaluation : -evaluation;
 
     if (relativeEval > 0) {
+      const endgameWeight = egWeight / MAX_PHASE;
+
       // returns relative to friendly side
       const kingPosWeight = forceKingToEdgeEndgameEval(
         pos.kingSq[friendlySide] as Square,
         pos.kingSq[friendlySide ^ 1] as Square,
         endgameWeight,
       );
-      relativeEval += kingPosWeight;
+      relativeEval += kingPosWeight | 0;
     }
 
     return relativeEval;

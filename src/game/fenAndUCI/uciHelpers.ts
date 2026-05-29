@@ -90,7 +90,7 @@ export function uciToMove(uciMove: string, pos: Position) {
     }
   }
 
-  throw new Error("UCI move not found");
+  throw new Error(`UCI move not found: ${uciMove}`);
 }
 
 function isValidPieceChar(c: string): c is keyof typeof PIECE_INDEXES {
