@@ -10,9 +10,9 @@ import type { SearchContext } from "../searchContext.ts";
 import type { EngineName } from "./engineList.ts";
 import type { Bondmonkey } from "./type.ts";
 
-export class BondmonkeyV16 implements Bondmonkey {
-  static readonly name = "BondmonkeyV16";
-  static readonly description = "Quicker evaluations";
+export class BondmonkeyV17 implements Bondmonkey {
+  static readonly name = "BondmonkeyV17";
+  static readonly description = "Evaluates pawn structure";
 
   private readonly engine: Engine;
   private readonly evaluation: EvaluationModule;
@@ -31,7 +31,7 @@ export class BondmonkeyV16 implements Bondmonkey {
   }
 
   get name(): EngineName {
-    return BondmonkeyV16.name;
+    return BondmonkeyV17.name;
   }
 
   get depthOfPrevSearch(): number {

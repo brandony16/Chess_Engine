@@ -3,7 +3,6 @@ import {
   NO_PIECE,
   WHITE,
   WHITE_ROOK,
-  type Player,
   type Square,
 } from "../../../game/chessConstants.ts";
 import {
@@ -18,7 +17,10 @@ import {
 } from "../../../game/moveMaking/move.ts";
 import type { Position } from "../../../game/Position.ts";
 import { MAX_SEARCH_PLY } from "../../Engine.ts";
+import { PROBE_MISSED } from "../../transpositionTable/ttTypes.ts";
 import { forceKingToEdgeEndgameEval } from "../evalComponents/forceKingEdge.ts";
+import { evaluatePawnStructure } from "../evalComponents/pawnStructure/evalPawnStructure.ts";
+import PawnHashTable from "../evalComponents/pawnStructure/pawnHashTable.ts";
 import {
   flip,
   PESTO_EG_TABLES,
@@ -27,13 +29,15 @@ import {
 import { MAX_PHASE, PHASE_WEIGHTS } from "../evalComponents/phaseWeights.ts";
 import { DEFAULT_PIECE_WEIGHTS, type EvaluationModule } from "../Evaluation.ts";
 
-export default class EvaluationV1 implements EvaluationModule {
+export default class EvaluationV6 implements EvaluationModule {
   private readonly pieceWeights: Int32Array = DEFAULT_PIECE_WEIGHTS;
+
+  private pawnHashTable: PawnHashTable = new PawnHashTable();
 
   private material = 0;
   private mgScore = 0;
   private egScore = 0;
-  private phase = 0;
+  private phase = 0;  
 
   private materialHistory = new Int32Array(MAX_SEARCH_PLY);
   private mgHistory = new Int32Array(MAX_SEARCH_PLY);
@@ -96,7 +100,10 @@ export default class EvaluationV1 implements EvaluationModule {
     this.material = wMaterial - bMaterial;
   }
 
-  makeMoveUpdateEval(move: Move, ply: number, side: Player): void {
+  makeMoveUpdateEval(move: Move, pos: Position): void {
+    const side = pos.sideToMove;
+    const ply = pos.searchPly;
+
     let mg = this.mgScore;
     let eg = this.egScore;
     let phase = this.phase;
@@ -210,7 +217,14 @@ export default class EvaluationV1 implements EvaluationModule {
     const psqtEval =
       ((this.mgScore * mgWeight + this.egScore * egWeight) / MAX_PHASE) | 0;
 
-    const evaluation = this.material + psqtEval;
+    // lazy pawn evaluation
+    let pawnScore = this.pawnHashTable.probe(pos.pawnZobrist);
+    if (pawnScore === PROBE_MISSED) {
+      pawnScore = evaluatePawnStructure(pos);
+      this.pawnHashTable.store(pos.pawnZobrist, pawnScore);
+    }
+
+    const evaluation = this.material + psqtEval + pawnScore;
 
     // convert eval to be relative to the side to move (positive if winning, negative if losing)
     const friendlySide = pos.sideToMove;

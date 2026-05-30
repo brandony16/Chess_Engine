@@ -123,6 +123,7 @@ import {
   generateQueenTacticals,
   generateRookTacticals,
 } from "./moveGen/tacticalMoves.ts";
+import { START_POS } from "../__tests__/game_tests/fens.ts";
 
 const MAX_PLY = 512;
 export const MAX_MOVES = 256;
@@ -162,10 +163,13 @@ export class Position {
   zobristLo: number;
   zobristHi: number;
 
+  pawnZobrist: number;
+
   zobristHistoryLo: Uint32Array;
   zobristHistoryHi: Uint32Array;
+  pawnZobristHistory: Uint32Array;
 
-  constructor() {
+  constructor(fen: string = START_POS) {
     // ----- Board State -----
     this.bbsHi = new Int32Array(PIECE_N);
     this.bbsLo = new Int32Array(PIECE_N);
@@ -193,6 +197,7 @@ export class Position {
     this.kingSq = new Int8Array(2);
     this.zobristLo = 0;
     this.zobristHi = 0;
+    this.pawnZobrist = 0;
 
     this.searchPly = 0;
     this.moveBuffer = new Uint32Array(MAX_SEARCH_PLY * MAX_MOVES);
@@ -205,21 +210,9 @@ export class Position {
 
     this.zobristHistoryLo = new Uint32Array(MAX_PLY);
     this.zobristHistoryHi = new Uint32Array(MAX_PLY);
+    this.pawnZobristHistory = new Uint32Array(MAX_PLY);
 
-    this.loadInitialPosition();
-  }
-
-  loadInitialPosition(): void {
-    for (const piece of PIECES) {
-      const bb = INITIAL_BITBOARDS[piece];
-      const [lo, hi] = bbFromBigInt(bb);
-      this.bbsLo[piece] = lo;
-      this.bbsHi[piece] = hi;
-    }
-
-    this.pieceAt.fill(NO_PIECE);
-
-    this.initCurrentPosition();
+    this.loadFen(fen);
   }
 
   initCurrentPosition(): void {
@@ -235,6 +228,7 @@ export class Position {
 
     this.zobristHistoryLo[0] = this.zobristLo;
     this.zobristHistoryHi[0] = this.zobristHi;
+    this.pawnZobristHistory[0] = this.pawnZobrist;
   }
 
   initializePieceAt(): void {
@@ -283,6 +277,7 @@ export class Position {
     let key = 0n;
     let keyLo = 0,
       keyHi = 0;
+    let pawnKey = 0;
 
     // Pieces
     for (const piece of PIECES) {
@@ -293,6 +288,9 @@ export class Position {
         const idx = piece * 64 + sq;
         keyLo ^= zobristTableLo[idx];
         keyHi ^= zobristTableHi[idx];
+        if (isPawn(piece)) {
+          pawnKey ^= zobristTableLo[idx];
+        }
 
         if (lo !== 0) lo &= lo - 1;
         else hi &= hi - 1;
@@ -318,6 +316,8 @@ export class Position {
 
     this.zobristLo = keyLo >>> 0;
     this.zobristHi = keyHi >>> 0;
+    this.pawnZobrist = pawnKey >>> 0;
+
     return key;
   }
 
@@ -331,15 +331,21 @@ export class Position {
   ): void {
     let hashLo = this.zobristLo;
     let hashHi = this.zobristHi;
+    let pawnKey = this.pawnZobrist;
+
     const from = moveFrom(move);
     const to = moveTo(move);
     const piece = movePiece(move);
     const captured = moveCaptured(move);
+    const pawnMove = isPawn(piece);
 
     // XOR the piece at the previous position
     const idxFrom = piece * 64 + from;
     hashLo ^= zobristTableLo[idxFrom];
     hashHi ^= zobristTableHi[idxFrom];
+    if (pawnMove) {
+      pawnKey ^= zobristTableLo[idxFrom];
+    }
 
     // XOR the pieces new location
     const promo = movePromotion(move);
@@ -347,6 +353,10 @@ export class Position {
     const idxTo = pieceTo * 64 + to;
     hashLo ^= zobristTableLo[idxTo];
     hashHi ^= zobristTableHi[idxTo];
+    // if a promotion, dont add the pawn back
+    if (pawnMove && promo === NO_PIECE) {
+      pawnKey ^= zobristTableLo[idxTo];
+    }
 
     // if a capture, XOR to remove captured piece
     if (captured !== NO_PIECE) {
@@ -357,6 +367,9 @@ export class Position {
       const idxCap = captured * 64 + captSq;
       hashLo ^= zobristTableLo[idxCap];
       hashHi ^= zobristTableHi[idxCap];
+      if (isPawn(captured)) {
+        pawnKey ^= zobristTableLo[idxCap];
+      }
     }
 
     // XOR player
@@ -417,6 +430,7 @@ export class Position {
 
     this.zobristLo = hashLo >>> 0;
     this.zobristHi = hashHi >>> 0;
+    this.pawnZobrist = pawnKey >>> 0;
   }
 
   updateHalfmoveClock(move: Move): void {
@@ -582,6 +596,7 @@ export class Position {
 
     this.zobristHistoryLo[this.ply] = this.zobristLo;
     this.zobristHistoryHi[this.ply] = this.zobristHi;
+    this.pawnZobristHistory[this.ply] = this.pawnZobrist;
 
     this.sideToMove ^= 1;
     this.searchPly++;
@@ -610,6 +625,7 @@ export class Position {
     this.halfmoveClock = halfmove;
     this.zobristLo = this.zobristHistoryLo[this.ply - 1];
     this.zobristHi = this.zobristHistoryHi[this.ply - 1];
+    this.pawnZobrist = this.pawnZobristHistory[this.ply - 1];
 
     if (this.sideToMove === BLACK) {
       this.fullmoveNumber--;
@@ -649,6 +665,7 @@ export class Position {
 
     this.zobristHistoryLo[this.ply] = this.zobristLo;
     this.zobristHistoryHi[this.ply] = this.zobristHi;
+    this.pawnZobristHistory[this.ply] = this.pawnZobrist;
 
     this.sideToMove ^= 1;
     this.searchPly++;
@@ -666,6 +683,7 @@ export class Position {
     this.halfmoveClock = halfmove;
     this.zobristLo = this.zobristHistoryLo[this.ply - 1];
     this.zobristHi = this.zobristHistoryHi[this.ply - 1];
+    this.pawnZobrist = this.pawnZobristHistory[this.ply - 1];
 
     if (this.sideToMove === BLACK) {
       this.fullmoveNumber--;
@@ -1073,6 +1091,7 @@ export class Position {
 
     cpy.zobristHistoryLo = this.zobristHistoryLo.slice();
     cpy.zobristHistoryHi = this.zobristHistoryHi.slice();
+    cpy.pawnZobristHistory = this.pawnZobristHistory.slice();
 
     return cpy;
   }

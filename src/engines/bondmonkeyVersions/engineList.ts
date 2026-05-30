@@ -8,6 +8,7 @@ import { BondmonkeyV13 } from "./v13.ts";
 import { BondmonkeyV14 } from "./v14.ts";
 import { BondmonkeyV15 } from "./v15.ts";
 import { BondmonkeyV16 } from "./v16.ts";
+import { BondmonkeyV17 } from "./v17.ts";
 import { BondmonkeyV2 } from "./v2.ts";
 import { BondmonkeyV3 } from "./v3.ts";
 import { BondmonkeyV4 } from "./v4.ts";
@@ -18,6 +19,7 @@ import { BondmonkeyV8 } from "./v8.ts";
 import { BondmonkeyV9 } from "./v9.ts";
 
 export const engineNames = [
+  BondmonkeyV17.name,
   BondmonkeyV16.name,
   BondmonkeyV15.name,
   BondmonkeyV14.name,
@@ -82,6 +84,8 @@ export const getEngineByName = (
       return new BondmonkeyV15(depth);
     case BondmonkeyV16.name:
       return new BondmonkeyV16(depth);
+    case BondmonkeyV17.name:
+      return new BondmonkeyV17(depth);
     default:
       throw new Error(`Invalid Engine Name: ${name}`);
   }
@@ -121,8 +125,8 @@ export const getEngineDescription = (name: string): string => {
       return BondmonkeyV14.description;
     case BondmonkeyV15.name:
       return BondmonkeyV15.description;
-    case BondmonkeyV16.name:
-      return BondmonkeyV16.description;
+    case BondmonkeyV17.name:
+      return BondmonkeyV17.description;
     default:
       throw new Error("Invalid Engine Name");
   }

@@ -22,7 +22,7 @@ import {
   MAX_SEARCH_PLY,
   type Engine,
 } from "../Engine.ts";
-import EvaluationV1 from "../evaluation/evalModules/v1.ts";
+import EvaluationV1 from "../evaluation/evalModules/v5.ts";
 import {
   DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
@@ -200,7 +200,7 @@ export class MinimaxV11 implements Engine {
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
       legalCount++;
 
-      this.evaluation.makeMoveUpdateEval(move, pos.searchPly, pos.sideToMove);
+      this.evaluation.makeMoveUpdateEval(move, pos);
       pos.makeMove(move);
 
       // Principal Variation Search
@@ -376,11 +376,7 @@ export class MinimaxV11 implements Engine {
       if (pos.isLegal(ttMove, checkers, pinned, doubleCheck)) {
         legalCount++;
 
-        this.evaluation.makeMoveUpdateEval(
-          ttMove,
-          pos.searchPly,
-          pos.sideToMove,
-        );
+        this.evaluation.makeMoveUpdateEval(ttMove, pos);
         pos.makeMove(ttMove);
 
         const score = -this.#negamax(pos, depth - 1, -beta, -alpha, ctx);
@@ -447,7 +443,7 @@ export class MinimaxV11 implements Engine {
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
       legalCount++;
 
-      this.evaluation.makeMoveUpdateEval(move, pos.searchPly, pos.sideToMove);
+      this.evaluation.makeMoveUpdateEval(move, pos);
       pos.makeMove(move);
 
       // Principal Variation Search
@@ -636,7 +632,7 @@ export class MinimaxV11 implements Engine {
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
       legalCount++;
 
-      this.evaluation.makeMoveUpdateEval(move, pos.searchPly, pos.sideToMove);
+      this.evaluation.makeMoveUpdateEval(move, pos);
       pos.makeMove(move);
 
       const score = -this.#quiescence(pos, -beta, -alpha, ctx);

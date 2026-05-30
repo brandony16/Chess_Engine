@@ -1,5 +1,15 @@
 import { lsb, popcount } from "../../../../game/bb.ts";
-import { BLACK_PAWN, WHITE_PAWN } from "../../../../game/chessConstants.ts";
+import {
+  BLACK_PAWN,
+  NO_PIECE,
+  WHITE_PAWN,
+} from "../../../../game/chessConstants.ts";
+import {
+  moveCaptured,
+  movePiece,
+  type Move,
+} from "../../../../game/moveMaking/move.ts";
+import { isPawn } from "../../../../game/pieceUtils/pieceClassifiers.ts";
 import type { Position } from "../../../../game/Position.ts";
 import {
   ADJACENT_FILE_MASKS,
@@ -32,122 +42,144 @@ export const PASSED_PAWN_BONUS = [
  * @returns the eval for the pawn structure
  */
 export const evaluatePawnStructure = (pos: Position): number => {
-  let score = 0;
-
   const wPawnsLo = pos.bbsLo[WHITE_PAWN];
   const wPawnsHi = pos.bbsHi[WHITE_PAWN];
 
   const bPawnsLo = pos.bbsLo[BLACK_PAWN];
   const bPawnsHi = pos.bbsHi[BLACK_PAWN];
 
+  return (
+    calculateDoubledIsolatedPawnScore(wPawnsLo, wPawnsHi, bPawnsLo, bPawnsHi) +
+    calculatePassedPawnScore(wPawnsLo, wPawnsHi, bPawnsLo, bPawnsHi)
+  );
+};
+
+export const calculateDoubledIsolatedPawnScore = (
+  wPawnLo: number,
+  wPawnHi: number,
+  bPawnLo: number,
+  bPawnHi: number,
+): number => {
+  let wPawnScore = 0;
+  let bPawnScore = 0;
   for (let file = 0; file < 8; file++) {
     const fileMask = FILE_MASKS[file];
     const adjMask = ADJACENT_FILE_MASKS[file];
 
     // --- WHITE PAWNS ---
-    const wFilePawnsLo = wPawnsLo & fileMask;
-    const wFilePawnsHi = wPawnsHi & fileMask;
+    const wFilePawnsLo = wPawnLo & fileMask;
+    const wFilePawnsHi = wPawnHi & fileMask;
 
     if (wFilePawnsLo !== 0 || wFilePawnsHi !== 0) {
       // Doubled Pawns
       const wCount = popcount(wFilePawnsLo, wFilePawnsHi);
       if (wCount > 1) {
         // Apply penalty for every extra pawn on the file
-        score += PENALTY_DOUBLED * (wCount - 1);
+        wPawnScore += PENALTY_DOUBLED * (wCount - 1);
       }
 
       // Isolated Pawns - check if there are any pawns on adjacent files
-      const wAdjPawnsLo = wPawnsLo & adjMask;
-      const wAdjPawnsHi = wPawnsHi & adjMask;
+      const wAdjPawnsLo = wPawnLo & adjMask;
+      const wAdjPawnsHi = wPawnHi & adjMask;
 
       if (wAdjPawnsLo === 0 && wAdjPawnsHi === 0) {
         // Apply penalty for every isolated pawn on this file
-        score += PENALTY_ISOLATED * wCount;
+        wPawnScore += PENALTY_ISOLATED * wCount;
       }
     }
 
     // --- BLACK PAWNS ---
-    const bFilePawnsLo = bPawnsLo & fileMask;
-    const bFilePawnsHi = bPawnsHi & fileMask;
+    const bFilePawnsLo = bPawnLo & fileMask;
+    const bFilePawnsHi = bPawnHi & fileMask;
 
     if (bFilePawnsLo !== 0 || bFilePawnsHi !== 0) {
       // Doubled Pawns
       const bCount = popcount(bFilePawnsLo, bFilePawnsHi);
       if (bCount > 1) {
-        // Subtract from score (Black penalties INCREASE White's score)
-        score -= PENALTY_DOUBLED * (bCount - 1);
+        bPawnScore += PENALTY_DOUBLED * (bCount - 1);
       }
 
       // Isolated Pawns
-      const bAdjPawnsLo = bPawnsLo & adjMask;
-      const bAdjPawnsHi = bPawnsHi & adjMask;
+      const bAdjPawnsLo = bPawnLo & adjMask;
+      const bAdjPawnsHi = bPawnHi & adjMask;
 
       if (bAdjPawnsLo === 0 && bAdjPawnsHi === 0) {
-        score -= PENALTY_ISOLATED * bCount;
+        bPawnScore += PENALTY_ISOLATED * bCount;
       }
     }
   }
 
-  // ----- PASSED PAWNS -----
+  return wPawnScore - bPawnScore;
+};
+
+export const calculatePassedPawnScore = (
+  wPawnLo: number,
+  wPawnHi: number,
+  bPawnLo: number,
+  bPawnHi: number,
+): number => {
+  let wPawnScore = 0;
+  let bPawnScore = 0;
+
   // white pawns
-  let wLo = wPawnsLo;
+  let wLo = wPawnLo;
   while (wLo) {
     const sq = lsb(wLo, 0);
 
     if (
-      (bPawnsLo & W_PASSED_LO[sq]) === 0 &&
-      (bPawnsHi & W_PASSED_HI[sq]) === 0
+      (bPawnLo & W_PASSED_LO[sq]) === 0 &&
+      (bPawnHi & W_PASSED_HI[sq]) === 0
     ) {
       const rank = sq >> 3;
-      score += PASSED_PAWN_BONUS[rank];
+      wPawnScore += PASSED_PAWN_BONUS[rank];
     }
     wLo &= wLo - 1;
   }
 
-  let wHi = wPawnsHi;
+  let wHi = wPawnHi;
   while (wHi) {
     const sq = lsb(0, wHi);
 
     if (
-      (bPawnsLo & W_PASSED_LO[sq]) === 0 &&
-      (bPawnsHi & W_PASSED_HI[sq]) === 0
+      (bPawnLo & W_PASSED_LO[sq]) === 0 &&
+      (bPawnHi & W_PASSED_HI[sq]) === 0
     ) {
       const rank = sq >> 3;
-      score += PASSED_PAWN_BONUS[rank];
+      wPawnScore += PASSED_PAWN_BONUS[rank];
     }
     wHi &= wHi - 1;
   }
 
   // black pawns
-  let bLo = bPawnsLo;
+  let bLo = bPawnLo;
   while (bLo) {
     const sq = lsb(bLo, 0);
 
     if (
-      (wPawnsLo & B_PASSED_LO[sq]) === 0 &&
-      (wPawnsHi & B_PASSED_HI[sq]) === 0
+      (wPawnLo & B_PASSED_LO[sq]) === 0 &&
+      (wPawnHi & B_PASSED_HI[sq]) === 0
     ) {
       const rank = sq >> 3;
       const invertedRank = 7 - rank; // invert rank for black
-      score -= PASSED_PAWN_BONUS[invertedRank];
+      bPawnScore += PASSED_PAWN_BONUS[invertedRank];
     }
     bLo &= bLo - 1;
   }
 
-  let bHi = bPawnsHi;
+  let bHi = bPawnHi;
   while (bHi) {
     const sq = lsb(0, bHi);
 
     if (
-      (wPawnsLo & B_PASSED_LO[sq]) === 0 &&
-      (wPawnsHi & B_PASSED_HI[sq]) === 0
+      (wPawnLo & B_PASSED_LO[sq]) === 0 &&
+      (wPawnHi & B_PASSED_HI[sq]) === 0
     ) {
       const rank = sq >> 3;
       const invertedRank = 7 - rank;
-      score -= PASSED_PAWN_BONUS[invertedRank];
+      bPawnScore += PASSED_PAWN_BONUS[invertedRank];
     }
     bHi &= bHi - 1;
   }
 
-  return score;
+  return wPawnScore - bPawnScore;
 };

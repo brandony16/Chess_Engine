@@ -9,7 +9,7 @@ import { moreThanOne } from "../../game/bb.ts";
 import { moveToUCI } from "../../game/fenAndUCI/uciHelpers.ts";
 import { MAX_MOVES, Position } from "../../game/Position.ts";
 import { MAX_SEARCH_PLY } from "../Engine.ts";
-import EvaluationV1 from "../evaluation/evalModules/v1.ts";
+import EvaluationV1 from "../evaluation/evalModules/v5.ts";
 import { evaluateV3 } from "../evaluation/evaluationV3.ts";
 import { evaluateV4 } from "../evaluation/evaluationv4.ts";
 import { evaluateV5 } from "../evaluation/evaluationV5.ts";
