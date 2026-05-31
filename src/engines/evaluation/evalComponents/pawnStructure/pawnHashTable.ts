@@ -6,6 +6,9 @@ export default class PawnHashTable {
   readonly keys: Uint32Array;
   private scores: Int32Array;
 
+  hits: number = 0;
+  misses: number = 0;
+
   constructor(sizeMB = 16) {
     this.size =
       1 << Math.floor(Math.log2((sizeMB * 1024 * 1024) / this.ENTRY_BYTES));
@@ -28,9 +31,11 @@ export default class PawnHashTable {
   probe(key: number): number {
     const idx = this.index(key);
     if (this.keys[idx] === key) {
+      this.hits++;
       return this.scores[idx];
     }
 
+    this.misses++;
     return PROBE_MISSED;
   }
 

@@ -32,4 +32,5 @@ export interface EvaluationModule {
   restoreEval: (ply: number) => void;
   makeNullMove: (ply: number) => void;
   getEval: (pos: Position) => number;
+  newGame: () => void;
 }

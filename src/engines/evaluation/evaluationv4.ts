@@ -4,14 +4,11 @@ import { Position } from "../../game/Position.ts";
 import { type EvalWeights } from "./Evaluation.ts";
 import { MAX_PHASE, PHASE_WEIGHTS } from "./evalComponents/phaseWeights.ts";
 import { forceKingToEdgeEndgameEval } from "./evalComponents/forceKingEdge.ts";
-import {
-  flip,
-  PESTO_EG_TABLES,
-  PESTO_MG_TABLES,
-} from "./evalComponents/PestoTables.ts";
+import { flip } from "./evalComponents/PestoTables.ts";
+import { EG_PSQT, MG_PSQT } from "./evalComponents/PieceSquareTables.ts";
 
 /**
- * Version 4 of evaluation. Uses PeSTO tables for both mg and eg, interpolating between each
+ * Version 4 of evaluation. Uses seperate psqt tables for both mg and eg, interpolating between each
  */
 export function evaluateV4(pos: Position, weights: EvalWeights): number {
   let evaluation = 0;
@@ -28,8 +25,8 @@ export function evaluateV4(pos: Position, weights: EvalWeights): number {
     // basic material evaluation
     const value = pieceWeights[pt];
 
-    const MG_PQST = PESTO_MG_TABLES[pt];
-    const EG_PSQT = PESTO_EG_TABLES[pt];
+    const mgTable = MG_PSQT[pt];
+    const egTable = EG_PSQT[pt];
 
     // calculate piece square table weights and phase
     let wBBLo = pos.bbsLo[pt],
@@ -42,8 +39,8 @@ export function evaluateV4(pos: Position, weights: EvalWeights): number {
       evaluation += value;
 
       // tables are from the perspecive of black, so flip for white
-      wMgPSQT += MG_PQST[flip(square)];
-      wEgPSQT += EG_PSQT[flip(square)];
+      wMgPSQT += mgTable[flip(square)];
+      wEgPSQT += egTable[flip(square)];
       totalPhase += PHASE_WEIGHTS[pt];
     }
 
@@ -56,8 +53,8 @@ export function evaluateV4(pos: Position, weights: EvalWeights): number {
 
       evaluation -= value;
 
-      bMgPSQT += MG_PQST[square];
-      bEgPSQT += EG_PSQT[square];
+      bMgPSQT += mgTable[square];
+      bEgPSQT += egTable[square];
       totalPhase += PHASE_WEIGHTS[pt + 6];
     }
   }

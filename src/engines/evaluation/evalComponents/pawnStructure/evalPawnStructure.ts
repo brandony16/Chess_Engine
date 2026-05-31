@@ -1,15 +1,5 @@
 import { lsb, popcount } from "../../../../game/bb.ts";
-import {
-  BLACK_PAWN,
-  NO_PIECE,
-  WHITE_PAWN,
-} from "../../../../game/chessConstants.ts";
-import {
-  moveCaptured,
-  movePiece,
-  type Move,
-} from "../../../../game/moveMaking/move.ts";
-import { isPawn } from "../../../../game/pieceUtils/pieceClassifiers.ts";
+import { BLACK_PAWN, WHITE_PAWN } from "../../../../game/chessConstants.ts";
 import type { Position } from "../../../../game/Position.ts";
 import {
   ADJACENT_FILE_MASKS,
@@ -49,8 +39,8 @@ export const evaluatePawnStructure = (pos: Position): number => {
   const bPawnsHi = pos.bbsHi[BLACK_PAWN];
 
   return (
-    calculateDoubledIsolatedPawnScore(wPawnsLo, wPawnsHi, bPawnsLo, bPawnsHi) +
-    calculatePassedPawnScore(wPawnsLo, wPawnsHi, bPawnsLo, bPawnsHi)
+    calculatePassedPawnScore(wPawnsLo, wPawnsHi, bPawnsLo, bPawnsHi) +
+    calculateDoubledIsolatedPawnScore(wPawnsLo, wPawnsHi, bPawnsLo, bPawnsHi)
   );
 };
 

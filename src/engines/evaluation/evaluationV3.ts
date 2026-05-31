@@ -8,9 +8,10 @@ import {
 } from "../../game/chessConstants.ts";
 import { Position } from "../../game/Position.ts";
 import { type EvalWeights } from "./Evaluation.ts";
-import { PIECE_SQUARE_TABLES } from "./evalComponents/PieceSquareTables.ts";
 import { MAX_PHASE, PHASE_WEIGHTS } from "./evalComponents/phaseWeights.ts";
 import { forceKingToEdgeEndgameEval } from "./evalComponents/forceKingEdge.ts";
+import { MG_PSQT } from "./evalComponents/PieceSquareTables.ts";
+import { flip } from "./evalComponents/PestoTables.ts";
 
 /**
  * Version 3 of evaluation. Adds king positioning weight in the endgame
@@ -28,7 +29,7 @@ export function evaluateV3(pos: Position, weights: EvalWeights): number {
     evaluation -= value * popcount(pos.bbsLo[pt + 6], pos.bbsHi[pt + 6]);
 
     // calculate piece square table weights and phase
-    const wPQST = PIECE_SQUARE_TABLES[pt];
+    const PQST = MG_PSQT[pt];
     let wBBLo = pos.bbsLo[pt],
       wBBHi = pos.bbsHi[pt];
     while (wBBLo || wBBHi) {
@@ -36,11 +37,10 @@ export function evaluateV3(pos: Position, weights: EvalWeights): number {
       if (wBBLo) wBBLo &= wBBLo - 1;
       else wBBHi &= wBBHi - 1;
 
-      evaluation += wPQST[square];
+      evaluation += PQST[flip(square)];
       totalPhase += PHASE_WEIGHTS[pt];
     }
 
-    const bPQST = PIECE_SQUARE_TABLES[pt + 6];
     let bBBLo = pos.bbsLo[pt + 6],
       bBBHi = pos.bbsHi[pt + 6];
     while (bBBLo || bBBHi) {
@@ -48,7 +48,7 @@ export function evaluateV3(pos: Position, weights: EvalWeights): number {
       if (bBBLo) bBBLo &= bBBLo - 1;
       else bBBHi &= bBBHi - 1;
 
-      evaluation -= bPQST[square];
+      evaluation -= PQST[square];
       totalPhase += PHASE_WEIGHTS[pt + 6];
     }
   }
@@ -58,9 +58,9 @@ export function evaluateV3(pos: Position, weights: EvalWeights): number {
 
   // weight king position by phase. king doesnt need to hide in the endgame
   evaluation +=
-    PIECE_SQUARE_TABLES[WHITE_KING][pos.kingSq[WHITE]] * (1 - endgameWeight);
-  evaluation -=
-    PIECE_SQUARE_TABLES[BLACK_KING][pos.kingSq[BLACK]] * (1 - endgameWeight);
+    MG_PSQT[WHITE_KING][flip(pos.kingSq[WHITE] as Square)] *
+    (1 - endgameWeight);
+  evaluation -= MG_PSQT[WHITE_KING][pos.kingSq[BLACK]] * (1 - endgameWeight);
 
   // convert eval to be relative to the side to move (positive if winning, negative if losing)
   const friendlySide = pos.sideToMove;

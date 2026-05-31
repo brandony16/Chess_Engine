@@ -21,28 +21,29 @@ import { PROBE_MISSED } from "../../transpositionTable/ttTypes.ts";
 import { forceKingToEdgeEndgameEval } from "../evalComponents/forceKingEdge.ts";
 import { evaluatePawnStructure } from "../evalComponents/pawnStructure/evalPawnStructure.ts";
 import PawnHashTable from "../evalComponents/pawnStructure/pawnHashTable.ts";
-import {
-  flip,
-  PESTO_EG_TABLES,
-  PESTO_MG_TABLES,
-} from "../evalComponents/PestoTables.ts";
+import { flip } from "../evalComponents/PestoTables.ts";
 import { MAX_PHASE, PHASE_WEIGHTS } from "../evalComponents/phaseWeights.ts";
+import { EG_PSQT, MG_PSQT } from "../evalComponents/PieceSquareTables.ts";
 import { DEFAULT_PIECE_WEIGHTS, type EvaluationModule } from "../Evaluation.ts";
 
 export default class EvaluationV6 implements EvaluationModule {
   private readonly pieceWeights: Int32Array = DEFAULT_PIECE_WEIGHTS;
 
-  private pawnHashTable: PawnHashTable = new PawnHashTable();
+  pawnHashTable: PawnHashTable = new PawnHashTable();
 
   private material = 0;
   private mgScore = 0;
   private egScore = 0;
-  private phase = 0;  
+  private phase = 0;
 
   private materialHistory = new Int32Array(MAX_SEARCH_PLY);
   private mgHistory = new Int32Array(MAX_SEARCH_PLY);
   private egHistory = new Int32Array(MAX_SEARCH_PLY);
   private phaseHistory = new Int32Array(MAX_SEARCH_PLY);
+
+  newGame(): void {
+    this.pawnHashTable.clear();
+  }
 
   initializeEval(pos: Position): void {
     // same as evaluate v4, modified to store relevant scores
@@ -60,8 +61,8 @@ export default class EvaluationV6 implements EvaluationModule {
       // basic material evaluation
       const value = this.pieceWeights[pt];
 
-      const MG_PQST = PESTO_MG_TABLES[pt];
-      const EG_PSQT = PESTO_EG_TABLES[pt];
+      const mgTable = MG_PSQT[pt];
+      const egTable = EG_PSQT[pt];
 
       // calculate piece square table weights and phase
       let wBBLo = pos.bbsLo[pt],
@@ -74,8 +75,8 @@ export default class EvaluationV6 implements EvaluationModule {
         wMaterial += value;
 
         // tables are from the perspecive of black, so flip for white
-        wMgPSQT += MG_PQST[flip(square)];
-        wEgPSQT += EG_PSQT[flip(square)];
+        wMgPSQT += mgTable[flip(square)];
+        wEgPSQT += egTable[flip(square)];
         totalPhase += PHASE_WEIGHTS[pt];
       }
 
@@ -88,8 +89,8 @@ export default class EvaluationV6 implements EvaluationModule {
 
         bMaterial += value;
 
-        bMgPSQT += MG_PQST[square];
-        bEgPSQT += EG_PSQT[square];
+        bMgPSQT += mgTable[square];
+        bEgPSQT += egTable[square];
         totalPhase += PHASE_WEIGHTS[pt + 6];
       }
     }
@@ -126,14 +127,14 @@ export default class EvaluationV6 implements EvaluationModule {
     const toSqIdx = side === WHITE ? flip(toSq) : toSq;
 
     // remove previous pesto values, add new pesto values
-    mg -= PESTO_MG_TABLES[tableIdx][fromSqIdx] * colorSign;
-    eg -= PESTO_EG_TABLES[tableIdx][fromSqIdx] * colorSign;
+    mg -= MG_PSQT[tableIdx][fromSqIdx] * colorSign;
+    eg -= EG_PSQT[tableIdx][fromSqIdx] * colorSign;
 
     const promo = movePromotion(move);
     const toTableIdx =
       promo !== NO_PIECE ? (side === WHITE ? promo : promo - 6) : tableIdx;
-    mg += PESTO_MG_TABLES[toTableIdx][toSqIdx] * colorSign;
-    eg += PESTO_EG_TABLES[toTableIdx][toSqIdx] * colorSign;
+    mg += MG_PSQT[toTableIdx][toSqIdx] * colorSign;
+    eg += EG_PSQT[toTableIdx][toSqIdx] * colorSign;
 
     if (promo !== NO_PIECE) {
       phase -= PHASE_WEIGHTS[tableIdx];
@@ -157,8 +158,8 @@ export default class EvaluationV6 implements EvaluationModule {
       const capTableIdx = side === WHITE ? captured - 6 : captured;
 
       // remove enemy piece by adding that value to the opponent
-      mg += colorSign * PESTO_MG_TABLES[capTableIdx][capSqIdx];
-      eg += colorSign * PESTO_EG_TABLES[capTableIdx][capSqIdx];
+      mg += colorSign * MG_PSQT[capTableIdx][capSqIdx];
+      eg += colorSign * EG_PSQT[capTableIdx][capSqIdx];
 
       phase -= PHASE_WEIGHTS[capTableIdx];
 
@@ -181,11 +182,11 @@ export default class EvaluationV6 implements EvaluationModule {
       }
 
       // use WHITE_ROOK as ROOK b/c we know rooks are moving
-      mg -= colorSign * PESTO_MG_TABLES[WHITE_ROOK][rookFromSq];
-      eg -= colorSign * PESTO_EG_TABLES[WHITE_ROOK][rookFromSq];
+      mg -= colorSign * MG_PSQT[WHITE_ROOK][rookFromSq];
+      eg -= colorSign * EG_PSQT[WHITE_ROOK][rookFromSq];
 
-      mg += colorSign * PESTO_MG_TABLES[WHITE_ROOK][rookToSq];
-      eg += colorSign * PESTO_EG_TABLES[WHITE_ROOK][rookToSq];
+      mg += colorSign * MG_PSQT[WHITE_ROOK][rookToSq];
+      eg += colorSign * EG_PSQT[WHITE_ROOK][rookToSq];
     }
 
     this.mgScore = mg;

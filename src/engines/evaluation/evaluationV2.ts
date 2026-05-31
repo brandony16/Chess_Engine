@@ -1,8 +1,9 @@
 import { lsb, popcount } from "../../game/bb.ts";
 import { WHITE } from "../../game/chessConstants.ts";
 import { Position } from "../../game/Position.ts";
+import { flip } from "./evalComponents/PestoTables.ts";
+import { MG_PSQT } from "./evalComponents/PieceSquareTables.ts";
 import { type EvalWeights } from "./Evaluation.ts";
-import { PIECE_SQUARE_TABLES } from "./evalComponents/PieceSquareTables.ts";
 
 /**
  * Version 2 of evaluation. Incorporates Piece Square Tables
@@ -15,7 +16,7 @@ export function evaluateV2(pos: Position, weights: EvalWeights): number {
     evaluation += value * popcount(pos.bbsLo[pt], pos.bbsHi[pt]);
     evaluation -= value * popcount(pos.bbsLo[pt + 6], pos.bbsHi[pt + 6]);
 
-    const wPQST = PIECE_SQUARE_TABLES[pt];
+    const PQST = MG_PSQT[pt];
     let wBBLo = pos.bbsLo[pt],
       wBBHi = pos.bbsHi[pt];
     while (wBBLo || wBBHi) {
@@ -23,10 +24,9 @@ export function evaluateV2(pos: Position, weights: EvalWeights): number {
       if (wBBLo) wBBLo &= wBBLo - 1;
       else wBBHi &= wBBHi - 1;
 
-      evaluation += wPQST[square];
+      evaluation += PQST[flip(square)];
     }
 
-    const bPQST = PIECE_SQUARE_TABLES[pt + 6];
     let bBBLo = pos.bbsLo[pt + 6],
       bBBHi = pos.bbsHi[pt + 6];
     while (bBBLo || bBBHi) {
@@ -34,7 +34,7 @@ export function evaluateV2(pos: Position, weights: EvalWeights): number {
       if (bBBLo) bBBLo &= bBBLo - 1;
       else bBBHi &= bBBHi - 1;
 
-      evaluation -= bPQST[square];
+      evaluation -= PQST[square];
     }
   }
 

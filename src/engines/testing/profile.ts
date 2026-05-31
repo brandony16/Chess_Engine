@@ -9,10 +9,10 @@ import { moreThanOne } from "../../game/bb.ts";
 import { moveToUCI } from "../../game/fenAndUCI/uciHelpers.ts";
 import { MAX_MOVES, Position } from "../../game/Position.ts";
 import { MAX_SEARCH_PLY } from "../Engine.ts";
-import EvaluationV1 from "../evaluation/evalModules/v5.ts";
+import EvaluationV5 from "../evaluation/evalModules/v5.ts";
+import EvaluationV6 from "../evaluation/evalModules/v6.ts";
 import { evaluateV3 } from "../evaluation/evaluationV3.ts";
 import { evaluateV4 } from "../evaluation/evaluationv4.ts";
-import { evaluateV5 } from "../evaluation/evaluationV5.ts";
 import { MinimaxV4 } from "../minimaxEngines/quiescence.ts";
 import { MinimaxV5 } from "../minimaxEngines/transposTable.ts";
 import { MinimaxV10 } from "../minimaxEngines/v10.ts";
@@ -30,13 +30,14 @@ const pos = new Position();
 pos.loadFen("r4k1r/pp2q1pp/2npb3/6Q1/4Pp2/P1N2N2/1PP2PPP/2KR3R b - - 0 1");
 
 // warm up JIT
-eng1.search(pos, new EvaluationV1(), new SearchContext(100_000));
+eng1.search(pos, new EvaluationV6(), new SearchContext(100_000));
 eng1.newGame(); // reset to clear tt
 
 console.log("Starting Eng 1 search");
 const ctx = new SearchContext(Infinity, Infinity);
+const evaluation = new EvaluationV6();
 const start = performance.now();
-const move1 = eng1.search(pos, new EvaluationV1(), ctx, true);
+const move1 = eng1.search(pos, evaluation, ctx, true);
 const end = performance.now();
 
 eng2.search(pos, evaluateV4, new SearchContext(100_000));
