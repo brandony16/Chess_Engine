@@ -8,6 +8,7 @@ const GameHistory = () => {
 
   return (
     <div className="game-history-modal">
+      <div>In progress! Check back later</div>
       {pastGames.map((entry, index) => (
         <PastGame key={index} historyEntry={entry} index={index} />
       ))}
