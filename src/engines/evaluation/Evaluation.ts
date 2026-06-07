@@ -27,10 +27,12 @@ export const DEFAULT_EVAL_WEIGHTS: EvalWeights = {
 };
 
 export interface EvaluationModule {
+  readonly pieceWeights: Int32Array;
   initializeEval: (pos: Position) => void;
   makeMoveUpdateEval: (move: Move, pos: Position) => void;
   restoreEval: (ply: number) => void;
   makeNullMove: (ply: number) => void;
   getEval: (pos: Position) => number;
+  getPhase: () => number;
   newGame: () => void;
 }

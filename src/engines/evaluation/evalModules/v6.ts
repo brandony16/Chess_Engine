@@ -27,7 +27,7 @@ import { EG_PSQT, MG_PSQT } from "../evalComponents/PieceSquareTables.ts";
 import { DEFAULT_PIECE_WEIGHTS, type EvaluationModule } from "../Evaluation.ts";
 
 export default class EvaluationV6 implements EvaluationModule {
-  private readonly pieceWeights: Int32Array = DEFAULT_PIECE_WEIGHTS;
+  readonly pieceWeights: Int32Array = DEFAULT_PIECE_WEIGHTS;
 
   pawnHashTable: PawnHashTable = new PawnHashTable();
 
@@ -244,5 +244,9 @@ export default class EvaluationV6 implements EvaluationModule {
     }
 
     return relativeEval;
+  }
+  
+  getPhase(): number {
+    return this.phase;
   }
 }

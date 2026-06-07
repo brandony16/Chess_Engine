@@ -25,7 +25,7 @@ import { EG_PSQT, MG_PSQT } from "../evalComponents/PieceSquareTables.ts";
 import { DEFAULT_PIECE_WEIGHTS, type EvaluationModule } from "../Evaluation.ts";
 
 export default class EvaluationV5 implements EvaluationModule {
-  private readonly pieceWeights: Int32Array = DEFAULT_PIECE_WEIGHTS;
+  readonly pieceWeights: Int32Array = DEFAULT_PIECE_WEIGHTS;
 
   private material = 0;
   private mgScore = 0;
@@ -231,5 +231,9 @@ export default class EvaluationV5 implements EvaluationModule {
     }
 
     return relativeEval;
+  }
+
+  getPhase(): number {
+    return this.phase;
   }
 }

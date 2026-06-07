@@ -17,6 +17,8 @@ import { MinimaxV4 } from "../minimaxEngines/quiescence.ts";
 import { MinimaxV5 } from "../minimaxEngines/transposTable.ts";
 import { MinimaxV10 } from "../minimaxEngines/v10.ts";
 import { MinimaxV11 } from "../minimaxEngines/v11.ts";
+import { MinimaxV12 } from "../minimaxEngines/v12.ts";
+import { MinimaxV13 } from "../minimaxEngines/v13.ts";
 import { MinimaxV6 } from "../minimaxEngines/v6.ts";
 import { MinimaxV7 } from "../minimaxEngines/v7.ts";
 import { MinimaxV7_2 } from "../minimaxEngines/v7_2.ts";
@@ -24,10 +26,9 @@ import { MinimaxV8 } from "../minimaxEngines/v8.ts";
 import { MinimaxV9 } from "../minimaxEngines/v9.ts";
 import { SearchContext } from "../searchContext.ts";
 
-const eng1 = new MinimaxV11(12);
-const eng2 = new MinimaxV10(12);
-const pos = new Position();
-pos.loadFen("r4k1r/pp2q1pp/2npb3/6Q1/4Pp2/P1N2N2/1PP2PPP/2KR3R b - - 0 1");
+const eng1 = new MinimaxV13(12);
+const eng2 = new MinimaxV12(12);
+const pos = new Position(OPEN_MIDGAME);
 
 // warm up JIT
 eng1.search(pos, new EvaluationV6(), new SearchContext(100_000));
@@ -40,13 +41,15 @@ const start = performance.now();
 const move1 = eng1.search(pos, evaluation, ctx, true);
 const end = performance.now();
 
-eng2.search(pos, evaluateV4, new SearchContext(100_000));
+// warm up JIT
+eng2.search(pos, new EvaluationV6(), new SearchContext(100_000));
 eng2.newGame(); // reset to clear tt
 
 console.log("\nStarting Eng 2 search");
 const ctx2 = new SearchContext(Infinity, Infinity);
+const eval2 = new EvaluationV6();
 const start2 = performance.now();
-const move2 = eng2.search(pos, evaluateV4, ctx2, true);
+const move2 = eng2.search(pos, eval2, ctx2, true);
 const end2 = performance.now();
 console.log();
 

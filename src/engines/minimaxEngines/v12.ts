@@ -24,11 +24,9 @@ import {
 } from "../Engine.ts";
 import EvaluationV1 from "../evaluation/evalModules/v5.ts";
 import {
-  DEFAULT_EVAL_WEIGHTS,
   MATE_SCORE,
   MATE_THRESHOLD,
   type EvaluationModule,
-  type EvalWeights,
 } from "../evaluation/Evaluation.ts";
 import {
   scoreMoveForOrderingBasic,
@@ -44,9 +42,9 @@ import {
 } from "../transpositionTable/ttTypes.ts";
 
 /**
- * Evolution of minimaxV9 that implements Late Move Reductions
+ * Evolution of minimaxV11 that implements delta move pruning
  */
-export class MinimaxV11 implements Engine {
+export class MinimaxV12 implements Engine {
   private evaluation: EvaluationModule;
 
   depth: number;
@@ -626,6 +624,24 @@ export class MinimaxV11 implements Engine {
       this.#pickBestMove(moveBuf, start, i, moves);
 
       const move = moveBuf[start + i];
+
+      // DELTA PRUNING
+      // dont do it in late endgame or if in check
+      if (!inCheck && this.evaluation.getPhase() > 6) {
+        const captured = moveCaptured(move);
+        const promo = movePromotion(move);
+
+        // Dont prune promotions
+        if (promo === NO_PIECE) {
+          const DELTA_MARGIN = 200; // ~2 pawns of margin to account for positional gains
+
+          const capturedValue = this.evaluation.pieceWeights[captured];
+          // If current score + the piece we are taking + a margin can't beat alpha, prune it
+          if (standPat + capturedValue + DELTA_MARGIN <= alpha) {
+            continue;
+          }
+        }
+      }
 
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
       legalCount++;
