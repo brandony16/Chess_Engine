@@ -4,6 +4,7 @@ import { MinimaxV5 } from "../../engines/minimaxEngines/transposTable.ts";
 import { SearchContext } from "../../engines/searchContext.ts";
 import { Position } from "../../game/Position.ts";
 import { KIWIPETE_POS } from "../game_tests/fens.ts";
+import { evaluateV1 } from "../../engines/evaluation/evaluationV1.ts";
 
 describe("better searches should have less nodes", () => {
   test("node counts are less depth 4", () => {
@@ -15,11 +16,11 @@ describe("better searches should have less nodes", () => {
 
     const ctx = new SearchContext();
 
-    const m1 = quiesce.search(pos, ctx);
+    const m1 = quiesce.search(pos, evaluateV1, ctx);
     const nodeCt1 = ctx.nodesSearched;
     ctx.reset();
 
-    const m2 = transpos.search(pos, ctx);
+    const m2 = transpos.search(pos, evaluateV1, ctx);
     const nodeCt2 = ctx.nodesSearched;
     ctx.reset();
 
@@ -30,7 +31,7 @@ describe("better searches should have less nodes", () => {
     // evaluation is the same, move should be the same
     expect(m2).toEqual(m1);
   });
-  
+
   test("node counts are less depth 5", () => {
     const pos = new Position();
     pos.loadFen(KIWIPETE_POS);
@@ -40,11 +41,11 @@ describe("better searches should have less nodes", () => {
 
     const ctx = new SearchContext();
 
-    const m1 = quiesce.search(pos, ctx);
+    const m1 = quiesce.search(pos, evaluateV1, ctx);
     const nodeCt1 = ctx.nodesSearched;
     ctx.reset();
 
-    const m2 = transpos.search(pos, ctx);
+    const m2 = transpos.search(pos, evaluateV1, ctx);
     const nodeCt2 = ctx.nodesSearched;
     ctx.reset();
 
@@ -65,11 +66,11 @@ describe("better searches should have less nodes", () => {
 
     const ctx = new SearchContext();
 
-    const m1 = quiesce.search(pos, ctx);
+    const m1 = quiesce.search(pos, evaluateV1, ctx);
     const nodeCt1 = ctx.nodesSearched;
     ctx.reset();
 
-    const m2 = transpos.search(pos, ctx);
+    const m2 = transpos.search(pos, evaluateV1, ctx);
     const nodeCt2 = ctx.nodesSearched;
     ctx.reset();
 

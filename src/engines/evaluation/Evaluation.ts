@@ -19,7 +19,7 @@ export interface EvalWeights {
   pieceWeights: Int32Array;
 }
 export const DEFAULT_PIECE_WEIGHTS = new Int32Array([
-  0, 100, 320, 330, 500, 900, 20_000,
+  0, 100, 320, 330, 500, 900, 20_000, 100, 320, 330, 500, 900, 20_000,
 ]);
 
 export const DEFAULT_EVAL_WEIGHTS: EvalWeights = {

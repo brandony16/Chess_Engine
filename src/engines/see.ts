@@ -1,10 +1,12 @@
 import { attacksTo } from "../game/attackMasks/attackMasks.ts";
+import { lsb } from "../game/bb.ts";
 import {
   BLACK_BISHOP,
   BLACK_PAWN,
   BLACK_QUEEN,
   BLACK_ROOK,
   NO_PIECE,
+  WHITE,
   WHITE_BISHOP,
   WHITE_PAWN,
   WHITE_QUEEN,
@@ -13,6 +15,7 @@ import {
   type Player,
   type Square,
 } from "../game/chessConstants.ts";
+import { bishopAttacks, rookAttacks } from "../game/moveGen/sliderMoves.ts";
 import {
   moveCaptured,
   moveFrom,
@@ -21,7 +24,6 @@ import {
   type Move,
 } from "../game/moveMaking/move.ts";
 import type { Position } from "../game/Position.ts";
-import { MAX_SEARCH_PLY } from "./Engine.ts";
 
 export function see(move: Move, pos: Position, pieceWeights: Int32Array) {
   const fromSq = moveFrom(move);
@@ -91,7 +93,7 @@ export function see(move: Move, pos: Position, pieceWeights: Int32Array) {
     occHi ^= fromSetHi;
 
     if ((fromSetLo & mayXrayLo) !== 0 || (fromSetHi & mayXrayHi) !== 0) {
-      const [xrayLo, xrayHi] = considerXrays(pos, occLo, occHi, toSq, piece);
+      const [xrayLo, xrayHi] = considerXrays(pos, occLo, occHi, toSq);
       attadefLo |= xrayLo;
       attadefHi |= xrayHi;
     }
@@ -118,9 +120,42 @@ function considerXrays(
   occLo: number,
   occHi: number,
   toSq: Square,
-  piece: Piece,
 ): [number, number] {
-  return [0, 0];
+  let xrayLo = 0,
+    xrayHi = 0;
+
+  const diagAttacks = bishopAttacks(toSq, occLo, occHi);
+  const orthoAttacks = rookAttacks(toSq, occLo, occHi);
+
+  xrayLo =
+    (diagAttacks[0] &
+      occLo &
+      (pos.bbsLo[WHITE_BISHOP] |
+        pos.bbsLo[BLACK_BISHOP] |
+        pos.bbsLo[WHITE_QUEEN] |
+        pos.bbsLo[BLACK_QUEEN])) |
+    (orthoAttacks[0] &
+      occLo &
+      (pos.bbsLo[WHITE_ROOK] |
+        pos.bbsLo[BLACK_ROOK] |
+        pos.bbsLo[WHITE_QUEEN] |
+        pos.bbsLo[BLACK_QUEEN]));
+
+  xrayHi =
+    (diagAttacks[1] &
+      occHi &
+      (pos.bbsHi[WHITE_BISHOP] |
+        pos.bbsHi[BLACK_BISHOP] |
+        pos.bbsHi[WHITE_QUEEN] |
+        pos.bbsHi[BLACK_QUEEN])) |
+    (orthoAttacks[1] &
+      occHi &
+      (pos.bbsHi[WHITE_ROOK] |
+        pos.bbsHi[BLACK_ROOK] |
+        pos.bbsHi[WHITE_QUEEN] |
+        pos.bbsHi[BLACK_QUEEN]));
+
+  return [xrayLo, xrayHi];
 }
 
 function getLeastValuablePiece(
@@ -129,5 +164,23 @@ function getLeastValuablePiece(
   attadefHi: number,
   side: Player,
 ): [number, number, Piece] {
-  return [0, 0, 1];
+  const offset = side === WHITE ? 0 : 6;
+
+  for (let pt = 1; pt <= 6; pt++) {
+    const pIdx = pt + offset;
+    const subsetLo = attadefLo & pos.bbsLo[pIdx];
+    const subsetHi = attadefHi & pos.bbsHi[pIdx];
+
+    if (subsetLo !== 0 || subsetHi !== 0) {
+      const sq = lsb(subsetLo, subsetHi);
+      let fromSetLo = 0,
+        fromSetHi = 0;
+      if (sq < 32) fromSetLo = 1 << sq;
+      else fromSetHi = 1 << (sq - 32);
+
+      return [fromSetLo, fromSetHi, pIdx as Piece];
+    }
+  }
+
+  return [0, 0, NO_PIECE]; // No more legal attackers available
 }

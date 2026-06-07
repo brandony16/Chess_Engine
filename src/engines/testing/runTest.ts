@@ -8,6 +8,7 @@ import { BondmonkeyV15 } from "../bondmonkeyVersions/v15.ts";
 import { BondmonkeyV16 } from "../bondmonkeyVersions/v16.ts";
 import { BondmonkeyV17 } from "../bondmonkeyVersions/v17.ts";
 import { BondmonkeyV18 } from "../bondmonkeyVersions/v18.ts";
+import { BondmonkeyV19 } from "../bondmonkeyVersions/v19.ts";
 import { BondmonkeyV2 } from "../bondmonkeyVersions/v2.ts";
 import { BondmonkeyV3 } from "../bondmonkeyVersions/v3.ts";
 import { BondmonkeyV4 } from "../bondmonkeyVersions/v4.ts";
@@ -27,12 +28,12 @@ async function main() {
 
   // v5 is a solid base version, with ab pruining and basic move ordering
   const eng1: EngineConfig = {
-    version: BondmonkeyV18.name,
+    version: BondmonkeyV19.name,
     depth: MAX_SEARCH_PLY,
   };
 
   const eng2: EngineConfig = {
-    version: BondmonkeyV17.name,
+    version: BondmonkeyV18.name,
     depth: MAX_SEARCH_PLY,
   };
 

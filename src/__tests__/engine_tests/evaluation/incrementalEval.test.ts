@@ -35,7 +35,7 @@ describe("incremental scores are the same as fully calculated scores", () => {
 
     const moves = moveList(testPGN);
     for (const move of moves) {
-      incrementalEval.makeMoveUpdateEval(move, pos.searchPly, pos.sideToMove);
+      incrementalEval.makeMoveUpdateEval(move, pos);
       pos.makeMove(move);
 
       expect(incrementalEval.getEval(pos)).toEqual(

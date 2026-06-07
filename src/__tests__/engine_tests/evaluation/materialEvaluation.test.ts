@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { Position } from "../../../game/Position.ts";
-import { evaluateMaterial } from "../../../engines/evaluation/evaluationV1.ts";
 import {
   pieceType,
   type EvalWeights,
@@ -12,6 +11,7 @@ import {
   WHITE_QUEEN,
   WHITE_ROOK,
 } from "../../../game/chessConstants.ts";
+import { evaluateV1 } from "../../../engines/evaluation/evaluationV1.ts";
 
 describe("Evaluation is correct", () => {
   const evalWeights: EvalWeights = {
@@ -21,7 +21,7 @@ describe("Evaluation is correct", () => {
   it("should be 0 for the base position", () => {
     const pos = new Position();
 
-    expect(evaluateMaterial(pos, evalWeights)).toBe(0);
+    expect(evaluateV1(pos, evalWeights)).toBe(0);
   });
 
   it("should correctly calculate a white advantage from whites perspecive", () => {
@@ -32,7 +32,7 @@ describe("Evaluation is correct", () => {
     const expected =
       evalWeights.pieceWeights[pieceType(WHITE_ROOK)] -
       evalWeights.pieceWeights[pieceType(BLACK_BISHOP)];
-    expect(evaluateMaterial(pos, evalWeights)).toBe(expected);
+    expect(evaluateV1(pos, evalWeights)).toBe(expected);
   });
 
   it("should correctly calculate a white advantage from blacks perspecive", () => {
@@ -45,7 +45,7 @@ describe("Evaluation is correct", () => {
       evalWeights.pieceWeights[pieceType(BLACK_BISHOP)];
 
     // Black to move, so eval should be negative (opponent is winning)
-    expect(evaluateMaterial(pos, evalWeights)).toBe(-expected);
+    expect(evaluateV1(pos, evalWeights)).toBe(-expected);
   });
 
   it("should correctly calculate a black advantage from whites perspecive", () => {
@@ -58,7 +58,7 @@ describe("Evaluation is correct", () => {
       2 * weights[pieceType(WHITE_ROOK)] -
       weights[pieceType(BLACK_QUEEN)] -
       weights[pieceType(BLACK_KNIGHT)];
-    expect(evaluateMaterial(pos, evalWeights)).toBe(expected);
+    expect(evaluateV1(pos, evalWeights)).toBe(expected);
   });
 
   it("should correctly calculate a white advantage from blacks perspecive", () => {
@@ -73,6 +73,6 @@ describe("Evaluation is correct", () => {
       weights[pieceType(BLACK_KNIGHT)];
 
     // Black is now up material
-    expect(evaluateMaterial(pos, evalWeights)).toBe(-expected);
+    expect(evaluateV1(pos, evalWeights)).toBe(-expected);
   });
 });
