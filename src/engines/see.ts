@@ -25,6 +25,10 @@ import {
 } from "../game/moveMaking/move.ts";
 import type { Position } from "../game/Position.ts";
 
+// create gain array outside of function to avoid allocating a new array
+// every time the function is called and then GC destorys the NPS
+const gain = new Int32Array(32);
+
 export function see(move: Move, pos: Position, pieceWeights: Int32Array) {
   const fromSq = moveFrom(move);
   const toSq = moveTo(move);
@@ -34,7 +38,6 @@ export function see(move: Move, pos: Position, pieceWeights: Int32Array) {
   // if a quiet move or promo without captures, see is 0
   if (target === NO_PIECE) return 0;
 
-  let gain = new Int32Array(32);
   let d = 0;
 
   let occLo = pos.occupiedLo;
@@ -45,33 +48,29 @@ export function see(move: Move, pos: Position, pieceWeights: Int32Array) {
   if (fromSq < 32) fromSetLo = 1 << fromSq;
   else fromSetHi = 1 << (fromSq - 32);
 
+  const bbsLo = pos.bbsLo;
+  const bbsHi = pos.bbsHi;
   const mayXrayLo =
-    pos.bbsLo[WHITE_PAWN] |
-    pos.bbsLo[BLACK_PAWN] |
-    pos.bbsLo[WHITE_BISHOP] |
-    pos.bbsLo[BLACK_BISHOP] |
-    pos.bbsLo[WHITE_ROOK] |
-    pos.bbsLo[BLACK_ROOK] |
-    pos.bbsLo[WHITE_QUEEN] |
-    pos.bbsLo[BLACK_QUEEN];
+    bbsLo[WHITE_PAWN] |
+    bbsLo[BLACK_PAWN] |
+    bbsLo[WHITE_BISHOP] |
+    bbsLo[BLACK_BISHOP] |
+    bbsLo[WHITE_ROOK] |
+    bbsLo[BLACK_ROOK] |
+    bbsLo[WHITE_QUEEN] |
+    bbsLo[BLACK_QUEEN];
 
   const mayXrayHi =
-    pos.bbsHi[WHITE_PAWN] |
-    pos.bbsHi[BLACK_PAWN] |
-    pos.bbsHi[WHITE_BISHOP] |
-    pos.bbsHi[BLACK_BISHOP] |
-    pos.bbsHi[WHITE_ROOK] |
-    pos.bbsHi[BLACK_ROOK] |
-    pos.bbsHi[WHITE_QUEEN] |
-    pos.bbsHi[BLACK_QUEEN];
+    bbsHi[WHITE_PAWN] |
+    bbsHi[BLACK_PAWN] |
+    bbsHi[WHITE_BISHOP] |
+    bbsHi[BLACK_BISHOP] |
+    bbsHi[WHITE_ROOK] |
+    bbsHi[BLACK_ROOK] |
+    bbsHi[WHITE_QUEEN] |
+    bbsHi[BLACK_QUEEN];
 
-  let [attadefLo, attadefHi] = attacksTo(
-    pos.bbsLo,
-    pos.bbsHi,
-    occLo,
-    occHi,
-    toSq,
-  );
+  let [attadefLo, attadefHi] = attacksTo(bbsLo, bbsHi, occLo, occHi, toSq);
 
   gain[0] = pieceWeights[target];
 
@@ -127,33 +126,36 @@ function considerXrays(
   const diagAttacks = bishopAttacks(toSq, occLo, occHi);
   const orthoAttacks = rookAttacks(toSq, occLo, occHi);
 
+  const bbsLo = pos.bbsLo;
+  const bbsHi = pos.bbsHi;
+
   xrayLo =
     (diagAttacks[0] &
       occLo &
-      (pos.bbsLo[WHITE_BISHOP] |
-        pos.bbsLo[BLACK_BISHOP] |
-        pos.bbsLo[WHITE_QUEEN] |
-        pos.bbsLo[BLACK_QUEEN])) |
+      (bbsLo[WHITE_BISHOP] |
+        bbsLo[BLACK_BISHOP] |
+        bbsLo[WHITE_QUEEN] |
+        bbsLo[BLACK_QUEEN])) |
     (orthoAttacks[0] &
       occLo &
-      (pos.bbsLo[WHITE_ROOK] |
-        pos.bbsLo[BLACK_ROOK] |
-        pos.bbsLo[WHITE_QUEEN] |
-        pos.bbsLo[BLACK_QUEEN]));
+      (bbsLo[WHITE_ROOK] |
+        bbsLo[BLACK_ROOK] |
+        bbsLo[WHITE_QUEEN] |
+        bbsLo[BLACK_QUEEN]));
 
   xrayHi =
     (diagAttacks[1] &
       occHi &
-      (pos.bbsHi[WHITE_BISHOP] |
-        pos.bbsHi[BLACK_BISHOP] |
-        pos.bbsHi[WHITE_QUEEN] |
-        pos.bbsHi[BLACK_QUEEN])) |
+      (bbsHi[WHITE_BISHOP] |
+        bbsHi[BLACK_BISHOP] |
+        bbsHi[WHITE_QUEEN] |
+        bbsHi[BLACK_QUEEN])) |
     (orthoAttacks[1] &
       occHi &
-      (pos.bbsHi[WHITE_ROOK] |
-        pos.bbsHi[BLACK_ROOK] |
-        pos.bbsHi[WHITE_QUEEN] |
-        pos.bbsHi[BLACK_QUEEN]));
+      (bbsHi[WHITE_ROOK] |
+        bbsHi[BLACK_ROOK] |
+        bbsHi[WHITE_QUEEN] |
+        bbsHi[BLACK_QUEEN]));
 
   return [xrayLo, xrayHi];
 }

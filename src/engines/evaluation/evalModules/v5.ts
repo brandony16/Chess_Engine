@@ -89,7 +89,9 @@ export default class EvaluationV5 implements EvaluationModule {
       }
     }
 
-    this.phase = totalPhase;
+    // cap phase in case of many promotions
+    this.phase = totalPhase > MAX_PHASE ? MAX_PHASE : totalPhase;
+
     this.egScore = wEgPSQT - bEgPSQT;
     this.mgScore = wMgPSQT - bMgPSQT;
     this.material = wMaterial - bMaterial;
@@ -185,7 +187,7 @@ export default class EvaluationV5 implements EvaluationModule {
 
     this.mgScore = mg;
     this.egScore = eg;
-    this.phase = phase;
+    this.phase = phase > MAX_PHASE ? MAX_PHASE : phase;
     this.material = material;
   }
 

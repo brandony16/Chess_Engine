@@ -24,7 +24,11 @@ import PawnHashTable from "../evalComponents/pawnStructure/pawnHashTable.ts";
 import { flip } from "../evalComponents/PestoTables.ts";
 import { MAX_PHASE, PHASE_WEIGHTS } from "../evalComponents/phaseWeights.ts";
 import { EG_PSQT, MG_PSQT } from "../evalComponents/PieceSquareTables.ts";
-import { DEFAULT_PIECE_WEIGHTS, type EvaluationModule } from "../Evaluation.ts";
+import {
+  DEFAULT_PIECE_WEIGHTS,
+  pieceType,
+  type EvaluationModule,
+} from "../Evaluation.ts";
 
 export default class EvaluationV6 implements EvaluationModule {
   readonly pieceWeights: Int32Array = DEFAULT_PIECE_WEIGHTS;
@@ -95,7 +99,7 @@ export default class EvaluationV6 implements EvaluationModule {
       }
     }
 
-    this.phase = totalPhase;
+    this.phase = totalPhase > MAX_PHASE ? MAX_PHASE : totalPhase;
     this.egScore = wEgPSQT - bEgPSQT;
     this.mgScore = wMgPSQT - bMgPSQT;
     this.material = wMaterial - bMaterial;
@@ -155,7 +159,7 @@ export default class EvaluationV6 implements EvaluationModule {
       // normally flip for white, but if white captured
       // we need the pesto value for black
       const capSqIdx = side === WHITE ? captureSq : flip(captureSq);
-      const capTableIdx = side === WHITE ? captured - 6 : captured;
+      const capTableIdx = pieceType(captured);
 
       // remove enemy piece by adding that value to the opponent
       mg += colorSign * MG_PSQT[capTableIdx][capSqIdx];
@@ -191,7 +195,7 @@ export default class EvaluationV6 implements EvaluationModule {
 
     this.mgScore = mg;
     this.egScore = eg;
-    this.phase = phase;
+    this.phase = phase > MAX_PHASE ? MAX_PHASE : phase;
     this.material = material;
   }
 
@@ -245,7 +249,7 @@ export default class EvaluationV6 implements EvaluationModule {
 
     return relativeEval;
   }
-  
+
   getPhase(): number {
     return this.phase;
   }

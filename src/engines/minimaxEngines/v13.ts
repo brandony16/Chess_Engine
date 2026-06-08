@@ -33,6 +33,7 @@ import {
   scoreMoveWithHeuristics,
 } from "../moveScoring/basicScoring.ts";
 import type { SearchContext } from "../searchContext.ts";
+import { see } from "../see.ts";
 import { TranspositionTable } from "../transpositionTable/table.ts";
 import {
   LOOKUP_FAILED,
@@ -42,7 +43,7 @@ import {
 } from "../transpositionTable/ttTypes.ts";
 
 /**
- * Evolution of minimaxV12 that adds tt probing to quiesce
+ * Evolution of minimaxV12 that adds static exchange evaluation
  */
 export class MinimaxV13 implements Engine {
   private evaluation: EvaluationModule;
@@ -67,6 +68,7 @@ export class MinimaxV13 implements Engine {
   pvsResearches: number = 0;
   lmrAttempts: number = 0;
   lmrResearches: number = 0;
+  seeCutoffs: number = 0;
 
   constructor(depth: number) {
     this.depth = depth;
@@ -144,7 +146,8 @@ export class MinimaxV13 implements Engine {
         `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\n` +
           `Quiesce Nodes: ${ctx.quiescenceNodes}\n` +
           `Transpositions: ${this.tt.hits}\nNMP Cutoffs: ${this.nmpCuttoffs}\n` +
-          `PVS Tries: ${this.pvsTries}\nPVS Researches: ${this.pvsResearches}`,
+          `PVS Tries: ${this.pvsTries}\nPVS Researches: ${this.pvsResearches}\n` +
+          `SEE Cutoffs: ${this.seeCutoffs}`,
       );
     }
 
@@ -586,19 +589,6 @@ export class MinimaxV13 implements Engine {
       return this.evaluation.getEval(pos);
     }
 
-    const ttEval = this.tt.lookupEvaluation(
-      pos.zobristLo,
-      pos.zobristHi,
-      0, // depth 0 for quiesce
-      pos.searchPly,
-      alpha,
-      beta,
-    );
-    if (ttEval !== LOOKUP_FAILED) {
-      this.tt.cutoffs++;
-      return ttEval;
-    }
-
     const checkers = pos.getCheckers();
     const pinned = pos.getPinnedPieces();
     const doubleCheck = moreThanOne(checkers[0], checkers[1]);
@@ -632,8 +622,6 @@ export class MinimaxV13 implements Engine {
 
     let legalCount = 0;
     let bestScore = standPat;
-    let bestMove = 0;
-    let ttFlag = TT_UPPERBOUND;
     for (let i = 0; i < moves; i++) {
       // Move best (highest scoring) move to the front of moveBuffer
       this.#pickBestMove(moveBuf, start, i, moves);
@@ -658,6 +646,13 @@ export class MinimaxV13 implements Engine {
         }
       }
 
+      // SEE pruning: simulate the potential capture sequence that would occur by making this move
+      // If it loses material (see < 0), then we dont need to search this as its a losing capture
+      if (!inCheck && see(move, pos, this.evaluation.pieceWeights) < -50) {
+        this.seeCutoffs++;
+        continue;
+      }
+
       if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
       legalCount++;
 
@@ -674,25 +669,13 @@ export class MinimaxV13 implements Engine {
       // found a better move than out previous best - raise the lower bound
       if (score > bestScore) {
         bestScore = score;
-        bestMove = move;
 
         if (score > alpha) {
           alpha = score;
-          ttFlag = TT_EXACT;
         }
       }
 
       if (score >= beta) {
-        this.tt.store(
-          pos.zobristLo,
-          pos.zobristHi,
-          0,
-          score,
-          TT_LOWERBOUND,
-          move,
-          pos.searchPly,
-        );
-
         return bestScore;
       }
     }
@@ -703,16 +686,6 @@ export class MinimaxV13 implements Engine {
       }
       // cant return 0 for stalemate as it could just be that we are not in check and have no captures
     }
-
-    this.tt.store(
-      pos.zobristLo,
-      pos.zobristHi,
-      0,
-      bestScore,
-      ttFlag,
-      bestMove,
-      pos.searchPly,
-    );
 
     return bestScore;
   }
