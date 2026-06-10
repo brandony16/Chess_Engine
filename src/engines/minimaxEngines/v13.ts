@@ -111,6 +111,8 @@ export class MinimaxV13 implements Engine {
     ctx: SearchContext,
     log: boolean = false,
   ): Move {
+    ctx.startSearch();
+
     pos.searchPly = 0;
     this.nmpCuttoffs = 0;
     this.evaluation = evaluate;
@@ -135,9 +137,16 @@ export class MinimaxV13 implements Engine {
       const result = this.#searchRoot(pos, depth, ctx, bestMove);
 
       if (result) {
+        // extend time when principal move changes to allow for deeper search in this pos
+        if (depth > 1 && result !== bestMove) {
+          ctx.extendTime();
+        }
         bestMove = result;
       }
       if (ctx.aborted) {
+        break;
+      }
+      if (ctx.shouldStopDeepening()) {
         break;
       }
     }
@@ -150,6 +159,8 @@ export class MinimaxV13 implements Engine {
           `SEE Cutoffs: ${this.seeCutoffs}`,
       );
     }
+
+    ctx.endSearch();
 
     return bestMove;
   }
