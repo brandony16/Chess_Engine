@@ -2,20 +2,18 @@ import { OPEN_MIDGAME } from "../../__tests__/game_tests/fens.ts";
 import { Position } from "../../game/Position.ts";
 import { evaluateV4 } from "../evaluation/evaluationv4.ts";
 import { MinimaxV10 } from "../minimaxEngines/v10.ts";
-import { SearchContext } from "../searchContext.ts";
+import { DEF_NODE_LIMIT, NO_CONTROL, SearchContext } from "../searchContext.ts";
 
 const eng = new MinimaxV10(10);
 const pos = new Position();
-const ctx = new SearchContext();
+const ctx = new SearchContext(NO_CONTROL);
 pos.loadFen(OPEN_MIDGAME);
 
-const warmupCtx = new SearchContext(25_000);
+const warmupCtx = new SearchContext(DEF_NODE_LIMIT);
 
-// Run thousands of tiny, instant searches to hit the 10k execution threshold
-// for every single branch in your negamax, quiescence, and move generation.
+// Let JIT optimize hot paths
 for (let i = 0; i < 1000; i++) {
   eng.search(pos, evaluateV4, warmupCtx);
-  warmupCtx.reset();
 }
 
 eng.newGame();

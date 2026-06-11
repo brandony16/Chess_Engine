@@ -59,6 +59,8 @@ export class MinimaxV5 implements Engine {
     ctx: SearchContext,
     log: boolean = false,
   ): Move {
+    ctx.startSearch();
+
     pos.searchPly = 0;
     this.evaluate = evaluate;
 
@@ -71,7 +73,11 @@ export class MinimaxV5 implements Engine {
       if (ctx.aborted) {
         break;
       }
+      if (ctx.shouldStopDeepening()) break;
 
+      if (depth > 1 && result !== bestMove) {
+        ctx.extendTime();
+      }
       bestMove = result;
     }
     if (log) {
@@ -80,6 +86,8 @@ export class MinimaxV5 implements Engine {
           `Transpositions: ${this.tt.hits}\nTT Cutoff Rate: ${((this.tt.cutoffs / this.tt.hits) * 100).toFixed(2)}`,
       );
     }
+
+    ctx.endSearch();
 
     return bestMove;
   }

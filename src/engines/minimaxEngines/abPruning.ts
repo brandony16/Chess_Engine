@@ -36,6 +36,8 @@ export class MinimaxV2 implements Engine {
     ctx: SearchContext,
     log: boolean = false,
   ): Move {
+    ctx.startSearch();
+
     pos.searchPly = 0;
     this.evaluate = evaluate;
 
@@ -49,7 +51,13 @@ export class MinimaxV2 implements Engine {
       if (ctx.aborted) {
         break;
       }
+      if (ctx.shouldStopDeepening()) {
+        break;
+      }
 
+      if (depth > 1 && result !== bestMove) {
+        ctx.extendTime();
+      }
       bestMove = result;
     }
     if (log) {
@@ -57,6 +65,8 @@ export class MinimaxV2 implements Engine {
         `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\n`,
       );
     }
+
+    ctx.endSearch();
 
     return bestMove;
   }

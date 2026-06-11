@@ -79,8 +79,6 @@ describe("TT usage in search", () => {
     const end1 = performance.now();
     const searched1 = ctx.nodesSearched;
 
-    ctx.reset();
-
     // Fully populated tt should lead to much faster search
     const start2 = performance.now();
     engine.search(pos, evaluateV1, ctx);
@@ -143,7 +141,6 @@ describe("TT usage in search", () => {
       );
     }
 
-    ctx.reset();
     engine.tt.hits = 0;
     engine.tt.misses = 0;
 

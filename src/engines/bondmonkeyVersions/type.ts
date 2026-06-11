@@ -8,4 +8,5 @@ export interface Bondmonkey {
   newGame(): void;
   get name(): EngineName;
   get depthOfPrevSearch(): number;
+  getEval(pos: Position): number;
 }

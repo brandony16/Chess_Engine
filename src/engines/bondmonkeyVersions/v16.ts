@@ -36,4 +36,9 @@ export class BondmonkeyV16 implements Bondmonkey {
   get depthOfPrevSearch(): number {
     return this.engine.depthReached;
   }
+
+  getEval(pos: Position): number {
+    this.evaluation.initializeEval(pos);
+    return this.evaluation.getEval(pos);
+  }
 }

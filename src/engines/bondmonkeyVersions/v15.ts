@@ -1,7 +1,7 @@
 import type { Move } from "../../game/moveMaking/move.ts";
 import type { Position } from "../../game/Position.ts";
 import type { Engine } from "../Engine.ts";
-import type { Evaluation } from "../evaluation/Evaluation.ts";
+import { DEFAULT_EVAL_WEIGHTS, type Evaluation } from "../evaluation/Evaluation.ts";
 import { evaluateV4 } from "../evaluation/evaluationv4.ts";
 import { MinimaxV10 } from "../minimaxEngines/v10.ts";
 import type { SearchContext } from "../searchContext.ts";
@@ -34,5 +34,9 @@ export class BondmonkeyV15 implements Bondmonkey {
 
   get depthOfPrevSearch(): number {
     return this.engine.depthReached;
+  }
+
+  getEval(pos: Position): number {
+    return this.evaluation(pos, DEFAULT_EVAL_WEIGHTS);
   }
 }

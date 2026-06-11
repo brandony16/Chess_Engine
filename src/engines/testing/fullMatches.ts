@@ -7,9 +7,14 @@ import {
 import { fetchOpenings, getRandomOpening } from "./openings.ts";
 import { mulberry32 } from "../../random.ts";
 import * as os from "os";
-import type { EngineConfig, MatchResponse } from "./matchWorker.ts";
+import type {
+  EngineConfig,
+  MatchMessage,
+  MatchResponse,
+} from "./matchWorker.ts";
 import { Worker } from "worker_threads";
 import * as fs from "fs";
+import type { ClockType } from "../searchContext.ts";
 
 type MatchResult = {
   games: number;
@@ -22,8 +27,7 @@ export const runMatch = async (
   e1Config: EngineConfig,
   e2Config: EngineConfig,
   numGames: number,
-  timeLimitMs: number,
-  maxNodes: number,
+  clockSettings: ClockType,
   seed: number = 1,
 ): Promise<MatchResult> => {
   return new Promise(async (resolve) => {
@@ -43,7 +47,7 @@ export const runMatch = async (
     let pairsDispatched = 0;
     let pairsCompleted = 0;
 
-    const NUM_CORES = os.cpus().length;
+    const NUM_CORES = os.cpus().length - 1;
     const workers: Worker[] = [];
 
     console.log(
@@ -97,13 +101,14 @@ export const runMatch = async (
       const gameSeed = Math.floor(rng() * 1e9);
       const openingMoves = await getRandomOpening(openings, gameSeed);
 
-      worker.postMessage({
+      const message: MatchMessage = {
         e1Config,
         e2Config,
         openingMoves,
-        timeLimitMs,
-        maxNodes,
-      });
+        clockSettings,
+      };
+
+      worker.postMessage(message);
     };
 
     const pgns: string[] = [];

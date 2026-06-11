@@ -74,6 +74,8 @@ export class MinimaxV7 implements Engine {
     ctx: SearchContext,
     log: boolean = false,
   ): Move {
+    ctx.startSearch();
+
     pos.searchPly = 0;
     this.evaluate = evaluate;
 
@@ -89,18 +91,24 @@ export class MinimaxV7 implements Engine {
       const result = this.#searchRoot(pos, depth, ctx, bestMove);
 
       if (result) {
+        if (depth > 1 && result !== bestMove) {
+          ctx.extendTime();
+        }
         bestMove = result;
       }
 
       if (ctx.aborted) {
         break;
       }
+      if (ctx.shouldStopDeepening()) break;
     }
     if (log) {
       console.log(
         `Depth Searched: ${this.depthReached}\nNodes searched: ${ctx.nodesSearched}\nTranspositions: ${this.tt.hits}`,
       );
     }
+
+    ctx.endSearch();
 
     return bestMove;
   }

@@ -1,6 +1,5 @@
 import { moreThanOne } from "../../game/bb.ts";
-import { NO_PIECE } from "../../game/chessConstants.ts";
-import { moveCaptured, type Move } from "../../game/moveMaking/move.ts";
+import { type Move } from "../../game/moveMaking/move.ts";
 import { MAX_MOVES, type Position } from "../../game/Position.ts";
 import {
   ABORT_SCORE,
@@ -60,6 +59,8 @@ export class MinimaxV6 implements Engine {
     ctx: SearchContext,
     log: boolean = false,
   ): Move {
+    ctx.startSearch();
+
     pos.searchPly = 0;
     this.evaluate = evaluate;
 
@@ -71,12 +72,16 @@ export class MinimaxV6 implements Engine {
 
       // keep result from search, even if it was a partial search
       if (result) {
+        if (depth > 1 && result !== bestMove) {
+          ctx.extendTime();
+        }
         bestMove = result;
       }
 
       if (ctx.aborted) {
         break;
       }
+      if (ctx.shouldStopDeepening()) break;
     }
     if (log) {
       console.log(
@@ -84,6 +89,8 @@ export class MinimaxV6 implements Engine {
           `Transpositions: ${this.tt.hits}\nTT Cutoff Rate: ${((this.tt.cutoffs / this.tt.hits) * 100).toFixed(2)}`,
       );
     }
+
+    ctx.endSearch();
 
     return bestMove;
   }

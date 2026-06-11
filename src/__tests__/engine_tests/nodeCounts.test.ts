@@ -18,11 +18,9 @@ describe("better searches should have less nodes", () => {
 
     const m1 = quiesce.search(pos, evaluateV1, ctx);
     const nodeCt1 = ctx.nodesSearched;
-    ctx.reset();
 
     const m2 = transpos.search(pos, evaluateV1, ctx);
     const nodeCt2 = ctx.nodesSearched;
-    ctx.reset();
 
     console.log(`W/O TT: ${nodeCt1}\nW/ TT: ${nodeCt2}`);
 
@@ -43,11 +41,9 @@ describe("better searches should have less nodes", () => {
 
     const m1 = quiesce.search(pos, evaluateV1, ctx);
     const nodeCt1 = ctx.nodesSearched;
-    ctx.reset();
 
     const m2 = transpos.search(pos, evaluateV1, ctx);
     const nodeCt2 = ctx.nodesSearched;
-    ctx.reset();
 
     console.log(`W/O TT: ${nodeCt1}\nW/ TT: ${nodeCt2}`);
 
@@ -68,11 +64,9 @@ describe("better searches should have less nodes", () => {
 
     const m1 = quiesce.search(pos, evaluateV1, ctx);
     const nodeCt1 = ctx.nodesSearched;
-    ctx.reset();
 
     const m2 = transpos.search(pos, evaluateV1, ctx);
     const nodeCt2 = ctx.nodesSearched;
-    ctx.reset();
 
     console.log(`W/O TT: ${nodeCt1}\nW/ TT: ${nodeCt2}`);
 

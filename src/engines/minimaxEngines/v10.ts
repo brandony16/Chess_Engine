@@ -113,6 +113,8 @@ export class MinimaxV10 implements Engine {
     ctx: SearchContext,
     log: boolean = false,
   ): Move {
+    ctx.startSearch();
+
     pos.searchPly = 0;
     this.nmpCuttoffs = 0;
     this.evaluate = evaluate;
@@ -136,11 +138,15 @@ export class MinimaxV10 implements Engine {
       const result = this.#searchRoot(pos, depth, ctx, bestMove);
 
       if (result) {
+        if (depth > 1 && result !== bestMove) {
+          ctx.extendTime();
+        }
         bestMove = result;
       }
       if (ctx.aborted) {
         break;
       }
+      if (ctx.shouldStopDeepening()) break;
     }
     if (log) {
       console.log(
@@ -150,6 +156,8 @@ export class MinimaxV10 implements Engine {
           `PVS Tries: ${this.pvsTries}\nPVS Researches: ${this.pvsResearches}`,
       );
     }
+
+    ctx.endSearch();
 
     return bestMove;
   }
@@ -450,14 +458,11 @@ export class MinimaxV10 implements Engine {
         let needsFullWindow = false;
         let needsFullDepthZeroWindow = true;
 
-        const isQuiet = moveCaptured(move) === NO_PIECE && movePromotion(move) === NO_PIECE;
+        const isQuiet =
+          moveCaptured(move) === NO_PIECE && movePromotion(move) === NO_PIECE;
 
         // 2. LATE MOVE REDUCTION (LMR)
-        if (
-          !inCheck &&
-          depth >= 3 &&
-          isQuiet
-        ) {
+        if (!inCheck && depth >= 3 && isQuiet) {
           let R = this.lmrTable[Math.min(depth, 63)][Math.min(legalCount, 63)];
           R = Math.max(1, Math.min(R, depth - 2));
 

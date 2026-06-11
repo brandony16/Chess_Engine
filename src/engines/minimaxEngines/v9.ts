@@ -100,6 +100,8 @@ export class MinimaxV9 implements Engine {
     ctx: SearchContext,
     log: boolean = false,
   ): Move {
+    ctx.startSearch();
+
     pos.searchPly = 0;
     this.nmpCuttoffs = 0;
     this.evaluate = evaluate;
@@ -123,11 +125,15 @@ export class MinimaxV9 implements Engine {
       const result = this.#searchRoot(pos, depth, ctx, bestMove);
 
       if (result) {
+        if (depth > 1 && result !== bestMove) {
+          ctx.extendTime();
+        }
         bestMove = result;
       }
       if (ctx.aborted) {
         break;
       }
+      if (ctx.shouldStopDeepening()) break;
     }
     if (log) {
       console.log(
@@ -137,6 +143,8 @@ export class MinimaxV9 implements Engine {
           `PVS Tries: ${this.pvsTries}\nPVS Researches: ${this.pvsResearches}`,
       );
     }
+
+    ctx.endSearch();
 
     return bestMove;
   }

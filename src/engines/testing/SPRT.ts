@@ -10,10 +10,15 @@ import {
   playOpeningMoves,
 } from "./openings.ts";
 import { mulberry32 } from "../../random.ts";
-import type { EngineConfig, MatchResponse } from "./matchWorker.ts";
+import type {
+  EngineConfig,
+  MatchMessage,
+  MatchResponse,
+} from "./matchWorker.ts";
 import * as os from "os";
 import { Worker } from "worker_threads";
 import * as fs from "fs";
+import type { ClockType } from "../searchContext.ts";
 
 type Stats = {
   wins: number;
@@ -54,8 +59,7 @@ const MAX_PAIRS = 5_000;
 export const sprt = async (
   e1Config: EngineConfig,
   e2Config: EngineConfig,
-  timeLimitMs: number,
-  maxNodes: number,
+  clockSettings: ClockType,
 ): Promise<sprtResult> => {
   return new Promise(async (resolve) => {
     const openings = await fetchOpenings();
@@ -71,7 +75,7 @@ export const sprt = async (
     let sumX2 = 0;
     let llr = 0;
 
-    const NUM_CORES = os.cpus().length;
+    const NUM_CORES = os.cpus().length - 1; // leave a core for the system
     const workers: Worker[] = [];
     let isFinished = false;
 
@@ -115,13 +119,14 @@ export const sprt = async (
       }
       const gameSeed = Math.floor(rng() * 1e9);
       const openingMoves = await getRandomOpening(openings, gameSeed);
-      worker.postMessage({
+
+      const message: MatchMessage = {
         e1Config,
         e2Config,
         openingMoves,
-        timeLimitMs,
-        maxNodes,
-      });
+        clockSettings,
+      };
+      worker.postMessage(message);
     };
 
     console.log(`Starting SPRT across ${NUM_CORES} CPU cores...`);
@@ -170,6 +175,15 @@ export const sprt = async (
             // Standard Pentanomial LLR Formula
             llr =
               ((p1 - p0) / variance) * (sumX - (pairsPlayed * (p0 + p1)) / 2);
+          } else if (pairsPlayed >= 5) {
+            // VARIANCE IS ZERO: Someone is winning 100% of the games.
+            // If the average score per pair is > 1.0, Engine 1 is sweeping.
+            const avgScore = sumX / pairsPlayed;
+            if (avgScore > 0.5) {
+              llr = BOUNDS.upper + 1; // Instant Accept!
+            } else if (avgScore < 0.5) {
+              llr = BOUNDS.lower - 1; // Instant Reject!
+            }
           }
         }
 

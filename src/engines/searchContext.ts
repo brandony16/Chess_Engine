@@ -1,8 +1,21 @@
-export enum ContextType {
-  NODE_LIMIT,
-  FIXED_TIME,
-  TIME_CONTROL,
-}
+export const ContextType = {
+  NONE: 0,
+  NODE_LIMIT: 1,
+  FIXED_TIME: 2,
+  TIME_CONTROL: 3,
+} as const;
+
+export type ContextType = (typeof ContextType)[keyof typeof ContextType];
+
+export type ClockType =
+  | { type: typeof ContextType.NONE }
+  | { type: typeof ContextType.NODE_LIMIT; maxNodeCt: number }
+  | { type: typeof ContextType.FIXED_TIME; maxTimeMs: number }
+  | {
+      type: typeof ContextType.TIME_CONTROL;
+      timePerPlayer: number;
+      increment: number;
+    };
 
 export class SearchContext {
   nodesSearched = 0;
@@ -15,28 +28,28 @@ export class SearchContext {
 
   private searchType: ContextType;
 
-  private readonly initialTime: number = 0;
+  readonly initialTime: number = 0;
   private readonly increment: number = 0;
 
-  private timeRemaining: number = 0;
+  timeRemaining: number = 0;
 
   private hardLimit = Infinity;
   private softLimit = Infinity;
 
-  constructor(type: ContextType, limit: number, increment: number = 0) {
-    this.searchType = type;
+  constructor(clockType: ClockType = NO_CONTROL) {
+    this.searchType = clockType.type;
 
-    switch (type) {
+    switch (clockType.type) {
       case ContextType.NODE_LIMIT:
-        this.nodeLimit = limit;
+        this.nodeLimit = clockType.maxNodeCt;
         break;
       case ContextType.FIXED_TIME:
-        this.timeLimit = limit;
+        this.timeLimit = clockType.maxTimeMs;
         break;
       case ContextType.TIME_CONTROL:
-        this.initialTime = limit;
-        this.timeRemaining = limit;
-        this.increment = increment;
+        this.initialTime = clockType.timePerPlayer;
+        this.timeRemaining = clockType.timePerPlayer;
+        this.increment = clockType.increment;
         break;
     }
   }
@@ -44,6 +57,12 @@ export class SearchContext {
   // Call this ONLY when starting a brand new game/match
   resetGameClock(): void {
     this.timeRemaining = this.initialTime;
+  }
+
+  lostOnTime(): boolean {
+    if (this.searchType !== ContextType.TIME_CONTROL) return false;
+
+    return this.timeRemaining <= 0;
   }
 
   // Sets the soft and hard limits for the search
@@ -143,3 +162,23 @@ export class SearchContext {
     this.softLimit = Math.min(this.softLimit * 1.5, this.hardLimit);
   }
 }
+
+export const NO_CONTROL: ClockType = { type: ContextType.NONE };
+export const DEF_NODE_LIMIT: ClockType = {
+  type: ContextType.NODE_LIMIT,
+  maxNodeCt: 25000,
+};
+export const DEF_FIXED_TIME: ClockType = {
+  type: ContextType.FIXED_TIME,
+  maxTimeMs: 100,
+};
+export const DEF_TIME_CONTROL: ClockType = {
+  type: ContextType.TIME_CONTROL,
+  timePerPlayer: 8000, // 8s
+  increment: 80, // 0.08s increment
+};
+
+export const HIGH_NODE_LIMIT: ClockType = {
+  type: ContextType.NODE_LIMIT,
+  maxNodeCt: 500_000,
+};

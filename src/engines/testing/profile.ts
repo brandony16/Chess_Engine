@@ -24,37 +24,34 @@ import { MinimaxV7 } from "../minimaxEngines/v7.ts";
 import { MinimaxV7_2 } from "../minimaxEngines/v7_2.ts";
 import { MinimaxV8 } from "../minimaxEngines/v8.ts";
 import { MinimaxV9 } from "../minimaxEngines/v9.ts";
-import { ContextType, SearchContext } from "../searchContext.ts";
+import {
+  ContextType,
+  HIGH_NODE_LIMIT,
+  NO_CONTROL,
+  SearchContext,
+} from "../searchContext.ts";
 
 const eng1 = new MinimaxV13(12);
 const eng2 = new MinimaxV12(12);
 const pos = new Position(OPEN_MIDGAME);
 
 // warm up JIT
-eng1.search(
-  pos,
-  new EvaluationV6(),
-  new SearchContext(ContextType.NODE_LIMIT, 100_000),
-);
+eng1.search(pos, new EvaluationV6(), new SearchContext(HIGH_NODE_LIMIT));
 eng1.newGame(); // reset to clear tt
 
 console.log("Starting Eng 1 search");
-const ctx = new SearchContext(Infinity, Infinity);
+const ctx = new SearchContext(NO_CONTROL);
 const evaluation = new EvaluationV6();
 const start = performance.now();
 const move1 = eng1.search(pos, evaluation, ctx, true);
 const end = performance.now();
 
 // warm up JIT
-eng2.search(
-  pos,
-  new EvaluationV6(),
-  new SearchContext(ContextType.NODE_LIMIT, 100_000),
-);
+eng2.search(pos, new EvaluationV6(), new SearchContext(HIGH_NODE_LIMIT));
 eng2.newGame(); // reset to clear tt
 
 console.log("\nStarting Eng 2 search");
-const ctx2 = new SearchContext(Infinity, Infinity);
+const ctx2 = new SearchContext(NO_CONTROL);
 const eval2 = new EvaluationV6();
 const start2 = performance.now();
 const move2 = eng2.search(pos, eval2, ctx2, true);
