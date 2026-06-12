@@ -19,6 +19,7 @@ import { MinimaxV10 } from "../minimaxEngines/v10.ts";
 import { MinimaxV11 } from "../minimaxEngines/v11.ts";
 import { MinimaxV12 } from "../minimaxEngines/v12.ts";
 import { MinimaxV13 } from "../minimaxEngines/v13.ts";
+import { MinimaxV14 } from "../minimaxEngines/v14.ts";
 import { MinimaxV6 } from "../minimaxEngines/v6.ts";
 import { MinimaxV7 } from "../minimaxEngines/v7.ts";
 import { MinimaxV7_2 } from "../minimaxEngines/v7_2.ts";
@@ -31,9 +32,9 @@ import {
   SearchContext,
 } from "../searchContext.ts";
 
-const eng1 = new MinimaxV13(12);
-const eng2 = new MinimaxV12(12);
-const pos = new Position(OPEN_MIDGAME);
+const eng1 = new MinimaxV14(10);
+const eng2 = new MinimaxV13(10);
+const pos = new Position(LOCKED_MIDDLEGAME);
 
 // warm up JIT
 eng1.search(pos, new EvaluationV6(), new SearchContext(HIGH_NODE_LIMIT));

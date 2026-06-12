@@ -13,7 +13,10 @@ import { Snapshot } from "../game/Snapshot.ts";
 import { moveToAlgebraic } from "./generalHelpers.ts";
 import { buildPGN } from "../game/fenAndUCI/pgn.ts";
 import type { Move } from "../game/moveMaking/move.ts";
-import { engineNames } from "../engines/bondmonkeyVersions/engineList.ts";
+import {
+  engineNames,
+  type EngineName,
+} from "../engines/bondmonkeyVersions/engineList.ts";
 import {
   KIWIPETE_POS,
   LOCKED_MIDDLEGAME,
@@ -22,6 +25,7 @@ import {
 } from "../__tests__/game_tests/fens.ts";
 import { MAX_SEARCH_PLY } from "../engines/Engine.ts";
 import { OpeningBook } from "../OpeningBook.ts";
+import { DEF_FIXED_TIME, type ClockType } from "../engines/searchContext.ts";
 
 export type ModalType = "history" | "battle" | "new";
 export type HistoryEntry = {
@@ -37,11 +41,11 @@ type PromotionState =
   | { isHappening: true; square: Square };
 
 export const INITIAL_STATE = {
-  fen: "r1bqk2r/ppp2ppp/2pb4/2n1N3/8/3P4/PPP2PPP/RNBQ1RK1 w kq - 0 1",
-  userSide: BLACK,
+  fen: START_POS,
+  userSide: WHITE,
   engine: engineNames[0], // most recent engine
   depth: MAX_SEARCH_PLY, // time limited, not depth limited
-  timeLimit: 1000,
+  clockSettings: DEF_FIXED_TIME,
 } as const;
 
 export interface GameStoreState {
@@ -59,9 +63,9 @@ export interface GameStoreState {
   promotion: PromotionState;
 
   // ----- ENGINE INFO -----
-  selectedEngine: string;
+  selectedEngine: EngineName;
   searchDepth: number;
-  maxSearchTimeMs: number;
+  clockSettings: ClockType;
 
   pastPositions: Snapshot[];
   algebraicMoves: string[];
@@ -101,14 +105,14 @@ export const useGameStore = create<GameStoreState>((set, get) => {
     legalMovesForSelected: [],
 
     modalState: { isOpen: false },
-    boardPerspective: WHITE,
+    boardPerspective: INITIAL_STATE.userSide,
 
     promotion: { isHappening: false },
 
     // ----- ENGINE INFO -----
     selectedEngine: INITIAL_STATE.engine,
     searchDepth: INITIAL_STATE.depth,
-    maxSearchTimeMs: INITIAL_STATE.timeLimit,
+    clockSettings: INITIAL_STATE.clockSettings,
 
     pastPositions: [game.getSnapshot()],
     algebraicMoves: [],

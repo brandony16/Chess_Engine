@@ -1,19 +1,59 @@
-import { getEngineByName } from "../../../engines/bondmonkeyVersions/engineList.ts";
-import { SearchContext } from "../../../engines/searchContext.ts";
-import { rebuildPosiiton } from "./builders.ts";
-import type { EnginePost, EngineResponse } from "./engineWorkerTypes.ts";
+import {
+  getEngineByName,
+  type EngineName,
+} from "../../../engines/bondmonkeyVersions/engineList.ts";
+import type { Bondmonkey } from "../../../engines/bondmonkeyVersions/type.ts";
+import {
+  SearchContext,
+  type ClockType,
+} from "../../../engines/searchContext.ts";
+import type { Position } from "../../../game/Position.ts";
+import { rebuildPosition } from "./builders.ts";
 
-self.onmessage = (e: MessageEvent<EnginePost>) => {
-  const { pos, engine, depth, ctx } = e.data;
+let activeEngine: Bondmonkey | null = null;
+let activeContext: SearchContext | null = null;
 
-  const eng = getEngineByName(engine, depth);
+// Define the incoming commands from the UI
+export type EngineCommand =
+  | { type: "init"; engine: EngineName; depth: number; clock: ClockType }
+  | { type: "search"; pos: Position };
 
-  const position = rebuildPosiiton(pos);
+// Define the outgoing responses to the UI
+export type EngineWorkerResponse =
+  | { type: "initialized" }
+  | {
+      type: "move";
+      move: number;
+      timeRemainingMs: number; // Send this back so UI can sync
+    };
 
-  const searchCtx = new SearchContext(ctx.nodeLimit, ctx.timeLimit);
-  const move = eng.search(position, searchCtx);
+self.onmessage = (e: MessageEvent<EngineCommand>) => {
+  const msg = e.data;
 
-  const result: EngineResponse = { move };
+  if (msg.type === "init") {
+    activeEngine = getEngineByName(msg.engine, msg.depth);
+    activeContext = new SearchContext(msg.clock);
 
-  postMessage(result);
+    activeEngine.newGame();
+
+    postMessage({ type: "initialized" });
+  } else if (msg.type === "search") {
+    // Safety check
+    if (!activeEngine || !activeContext) {
+      console.error(
+        "Worker was not initialized. Call init first, then search.",
+      );
+      return;
+    }
+
+    const position = rebuildPosition(msg.pos);
+
+    const move = activeEngine.search(position, activeContext);
+
+    postMessage({
+      type: "move",
+      move,
+      timeRemainingMs: activeContext.timeRemaining,
+    });
+  }
 };

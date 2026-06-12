@@ -1,6 +1,6 @@
 import { Position } from "../../../game/Position.ts";
 
-export const rebuildPosiiton = (pos: Position) => {
+export const rebuildPosition = (pos: Position) => {
   const newPos = new Position();
 
   newPos.bbsLo = pos.bbsLo;

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import "./App.css";
 import Board from "./components/boardComponents/Board.tsx";
 import useChessActions from "./components/hooks/useChessActions.js";
@@ -19,10 +19,14 @@ function App(): ReactNode {
   const { handleSquareClick, handlePromotion } = useChessActions();
 
   // Handler for creating and using an engine worker
-  const { post: postToEngine } = useEngineWorker();
+  const { post: postToEngine, initEngineForNewGame } = useEngineWorker();
 
   // Handles engine moving after the player moves
   useMoveTrigger(postToEngine);
+
+  useEffect(() => {
+    initEngineForNewGame();
+  }, [initEngineForNewGame]);
 
   return (
     <main className="body">

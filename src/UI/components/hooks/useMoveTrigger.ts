@@ -1,14 +1,14 @@
 import { useEffect } from "react";
 import { useGameStore } from "../../gameStore.ts";
-import type { EnginePost } from "../workers/engineWorkerTypes.ts";
 import { SearchContext } from "../../../engines/searchContext.ts";
 import { uciToMove } from "../../../game/fenAndUCI/uciHelpers.ts";
+import type { EngineCommand } from "../workers/engineWorker.ts";
 
 /**
  * Custom hook that handles the engine moving after the player does.
  */
 export default function useMoveTrigger(
-  postToEngine: (msg: EnginePost) => void,
+  postToEngine: (msg: EngineCommand) => void,
 ) {
   const game = useGameStore((state) => state.game);
   const book = useGameStore((state) => state.book);
@@ -21,7 +21,6 @@ export default function useMoveTrigger(
    */
   useEffect(() => {
     if (sideToMove !== userSide && !game.isOver() && userSide !== null) {
-      const state = useGameStore.getState();
       const position = game.getPositionCpy();
 
       const moveHistory = game.moveHistory;
@@ -36,13 +35,9 @@ export default function useMoveTrigger(
         }
       }
 
-      const ctx = new SearchContext(Infinity, state.maxSearchTimeMs);
-
       postToEngine({
+        type: "search",
         pos: position,
-        engine: state.selectedEngine,
-        depth: state.searchDepth,
-        ctx: ctx,
       });
     }
   }, [sideToMove, userSide, postToEngine]);
