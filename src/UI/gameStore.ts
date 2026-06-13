@@ -17,16 +17,17 @@ import {
   engineNames,
   type EngineName,
 } from "../engines/bondmonkeyVersions/engineList.ts";
-import {
-  KIWIPETE_POS,
-  LOCKED_MIDDLEGAME,
-  START_POS,
-  TRANSPOSITION_ENDGAME,
-} from "../__tests__/game_tests/fens.ts";
-import { MAX_SEARCH_PLY } from "../engines/Engine.ts";
+import { START_POS } from "../__tests__/game_tests/fens.ts";
+import { INFINITY, MAX_SEARCH_PLY } from "../engines/Engine.ts";
 import { OpeningBook } from "../OpeningBook.ts";
-import { DEF_FIXED_TIME, type ClockType } from "../engines/searchContext.ts";
+import { ContextType, type ClockType } from "../engines/searchContext.ts";
 
+// ----- EXTERNAL VARIABLES -----
+export const game = new Game(START_POS);
+export const openingBook = new OpeningBook();
+openingBook.initialize();
+
+// ----- STATE INTERFACES -----
 export type ModalType = "history" | "battle" | "new";
 export type HistoryEntry = {
   pgn: string;
@@ -39,227 +40,211 @@ type ModalState = { isOpen: false } | { isOpen: true; type: ModalType };
 type PromotionState =
   | { isHappening: false }
   | { isHappening: true; square: Square };
+type NewGameParams = { fen: string; userSide: Player };
 
-export const INITIAL_STATE = {
-  fen: START_POS,
-  userSide: WHITE,
-  engine: engineNames[0], // most recent engine
-  depth: MAX_SEARCH_PLY, // time limited, not depth limited
-  clockSettings: DEF_FIXED_TIME,
-} as const;
-
-export interface GameStoreState {
-  game: Game;
-  book: OpeningBook;
+interface GameSliceVars {
+  fen: string;
   userSide: Player;
-
-  // ----- UI -----
-  selectedSquare: Square;
-  legalMovesForSelected: Move[];
-
-  modalState: ModalState;
   boardPerspective: Player;
-
-  promotion: PromotionState;
-
-  // ----- ENGINE INFO -----
-  selectedEngine: EngineName;
-  searchDepth: number;
-  clockSettings: ClockType;
-
   pastPositions: Snapshot[];
   algebraicMoves: string[];
-  currIdxOfDisplayed: number;
-
+  idxOfDisplayedMove: number;
   pastGames: HistoryEntry[];
+  whiteTimeMs: number;
+  blackTimeMs: number;
+  lastMoveTimestamp: number;
+}
 
-  // ----- ACTIONS -----
-  playMove: (move: Move) => void;
-  resetGame: (
-    fen?: string,
-    newUserSide?: Player,
-    wasEngineGame?: boolean,
-  ) => void;
+interface GameSlice extends GameSliceVars {
+  playMove: (move: Move, timeRemaining: number) => void;
+  saveGame: (isEngineGame?: boolean) => void;
+  newGame: (params: NewGameParams) => void;
   flipBoard: () => void;
-  openModal: (type: Exclude<ModalType, null>) => void;
-  closeModal: () => void;
   showNextMove: () => void;
   showPreviousMove: () => void;
   goToMove: (halfmoveNumber: number) => void;
-
-  updateShownGame: (entry: HistoryEntry) => void;
 }
 
-export const useGameStore = create<GameStoreState>((set, get) => {
-  const game = new Game(INITIAL_STATE.fen);
-  const book = new OpeningBook();
-  book.initialize();
+interface UISliceVars {
+  selectedSquare: Square;
+  legalMovesForSelected: Move[];
+  modalState: ModalState;
+  promotion: PromotionState;
+}
 
-  return {
-    game: game,
-    book: book,
-    userSide: INITIAL_STATE.userSide,
+interface UISlice extends UISliceVars {
+  setSelectedSquare: (square: Square, legalMoves?: Move[]) => void;
+  setPromotion: (state: PromotionState) => void;
+  openModal: (type: Exclude<ModalType, null>) => void;
+  closeModal: () => void;
+}
 
-    // ----- UI -----
-    selectedSquare: NO_SQUARE,
-    legalMovesForSelected: [],
+interface EngineSliceVars {
+  selectedEngine: EngineName;
+  searchDepth: number;
+  clockSettings: { timePerPlayer: number; increment: number };
+}
+interface EngineSlice extends EngineSliceVars {
+  setEngine: (engine: EngineName) => void;
+}
 
-    modalState: { isOpen: false },
-    boardPerspective: INITIAL_STATE.userSide,
+export type GameStoreState = GameSlice & UISlice & EngineSlice;
 
-    promotion: { isHappening: false },
+// ----- INITIAL STATES -----
+export const TIME_CONTROL_3_2 = {
+  timePerPlayer: 3 * 60 * 1000, // 3 minutes
+  increment: 2000, // 2s increment
+};
 
-    // ----- ENGINE INFO -----
-    selectedEngine: INITIAL_STATE.engine,
-    searchDepth: INITIAL_STATE.depth,
-    clockSettings: INITIAL_STATE.clockSettings,
+export const TIME_CONTROL_BULLET = {
+  timePerPlayer: 60 * 1000,
+  increment: 1000,
+};
 
-    pastPositions: [game.getSnapshot()],
-    algebraicMoves: [],
-    currIdxOfDisplayed: 0,
+export const INITIAL_GAME_SLICE: GameSliceVars = {
+  fen: game.fen(),
+  userSide: WHITE,
+  boardPerspective: WHITE,
+  pastPositions: [game.getSnapshot()],
+  algebraicMoves: [],
+  idxOfDisplayedMove: 0,
+  pastGames: [],
+  whiteTimeMs: TIME_CONTROL_BULLET.timePerPlayer,
+  blackTimeMs: TIME_CONTROL_BULLET.timePerPlayer,
+  lastMoveTimestamp: Date.now(),
+};
 
-    pastGames: [],
+export const INITIAL_UI_SLICE: UISliceVars = {
+  selectedSquare: NO_SQUARE,
+  legalMovesForSelected: [],
+  modalState: { isOpen: false },
+  promotion: { isHappening: false },
+};
 
-    // ACTIONS / UPDATER FUNCTIONS
-    playMove: (move: Move) => {
-      const { game, pastPositions, algebraicMoves } = get();
+export const INITIAL_ENGINE_SLICE: EngineSliceVars = {
+  selectedEngine: engineNames[0],
+  searchDepth: MAX_SEARCH_PLY,
+  clockSettings: TIME_CONTROL_BULLET,
+};
 
-      const success = game.playMove(move);
-      if (!success) {
-        return;
-      }
+export const useGameStore = create<GameStoreState>((set, get) => ({
+  // ----- GAME SLICE -----
+  ...INITIAL_GAME_SLICE,
 
-      const algebraic = moveToAlgebraic(move, game.isInCheck(), game.isOver());
+  playMove: (move: Move, timeRemaining: number): void => {
+    const { pastPositions, algebraicMoves, whiteTimeMs, blackTimeMs } = get();
 
-      set({
-        game,
-        selectedSquare: NO_SQUARE,
-        legalMovesForSelected: [],
-        algebraicMoves: [...algebraicMoves, algebraic],
-        pastPositions: [...pastPositions, game.getSnapshot()],
-        currIdxOfDisplayed: pastPositions.length,
-        promotion: { isHappening: false },
+    const isWhiteTurn = game.fen().split(" ")[1] === "w";
+
+    const success = game.playMove(move);
+    if (!success) return;
+
+    const algebraic = moveToAlgebraic(move, game.isInCheck(), game.isOver());
+
+    set({
+      fen: game.fen(),
+      selectedSquare: NO_SQUARE,
+      legalMovesForSelected: [],
+      algebraicMoves: [...algebraicMoves, algebraic],
+      pastPositions: [...pastPositions, game.getSnapshot()],
+      idxOfDisplayedMove: pastPositions.length,
+      promotion: { isHappening: false },
+
+      whiteTimeMs: isWhiteTurn ? timeRemaining : whiteTimeMs,
+      blackTimeMs: !isWhiteTurn ? timeRemaining : blackTimeMs,
+
+      lastMoveTimestamp: Date.now(),
+    });
+  },
+
+  saveGame: (isEngineGame: boolean = false): void => {
+    const { pastGames, algebraicMoves, userSide, selectedEngine } = get();
+
+    let updatedPast = pastGames;
+    if (game.isOver()) {
+      const result = game.result();
+
+      const whiteSide = userSide === WHITE ? "user" : selectedEngine;
+      const blackSide = userSide === BLACK ? "user" : selectedEngine;
+
+      const gamePGN = buildPGN(algebraicMoves, {
+        Event: isEngineGame ? "Engine Game" : "Normal Battle",
+        White: whiteSide,
+        Black: blackSide,
+        Result:
+          result.winner === DRAW
+            ? "1/2-1/2"
+            : result.winner === WHITE
+              ? "1-0"
+              : "0-1",
       });
-    },
+      const entry: HistoryEntry = {
+        pgn: gamePGN,
+        engineGame: isEngineGame,
+        white: whiteSide,
+        black: blackSide,
+        plyCount: algebraicMoves.length,
+      };
+      updatedPast = [...pastGames, entry];
+    }
 
-    resetGame: (
-      fen?: string,
-      newUserSide: Player = WHITE,
-      wasEngineGame: boolean = false,
-    ): void => {
-      const { game, pastGames, algebraicMoves, userSide, selectedEngine } =
-        get();
+    set({
+      pastGames: updatedPast,
+    });
+  },
 
-      let updatedPast = pastGames;
-      if (game.isOver()) {
-        const result = game.result();
+  newGame: (params: NewGameParams): void => {
+    game.loadFen(params.fen);
 
-        const whiteSide = userSide === WHITE ? "user" : selectedEngine;
-        const blackSide = userSide === BLACK ? "user" : selectedEngine;
+    set({
+      fen: params.fen,
+      userSide: params.userSide,
+      boardPerspective: params.userSide,
+      selectedSquare: NO_SQUARE,
+      legalMovesForSelected: [],
+      algebraicMoves: [],
 
-        const gamePGN = buildPGN(algebraicMoves, {
-          Event: wasEngineGame ? "Engine Game" : "Normal Battle",
-          White: whiteSide,
-          Black: blackSide,
-          Result:
-            result.winner === DRAW
-              ? "1/2-1/2"
-              : result.winner === WHITE
-                ? "1-0"
-                : "0-1",
-        });
-        const entry: HistoryEntry = {
-          pgn: gamePGN,
-          engineGame: wasEngineGame,
-          white: whiteSide,
-          black: blackSide,
-          plyCount: algebraicMoves.length,
-        };
-        updatedPast = [...pastGames, entry];
-      }
+      modalState: { isOpen: false },
 
-      const newGame = new Game(fen);
+      idxOfDisplayedMove: 0,
+      pastPositions: [game.getSnapshot()],
+    });
+  },
 
-      set({
-        game: newGame,
-        userSide: newUserSide,
-        boardPerspective: newUserSide,
-        selectedSquare: NO_SQUARE,
-        legalMovesForSelected: [],
-        pastGames: updatedPast,
-        algebraicMoves: [],
+  flipBoard: () =>
+    set((state) => ({ boardPerspective: opponent(state.boardPerspective) })),
 
-        modalState: { isOpen: false },
+  showNextMove: () =>
+    set((state) => ({
+      idxOfDisplayedMove: Math.min(
+        state.idxOfDisplayedMove + 1,
+        state.pastPositions.length - 1,
+      ),
+    })),
 
-        currIdxOfDisplayed: 0,
-        pastPositions: [newGame.getSnapshot()],
-      });
-    },
+  showPreviousMove: () =>
+    set((state) => ({
+      idxOfDisplayedMove: Math.max(state.idxOfDisplayedMove - 1, 0),
+    })),
 
-    flipBoard: () => {
-      set((state) => ({
-        boardPerspective: opponent(state.boardPerspective),
-      }));
-    },
+  goToMove: (halfmoveNumber: number) =>
+    set((state) => {
+      if (halfmoveNumber < 0 || halfmoveNumber >= state.pastPositions.length)
+        return state;
+      return { idxOfDisplayedMove: halfmoveNumber };
+    }),
 
-    openModal: (type: Exclude<ModalType, null>) => {
-      set({
-        modalState: { isOpen: true, type },
-      });
-    },
+  // ----- UI SLICE -----
+  ...INITIAL_UI_SLICE,
 
-    closeModal: () => {
-      set({
-        modalState: { isOpen: false },
-      });
-    },
+  setSelectedSquare: (square, legalMoves = []) =>
+    set({ selectedSquare: square, legalMovesForSelected: legalMoves }),
+  setPromotion: (state) => set({ promotion: state }),
+  openModal: (type) => set({ modalState: { isOpen: true, type } }),
+  closeModal: () => set({ modalState: { isOpen: false } }),
 
-    showNextMove: () => {
-      set((state) => {
-        if (state.currIdxOfDisplayed === state.pastPositions.length - 1) {
-          return state;
-        }
+  // ----- ENGINE SLICE -----
+  ...INITIAL_ENGINE_SLICE,
 
-        const newIdx = state.currIdxOfDisplayed + 1;
-
-        return {
-          currIdxOfDisplayed: newIdx,
-        };
-      });
-    },
-
-    showPreviousMove: () => {
-      set((state) => {
-        if (state.currIdxOfDisplayed === 0) {
-          return state;
-        }
-
-        const newIdx = state.currIdxOfDisplayed - 1;
-
-        return {
-          currIdxOfDisplayed: newIdx,
-        };
-      });
-    },
-
-    goToMove: (halfmoveNumber: number) => {
-      set((state) => {
-        if (
-          halfmoveNumber < 0 ||
-          halfmoveNumber >= state.pastPositions.length
-        ) {
-          throw new Error(`Invalid jump to halfmove ${halfmoveNumber}`);
-        }
-
-        return {
-          currIdxOfDisplayed: halfmoveNumber,
-        };
-      });
-    },
-
-    updateShownGame: (entry: HistoryEntry) => {
-      // update stuff idk
-      console.log(entry);
-    },
-  };
-});
+  setEngine: (engine) => set({ selectedEngine: engine }),
+}));

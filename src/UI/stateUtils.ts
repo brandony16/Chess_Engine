@@ -3,10 +3,10 @@ import { moveFrom, movePromotion, moveTo } from "../game/moveMaking/move.ts";
 import type { GameStoreState } from "./gameStore.ts";
 
 export const getShownMove = (state: GameStoreState) =>
-  state.pastPositions[state.currIdxOfDisplayed];
+  state.pastPositions[state.idxOfDisplayedMove];
 
 export const isCurrPosShown = (state: GameStoreState) =>
-  state.currIdxOfDisplayed === state.pastPositions.length - 1;
+  state.idxOfDisplayedMove === state.pastPositions.length - 1;
 
 export const findMove = (
   state: GameStoreState,

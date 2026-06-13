@@ -1,18 +1,19 @@
 import { useCallback } from "react";
-import { useGameStore } from "../../gameStore.ts";
+import { game, useGameStore } from "../../gameStore.ts";
 import { movesToBB } from "../../generalHelpers.ts";
 import { findMove, isCurrPosShown } from "../../stateUtils.ts";
 import {
   NO_SQUARE,
   RANK_1,
   RANK_8,
+  WHITE,
   type File,
   type Piece,
   type Rank,
 } from "../../../game/chessConstants.ts";
 import { getSquare } from "../../../game/helpers/boardUtils.ts";
 import { isPawn } from "../../../game/pieceUtils/pieceClassifiers.ts";
-import { moveFrom, moveTo } from "../../../game/moveMaking/move.ts";
+import { moveFrom } from "../../../game/moveMaking/move.ts";
 
 /**
  * Custom hook for chess actions.
@@ -24,8 +25,16 @@ export default function useChessActions() {
    * handles when its a promotion move
    */
   const handleSquareClick = useCallback((rank: Rank, file: File) => {
-    const { game, userSide, selectedSquare, playMove } =
-      useGameStore.getState();
+    const {
+      userSide,
+      selectedSquare,
+      playMove,
+      lastMoveTimestamp,
+      whiteTimeMs,
+      blackTimeMs,
+      clockSettings,
+    } = useGameStore.getState();
+
     if (
       game.isOver() ||
       !isCurrPosShown(useGameStore.getState()) ||
@@ -68,7 +77,14 @@ export default function useChessActions() {
         }
 
         const move = findMove(useGameStore.getState(), selectedSquare, square);
-        playMove(move);
+
+        const timeSpent = Date.now() - lastMoveTimestamp;
+        const currTime = userSide === WHITE ? whiteTimeMs : blackTimeMs;
+        const newTimeRemaining = Math.max(
+          0,
+          currTime - timeSpent + clockSettings.increment,
+        );
+        playMove(move, newTimeRemaining);
       } else {
         useGameStore.setState({
           selectedSquare: NO_SQUARE,
@@ -85,7 +101,17 @@ export default function useChessActions() {
    * @param {int} piece - the piece to promote to
    */
   const handlePromotion = useCallback((piece: Piece) => {
-    const { playMove, promotion, selectedSquare } = useGameStore.getState();
+    const {
+      userSide,
+      playMove,
+      promotion,
+      selectedSquare,
+      lastMoveTimestamp,
+      whiteTimeMs,
+      blackTimeMs,
+      clockSettings,
+    } = useGameStore.getState();
+
     if (!selectedSquare || !promotion.isHappening) {
       throw new Error(
         `Promotion called with no selected sq or when promotion is not occuring`,
@@ -98,7 +124,14 @@ export default function useChessActions() {
       promotion.square,
       piece,
     );
-    playMove(move);
+
+    const timeSpent = Date.now() - lastMoveTimestamp;
+    const currTime = userSide === WHITE ? whiteTimeMs : blackTimeMs;
+    const newTimeRemaining = Math.max(
+      0,
+      currTime - timeSpent + clockSettings.increment,
+    );
+    playMove(move, newTimeRemaining);
   }, []);
 
   return { handleSquareClick, handlePromotion };

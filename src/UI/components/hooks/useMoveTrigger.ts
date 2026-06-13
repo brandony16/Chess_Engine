@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { useGameStore } from "../../gameStore.ts";
-import { SearchContext } from "../../../engines/searchContext.ts";
+import { game, openingBook, useGameStore } from "../../gameStore.ts";
 import { uciToMove } from "../../../game/fenAndUCI/uciHelpers.ts";
 import type { EngineCommand } from "../workers/engineWorker.ts";
+import { WHITE } from "../../../game/chessConstants.ts";
 
 /**
  * Custom hook that handles the engine moving after the player does.
@@ -10,27 +10,33 @@ import type { EngineCommand } from "../workers/engineWorker.ts";
 export default function useMoveTrigger(
   postToEngine: (msg: EngineCommand) => void,
 ) {
-  const game = useGameStore((state) => state.game);
-  const book = useGameStore((state) => state.book);
-  const playMove = useGameStore((state) => state.playMove);
-  const sideToMove = useGameStore((state) => state.game.sideToMove);
+  const fen = useGameStore((state) => state.fen);
   const userSide = useGameStore((state) => state.userSide);
+  const playMove = useGameStore((state) => state.playMove);
+  const whiteTimeMs = useGameStore((state) => state.whiteTimeMs);
+  const blackTimeMs = useGameStore((state) => state.blackTimeMs);
+  const clockSettings = useGameStore((state) => state.clockSettings);
 
   /**
    * Plays the engine move after the player makes its turn.
    */
   useEffect(() => {
-    if (sideToMove !== userSide && !game.isOver() && userSide !== null) {
+    if (game.sideToMove !== userSide && !game.isOver() && userSide !== null) {
       const position = game.getPositionCpy();
 
       const moveHistory = game.moveHistory;
 
       // potentially still in opening book
       if (moveHistory.length < 8) {
-        const bookMove = book.getBookMove(moveHistory);
+        const bookMove = openingBook.getBookMove(moveHistory);
         if (bookMove) {
           const move = uciToMove(bookMove, game.getPositionCpy());
-          playMove(move); // play book move
+          const time = userSide === WHITE ? blackTimeMs : whiteTimeMs;
+
+          // wait so UI has time to update and engine doesnt just play instantly
+          setTimeout(() => {
+            playMove(move, time - 500 + clockSettings.increment); // play book move
+          }, 500);
           return;
         }
       }
@@ -40,5 +46,5 @@ export default function useMoveTrigger(
         pos: position,
       });
     }
-  }, [sideToMove, userSide, postToEngine]);
+  }, [fen, userSide, postToEngine, playMove]);
 }

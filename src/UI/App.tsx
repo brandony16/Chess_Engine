@@ -8,7 +8,7 @@ import Modal from "./components/modals/Modal.jsx";
 import PromotionModal from "./components/modals/promotionModal/PromotionModal.jsx";
 import Sidebar from "./components/sidebar/Sidebar.jsx";
 import { useGameStore } from "./gameStore.ts";
-import { PerftProfiler } from "./components/Profiler.tsx";
+import GameClock from "./GameClock.tsx";
 
 function App(): ReactNode {
   // Get states
@@ -31,6 +31,7 @@ function App(): ReactNode {
   return (
     <main className="body">
       <section className="gameWrap" role="application">
+        <GameClock />
         <Board onSquareClick={handleSquareClick} />
         {promotion.isHappening && (
           <PromotionModal

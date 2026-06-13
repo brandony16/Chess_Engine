@@ -1,21 +1,25 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import "./BattleEngines.css";
-import { INITIAL_STATE } from "../../../gameStore.ts";
 import { BattleModalStates } from "../../../utilTypes.ts";
 import type { BattleWorkerResponse } from "../../workers/battleEngineWorker.ts";
 import Loading from "./Loading.tsx";
 import FinalStats from "./FinalStats.tsx";
 import Setting from "./Setting.tsx";
 import type { EngineName } from "../../../../engines/bondmonkeyVersions/engineList.ts";
+import { INITIAL_ENGINE_SLICE } from "../../../gameStore.ts";
+import type { ClockType } from "../../../../engines/searchContext.ts";
 
 type ModalStates = (typeof BattleModalStates)[keyof typeof BattleModalStates];
 
 const BattleEngines = () => {
   // Engine States
-  const [engine1, setEngine1] = useState<EngineName>(INITIAL_STATE.engine);
-  const [engine2, setEngine2] = useState<EngineName>(INITIAL_STATE.engine);
-  const [timeLimit, setTimeLimit] = useState<number>(INITIAL_STATE.timeLimit);
+  const [engine1, setEngine1] = useState<EngineName>(
+    INITIAL_ENGINE_SLICE.selectedEngine,
+  );
+  const [engine2, setEngine2] = useState<EngineName>(
+    INITIAL_ENGINE_SLICE.selectedEngine,
+  );
 
   // Game Settings
   const [numGames, setNumGames] = useState<number>(10);
@@ -72,10 +76,9 @@ const BattleEngines = () => {
     workerRef.current?.postMessage({
       engine1Name: engine1,
       engine2Name: engine2,
-      timeLimit: timeLimit,
       games: numGames,
     });
-  }, [workerRef, engine1, engine2, timeLimit, numGames]);
+  }, [workerRef, engine1, engine2, numGames]);
 
   let content;
   switch (modalState) {
@@ -102,8 +105,6 @@ const BattleEngines = () => {
           setEngine1={setEngine1}
           engine2={engine2}
           setEngine2={setEngine2}
-          timeLimit={timeLimit}
-          setTimeLimit={setTimeLimit}
           games={numGames}
           setGames={setNumGames}
           startBattle={startBattle}

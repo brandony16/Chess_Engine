@@ -10,9 +10,6 @@ type SettingProps = {
   engine2: EngineName;
   setEngine2: Dispatch<SetStateAction<EngineName>>;
 
-  timeLimit: number;
-  setTimeLimit: Dispatch<SetStateAction<number>>;
-
   games: number;
   setGames: Dispatch<SetStateAction<number>>;
   startBattle: () => void;
@@ -23,8 +20,6 @@ export const Setting = ({
   setEngine1,
   engine2,
   setEngine2,
-  timeLimit,
-  setTimeLimit,
   games,
   setGames,
   startBattle,
@@ -38,7 +33,7 @@ export const Setting = ({
 
       <div className="paramWrap">
         <div className="labelWrap">
-          <legend>Time Limit Per Move (ms):</legend>
+          <legend>Time (ms):</legend>
           <input
             type="number"
             name="games"
@@ -47,8 +42,7 @@ export const Setting = ({
             className="numInput"
             max="10000"
             min="50"
-            value={timeLimit}
-            onChange={(e) => setTimeLimit(Number(e.target.value))}
+            value={0}
           />
         </div>
       </div>

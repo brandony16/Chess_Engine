@@ -2,7 +2,7 @@ import MoveArrows from "./MoveArrows.tsx";
 import MoveList from "./MoveList.jsx";
 import SidebarActions from "./SidebarActions.jsx";
 
-import { useGameStore } from "../../gameStore.ts";
+import { game, useGameStore } from "../../gameStore.ts";
 import React, { useMemo } from "react";
 import {
   CHECKMATE,
@@ -17,12 +17,11 @@ import {
 
 const Sidebar = () => {
   // States
-  const game = useGameStore((state) => state.game);
-  const sideToMove = useGameStore((state) => state.game.sideToMove);
+  const fen = useGameStore((s) => s.fen);
 
   const turnText = useMemo(
-    () => (sideToMove === WHITE ? "White's Turn" : "Black's Turn"),
-    [sideToMove],
+    () => (game.sideToMove === WHITE ? "White's Turn" : "Black's Turn"),
+    [fen], // use fen updating as a signal
   );
 
   const res = game.result();

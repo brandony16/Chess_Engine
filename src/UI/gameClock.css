@@ -1,0 +1,62 @@
+.game-clocks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-size, 1rem);
+  width: auto;
+  max-width: 300px;
+  min-width: 200px;
+}
+
+.clock-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--card-bg);
+  border: 2px solid var(--card-border);
+  border-radius: var(--card-radius);
+  padding: 1rem 1.5rem;
+  box-shadow: 0 4px 8px var(--card-shadow);
+  color: var(--text-secondary);
+  transition: all 0.2s ease-in-out;
+  opacity: 0.8;
+}
+
+/* Make the active player's clock pop using your board colors */
+.clock-card.active {
+  border-color: var(--lightSquare);
+  background-color: var(--darkSquare);
+  color: var(--text-primary);
+  opacity: 1;
+  transform: scale(1.02); /* Slight pop out effect */
+}
+
+/* Danger state for low time */
+.clock-card.low-time {
+  border-color: var(--warning-color);
+  color: var(--warning-color);
+}
+.clock-card.active.low-time {
+  background-color: rgba(
+    239,
+    163,
+    0,
+    0.15
+  ); /* Tint background with warning color */
+}
+
+.clock-title {
+  font-size: var(--label-size);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+}
+
+.clock-time {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  /* CRITICAL: Keeps characters identical widths so the UI doesn't jiggle */
+  font-variant-numeric: tabular-nums;
+}

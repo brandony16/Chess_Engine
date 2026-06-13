@@ -1,13 +1,12 @@
 import { useCallback, useReducer } from "react";
 
-import { INITIAL_STATE, useGameStore } from "../../../gameStore.ts";
+import { useGameStore } from "../../../gameStore.ts";
 
 import SideSelector from "./SideSelector.jsx";
 import EngineSelector from "./EngineSelector.jsx";
 
 import "./NewGame.css";
 import { BLACK, WHITE, type Player } from "../../../../game/chessConstants.ts";
-import type { Engine } from "../../../../engines/Engine.ts";
 
 const START_POS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -17,6 +16,14 @@ type StateInfo = {
   depth: number;
   timeLimit: number;
 };
+
+const INITIAL_STATE: StateInfo = {
+  userSide: 0,
+  engine: "BondmonkeyV10",
+  depth: 12,
+  timeLimit: 1000
+}
+
 
 function reducer(
   state: StateInfo,
@@ -33,7 +40,8 @@ function reducer(
 }
 
 const NewGame = () => {
-  const resetGame = useGameStore((s) => s.resetGame);
+  const saveGame = useGameStore((s) => s.saveGame);
+  const newGame = useGameStore((s) => s.newGame);
   const closeModal = useGameStore((s) => s.closeModal);
 
   const [state, dispatch] = useReducer(reducer, INITIAL_STATE);
@@ -59,8 +67,9 @@ const NewGame = () => {
   }, [userSide]);
 
   const handleStart = useCallback(() => {
-    resetGame(START_POS, getSide());
-  }, [resetGame, getSide, engine, depth, timeLimit]);
+    saveGame();
+    newGame({ fen: START_POS, userSide: getSide() });
+  }, [newGame, saveGame, getSide, engine, depth, timeLimit]);
 
   return (
     <div className="newGameBody">

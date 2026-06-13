@@ -5,6 +5,7 @@ import type {
   EngineCommand,
   EngineWorkerResponse,
 } from "../workers/engineWorker.ts";
+import { ContextType } from "../../../engines/searchContext.ts";
 
 /**
  * Hook that creates an engine worker to make a move.
@@ -25,7 +26,7 @@ export default function useEngineWorker() {
     w.onmessage = (e) => {
       const response: EngineWorkerResponse = e.data;
       if (response.type === "move") {
-        playMove(response.move);
+        playMove(response.move, response.timeRemainingMs);
       }
     };
     workerRef.current = w;
@@ -52,7 +53,7 @@ export default function useEngineWorker() {
         type: "init",
         engine,
         depth,
-        clock: clockSettings,
+        clock: { type: ContextType.TIME_CONTROL, ...clockSettings },
       };
       workerRef.current.postMessage(initCmd);
     }
