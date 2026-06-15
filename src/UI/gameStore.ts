@@ -40,7 +40,11 @@ type ModalState = { isOpen: false } | { isOpen: true; type: ModalType };
 type PromotionState =
   | { isHappening: false }
   | { isHappening: true; square: Square };
-type NewGameParams = { fen: string; userSide: Player };
+export type NewGameParams = {
+  fen: string;
+  userSide: Player;
+  clockSettings: { timePerPlayer: number; increment: number };
+};
 
 interface GameSliceVars {
   fen: string;
@@ -63,6 +67,7 @@ interface GameSlice extends GameSliceVars {
   showNextMove: () => void;
   showPreviousMove: () => void;
   goToMove: (halfmoveNumber: number) => void;
+  isGameOver: () => boolean;
 }
 
 interface UISliceVars {
@@ -88,7 +93,16 @@ interface EngineSlice extends EngineSliceVars {
   setEngine: (engine: EngineName) => void;
 }
 
-export type GameStoreState = GameSlice & UISlice & EngineSlice;
+interface ClockSliceVars {
+  isTimeOut: boolean;
+  timeOutLoser: Player | null;
+}
+
+interface ClockSlice extends ClockSliceVars {
+  handleTimeOut: (losingSide: Player) => void;
+}
+
+export type GameStoreState = GameSlice & UISlice & EngineSlice & ClockSlice;
 
 // ----- INITIAL STATES -----
 export const TIME_CONTROL_3_2 = {
@@ -97,7 +111,7 @@ export const TIME_CONTROL_3_2 = {
 };
 
 export const TIME_CONTROL_BULLET = {
-  timePerPlayer: 60 * 1000,
+  timePerPlayer: 10 * 1000,
   increment: 1000,
 };
 
@@ -125,6 +139,11 @@ export const INITIAL_ENGINE_SLICE: EngineSliceVars = {
   selectedEngine: engineNames[0],
   searchDepth: MAX_SEARCH_PLY,
   clockSettings: TIME_CONTROL_BULLET,
+};
+
+export const INITIAL_CLOCK_SLICE: ClockSliceVars = {
+  isTimeOut: false,
+  timeOutLoser: null,
 };
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
@@ -158,10 +177,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   saveGame: (isEngineGame: boolean = false): void => {
-    const { pastGames, algebraicMoves, userSide, selectedEngine } = get();
+    const { pastGames, algebraicMoves, userSide, selectedEngine, isGameOver } =
+      get();
 
     let updatedPast = pastGames;
-    if (game.isOver()) {
+    if (isGameOver()) {
       const result = game.result();
 
       const whiteSide = userSide === WHITE ? "user" : selectedEngine;
@@ -204,10 +224,18 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       legalMovesForSelected: [],
       algebraicMoves: [],
 
+      whiteTimeMs: params.clockSettings.timePerPlayer,
+      blackTimeMs: params.clockSettings.timePerPlayer,
+      clockSettings: params.clockSettings,
+      lastMoveTimestamp: Date.now(),
+
       modalState: { isOpen: false },
 
       idxOfDisplayedMove: 0,
       pastPositions: [game.getSnapshot()],
+
+      isTimeOut: false,
+      timeOutLoser: null,
     });
   },
 
@@ -234,6 +262,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       return { idxOfDisplayedMove: halfmoveNumber };
     }),
 
+  isGameOver: () => {
+    const { isTimeOut } = get();
+    return isTimeOut || game.isOver();
+  },
+
   // ----- UI SLICE -----
   ...INITIAL_UI_SLICE,
 
@@ -247,4 +280,17 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   ...INITIAL_ENGINE_SLICE,
 
   setEngine: (engine) => set({ selectedEngine: engine }),
+
+  // ----- CLOCK SLICE -----
+  ...INITIAL_CLOCK_SLICE,
+
+  handleTimeOut: (losingSide: Player) =>
+    set({
+      isTimeOut: true,
+      timeOutLoser: losingSide,
+
+      // Hard-clamp the loser's time to 0 to prevent any lingering interval bugs
+      whiteTimeMs: losingSide === WHITE ? 0 : get().whiteTimeMs,
+      blackTimeMs: losingSide === BLACK ? 0 : get().blackTimeMs,
+    }),
 }));

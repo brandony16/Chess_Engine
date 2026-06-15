@@ -33,10 +33,11 @@ export default function useChessActions() {
       whiteTimeMs,
       blackTimeMs,
       clockSettings,
+      isGameOver,
     } = useGameStore.getState();
 
     if (
-      game.isOver() ||
+      isGameOver() ||
       !isCurrPosShown(useGameStore.getState()) ||
       userSide !== game.sideToMove
     ) {

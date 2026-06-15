@@ -56,6 +56,12 @@
   position: relative;
 }
 
+.board-container {
+  position: relative;
+  height: 100%;
+  aspect-ratio: 1;
+}
+
 .sidebar {
   position: relative;
   box-sizing: border-box;

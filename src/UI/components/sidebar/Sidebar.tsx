@@ -17,13 +17,6 @@ import {
 
 const Sidebar = () => {
   // States
-  const fen = useGameStore((s) => s.fen);
-
-  const turnText = useMemo(
-    () => (game.sideToMove === WHITE ? "White's Turn" : "Black's Turn"),
-    [fen], // use fen updating as a signal
-  );
-
   const res = game.result();
   let endText = "";
 
@@ -59,7 +52,7 @@ const Sidebar = () => {
 
   return (
     <aside className="sidebar">
-      <div className="turnText">{game.isOver() ? endText : turnText}</div>
+      <div className="turnText">{game.isOver() ? endText : ""}</div>
       <MoveList />
       <MoveArrows />
       <SidebarActions />

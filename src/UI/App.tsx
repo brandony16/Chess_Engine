@@ -9,6 +9,7 @@ import PromotionModal from "./components/modals/promotionModal/PromotionModal.js
 import Sidebar from "./components/sidebar/Sidebar.jsx";
 import { useGameStore } from "./gameStore.ts";
 import GameClock from "./GameClock.tsx";
+import GameOverModal from "./components/modals/GameOverModal.tsx";
 
 function App(): ReactNode {
   // Get states
@@ -32,7 +33,10 @@ function App(): ReactNode {
     <main className="body">
       <section className="gameWrap" role="application">
         <GameClock />
-        <Board onSquareClick={handleSquareClick} />
+        <div className="board-container">
+          <GameOverModal />
+          <Board onSquareClick={handleSquareClick} />
+        </div>
         {promotion.isHappening && (
           <PromotionModal
             onPromote={handlePromotion}

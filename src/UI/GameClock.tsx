@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useGameStore } from "./gameStore.ts";
 import "./gameClock.css";
+import { BLACK, WHITE } from "../game/chessConstants.ts";
 
 const LOW_TIME_THRESHOLD_MS = 10000; // 10 seconds
 
@@ -8,6 +9,7 @@ export default function GameClock() {
   const fen = useGameStore((s) => s.fen);
   const whiteTime = useGameStore((s) => s.whiteTimeMs);
   const blackTime = useGameStore((s) => s.blackTimeMs);
+  const isGameOver = useGameStore((s) => s.isGameOver);
 
   const [whiteDisplayTime, setWhiteDisplayTime] = useState(whiteTime);
   const [blackDisplayTime, setBlackDisplayTime] = useState(blackTime);
@@ -17,6 +19,8 @@ export default function GameClock() {
   const isBlackActive = activeColor === "b";
 
   useEffect(() => {
+    if (isGameOver()) return;
+
     const side = fen.split(" ")[1];
     const initialTime = side === "w" ? whiteTime : blackTime;
 
@@ -30,8 +34,12 @@ export default function GameClock() {
       if (side === "w") setWhiteDisplayTime(timeLeft);
       else setBlackDisplayTime(timeLeft);
 
-      if (timeLeft === 0) clearInterval(interval);
-    }, 100);
+      if (timeLeft === 0) {
+        clearInterval(interval);
+        // Fire the timeout action directly to the store
+        useGameStore.getState().handleTimeOut(isWhiteActive ? WHITE : BLACK);
+      }
+    }, 50);
 
     return () => clearInterval(interval);
   }, [fen, whiteTime, blackTime]);

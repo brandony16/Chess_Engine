@@ -2,8 +2,9 @@
   display: grid;
   grid-template: repeat(8, 1fr) / repeat(8, 1fr);
   box-sizing: border-box;
-  aspect-ratio: 1;
   height: 100%;
+  width: 100%;
+  aspect-ratio: 1;
   padding: 1.5rem;
   background-color: var(--boardBg);
   border-radius: 16px;

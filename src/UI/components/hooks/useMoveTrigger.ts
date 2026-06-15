@@ -16,12 +16,13 @@ export default function useMoveTrigger(
   const whiteTimeMs = useGameStore((state) => state.whiteTimeMs);
   const blackTimeMs = useGameStore((state) => state.blackTimeMs);
   const clockSettings = useGameStore((state) => state.clockSettings);
+  const isGameOver = useGameStore((state) => state.isGameOver);
 
   /**
    * Plays the engine move after the player makes its turn.
    */
   useEffect(() => {
-    if (game.sideToMove !== userSide && !game.isOver() && userSide !== null) {
+    if (game.sideToMove !== userSide && !isGameOver() && userSide !== null) {
       const position = game.getPositionCpy();
 
       const moveHistory = game.moveHistory;

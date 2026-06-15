@@ -1,0 +1,94 @@
+.modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  border-radius: 16px;
+
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.game-over-card {
+  background-color: var(--card-bg);
+  border: 2px solid var(--card-border);
+  border-radius: var(--card-radius);
+  box-shadow: 0 12px 24px var(--card-shadow);
+  padding: 2.5rem 3rem;
+  text-align: center;
+  min-width: 320px;
+  animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.game-over-card h2 {
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+  font-size: 2.2rem;
+  letter-spacing: 0.02em;
+}
+
+.game-over-card .subtitle {
+  color: var(--accent);
+  margin: 0 0 2rem 0;
+  font-weight: 600;
+  font-size: var(--label-size);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-size);
+}
+
+.modal-actions button {
+  padding: 0.8rem 1.5rem;
+  border-radius: var(--input-radius);
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border: none;
+}
+
+.modal-actions button.primary {
+  background-color: var(--darkSquare);
+  color: var(--text-primary);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.modal-actions button.primary:hover {
+  background-color: var(--lightSquareHover);
+  color: var(--labelColor);
+  transform: translateY(-1px);
+}
+
+.modal-actions button.secondary {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: 2px solid var(--engine-border);
+}
+
+.modal-actions button.secondary:hover {
+  background-color: var(--engine-hover);
+  color: var(--engine-text);
+  border-color: var(--engine-border);
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
