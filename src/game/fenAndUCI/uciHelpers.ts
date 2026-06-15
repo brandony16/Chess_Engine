@@ -59,8 +59,8 @@ export function uciToMove(uciMove: string, pos: Position) {
     throw new Error(`Ivalid uciMove: ${uciMove}`);
   }
 
-  const from = squareToIndex(uciMove.slice(0, 2));
-  const to = squareToIndex(uciMove.slice(2, 4));
+  const from = squareToIndex(sq1);
+  const to = squareToIndex(sq2);
 
   let promotion: Piece = NO_PIECE;
   if (uciMove.length === 5) {
@@ -97,7 +97,7 @@ function isValidPieceChar(c: string): c is keyof typeof PIECE_INDEXES {
   return c in PIECE_INDEXES;
 }
 
-function squareToIndex(square: string) {
+export function squareToIndex(square: string) {
   const file = square.charAt(0);
   const rank = square.charAt(1);
 

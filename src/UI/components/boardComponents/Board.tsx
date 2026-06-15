@@ -31,6 +31,7 @@ export type CellEntry = {
   piece: Piece;
   isSelected: boolean;
   isMove: boolean;
+  highlightSq: boolean;
 };
 
 // Creates the board out of Cells
@@ -40,6 +41,9 @@ const Board = ({ onSquareClick }: BoardProps) => {
   const boardPerspective = useGameStore((state) => state.boardPerspective);
   const displayed = useGameStore(getShownMove);
   const selectedSquare = useGameStore((state) => state.selectedSquare);
+
+  const moveHighlights = useGameStore((state) => state.moveHighlights);
+
   const legalMoves = useGameStore((state) => state.legalMovesForSelected);
   const moveBB = movesToBB(legalMoves);
 
@@ -54,6 +58,8 @@ const Board = ({ onSquareClick }: BoardProps) => {
       for (const file of files) {
         const square = getSquare(rank, file); // Flip columns per row
         const isMove = Boolean(moveBB & (1n << BigInt(square)));
+        const shouldHighlight =
+          square === moveHighlights[0] || square === moveHighlights[1];
 
         list.push({
           square,
@@ -62,6 +68,7 @@ const Board = ({ onSquareClick }: BoardProps) => {
           piece: displayed.getPiece(square),
           isSelected: selectedSquare === square,
           isMove: isMove,
+          highlightSq: shouldHighlight,
         });
       }
     }

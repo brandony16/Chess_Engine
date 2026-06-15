@@ -12,7 +12,7 @@ import { opponent } from "../game/helpers/opponent.ts";
 import { Snapshot } from "../game/Snapshot.ts";
 import { moveToAlgebraic } from "./generalHelpers.ts";
 import { buildPGN } from "../game/fenAndUCI/pgn.ts";
-import type { Move } from "../game/moveMaking/move.ts";
+import { moveFrom, moveTo, type Move } from "../game/moveMaking/move.ts";
 import {
   engineNames,
   type EngineName,
@@ -21,6 +21,7 @@ import { START_POS } from "../__tests__/game_tests/fens.ts";
 import { INFINITY, MAX_SEARCH_PLY } from "../engines/Engine.ts";
 import { OpeningBook } from "../OpeningBook.ts";
 import { ContextType, type ClockType } from "../engines/searchContext.ts";
+import { squareToIndex } from "../game/fenAndUCI/uciHelpers.ts";
 
 // ----- EXTERNAL VARIABLES -----
 export const game = new Game(START_POS);
@@ -75,6 +76,8 @@ interface UISliceVars {
   legalMovesForSelected: Move[];
   modalState: ModalState;
   promotion: PromotionState;
+  timeSpentPerMove: number[];
+  moveHighlights: Square[];
 }
 
 interface UISlice extends UISliceVars {
@@ -111,7 +114,7 @@ export const TIME_CONTROL_3_2 = {
 };
 
 export const TIME_CONTROL_BULLET = {
-  timePerPlayer: 10 * 1000,
+  timePerPlayer: 60 * 1000,
   increment: 1000,
 };
 
@@ -133,6 +136,8 @@ export const INITIAL_UI_SLICE: UISliceVars = {
   legalMovesForSelected: [],
   modalState: { isOpen: false },
   promotion: { isHappening: false },
+  timeSpentPerMove: [],
+  moveHighlights: [],
 };
 
 export const INITIAL_ENGINE_SLICE: EngineSliceVars = {
@@ -151,7 +156,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   ...INITIAL_GAME_SLICE,
 
   playMove: (move: Move, timeRemaining: number): void => {
-    const { pastPositions, algebraicMoves, whiteTimeMs, blackTimeMs } = get();
+    const {
+      pastPositions,
+      algebraicMoves,
+      whiteTimeMs,
+      blackTimeMs,
+      lastMoveTimestamp,
+      timeSpentPerMove,
+    } = get();
 
     const isWhiteTurn = game.fen().split(" ")[1] === "w";
 
@@ -159,6 +171,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     if (!success) return;
 
     const algebraic = moveToAlgebraic(move, game.isInCheck(), game.isOver());
+
+    const currTimestamp = Date.now();
+    const approxTimeSpent = currTimestamp - lastMoveTimestamp;
 
     set({
       fen: game.fen(),
@@ -172,7 +187,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       whiteTimeMs: isWhiteTurn ? timeRemaining : whiteTimeMs,
       blackTimeMs: !isWhiteTurn ? timeRemaining : blackTimeMs,
 
-      lastMoveTimestamp: Date.now(),
+      lastMoveTimestamp: currTimestamp,
+      timeSpentPerMove: [...timeSpentPerMove, approxTimeSpent],
+      moveHighlights: [moveFrom(move), moveTo(move)],
     });
   },
 
@@ -243,23 +260,59 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set((state) => ({ boardPerspective: opponent(state.boardPerspective) })),
 
   showNextMove: () =>
-    set((state) => ({
-      idxOfDisplayedMove: Math.min(
+    set((state) => {
+      const newIdxOfDisplayed = Math.min(
         state.idxOfDisplayedMove + 1,
         state.pastPositions.length - 1,
-      ),
-    })),
+      );
+
+      // game stores uci moves, which are much easier to parse
+      // need to find the move that got us to this position to highlight the correct squares
+      // that is the move at the current idxOfDisplayedMove, not the newIdxOfDisplayed
+      const uciMove = game.moveHistory[state.idxOfDisplayedMove];
+      const from = squareToIndex(uciMove.slice(0, 2)) as Square;
+      const to = squareToIndex(uciMove.slice(2, 4)) as Square;
+
+      return {
+        idxOfDisplayedMove: newIdxOfDisplayed,
+        moveHighlights: [from, to],
+      };
+    }),
 
   showPreviousMove: () =>
-    set((state) => ({
-      idxOfDisplayedMove: Math.max(state.idxOfDisplayedMove - 1, 0),
-    })),
+    set((state) => {
+      const newIdxOfDisplayed = Math.max(state.idxOfDisplayedMove - 1, 0);
+
+      let newHighlights: Square[] = [];
+      if (newIdxOfDisplayed - 1 >= 0) {
+        // game stores uci moves, which are much easier to parse
+        // need the move that got us to the new position, which is at idx 1 less than the new idx
+        const uciMove = game.moveHistory[newIdxOfDisplayed - 1];
+        const from = squareToIndex(uciMove.slice(0, 2)) as Square;
+        const to = squareToIndex(uciMove.slice(2, 4)) as Square;
+        newHighlights = [from, to];
+      }
+
+      return {
+        idxOfDisplayedMove: newIdxOfDisplayed,
+        moveHighlights: newHighlights,
+      };
+    }),
 
   goToMove: (halfmoveNumber: number) =>
     set((state) => {
       if (halfmoveNumber < 0 || halfmoveNumber >= state.pastPositions.length)
         return state;
-      return { idxOfDisplayedMove: halfmoveNumber };
+
+      // game stores uci moves, which are much easier to parse
+      const uciMove = game.moveHistory[halfmoveNumber];
+      const from = squareToIndex(uciMove.slice(0, 2)) as Square;
+      const to = squareToIndex(uciMove.slice(2, 4)) as Square;
+
+      return {
+        idxOfDisplayedMove: halfmoveNumber + 1, // offset by 1 to account for the starting position, which is idx 0
+        moveHighlights: [from, to],
+      };
     }),
 
   isGameOver: () => {

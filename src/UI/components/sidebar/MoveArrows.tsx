@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React from "react";
 
 import { useGameStore } from "../../gameStore.ts";
 

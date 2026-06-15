@@ -28,11 +28,7 @@ interface CellProps {
 
   dragOver: (e: React.DragEvent<HTMLButtonElement>) => void;
 
-  drop: (
-    e: React.DragEvent<HTMLButtonElement>,
-    rank: Rank,
-    file: File,
-  ) => void;
+  drop: (e: React.DragEvent<HTMLButtonElement>, rank: Rank, file: File) => void;
 }
 // A board cell
 const Cell = ({
@@ -47,11 +43,12 @@ const Cell = ({
   const pieceRef = useRef<HTMLDivElement | null>(null);
 
   const style = {
-    backgroundColor: cellInfo.isSelected
-      ? "rgba(255, 191, 89, 0.4)"
-      : cellInfo.isMove
-        ? "rgba(255, 100, 100, 0.3)"
-        : "transparent",
+    backgroundColor:
+      cellInfo.isSelected || cellInfo.highlightSq
+        ? "rgba(255, 191, 89, 0.5)"
+        : cellInfo.isMove
+          ? "rgba(255, 100, 100, 0.3)"
+          : "transparent",
   };
 
   const rank = cellInfo.relRank;

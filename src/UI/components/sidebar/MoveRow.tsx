@@ -9,7 +9,7 @@ export type MoveRowProps = {
 
 const MoveRow = ({ halfMove, whiteMove, blackMove }: MoveRowProps) => {
   const goToMove = useGameStore((state) => state.goToMove);
-  const currIdxOfDisplayed = useGameStore((state) => state.currIdxOfDisplayed);
+  const currIdxOfDisplayed = useGameStore((state) => state.idxOfDisplayedMove);
 
   const goToWhiteMove = useCallback(
     () => goToMove(halfMove),
