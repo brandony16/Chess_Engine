@@ -10,6 +10,7 @@ export default function GameClock() {
   const whiteTime = useGameStore((s) => s.whiteTimeMs);
   const blackTime = useGameStore((s) => s.blackTimeMs);
   const isGameOver = useGameStore((s) => s.isGameOver);
+  const increment = useGameStore((s) => s.clockSettings.increment);
 
   const [whiteDisplayTime, setWhiteDisplayTime] = useState(whiteTime);
   const [blackDisplayTime, setBlackDisplayTime] = useState(blackTime);
@@ -25,6 +26,9 @@ export default function GameClock() {
     const initialTime = side === "w" ? whiteTime : blackTime;
 
     const startTimestamp = Date.now();
+
+    setWhiteDisplayTime(whiteTime);
+    setBlackDisplayTime(blackTime);
 
     const interval = setInterval(() => {
       const now = Date.now();

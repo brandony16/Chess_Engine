@@ -10,6 +10,7 @@ export type MoveRowProps = {
 const MoveRow = ({ halfMove, whiteMove, blackMove }: MoveRowProps) => {
   const goToMove = useGameStore((state) => state.goToMove);
   const currIdxOfDisplayed = useGameStore((state) => state.idxOfDisplayedMove);
+  const timeSpent = useGameStore((state) => state.timeSpentPerMove);
 
   const goToWhiteMove = useCallback(
     () => goToMove(halfMove),
@@ -21,12 +22,28 @@ const MoveRow = ({ halfMove, whiteMove, blackMove }: MoveRowProps) => {
     [goToMove, halfMove],
   );
 
+  const formatTimeSpent = useCallback((timeMs: number) => {
+    const timeSec = timeMs / 1000;
+
+    if (timeSec < 60) {
+      return timeSec.toFixed(1) + "s"; // show precision to 10ths of a second
+    }
+
+    const mins = Math.floor(timeSec / 60);
+    const secs = Math.floor(timeSec - mins * 60);
+
+    return `${mins}m ${secs}s`;
+  }, []);
+
   const highlightWhite = halfMove + 1 === currIdxOfDisplayed;
   const highlightBlack = halfMove + 2 === currIdxOfDisplayed;
 
   return (
-    <li key={halfMove / 2} className="pastMove">
-      <span className="moveNum">{halfMove / 2 + 1}.</span>
+    <li
+      key={halfMove / 2}
+      className={`pastMove ${Math.floor(halfMove / 2) % 2 === 0 ? "alt" : ""}`}
+    >
+      <div className="moveNum">{halfMove / 2 + 1}.</div>
 
       <button
         type="button"
@@ -45,6 +62,23 @@ const MoveRow = ({ halfMove, whiteMove, blackMove }: MoveRowProps) => {
           {blackMove}
         </button>
       )}
+
+      <div className="timeSpent">
+        <div className="timeWrap">
+          <div className="timeSpentText">
+            {formatTimeSpent(timeSpent[halfMove])}
+          </div>
+          <div className="moveBar white"></div>
+        </div>
+        {blackMove && (
+          <div className="timeWrap">
+            <div className="timeSpentText">
+              {formatTimeSpent(timeSpent[halfMove + 1])}
+            </div>
+            <div className="moveBar black"></div>
+          </div>
+        )}
+      </div>
     </li>
   );
 };

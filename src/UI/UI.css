@@ -80,19 +80,6 @@
   color: #f0f0f0;
 }
 
-.turnText {
-  font-size: 1.5rem;
-  font-weight: bold;
-  box-sizing: border-box;
-  padding: 8px;
-  margin-bottom: auto;
-  align-self: center;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  border-bottom: 2px solid black;
-}
-
 .moveList {
   display: flex;
   flex-direction: column;
@@ -116,16 +103,22 @@
   font-weight: bold;
   color: #a7a7a7;
   cursor: default;
+  justify-self: left;
+  align-self: center;
 }
 
 .pastMove {
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: 1fr 2fr 2fr;
+  grid-template-columns: 1fr 3fr 3fr 2fr;
   cursor: pointer;
-  border-radius: 6px;
-  column-gap: 4px;
+  column-gap: 16px;
   transition: background-color 0.2s;
+  padding-left: 2px;
+}
+
+.pastMove.alt {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 
 .move,
@@ -145,6 +138,44 @@
 .move.highlighted,
 .move.highlighted:hover {
   background-color: rgba(255, 255, 255, 0.15);
+}
+
+.timeSpent {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  grid-column: 4;
+  align-items: end;
+  justify-self: right;
+  padding-right: 4px;
+  gap: 2px;
+}
+
+.timeWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.moveBar {
+  width: 5px;
+  height: 100%;
+  border-radius: 3px;
+}
+
+.moveBar.white {
+  background-color: white;
+}
+
+.moveBar.black {
+  background-color: black;
+}
+
+.timeSpentText {
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: var(--text-secondary);
 }
 
 .moveArrows {

@@ -253,6 +253,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
       isTimeOut: false,
       timeOutLoser: null,
+      moveHighlights: [],
     });
   },
 
@@ -266,6 +267,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         state.pastPositions.length - 1,
       );
 
+      if (newIdxOfDisplayed === state.idxOfDisplayedMove) {
+        return {}; // at end of move list already, nothing changed
+      }
+
       // game stores uci moves, which are much easier to parse
       // need to find the move that got us to this position to highlight the correct squares
       // that is the move at the current idxOfDisplayedMove, not the newIdxOfDisplayed
@@ -276,6 +281,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       return {
         idxOfDisplayedMove: newIdxOfDisplayed,
         moveHighlights: [from, to],
+        legalMovesForSelected: [],
+        selectedSquare: NO_SQUARE,
+        promotion: { isHappening: false },
       };
     }),
 
@@ -296,6 +304,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       return {
         idxOfDisplayedMove: newIdxOfDisplayed,
         moveHighlights: newHighlights,
+        legalMovesForSelected: [],
+        selectedSquare: NO_SQUARE,
+        promotion: { isHappening: false },
       };
     }),
 
@@ -312,6 +323,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       return {
         idxOfDisplayedMove: halfmoveNumber + 1, // offset by 1 to account for the starting position, which is idx 0
         moveHighlights: [from, to],
+        legalMovesForSelected: [],
+        selectedSquare: NO_SQUARE,
+        promotion: { isHappening: false },
       };
     }),
 
