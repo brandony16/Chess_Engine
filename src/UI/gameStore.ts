@@ -22,6 +22,8 @@ import { INFINITY, MAX_SEARCH_PLY } from "../engines/Engine.ts";
 import { OpeningBook } from "../OpeningBook.ts";
 import { ContextType, type ClockType } from "../engines/searchContext.ts";
 import { squareToIndex } from "../game/fenAndUCI/uciHelpers.ts";
+import { TC_3_2 } from "./timeControls.ts";
+import NewGame from "./components/modals/newGame/NewGame.tsx";
 
 // ----- EXTERNAL VARIABLES -----
 export const game = new Game(START_POS);
@@ -45,6 +47,7 @@ export type NewGameParams = {
   fen: string;
   userSide: Player;
   clockSettings: { timePerPlayer: number; increment: number };
+  selectedEngine: EngineName;
 };
 
 interface GameSliceVars {
@@ -78,6 +81,7 @@ interface UISliceVars {
   promotion: PromotionState;
   timeSpentPerMove: number[];
   moveHighlights: Square[];
+  sidebarMode: "setup" | "playing" | "history";
 }
 
 interface UISlice extends UISliceVars {
@@ -85,6 +89,7 @@ interface UISlice extends UISliceVars {
   setPromotion: (state: PromotionState) => void;
   openModal: (type: Exclude<ModalType, null>) => void;
   closeModal: () => void;
+  setSidebarMode: (mode: "setup" | "playing" | "history") => void;
 }
 
 interface EngineSliceVars {
@@ -108,16 +113,6 @@ interface ClockSlice extends ClockSliceVars {
 export type GameStoreState = GameSlice & UISlice & EngineSlice & ClockSlice;
 
 // ----- INITIAL STATES -----
-export const TIME_CONTROL_3_2 = {
-  timePerPlayer: 3 * 60 * 1000, // 3 minutes
-  increment: 2000, // 2s increment
-};
-
-export const TIME_CONTROL_BULLET = {
-  timePerPlayer: 60 * 1000,
-  increment: 1000,
-};
-
 export const INITIAL_GAME_SLICE: GameSliceVars = {
   fen: game.fen(),
   userSide: WHITE,
@@ -126,8 +121,8 @@ export const INITIAL_GAME_SLICE: GameSliceVars = {
   algebraicMoves: [],
   idxOfDisplayedMove: 0,
   pastGames: [],
-  whiteTimeMs: TIME_CONTROL_BULLET.timePerPlayer,
-  blackTimeMs: TIME_CONTROL_BULLET.timePerPlayer,
+  whiteTimeMs: TC_3_2.timePerPlayer,
+  blackTimeMs: TC_3_2.timePerPlayer,
   lastMoveTimestamp: Date.now(),
 };
 
@@ -138,12 +133,13 @@ export const INITIAL_UI_SLICE: UISliceVars = {
   promotion: { isHappening: false },
   timeSpentPerMove: [],
   moveHighlights: [],
+  sidebarMode: "setup",
 };
 
 export const INITIAL_ENGINE_SLICE: EngineSliceVars = {
   selectedEngine: engineNames[0],
   searchDepth: MAX_SEARCH_PLY,
-  clockSettings: TIME_CONTROL_BULLET,
+  clockSettings: TC_3_2,
 };
 
 export const INITIAL_CLOCK_SLICE: ClockSliceVars = {
@@ -233,6 +229,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   newGame: (params: NewGameParams): void => {
     game.loadFen(params.fen);
 
+    console.log(params);
+
     set({
       fen: params.fen,
       userSide: params.userSide,
@@ -254,6 +252,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       isTimeOut: false,
       timeOutLoser: null,
       moveHighlights: [],
+      sidebarMode: "playing",
     });
   },
 
@@ -337,11 +336,13 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   // ----- UI SLICE -----
   ...INITIAL_UI_SLICE,
 
-  setSelectedSquare: (square, legalMoves = []) =>
+  setSelectedSquare: (square: Square, legalMoves: number[] = []) =>
     set({ selectedSquare: square, legalMovesForSelected: legalMoves }),
-  setPromotion: (state) => set({ promotion: state }),
-  openModal: (type) => set({ modalState: { isOpen: true, type } }),
+  setPromotion: (state: PromotionState) => set({ promotion: state }),
+  openModal: (type: ModalType) => set({ modalState: { isOpen: true, type } }),
   closeModal: () => set({ modalState: { isOpen: false } }),
+  setSidebarMode: (mode: "setup" | "playing" | "history") =>
+    set({ sidebarMode: mode }),
 
   // ----- ENGINE SLICE -----
   ...INITIAL_ENGINE_SLICE,
