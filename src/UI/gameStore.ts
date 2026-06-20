@@ -22,7 +22,7 @@ import { INFINITY, MAX_SEARCH_PLY } from "../engines/Engine.ts";
 import { OpeningBook } from "../OpeningBook.ts";
 import { ContextType, type ClockType } from "../engines/searchContext.ts";
 import { squareToIndex } from "../game/fenAndUCI/uciHelpers.ts";
-import { TC_3_2 } from "./timeControls.ts";
+import { TC_3_2, type TimeControl } from "./timeControls.ts";
 import NewGame from "./components/modals/newGame/NewGame.tsx";
 
 // ----- EXTERNAL VARIABLES -----
@@ -95,7 +95,7 @@ interface UISlice extends UISliceVars {
 interface EngineSliceVars {
   selectedEngine: EngineName;
   searchDepth: number;
-  clockSettings: { timePerPlayer: number; increment: number };
+  clockSettings: TimeControl;
 }
 interface EngineSlice extends EngineSliceVars {
   setEngine: (engine: EngineName) => void;
