@@ -1,6 +1,6 @@
 import { useGameStore } from "../../gameStore.ts";
-import MoveArrows from "./MoveArrows.tsx";
-import MoveList from "./MoveList.jsx";
+import MoveArrows from "./playing/MoveArrows.tsx";
+import MoveList from "./playing/MoveList.tsx";
 import NewGameMenu from "./setup/NewGameMenu.tsx";
 import SidebarActions from "./SidebarActions.jsx";
 
@@ -16,9 +16,9 @@ const Sidebar = () => {
         <>
           <MoveList />
           <MoveArrows />
-          <SidebarActions />
         </>
       )}
+      <SidebarActions />
     </aside>
   );
 };

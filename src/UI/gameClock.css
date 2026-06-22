@@ -7,6 +7,10 @@
   min-width: 200px;
 }
 
+.game-clocks.invert-clocks {
+  flex-direction: column-reverse;
+}
+
 .clock-card {
   display: flex;
   justify-content: space-between;

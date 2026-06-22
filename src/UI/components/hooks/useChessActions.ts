@@ -34,12 +34,14 @@ export default function useChessActions() {
       blackTimeMs,
       clockSettings,
       isGameOver,
+      sidebarMode,
     } = useGameStore.getState();
 
     if (
       isGameOver() ||
       !isCurrPosShown(useGameStore.getState()) ||
-      userSide !== game.sideToMove
+      userSide !== game.sideToMove ||
+      sidebarMode !== "playing"
     ) {
       return;
     }

@@ -18,12 +18,10 @@ import {
   type EngineName,
 } from "../engines/bondmonkeyVersions/engineList.ts";
 import { START_POS } from "../__tests__/game_tests/fens.ts";
-import { INFINITY, MAX_SEARCH_PLY } from "../engines/Engine.ts";
+import { MAX_SEARCH_PLY } from "../engines/Engine.ts";
 import { OpeningBook } from "../OpeningBook.ts";
-import { ContextType, type ClockType } from "../engines/searchContext.ts";
 import { squareToIndex } from "../game/fenAndUCI/uciHelpers.ts";
 import { TC_3_2, type TimeControl } from "./timeControls.ts";
-import NewGame from "./components/modals/newGame/NewGame.tsx";
 
 // ----- EXTERNAL VARIABLES -----
 export const game = new Game(START_POS);
@@ -159,7 +157,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       blackTimeMs,
       lastMoveTimestamp,
       timeSpentPerMove,
+      sidebarMode,
     } = get();
+
+    if (sidebarMode !== "playing") return;
 
     const isWhiteTurn = game.fen().split(" ")[1] === "w";
 
@@ -243,6 +244,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       blackTimeMs: params.clockSettings.timePerPlayer,
       clockSettings: params.clockSettings,
       lastMoveTimestamp: Date.now(),
+
+      selectedEngine: params.selectedEngine,
 
       modalState: { isOpen: false },
 

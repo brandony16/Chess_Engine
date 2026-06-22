@@ -35,8 +35,6 @@ export default function NewGameMenu() {
       newSide = Math.floor(Math.random() * 2) as Player;
     }
 
-    console.log(clock, opponent, userSide);
-
     newGame({
       fen: START_POS,
       userSide: newSide,

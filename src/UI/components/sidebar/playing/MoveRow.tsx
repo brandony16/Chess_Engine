@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { useGameStore } from "../../gameStore.ts";
+import { useGameStore } from "../../../gameStore.ts";
 
 export type MoveRowProps = {
   halfMove: number;

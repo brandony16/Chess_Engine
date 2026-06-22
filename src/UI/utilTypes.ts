@@ -64,7 +64,6 @@ export const PIECE_NAMES = {
 export type PieceChar = keyof typeof PIECE_NAMES;
 
 export const ModalTypes = {
-  NEW: "new",
   BATTLE: "battle",
   HISTORY: "history",
 } as const;

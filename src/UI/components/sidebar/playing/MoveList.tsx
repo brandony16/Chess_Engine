@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useMemo, useRef } from "react";
-import { useGameStore } from "../../gameStore.ts";
+import { useGameStore } from "../../../gameStore.ts";
 
 import MoveRow, { type MoveRowProps } from "./MoveRow.tsx";
 

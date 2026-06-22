@@ -10,8 +10,8 @@ import { ModalTypes } from "../../utilTypes.ts";
 const SidebarActions = () => {
   const openModal = useGameStore((state) => state.openModal);
   const flipBoard = useGameStore((state) => state.flipBoard);
+  const setSidebarMode = useGameStore((state) => state.setSidebarMode);
 
-  const openNew = useCallback(() => openModal(ModalTypes.NEW), [openModal]);
   const openBattle = useCallback(
     () => openModal(ModalTypes.BATTLE),
     [openModal],
@@ -26,7 +26,7 @@ const SidebarActions = () => {
       <button
         title="New game"
         className="newGame sidebarIconBtn"
-        onClick={openNew}
+        onClick={() => setSidebarMode("playing")}
       >
         <img className="sidebarIcon" src={newGame} alt="new game" />
       </button>

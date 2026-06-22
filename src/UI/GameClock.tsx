@@ -10,7 +10,8 @@ export default function GameClock() {
   const whiteTime = useGameStore((s) => s.whiteTimeMs);
   const blackTime = useGameStore((s) => s.blackTimeMs);
   const isGameOver = useGameStore((s) => s.isGameOver);
-  const increment = useGameStore((s) => s.clockSettings.increment);
+  const sidebarState = useGameStore((s) => s.sidebarMode);
+  const perspective = useGameStore((s) => s.boardPerspective);
 
   const [whiteDisplayTime, setWhiteDisplayTime] = useState(whiteTime);
   const [blackDisplayTime, setBlackDisplayTime] = useState(blackTime);
@@ -20,7 +21,7 @@ export default function GameClock() {
   const isBlackActive = activeColor === "b";
 
   useEffect(() => {
-    if (isGameOver()) return;
+    if (isGameOver() || sidebarState !== "playing") return;
 
     const side = fen.split(" ")[1];
     const initialTime = side === "w" ? whiteTime : blackTime;
@@ -46,10 +47,12 @@ export default function GameClock() {
     }, 50);
 
     return () => clearInterval(interval);
-  }, [fen, whiteTime, blackTime]);
+  }, [fen, whiteTime, blackTime, sidebarState]);
 
   return (
-    <div className="game-clocks">
+    <div
+      className={`game-clocks ${perspective === WHITE ? "" : "invert-clocks"}`}
+    >
       {/* Black Player Clock */}
       <div
         className={`clock-card ${isBlackActive ? "active" : ""} ${
