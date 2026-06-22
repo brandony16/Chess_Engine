@@ -16,6 +16,8 @@ import { START_POS } from "../../../__tests__/game_tests/fens.ts";
 
 export default function GameOverModal() {
   const isGameOver = useGameStore((s) => s.isGameOver);
+  const userSide = useGameStore((s) => s.userSide);
+  const userResigned = useGameStore((s) => s.userResigned);
   const isTimeOut = useGameStore((s) => s.isTimeOut);
   const timeOutLoser = useGameStore((s) => s.timeOutLoser);
 
@@ -31,6 +33,7 @@ export default function GameOverModal() {
       fen: START_POS,
       userSide: side as Player,
       clockSettings: useGameStore.getState().clockSettings,
+      selectedEngine: useGameStore.getState().selectedEngine,
     };
     newGame(gameParams);
   }, []);
@@ -42,7 +45,11 @@ export default function GameOverModal() {
   let title = "Game Over";
   let subtitle = "";
 
-  if (isTimeOut) {
+  if (userResigned) {
+    const winner = userSide === WHITE ? "Black" : "White";
+    title = `${winner} Wins`;
+    subtitle = "by resignation";
+  } else if (isTimeOut) {
     const winner = timeOutLoser === WHITE ? "Black" : "White";
     title = `${winner} Wins`;
     subtitle = "by timeout";

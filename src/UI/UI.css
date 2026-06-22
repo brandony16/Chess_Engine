@@ -186,6 +186,13 @@
   margin-top: 0.3rem;
 }
 
+.resign-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30%;
+}
+
 .iconBtnWrap {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

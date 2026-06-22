@@ -7,6 +7,7 @@ const LOW_TIME_THRESHOLD_MS = 10000; // 10 seconds
 
 export default function GameClock() {
   const fen = useGameStore((s) => s.fen);
+  const userResigned = useGameStore((s) => s.userResigned);
   const whiteTime = useGameStore((s) => s.whiteTimeMs);
   const blackTime = useGameStore((s) => s.blackTimeMs);
   const isGameOver = useGameStore((s) => s.isGameOver);
@@ -47,7 +48,7 @@ export default function GameClock() {
     }, 50);
 
     return () => clearInterval(interval);
-  }, [fen, whiteTime, blackTime, sidebarState]);
+  }, [fen, whiteTime, blackTime, sidebarState, userResigned]);
 
   return (
     <div

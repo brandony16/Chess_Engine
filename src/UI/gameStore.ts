@@ -59,6 +59,7 @@ interface GameSliceVars {
   whiteTimeMs: number;
   blackTimeMs: number;
   lastMoveTimestamp: number;
+  userResigned: boolean;
 }
 
 interface GameSlice extends GameSliceVars {
@@ -70,6 +71,8 @@ interface GameSlice extends GameSliceVars {
   showPreviousMove: () => void;
   goToMove: (halfmoveNumber: number) => void;
   isGameOver: () => boolean;
+  updateShownGame: (entry: HistoryEntry) => void;
+  resignGame: () => void;
 }
 
 interface UISliceVars {
@@ -122,6 +125,7 @@ export const INITIAL_GAME_SLICE: GameSliceVars = {
   whiteTimeMs: TC_3_2.timePerPlayer,
   blackTimeMs: TC_3_2.timePerPlayer,
   lastMoveTimestamp: Date.now(),
+  userResigned: false,
 };
 
 export const INITIAL_UI_SLICE: UISliceVars = {
@@ -230,8 +234,6 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   newGame: (params: NewGameParams): void => {
     game.loadFen(params.fen);
 
-    console.log(params);
-
     set({
       fen: params.fen,
       userSide: params.userSide,
@@ -332,9 +334,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }),
 
   isGameOver: () => {
-    const { isTimeOut } = get();
-    return isTimeOut || game.isOver();
+    const { isTimeOut, userResigned } = get();
+    return isTimeOut || userResigned || game.isOver();
   },
+
+  resignGame: () => set({ userResigned: true }),
 
   // ----- UI SLICE -----
   ...INITIAL_UI_SLICE,
@@ -346,6 +350,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   closeModal: () => set({ modalState: { isOpen: false } }),
   setSidebarMode: (mode: "setup" | "playing" | "history") =>
     set({ sidebarMode: mode }),
+
+  updateShownGame: (entry: HistoryEntry) => {},
 
   // ----- ENGINE SLICE -----
   ...INITIAL_ENGINE_SLICE,

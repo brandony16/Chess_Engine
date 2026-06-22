@@ -16,17 +16,13 @@ const SidebarActions = () => {
     () => openModal(ModalTypes.BATTLE),
     [openModal],
   );
-  const openHistory = useCallback(
-    () => openModal(ModalTypes.HISTORY),
-    [openModal],
-  );
 
   return (
     <div className="iconBtnWrap">
       <button
         title="New game"
         className="newGame sidebarIconBtn"
-        onClick={() => setSidebarMode("playing")}
+        onClick={() => setSidebarMode("setup")}
       >
         <img className="sidebarIcon" src={newGame} alt="new game" />
       </button>
@@ -40,7 +36,7 @@ const SidebarActions = () => {
       <button
         title="View previous games"
         className="prevGames sidebarIconBtn"
-        onClick={openHistory}
+        onClick={() => setSidebarMode("history")}
       >
         <img className="sidebarIcon" src={history} alt="view past games" />
       </button>
