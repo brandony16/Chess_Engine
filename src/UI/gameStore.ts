@@ -10,7 +10,7 @@ import {
 } from "../game/chessConstants.ts";
 import { opponent } from "../game/helpers/opponent.ts";
 import { Snapshot } from "../game/Snapshot.ts";
-import { moveToAlgebraic } from "./generalHelpers.ts";
+import { endStateToString, moveToAlgebraic } from "./generalHelpers.ts";
 import { buildPGN } from "../game/fenAndUCI/pgn.ts";
 import { moveFrom, moveTo, type Move } from "../game/moveMaking/move.ts";
 import {
@@ -33,6 +33,7 @@ export type ModalType = "history" | "battle" | "new";
 export type HistoryEntry = {
   pgn: string;
   engineGame: boolean;
+  reason: string;
   white: string;
   black: string;
   plyCount: number;
@@ -82,7 +83,7 @@ interface UISliceVars {
   promotion: PromotionState;
   timeSpentPerMove: number[];
   moveHighlights: Square[];
-  sidebarMode: "setup" | "playing" | "history";
+  sidebarMode: "setup" | "playing" | "history" | "battle";
 }
 
 interface UISlice extends UISliceVars {
@@ -90,7 +91,7 @@ interface UISlice extends UISliceVars {
   setPromotion: (state: PromotionState) => void;
   openModal: (type: Exclude<ModalType, null>) => void;
   closeModal: () => void;
-  setSidebarMode: (mode: "setup" | "playing" | "history") => void;
+  setSidebarMode: (mode: "setup" | "playing" | "history" | "battle") => void;
 }
 
 interface EngineSliceVars {
@@ -195,8 +196,15 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   saveGame: (isEngineGame: boolean = false): void => {
-    const { pastGames, algebraicMoves, userSide, selectedEngine, isGameOver } =
-      get();
+    const {
+      pastGames,
+      algebraicMoves,
+      userSide,
+      selectedEngine,
+      isGameOver,
+      isTimeOut,
+      userResigned,
+    } = get();
 
     let updatedPast = pastGames;
     if (isGameOver()) {
@@ -204,6 +212,13 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
       const whiteSide = userSide === WHITE ? "user" : selectedEngine;
       const blackSide = userSide === BLACK ? "user" : selectedEngine;
+
+      let reason: string = endStateToString(result.method);
+      if (userResigned) {
+        reason = "Resignation";
+      } else if (isTimeOut) {
+        reason = "Time Out";
+      }
 
       const gamePGN = buildPGN(algebraicMoves, {
         Event: isEngineGame ? "Engine Game" : "Normal Battle",
@@ -219,6 +234,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const entry: HistoryEntry = {
         pgn: gamePGN,
         engineGame: isEngineGame,
+        reason: reason,
         white: whiteSide,
         black: blackSide,
         plyCount: algebraicMoves.length,
@@ -348,7 +364,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   setPromotion: (state: PromotionState) => set({ promotion: state }),
   openModal: (type: ModalType) => set({ modalState: { isOpen: true, type } }),
   closeModal: () => set({ modalState: { isOpen: false } }),
-  setSidebarMode: (mode: "setup" | "playing" | "history") =>
+  setSidebarMode: (mode: "setup" | "playing" | "history" | "battle") =>
     set({ sidebarMode: mode }),
 
   updateShownGame: (entry: HistoryEntry) => {},

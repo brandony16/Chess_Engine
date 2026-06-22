@@ -29,7 +29,7 @@ const SidebarActions = () => {
       <button
         title="Battle engines"
         className="engineBattle sidebarIconBtn"
-        onClick={openBattle}
+        onClick={() => setSidebarMode("battle")}
       >
         <img className="sidebarIcon" src={battle} alt="battle engines" />
       </button>

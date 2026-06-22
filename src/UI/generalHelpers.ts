@@ -1,7 +1,13 @@
 import {
+  CHECKMATE,
+  FIFTY_MOVE_RULE,
   FILE_SYMBOLS,
+  INSUFFICIENT_MATERIAL,
   NO_PIECE,
   PIECE_SYMBOLS,
+  REPETITION,
+  STALEMATE,
+  type EndState,
 } from "../game/chessConstants.ts";
 import { getFile, getRank } from "../game/helpers/boardUtils.ts";
 import {
@@ -88,4 +94,21 @@ export const movesToBB = (moves: Move[]) => {
   }
 
   return bitboard;
+};
+
+export const endStateToString = (method: EndState) => {
+  switch (method) {
+    case CHECKMATE:
+      return "Checkmate";
+    case STALEMATE:
+      return "Stalemate";
+    case REPETITION:
+      return "Repetition";
+    case INSUFFICIENT_MATERIAL:
+      return "Insufficient Material";
+    case FIFTY_MOVE_RULE:
+      return "50 Move Rule";
+    default:
+      throw new Error(`EndState not recognized: ${method}`);
+  }
 };

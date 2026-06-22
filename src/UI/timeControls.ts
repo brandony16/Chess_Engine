@@ -29,3 +29,22 @@ export const TC_10_5: TimeControl = getTimeControl(10, 5);
 export const TC_15_10: TimeControl = getTimeControl(15, 10);
 
 export const RAPID_TCS = [TC_10_0, TC_10_5, TC_15_10];
+
+// ----- ENGINE TIME CONTROLS -----
+
+// much shorter time controls for fast engine games
+// first number is time in seconds, second is increment in 100ths of a second
+export const E_TC_8_08: TimeControl = {
+  timePerPlayer: 8 * 1000,
+  increment: 80,
+};
+export const E_TC_10_10: TimeControl = {
+  timePerPlayer: 10 * 1000,
+  increment: 100,
+};
+export const E_TC_60_60: TimeControl = {
+  timePerPlayer: 60 * 1000,
+  increment: 600,
+};
+
+export const ENGINE_TCS = [E_TC_8_08, E_TC_10_10, E_TC_60_60];

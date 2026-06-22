@@ -8,6 +8,7 @@ import SidebarActions from "./SidebarActions.jsx";
 import "./playing/Playing.css";
 
 import React from "react";
+import BattleMenu from "./battle/BattleMenu.tsx";
 
 const Sidebar = () => {
   const mode = useGameStore((s) => s.sidebarMode);
@@ -23,6 +24,7 @@ const Sidebar = () => {
         </>
       )}
       {mode === "history" && <HistoryMenu />}
+      {mode === "battle" && <BattleMenu />}
       <SidebarActions />
     </aside>
   );
