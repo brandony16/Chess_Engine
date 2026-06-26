@@ -15,10 +15,14 @@ import { ContextType } from "../../../../engines/searchContext.ts";
 import FinalStats from "./FinalStats.tsx";
 import Loading from "./Loading.tsx";
 import "./BattleEngines.css";
+import { parsePGN } from "../../../../game/fenAndUCI/pgn.ts";
+import { useGameStore } from "../../../gameStore.ts";
 
 type ModalStates = (typeof BattleModalStates)[keyof typeof BattleModalStates];
 
 export default function BattleMenu() {
+  const saveEngineGame = useGameStore((s) => s.saveEngineGame);
+
   // ----- SETTINGS -----
   const [eng1, setEng1] = useState<EngineName>(engineNames[0]);
   const [eng2, setEng2] = useState<EngineName>(engineNames[1]);
@@ -46,6 +50,13 @@ export default function BattleMenu() {
   const handleBattleMessage = useCallback(
     (e: { data: BattleWorkerResponse }) => {
       const data = e.data;
+      const pgns = data.pgnData;
+      if (pgns) {
+        for (const pgn of pgns) {
+          saveEngineGame(pgn);
+        }
+      }
+
       if (data.type === "finished" || data.type === "done") {
         setFinalStats(data);
         setModalState(BattleModalStates.FINISHED);
@@ -205,7 +216,7 @@ export default function BattleMenu() {
         <div className="option-group">
           <label className="group-label">Number of Games</label>
           <div className="selection-grid tc-grid">
-            {[10, 25, 50, 100, 250, 500].map((num) => (
+            {[2, 10, 20, 30, 40, 50].map((num) => (
               <button
                 key={num}
                 className={`grid-btn ${numGames === num ? "active" : ""}`}

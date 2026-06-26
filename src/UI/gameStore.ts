@@ -11,7 +11,7 @@ import {
 import { opponent } from "../game/helpers/opponent.ts";
 import { Snapshot } from "../game/Snapshot.ts";
 import { endStateToString, moveToAlgebraic } from "./generalHelpers.ts";
-import { buildPGN } from "../game/fenAndUCI/pgn.ts";
+import { buildPGN, parsePGN } from "../game/fenAndUCI/pgn.ts";
 import { moveFrom, moveTo, type Move } from "../game/moveMaking/move.ts";
 import {
   engineNames,
@@ -65,7 +65,8 @@ interface GameSliceVars {
 
 interface GameSlice extends GameSliceVars {
   playMove: (move: Move, timeRemaining: number) => void;
-  saveGame: (isEngineGame?: boolean) => void;
+  saveGame: () => void;
+  saveEngineGame: (pgn: string) => void;
   newGame: (params: NewGameParams) => void;
   flipBoard: () => void;
   showNextMove: () => void;
@@ -195,7 +196,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
   },
 
-  saveGame: (isEngineGame: boolean = false): void => {
+  saveGame: (): void => {
     const {
       pastGames,
       algebraicMoves,
@@ -221,7 +222,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       }
 
       const gamePGN = buildPGN(algebraicMoves, {
-        Event: isEngineGame ? "Engine Game" : "Normal Battle",
+        Event: "Normal Battle",
         White: whiteSide,
         Black: blackSide,
         Result:
@@ -233,7 +234,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       });
       const entry: HistoryEntry = {
         pgn: gamePGN,
-        engineGame: isEngineGame,
+        engineGame: false,
         reason: reason,
         white: whiteSide,
         black: blackSide,
@@ -244,6 +245,23 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     set({
       pastGames: updatedPast,
+    });
+  },
+
+  saveEngineGame: (pgn: string): void => {
+    const { pastGames } = get();
+    const parsed = parsePGN(pgn);
+    const entry: HistoryEntry = {
+      pgn,
+      engineGame: true,
+      reason: parsed.reason,
+      white: parsed.white,
+      black: parsed.black,
+      plyCount: parsed.moves.length,
+    };
+
+    set({
+      pastGames: [...pastGames, entry],
     });
   },
 

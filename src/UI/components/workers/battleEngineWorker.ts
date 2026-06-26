@@ -24,6 +24,7 @@ import {
 import { buildPGNFromEngineGame } from "../../../game/fenAndUCI/pgn.ts";
 import { Position } from "../../../game/Position.ts";
 import { mulberry32 } from "../../../random.ts";
+import { endStateToString } from "../../generalHelpers.ts";
 
 export type BattleWorkerResponse = {
   type: "finished" | "done" | "progress";
@@ -73,7 +74,7 @@ type MatchResult = {
   losses: number;
   draws: number;
   score: number;
-  pgnData?: string;
+  pgnData?: string[];
 };
 
 const runMatch = async (
@@ -155,7 +156,7 @@ const runMatch = async (
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
 
-  res.pgnData = pgns.join("\n\n");
+  res.pgnData = pgns;
   return res;
 };
 
@@ -184,27 +185,15 @@ async function playSingleGame(
   let numBlackMoves = 0;
 
   let result: Result = IN_PROGRESS;
-
-  // ADJUDICATION
-  // We can stop games early and award WDL if positions are dominant or stagnant
-  // This saves computation with one side stalling out the game or both engines
-  // trying to avoid repetition until the 50 move rule takes effect
-  let whiteWinStreak = 0;
-  let blackWinStreak = 0;
-  let drawStreak = 0;
-
-  const WIN_THRESHOLD = 800; // 8 pawns
-  const DRAW_THRESHOLD = 15; // 0.15 pawns
-  const STREAK_REQUIRED = 5; // 5 full moves (both sides agree/maintain)
-
-  while (!pos.gameOver() && pos.fullmoveNumber * 2 < MAX_PLY) {
+  let reason: string = "";
+  while (pos.fullmoveNumber * 2 < MAX_PLY) {
     const whiteMove = white.search(pos, wCtx);
     if (wCtx.lostOnTime()) {
       result = BLACK_WIN;
+      reason = "Lost on Time";
       break;
     }
 
-    const wEval = white.getEval(pos);
     moveList.push(whiteMove);
 
     whiteDepthReachedTotal += white.depthOfPrevSearch;
@@ -212,16 +201,19 @@ async function playSingleGame(
 
     pos.makeMove(whiteMove);
     pos.checkGameOver();
-
-    if (pos.gameOver()) break;
+    if (pos.gameOver()) {
+      result = pos.result;
+      reason = endStateToString(pos.endState);
+      break;
+    }
 
     const blackMove = black.search(pos, bCtx);
     if (bCtx.lostOnTime()) {
       result = WHITE_WIN;
+      reason = "Lost on Time";
       break;
     }
 
-    const bEval = black.getEval(pos);
     moveList.push(blackMove);
 
     blackDepthReachedTotal += black.depthOfPrevSearch;
@@ -229,56 +221,12 @@ async function playSingleGame(
 
     pos.makeMove(blackMove);
     pos.checkGameOver();
-
-    // --- ADJUDICATION LOGIC ---
-    // Check for White Win Streak
-    // Both engines must agree White is crushing (wEval is high positive, bEval is high negative)
-    if (wEval >= WIN_THRESHOLD && bEval <= -WIN_THRESHOLD) {
-      whiteWinStreak++;
-      blackWinStreak = 0;
-      drawStreak = 0;
-    }
-
-    // Check for Black Win Streak
-    else if (bEval >= WIN_THRESHOLD && wEval <= -WIN_THRESHOLD) {
-      blackWinStreak++;
-      whiteWinStreak = 0;
-      drawStreak = 0;
-    }
-
-    // Check for Draw Streak
-    else if (
-      Math.abs(wEval) <= DRAW_THRESHOLD &&
-      Math.abs(bEval) <= DRAW_THRESHOLD
-    ) {
-      drawStreak++;
-      whiteWinStreak = 0;
-      blackWinStreak = 0;
-    }
-
-    // Break the streaks if the advantage slips
-    else {
-      whiteWinStreak = 0;
-      blackWinStreak = 0;
-      drawStreak = 0;
-    }
-
-    // --- EXECUTE ADJUDICATION ---
-
-    if (whiteWinStreak >= STREAK_REQUIRED) {
-      result = WHITE_WIN;
-      break;
-    } else if (blackWinStreak >= STREAK_REQUIRED) {
-      result = BLACK_WIN;
-      break;
-    } else if (drawStreak >= STREAK_REQUIRED * 2) {
-      // Require 10 moves for a draw to be safe
-      result = DRAW;
+    if (pos.gameOver()) {
+      result = pos.result;
+      reason = endStateToString(pos.endState);
       break;
     }
   }
-
-  // If already set, then they lost on time
 
   if (result === IN_PROGRESS) {
     result = pos.fullmoveNumber * 2 >= MAX_PLY ? DRAW : pos.result;
@@ -288,6 +236,7 @@ async function playSingleGame(
     white: white.name,
     black: black.name,
     result,
+    reason,
   });
 
   const wAvgDepth = whiteDepthReachedTotal / numWhiteMoves;

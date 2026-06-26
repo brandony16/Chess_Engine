@@ -1,7 +1,6 @@
 import GameHistory from "./gameHistory/GameHistory.jsx";
 import { useGameStore, type ModalType } from "../../gameStore.ts";
 import "./Modal.css";
-import BattleEngines from "./battleEngines/BattleEngines.jsx";
 import { ModalTypes } from "../../utilTypes.ts";
 
 const MODAL_TITLES = {
@@ -18,8 +17,6 @@ const Modal = () => {
     switch (type) {
       case ModalTypes.HISTORY:
         return <GameHistory />;
-      case ModalTypes.BATTLE:
-        return <BattleEngines />;
       default:
         return null;
     }

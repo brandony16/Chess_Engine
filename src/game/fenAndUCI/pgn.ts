@@ -1,7 +1,12 @@
 import type { EngineName } from "../../engines/bondmonkeyVersions/engineList.ts";
-import { DRAW, WHITE_WIN, type Result } from "../chessConstants.ts";
+import {
+  DRAW,
+  WHITE_WIN,
+  type EndState,
+  type Result,
+} from "../chessConstants.ts";
 import type { Move } from "../moveMaking/move.ts";
-import { moveToUCI } from "./uciHelpers.ts";
+import { moveToUCI, uciToMove } from "./uciHelpers.ts";
 
 type PGNTags = {
   Event?: string;
@@ -10,6 +15,7 @@ type PGNTags = {
   Round?: string;
   White?: string;
   Black?: string;
+  Termination?: string;
   Result: "1-0" | "0-1" | "1/2-1/2" | "*";
 };
 
@@ -37,7 +43,12 @@ export const buildPGN = (moves: string[], tags: PGNTags): string => {
 export const buildPGNFromEngineGame = (
   openingMoves: string[],
   moves: Move[],
-  metadata: { white: EngineName; black: EngineName; result: Result },
+  metadata: {
+    white: EngineName;
+    black: EngineName;
+    result: Result;
+    reason: string;
+  },
 ): string => {
   const uciMoveList = [...openingMoves];
 
@@ -53,5 +64,52 @@ export const buildPGNFromEngineGame = (
     White: metadata.white,
     Black: metadata.black,
     Result: resultStr,
+    Termination: metadata.reason,
   });
+};
+
+export type parsedPGN = {
+  white: string;
+  black: string;
+  result: string;
+  reason: string;
+  moves: string[];
+};
+
+export const parsePGN = (pgn: string): parsedPGN => {
+  const whiteMatch = pgn.match(/\[White\s+"([^"]+)"\]/);
+  const blackMatch = pgn.match(/\[Black\s+"([^"]+)"\]/);
+  const resultMatch = pgn.match(/\[Result\s+"([^"]+)"\]/);
+  const terminationMatch = pgn.match(/\[Termination\s+"([^"]+)"\]/);
+
+  const white = whiteMatch ? whiteMatch[1] : "Unknown";
+  const black = blackMatch ? blackMatch[1] : "Unknown";
+  const result = resultMatch ? resultMatch[1] : "*";
+  const reason = terminationMatch ? terminationMatch[1] : "Unknown";
+
+  const lines = pgn.split("\n");
+  const moveLines = lines.filter((line) => {
+    const trimmed = line.trim();
+    // Keep lines that aren't empty and aren't PGN tags
+    return trimmed !== "" && !trimmed.startsWith("[");
+  });
+
+  let moveText = moveLines.join(" ");
+
+  // Remove the trailing result (1-0, 0-1, 1/2-1/2, or *) from the move text if it exists
+  moveText = moveText.replace(/(1-0|0-1|1\/2-1\/2|\*)$/, "");
+
+  // Remove move numbers (e.g., "1.", "2.", "14.")
+  moveText = moveText.replace(/\d+\.+/g, "");
+
+  // split on whitespace and filter out empty strings
+  const moves = moveText.split(/\s+/).filter((move) => move.trim() !== "");
+
+  return {
+    white,
+    black,
+    result,
+    reason,
+    moves,
+  };
 };
