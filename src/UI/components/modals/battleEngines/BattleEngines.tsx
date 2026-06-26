@@ -1,14 +1,12 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
-import "./BattleEngines.css";
 import { BattleModalStates } from "../../../utilTypes.ts";
 import type { BattleWorkerResponse } from "../../workers/battleEngineWorker.ts";
-import Loading from "./Loading.tsx";
-import FinalStats from "./FinalStats.tsx";
+import Loading from "../../sidebar/battle/Loading.tsx";
+import FinalStats from "../../sidebar/battle/FinalStats.tsx";
 import Setting from "./Setting.tsx";
 import type { EngineName } from "../../../../engines/bondmonkeyVersions/engineList.ts";
 import { INITIAL_ENGINE_SLICE } from "../../../gameStore.ts";
-import type { ClockType } from "../../../../engines/searchContext.ts";
 
 type ModalStates = (typeof BattleModalStates)[keyof typeof BattleModalStates];
 

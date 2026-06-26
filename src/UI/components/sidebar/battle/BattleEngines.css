@@ -65,14 +65,13 @@
 
 /* Final Stats Screen */
 .finalStats {
-  border: 2px solid var(--card-border);
-  border-radius: var(--card-radius);
-  box-shadow: 0 6px 16px var(--card-shadow);
   color: var(--text-primary);
   padding: 1rem;
   width: 100%;
   max-width: 400px;
   margin: 0 auto;
+  margin-top: auto;
+  margin-bottom: auto;
   display: flex;
   flex-direction: column;
   align-items: center;

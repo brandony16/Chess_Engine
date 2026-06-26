@@ -1,5 +1,3 @@
-import React from "react";
-
 type LoadingProps = {
   currGame: number;
   totalGames: number;
@@ -16,7 +14,4 @@ const Loading = ({ currGame, totalGames }: LoadingProps) => {
   );
 };
 
-const MemoizedLoading = React.memo(Loading);
-MemoizedLoading.displayName = "Loading";
-
-export default MemoizedLoading;
+export default Loading;

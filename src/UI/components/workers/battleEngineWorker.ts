@@ -115,8 +115,6 @@ const runMatch = async (
     else res.losses++;
   };
 
-  console.log(`Starting ${numGames} game match sequentially...`);
-
   for (let i = 0; i < targetPairs; i++) {
     const gameSeed = Math.floor(rng() * 1e9);
     const openingMoves = await getRandomOpening(openings, gameSeed);
@@ -156,8 +154,6 @@ const runMatch = async (
 
     await new Promise((resolve) => setTimeout(resolve, 0));
   }
-
-  console.log(`\nMatch Complete! Score: ${res.score} / ${res.games}`);
 
   res.pgnData = pgns.join("\n\n");
   return res;
