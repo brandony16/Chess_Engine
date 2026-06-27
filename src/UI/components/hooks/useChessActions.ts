@@ -38,7 +38,7 @@ export default function useChessActions() {
     } = useGameStore.getState();
 
     if (
-      isGameOver() ||
+      isGameOver ||
       !isCurrPosShown(useGameStore.getState()) ||
       userSide !== game.sideToMove ||
       sidebarMode !== "playing"
@@ -113,6 +113,7 @@ export default function useChessActions() {
       whiteTimeMs,
       blackTimeMs,
       clockSettings,
+      isGameOver,
     } = useGameStore.getState();
 
     if (!selectedSquare || !promotion.isHappening) {

@@ -1,6 +1,6 @@
 import { NO_PIECE, type Piece, type Square } from "../game/chessConstants.ts";
 import { moveFrom, movePromotion, moveTo } from "../game/moveMaking/move.ts";
-import type { GameStoreState } from "./gameStore.ts";
+import { game, type GameStoreState } from "./gameStore.ts";
 
 export const getShownMove = (state: GameStoreState) =>
   state.pastPositions[state.idxOfDisplayedMove];
@@ -25,4 +25,8 @@ export const findMove = (
   }
 
   return move;
+};
+
+export const isGameOver = (state: GameStoreState) => {
+  return game.isOver() || state.userResigned || state.isTimeOut;
 };

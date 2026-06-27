@@ -22,7 +22,7 @@ export default function GameClock() {
   const isBlackActive = activeColor === "b";
 
   useEffect(() => {
-    if (isGameOver() || sidebarState !== "playing") return;
+    if (isGameOver || sidebarState !== "playing") return;
 
     const side = fen.split(" ")[1];
     const initialTime = side === "w" ? whiteTime : blackTime;

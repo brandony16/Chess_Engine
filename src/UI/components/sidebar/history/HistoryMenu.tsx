@@ -34,6 +34,7 @@ export default function HistoryMenu() {
                 <span className="move-count">
                   {Math.ceil(game.plyCount / 2)} moves
                 </span>
+                <span className="move-count">{game.reason}</span>
               </div>
 
               <div className="history-players">

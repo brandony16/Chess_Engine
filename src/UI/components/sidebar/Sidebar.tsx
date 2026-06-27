@@ -12,6 +12,7 @@ import BattleMenu from "./battle/BattleMenu.tsx";
 
 const Sidebar = () => {
   const mode = useGameStore((s) => s.sidebarMode);
+  const isGameOver = useGameStore((s) => s.isGameOver);
 
   return (
     <aside className="sidebar">
@@ -20,12 +21,12 @@ const Sidebar = () => {
         <>
           <MoveList />
           <MoveArrows />
-          <Resign />
+          {!isGameOver && <Resign />}
         </>
       )}
       {mode === "history" && <HistoryMenu />}
       {mode === "battle" && <BattleMenu />}
-      <SidebarActions />
+      {(mode !== "playing" || isGameOver) && <SidebarActions />}
     </aside>
   );
 };

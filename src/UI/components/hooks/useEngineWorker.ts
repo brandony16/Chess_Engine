@@ -17,6 +17,7 @@ export default function useEngineWorker() {
   const engine = useGameStore((state) => state.selectedEngine);
   const depth = useGameStore((state) => state.searchDepth);
   const clockSettings = useGameStore((state) => state.clockSettings);
+  const pastGames = useGameStore((state) => state.pastGames); // used to know when to reinitialize the engine
 
   // Create engine worker
   useEffect(() => {
@@ -49,6 +50,7 @@ export default function useEngineWorker() {
 
   const initEngineForNewGame = useCallback(() => {
     if (workerRef.current) {
+      console.log("initializing new engine");
       const initCmd: EngineCommand = {
         type: "init",
         engine,
@@ -57,7 +59,7 @@ export default function useEngineWorker() {
       };
       workerRef.current.postMessage(initCmd);
     }
-  }, [engine, depth, clockSettings]);
+  }, [engine, depth, clockSettings, pastGames]);
 
   // Post function
   const post = useCallback((msg: EngineCommand) => {

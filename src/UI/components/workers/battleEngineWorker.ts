@@ -229,7 +229,8 @@ async function playSingleGame(
   }
 
   if (result === IN_PROGRESS) {
-    result = pos.fullmoveNumber * 2 >= MAX_PLY ? DRAW : pos.result;
+    result = DRAW;
+    reason = "Max Ply Reached";
   }
 
   const pgn = buildPGNFromEngineGame(openingMoves, moveList, {

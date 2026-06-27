@@ -20,13 +20,11 @@ export default function GameOverModal() {
   const userResigned = useGameStore((s) => s.userResigned);
   const isTimeOut = useGameStore((s) => s.isTimeOut);
   const timeOutLoser = useGameStore((s) => s.timeOutLoser);
+  const setSidebar = useGameStore((s) => s.setSidebarMode);
 
-  const saveGame = useGameStore((s) => s.saveGame);
   const newGame = useGameStore((s) => s.newGame);
 
   const handleNewGame = useCallback(() => {
-    saveGame(false);
-
     const side = Math.floor(Math.random() * 2);
 
     const gameParams: NewGameParams = {
@@ -40,7 +38,7 @@ export default function GameOverModal() {
 
   const [isOpen, setIsOpen] = useState<boolean>(true);
 
-  if (!isGameOver() || !isOpen) return null;
+  if (!isGameOver || !isOpen) return null;
 
   let title = "Game Over";
   let subtitle = "";
@@ -104,7 +102,13 @@ export default function GameOverModal() {
             New Game
           </button>
 
-          <button className="secondary" onClick={() => setIsOpen(false)}>
+          <button
+            className="secondary"
+            onClick={() => {
+              setSidebar("playing");
+              setIsOpen(false);
+            }}
+          >
             Review Board
           </button>
         </div>

@@ -61,6 +61,7 @@ interface GameSliceVars {
   blackTimeMs: number;
   lastMoveTimestamp: number;
   userResigned: boolean;
+  isGameOver: boolean;
 }
 
 interface GameSlice extends GameSliceVars {
@@ -72,7 +73,6 @@ interface GameSlice extends GameSliceVars {
   showNextMove: () => void;
   showPreviousMove: () => void;
   goToMove: (halfmoveNumber: number) => void;
-  isGameOver: () => boolean;
   updateShownGame: (entry: HistoryEntry) => void;
   resignGame: () => void;
 }
@@ -128,6 +128,7 @@ export const INITIAL_GAME_SLICE: GameSliceVars = {
   blackTimeMs: TC_3_2.timePerPlayer,
   lastMoveTimestamp: Date.now(),
   userResigned: false,
+  isGameOver: false,
 };
 
 export const INITIAL_UI_SLICE: UISliceVars = {
@@ -194,6 +195,11 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       timeSpentPerMove: [...timeSpentPerMove, approxTimeSpent],
       moveHighlights: [moveFrom(move), moveTo(move)],
     });
+
+    if (game.isOver()) {
+      set({ isGameOver: true });
+      get().saveGame();
+    }
   },
 
   saveGame: (): void => {
@@ -208,17 +214,19 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     } = get();
 
     let updatedPast = pastGames;
-    if (isGameOver()) {
+    if (isGameOver) {
       const result = game.result();
 
       const whiteSide = userSide === WHITE ? "user" : selectedEngine;
       const blackSide = userSide === BLACK ? "user" : selectedEngine;
 
-      let reason: string = endStateToString(result.method);
+      let reason: string;
       if (userResigned) {
         reason = "Resignation";
       } else if (isTimeOut) {
         reason = "Time Out";
+      } else {
+        reason = endStateToString(result.method);
       }
 
       const gamePGN = buildPGN(algebraicMoves, {
@@ -284,12 +292,15 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       selectedEngine: params.selectedEngine,
 
       modalState: { isOpen: false },
+      promotion: { isHappening: false },
 
       idxOfDisplayedMove: 0,
       pastPositions: [game.getSnapshot()],
 
       isTimeOut: false,
       timeOutLoser: null,
+      userResigned: false,
+      isGameOver: false,
       moveHighlights: [],
       sidebarMode: "playing",
     });
@@ -367,12 +378,15 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       };
     }),
 
-  isGameOver: () => {
-    const { isTimeOut, userResigned } = get();
-    return isTimeOut || userResigned || game.isOver();
+  resignGame: () => {
+    set({
+      userResigned: true,
+      isGameOver: true,
+      selectedSquare: NO_SQUARE,
+      legalMovesForSelected: [],
+    });
+    get().saveGame();
   },
-
-  resignGame: () => set({ userResigned: true }),
 
   // ----- UI SLICE -----
   ...INITIAL_UI_SLICE,
@@ -395,13 +409,17 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   // ----- CLOCK SLICE -----
   ...INITIAL_CLOCK_SLICE,
 
-  handleTimeOut: (losingSide: Player) =>
+  handleTimeOut: (losingSide: Player) => {
     set({
       isTimeOut: true,
+      isGameOver: true,
       timeOutLoser: losingSide,
 
       // Hard-clamp the loser's time to 0 to prevent any lingering interval bugs
       whiteTimeMs: losingSide === WHITE ? 0 : get().whiteTimeMs,
       blackTimeMs: losingSide === BLACK ? 0 : get().blackTimeMs,
-    }),
+    });
+
+    get().saveGame();
+  },
 }));

@@ -22,7 +22,7 @@ export default function useMoveTrigger(
    * Plays the engine move after the player makes its turn.
    */
   useEffect(() => {
-    if (game.sideToMove !== userSide && !isGameOver() && userSide !== null) {
+    if (game.sideToMove !== userSide && !isGameOver && userSide !== null) {
       const position = game.getPositionCpy();
 
       const moveHistory = game.moveHistory;

@@ -90,6 +90,7 @@ export class Game implements GameView {
 
   loadFen(fen: string) {
     this.position.loadFen(fen);
+    this.uciMoveHistory = [];
   }
 
   getPiece(square: Square): Piece {
