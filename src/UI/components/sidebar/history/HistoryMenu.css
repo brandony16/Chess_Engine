@@ -156,3 +156,81 @@
   background-color: rgba(255, 255, 255, 0.1);
   color: var(--text-primary);
 }
+
+.header-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.reason-text {
+  font-size: 0.65rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.history-players {
+  display: flex;
+  flex-direction: column;
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.player-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.player-row:last-child {
+  border-bottom: none;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.player-name {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.player-score {
+  font-family: monospace;
+  font-size: 0.9rem;
+  font-weight: bold;
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.player-row.winner .player-name {
+  font-weight: bold;
+  color: #fff;
+}
+
+.player-row.winner .player-score {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.player-row.loser .player-name {
+  opacity: 0.6;
+}
+
+.player-row.loser .player-score {
+  opacity: 0.5;
+}
+
+.player-row.draw .player-name,
+.player-row.draw .player-score {
+  color: var(--text-secondary);
+}

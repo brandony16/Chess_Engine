@@ -22,6 +22,7 @@ import { MAX_SEARCH_PLY } from "../engines/Engine.ts";
 import { OpeningBook } from "../OpeningBook.ts";
 import { squareToIndex } from "../game/fenAndUCI/uciHelpers.ts";
 import { TC_3_2, type TimeControl } from "./timeControls.ts";
+import { persist } from "zustand/middleware";
 
 // ----- EXTERNAL VARIABLES -----
 export const game = new Game(START_POS);
@@ -35,7 +36,7 @@ export type HistoryEntry = {
   engineGame: boolean;
   reason: string;
   white: string;
-  black: string;
+  black: string;  
   plyCount: number;
 };
 type ModalState = { isOpen: false } | { isOpen: true; type: ModalType };
@@ -152,274 +153,296 @@ export const INITIAL_CLOCK_SLICE: ClockSliceVars = {
   timeOutLoser: null,
 };
 
-export const useGameStore = create<GameStoreState>((set, get) => ({
-  // ----- GAME SLICE -----
-  ...INITIAL_GAME_SLICE,
+export const useGameStore = create<GameStoreState>()(
+  persist(
+    (set, get) => ({
+      // ----- GAME SLICE -----
+      ...INITIAL_GAME_SLICE,
 
-  playMove: (move: Move, timeRemaining: number): void => {
-    const {
-      pastPositions,
-      algebraicMoves,
-      whiteTimeMs,
-      blackTimeMs,
-      lastMoveTimestamp,
-      timeSpentPerMove,
-      sidebarMode,
-    } = get();
+      playMove: (move: Move, timeRemaining: number): void => {
+        const {
+          pastPositions,
+          algebraicMoves,
+          whiteTimeMs,
+          blackTimeMs,
+          lastMoveTimestamp,
+          timeSpentPerMove,
+          sidebarMode,
+        } = get();
 
-    if (sidebarMode !== "playing") return;
+        if (sidebarMode !== "playing") return;
 
-    const isWhiteTurn = game.fen().split(" ")[1] === "w";
+        const isWhiteTurn = game.fen().split(" ")[1] === "w";
 
-    const success = game.playMove(move);
-    if (!success) return;
+        const success = game.playMove(move);
+        if (!success) return;
 
-    const algebraic = moveToAlgebraic(move, game.isInCheck(), game.isOver());
+        const algebraic = moveToAlgebraic(
+          move,
+          game.isInCheck(),
+          game.isOver(),
+        );
 
-    const currTimestamp = Date.now();
-    const approxTimeSpent = currTimestamp - lastMoveTimestamp;
+        const currTimestamp = Date.now();
+        const approxTimeSpent = currTimestamp - lastMoveTimestamp;
 
-    set({
-      fen: game.fen(),
-      selectedSquare: NO_SQUARE,
-      legalMovesForSelected: [],
-      algebraicMoves: [...algebraicMoves, algebraic],
-      pastPositions: [...pastPositions, game.getSnapshot()],
-      idxOfDisplayedMove: pastPositions.length,
-      promotion: { isHappening: false },
+        set({
+          fen: game.fen(),
+          selectedSquare: NO_SQUARE,
+          legalMovesForSelected: [],
+          algebraicMoves: [...algebraicMoves, algebraic],
+          pastPositions: [...pastPositions, game.getSnapshot()],
+          idxOfDisplayedMove: pastPositions.length,
+          promotion: { isHappening: false },
 
-      whiteTimeMs: isWhiteTurn ? timeRemaining : whiteTimeMs,
-      blackTimeMs: !isWhiteTurn ? timeRemaining : blackTimeMs,
+          whiteTimeMs: isWhiteTurn ? timeRemaining : whiteTimeMs,
+          blackTimeMs: !isWhiteTurn ? timeRemaining : blackTimeMs,
 
-      lastMoveTimestamp: currTimestamp,
-      timeSpentPerMove: [...timeSpentPerMove, approxTimeSpent],
-      moveHighlights: [moveFrom(move), moveTo(move)],
-    });
+          lastMoveTimestamp: currTimestamp,
+          timeSpentPerMove: [...timeSpentPerMove, approxTimeSpent],
+          moveHighlights: [moveFrom(move), moveTo(move)],
+        });
 
-    if (game.isOver()) {
-      set({ isGameOver: true });
-      get().saveGame();
-    }
-  },
+        if (game.isOver()) {
+          set({ isGameOver: true });
+          get().saveGame();
+        }
+      },
 
-  saveGame: (): void => {
-    const {
-      pastGames,
-      algebraicMoves,
-      userSide,
-      selectedEngine,
-      isGameOver,
-      isTimeOut,
-      userResigned,
-    } = get();
+      saveGame: (): void => {
+        const {
+          pastGames,
+          algebraicMoves,
+          userSide,
+          selectedEngine,
+          isGameOver,
+          isTimeOut,
+          userResigned,
+        } = get();
 
-    let updatedPast = pastGames;
-    if (isGameOver) {
-      const result = game.result();
+        let updatedPast = pastGames;
+        if (isGameOver) {
+          const result = game.result();
 
-      const whiteSide = userSide === WHITE ? "user" : selectedEngine;
-      const blackSide = userSide === BLACK ? "user" : selectedEngine;
+          const whiteSide = userSide === WHITE ? "user" : selectedEngine;
+          const blackSide = userSide === BLACK ? "user" : selectedEngine;
 
-      let reason: string;
-      if (userResigned) {
-        reason = "Resignation";
-      } else if (isTimeOut) {
-        reason = "Time Out";
-      } else {
-        reason = endStateToString(result.method);
-      }
+          let reason: string;
+          if (userResigned) {
+            reason = "Resignation";
+          } else if (isTimeOut) {
+            reason = "Time Out";
+          } else {
+            reason = endStateToString(result.method);
+          }
 
-      const gamePGN = buildPGN(algebraicMoves, {
-        Event: "Normal Battle",
-        White: whiteSide,
-        Black: blackSide,
-        Result:
-          result.winner === DRAW
-            ? "1/2-1/2"
-            : result.winner === WHITE
-              ? "1-0"
-              : "0-1",
-      });
-      const entry: HistoryEntry = {
-        pgn: gamePGN,
-        engineGame: false,
-        reason: reason,
-        white: whiteSide,
-        black: blackSide,
-        plyCount: algebraicMoves.length,
-      };
-      updatedPast = [...pastGames, entry];
-    }
+          const gamePGN = buildPGN(algebraicMoves, {
+            Event: "Normal Battle",
+            White: whiteSide,
+            Black: blackSide,
+            Result:
+              result.winner === DRAW
+                ? "1/2-1/2"
+                : result.winner === WHITE
+                  ? "1-0"
+                  : "0-1",
+          });
+          const entry: HistoryEntry = {
+            pgn: gamePGN,
+            engineGame: false,
+            reason: reason,
+            white: whiteSide,
+            black: blackSide,
+            plyCount: algebraicMoves.length,
+          };
+          updatedPast = [...pastGames, entry];
+        }
 
-    set({
-      pastGames: updatedPast,
-    });
-  },
+        set({
+          pastGames: updatedPast,
+        });
+      },
 
-  saveEngineGame: (pgn: string): void => {
-    const { pastGames } = get();
-    const parsed = parsePGN(pgn);
-    const entry: HistoryEntry = {
-      pgn,
-      engineGame: true,
-      reason: parsed.reason,
-      white: parsed.white,
-      black: parsed.black,
-      plyCount: parsed.moves.length,
-    };
+      saveEngineGame: (pgn: string): void => {
+        const { pastGames } = get();
+        const parsed = parsePGN(pgn);
+        const entry: HistoryEntry = {
+          pgn,
+          engineGame: true,
+          reason: parsed.reason,
+          white: parsed.white,
+          black: parsed.black,
+          plyCount: parsed.moves.length,
+        };
 
-    set({
-      pastGames: [...pastGames, entry],
-    });
-  },
+        set({
+          pastGames: [...pastGames, entry],
+        });
+      },
 
-  newGame: (params: NewGameParams): void => {
-    game.loadFen(params.fen);
+      newGame: (params: NewGameParams): void => {
+        game.loadFen(params.fen);
 
-    set({
-      fen: params.fen,
-      userSide: params.userSide,
-      boardPerspective: params.userSide,
-      selectedSquare: NO_SQUARE,
-      legalMovesForSelected: [],
-      algebraicMoves: [],
+        set({
+          fen: params.fen,
+          userSide: params.userSide,
+          boardPerspective: params.userSide,
+          selectedSquare: NO_SQUARE,
+          legalMovesForSelected: [],
+          algebraicMoves: [],
 
-      whiteTimeMs: params.clockSettings.timePerPlayer,
-      blackTimeMs: params.clockSettings.timePerPlayer,
-      clockSettings: params.clockSettings,
-      lastMoveTimestamp: Date.now(),
+          whiteTimeMs: params.clockSettings.timePerPlayer,
+          blackTimeMs: params.clockSettings.timePerPlayer,
+          clockSettings: params.clockSettings,
+          lastMoveTimestamp: Date.now(),
 
-      selectedEngine: params.selectedEngine,
+          selectedEngine: params.selectedEngine,
 
-      modalState: { isOpen: false },
-      promotion: { isHappening: false },
+          modalState: { isOpen: false },
+          promotion: { isHappening: false },
 
-      idxOfDisplayedMove: 0,
-      pastPositions: [game.getSnapshot()],
+          idxOfDisplayedMove: 0,
+          pastPositions: [game.getSnapshot()],
 
-      isTimeOut: false,
-      timeOutLoser: null,
-      userResigned: false,
-      isGameOver: false,
-      moveHighlights: [],
-      sidebarMode: "playing",
-    });
-  },
+          isTimeOut: false,
+          timeOutLoser: null,
+          userResigned: false,
+          isGameOver: false,
+          moveHighlights: [],
+          sidebarMode: "playing",
+        });
+      },
 
-  flipBoard: () =>
-    set((state) => ({ boardPerspective: opponent(state.boardPerspective) })),
+      flipBoard: () =>
+        set((state) => ({
+          boardPerspective: opponent(state.boardPerspective),
+        })),
 
-  showNextMove: () =>
-    set((state) => {
-      const newIdxOfDisplayed = Math.min(
-        state.idxOfDisplayedMove + 1,
-        state.pastPositions.length - 1,
-      );
+      showNextMove: () =>
+        set((state) => {
+          const newIdxOfDisplayed = Math.min(
+            state.idxOfDisplayedMove + 1,
+            state.pastPositions.length - 1,
+          );
 
-      if (newIdxOfDisplayed === state.idxOfDisplayedMove) {
-        return {}; // at end of move list already, nothing changed
-      }
+          if (newIdxOfDisplayed === state.idxOfDisplayedMove) {
+            return {}; // at end of move list already, nothing changed
+          }
 
-      // game stores uci moves, which are much easier to parse
-      // need to find the move that got us to this position to highlight the correct squares
-      // that is the move at the current idxOfDisplayedMove, not the newIdxOfDisplayed
-      const uciMove = game.moveHistory[state.idxOfDisplayedMove];
-      const from = squareToIndex(uciMove.slice(0, 2)) as Square;
-      const to = squareToIndex(uciMove.slice(2, 4)) as Square;
+          // game stores uci moves, which are much easier to parse
+          // need to find the move that got us to this position to highlight the correct squares
+          // that is the move at the current idxOfDisplayedMove, not the newIdxOfDisplayed
+          const uciMove = game.moveHistory[state.idxOfDisplayedMove];
+          const from = squareToIndex(uciMove.slice(0, 2)) as Square;
+          const to = squareToIndex(uciMove.slice(2, 4)) as Square;
 
-      return {
-        idxOfDisplayedMove: newIdxOfDisplayed,
-        moveHighlights: [from, to],
-        legalMovesForSelected: [],
-        selectedSquare: NO_SQUARE,
-        promotion: { isHappening: false },
-      };
+          return {
+            idxOfDisplayedMove: newIdxOfDisplayed,
+            moveHighlights: [from, to],
+            legalMovesForSelected: [],
+            selectedSquare: NO_SQUARE,
+            promotion: { isHappening: false },
+          };
+        }),
+
+      showPreviousMove: () =>
+        set((state) => {
+          const newIdxOfDisplayed = Math.max(state.idxOfDisplayedMove - 1, 0);
+
+          let newHighlights: Square[] = [];
+          if (newIdxOfDisplayed - 1 >= 0) {
+            // game stores uci moves, which are much easier to parse
+            // need the move that got us to the new position, which is at idx 1 less than the new idx
+            const uciMove = game.moveHistory[newIdxOfDisplayed - 1];
+            const from = squareToIndex(uciMove.slice(0, 2)) as Square;
+            const to = squareToIndex(uciMove.slice(2, 4)) as Square;
+            newHighlights = [from, to];
+          }
+
+          return {
+            idxOfDisplayedMove: newIdxOfDisplayed,
+            moveHighlights: newHighlights,
+            legalMovesForSelected: [],
+            selectedSquare: NO_SQUARE,
+            promotion: { isHappening: false },
+          };
+        }),
+
+      goToMove: (halfmoveNumber: number) =>
+        set((state) => {
+          if (
+            halfmoveNumber < 0 ||
+            halfmoveNumber >= state.pastPositions.length
+          )
+            return state;
+
+          // game stores uci moves, which are much easier to parse
+          const uciMove = game.moveHistory[halfmoveNumber];
+          const from = squareToIndex(uciMove.slice(0, 2)) as Square;
+          const to = squareToIndex(uciMove.slice(2, 4)) as Square;
+
+          return {
+            idxOfDisplayedMove: halfmoveNumber + 1, // offset by 1 to account for the starting position, which is idx 0
+            moveHighlights: [from, to],
+            legalMovesForSelected: [],
+            selectedSquare: NO_SQUARE,
+            promotion: { isHappening: false },
+          };
+        }),
+
+      resignGame: () => {
+        set({
+          userResigned: true,
+          isGameOver: true,
+          selectedSquare: NO_SQUARE,
+          legalMovesForSelected: [],
+        });
+        get().saveGame();
+      },
+
+      // ----- UI SLICE -----
+      ...INITIAL_UI_SLICE,
+
+      setSelectedSquare: (square: Square, legalMoves: number[] = []) =>
+        set({ selectedSquare: square, legalMovesForSelected: legalMoves }),
+      setPromotion: (state: PromotionState) => set({ promotion: state }),
+      openModal: (type: ModalType) =>
+        set({ modalState: { isOpen: true, type } }),
+      closeModal: () => set({ modalState: { isOpen: false } }),
+      setSidebarMode: (mode: "setup" | "playing" | "history" | "battle") =>
+        set({ sidebarMode: mode }),
+
+      updateShownGame: (entry: HistoryEntry) => {},
+
+      // ----- ENGINE SLICE -----
+      ...INITIAL_ENGINE_SLICE,
+
+      setEngine: (engine) => set({ selectedEngine: engine }),
+
+      // ----- CLOCK SLICE -----
+      ...INITIAL_CLOCK_SLICE,
+
+      handleTimeOut: (losingSide: Player) => {
+        set({
+          isTimeOut: true,
+          isGameOver: true,
+          timeOutLoser: losingSide,
+
+          // Hard-clamp the loser's time to 0 to prevent any lingering interval bugs
+          whiteTimeMs: losingSide === WHITE ? 0 : get().whiteTimeMs,
+          blackTimeMs: losingSide === BLACK ? 0 : get().blackTimeMs,
+        });
+
+        get().saveGame();
+      },
     }),
+    {
+      name: "bondmonkey-chess-storage",
 
-  showPreviousMove: () =>
-    set((state) => {
-      const newIdxOfDisplayed = Math.max(state.idxOfDisplayedMove - 1, 0);
-
-      let newHighlights: Square[] = [];
-      if (newIdxOfDisplayed - 1 >= 0) {
-        // game stores uci moves, which are much easier to parse
-        // need the move that got us to the new position, which is at idx 1 less than the new idx
-        const uciMove = game.moveHistory[newIdxOfDisplayed - 1];
-        const from = squareToIndex(uciMove.slice(0, 2)) as Square;
-        const to = squareToIndex(uciMove.slice(2, 4)) as Square;
-        newHighlights = [from, to];
-      }
-
-      return {
-        idxOfDisplayedMove: newIdxOfDisplayed,
-        moveHighlights: newHighlights,
-        legalMovesForSelected: [],
-        selectedSquare: NO_SQUARE,
-        promotion: { isHappening: false },
-      };
-    }),
-
-  goToMove: (halfmoveNumber: number) =>
-    set((state) => {
-      if (halfmoveNumber < 0 || halfmoveNumber >= state.pastPositions.length)
-        return state;
-
-      // game stores uci moves, which are much easier to parse
-      const uciMove = game.moveHistory[halfmoveNumber];
-      const from = squareToIndex(uciMove.slice(0, 2)) as Square;
-      const to = squareToIndex(uciMove.slice(2, 4)) as Square;
-
-      return {
-        idxOfDisplayedMove: halfmoveNumber + 1, // offset by 1 to account for the starting position, which is idx 0
-        moveHighlights: [from, to],
-        legalMovesForSelected: [],
-        selectedSquare: NO_SQUARE,
-        promotion: { isHappening: false },
-      };
-    }),
-
-  resignGame: () => {
-    set({
-      userResigned: true,
-      isGameOver: true,
-      selectedSquare: NO_SQUARE,
-      legalMovesForSelected: [],
-    });
-    get().saveGame();
-  },
-
-  // ----- UI SLICE -----
-  ...INITIAL_UI_SLICE,
-
-  setSelectedSquare: (square: Square, legalMoves: number[] = []) =>
-    set({ selectedSquare: square, legalMovesForSelected: legalMoves }),
-  setPromotion: (state: PromotionState) => set({ promotion: state }),
-  openModal: (type: ModalType) => set({ modalState: { isOpen: true, type } }),
-  closeModal: () => set({ modalState: { isOpen: false } }),
-  setSidebarMode: (mode: "setup" | "playing" | "history" | "battle") =>
-    set({ sidebarMode: mode }),
-
-  updateShownGame: (entry: HistoryEntry) => {},
-
-  // ----- ENGINE SLICE -----
-  ...INITIAL_ENGINE_SLICE,
-
-  setEngine: (engine) => set({ selectedEngine: engine }),
-
-  // ----- CLOCK SLICE -----
-  ...INITIAL_CLOCK_SLICE,
-
-  handleTimeOut: (losingSide: Player) => {
-    set({
-      isTimeOut: true,
-      isGameOver: true,
-      timeOutLoser: losingSide,
-
-      // Hard-clamp the loser's time to 0 to prevent any lingering interval bugs
-      whiteTimeMs: losingSide === WHITE ? 0 : get().whiteTimeMs,
-      blackTimeMs: losingSide === BLACK ? 0 : get().blackTimeMs,
-    });
-
-    get().saveGame();
-  },
-}));
+      // save past games only
+      partialize: (state) => ({
+        pastGames: state.pastGames,
+      }),
+    },
+  ),
+);
