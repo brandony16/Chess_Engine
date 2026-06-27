@@ -3,19 +3,10 @@ import { useGameStore } from "../../gameStore.ts";
 import newGame from "../../../assets/new.svg";
 import battle from "../../../assets/battle.svg";
 import history from "../../../assets/history.svg";
-import flipBoardImg from "../../../assets/flip.svg";
-import React, { useCallback } from "react";
-import { ModalTypes } from "../../utilTypes.ts";
+import React from "react";
 
 const SidebarActions = () => {
-  const openModal = useGameStore((state) => state.openModal);
-  const flipBoard = useGameStore((state) => state.flipBoard);
   const setSidebarMode = useGameStore((state) => state.setSidebarMode);
-
-  const openBattle = useCallback(
-    () => openModal(ModalTypes.BATTLE),
-    [openModal],
-  );
 
   return (
     <div className="iconBtnWrap">
@@ -39,13 +30,6 @@ const SidebarActions = () => {
         onClick={() => setSidebarMode("history")}
       >
         <img className="sidebarIcon" src={history} alt="view past games" />
-      </button>
-      <button
-        title="Flip board orientation"
-        className="flipBoard sidebarIconBtn"
-        onClick={flipBoard}
-      >
-        <img className="sidebarIcon" src={flipBoardImg} alt="flip board" />
       </button>
     </div>
   );

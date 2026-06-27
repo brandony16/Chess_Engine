@@ -1,10 +1,47 @@
-.resign-wrapper {
+.playingMenu {
   position: relative;
-  display: inline-block;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  height: 100%;
+  border-radius: 16px;
+  color: #f0f0f0;
 }
 
-.resign-button {
+.playingBtnWrap {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 10%;
+}
+
+.playingIconBtn {
+  aspect-ratio: 1 / 1;
+  padding: 0px;
+  border: none;
+  background: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s ease;
+  cursor: pointer;
+  width: 40px;
+}
+
+.playingIcon {
+  width: 40px;
+  aspect-ratio: 1 / 1;
+}
+
+.resign-wrapper {
   position: relative;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .confirmResignation {
@@ -19,13 +56,14 @@
   background-color: var(--card-border);
   color: var(--text-primary);
   bottom: 110%;
-  position: absolute;
+  width: max-content;
 }
 
 .resignText {
   grid-column: span 2;
   font-size: small;
   text-align: center;
+  white-space: nowrap;
 }
 
 .resignBtn {

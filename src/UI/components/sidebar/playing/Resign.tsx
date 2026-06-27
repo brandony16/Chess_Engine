@@ -35,10 +35,10 @@ export default function Resign() {
   return (
     <div className="resign-wrapper" ref={wrapperRef}>
       <button
-        className="resign-button sidebarIconBtn"
+        className="playingIconBtn"
         onClick={() => setConfirmOpen((prev) => !prev)}
       >
-        <img src={resign} alt="resign" className="sidebarIcon" />
+        <img src={resign} alt="resign" className="playingIcon" />
       </button>
 
       {confirmOpen && (
