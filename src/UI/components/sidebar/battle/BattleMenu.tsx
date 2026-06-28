@@ -8,6 +8,7 @@ import type {
   BattleWorkerMessage,
   BattleWorkerResponse,
 } from "../../workers/battleEngineWorker.ts";
+import BattleEngineWorker from "../../workers/battleEngineWorker?worker";
 import { BattleModalStates } from "../../../utilTypes.ts";
 import type { EngineConfig } from "../../../../engines/testing/matchWorker.ts";
 import { MAX_SEARCH_PLY } from "../../../../engines/Engine.ts";
@@ -15,7 +16,6 @@ import { ContextType } from "../../../../engines/searchContext.ts";
 import FinalStats from "./FinalStats.tsx";
 import Loading from "./Loading.tsx";
 import "./BattleEngines.css";
-import { parsePGN } from "../../../../game/fenAndUCI/pgn.ts";
 import { useGameStore } from "../../../gameStore.ts";
 
 type ModalStates = (typeof BattleModalStates)[keyof typeof BattleModalStates];
@@ -69,13 +69,9 @@ export default function BattleMenu() {
   );
 
   useEffect(() => {
-    const BattleWorker = new URL(
-      "../../workers/battleEngineWorker",
-      import.meta.url,
-    );
-    const w = new Worker(BattleWorker, { type: "module" });
+    const w = new BattleEngineWorker();
 
-    w.onmessage = (e) => handleBattleMessage(e);
+    w.onmessage = (e: { data: BattleWorkerResponse }) => handleBattleMessage(e);
 
     workerRef.current = w;
     return () => w.terminate();

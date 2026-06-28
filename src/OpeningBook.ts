@@ -6,7 +6,7 @@ export class OpeningBook {
     if (this.isLoaded) return;
 
     try {
-      const response = await fetch("/openings.json");
+      const response = await fetch(`${import.meta.env.BASE_URL}openings.json`);
       const openings: string[][] = await response.json();
 
       // Temporary map to easily tally up the counts

@@ -1,14 +1,11 @@
 import { getEngineByName } from "../../../engines/bondmonkeyVersions/engineList.ts";
 import type { Bondmonkey } from "../../../engines/bondmonkeyVersions/type.ts";
-import { MAX_SEARCH_PLY } from "../../../engines/Engine.ts";
 import {
   SearchContext,
   type ClockType,
 } from "../../../engines/searchContext.ts";
 import type {
   EngineConfig,
-  MatchMessage,
-  MatchResponse,
 } from "../../../engines/testing/matchWorker.ts";
 import {
   getRandomOpening,
@@ -85,7 +82,7 @@ const runMatch = async (
   seed: number = 1,
 ): Promise<MatchResult> => {
   // Fetch openings
-  const openingRes = await fetch("/openings.json");
+  const openingRes = await fetch(`${import.meta.env.BASE_URL}openings.json`);
   const openings = await openingRes.json();
   const rng = mulberry32(seed);
 

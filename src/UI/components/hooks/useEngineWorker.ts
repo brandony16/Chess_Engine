@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useGameStore } from "../../gameStore.ts";
-import type { EnginePost } from "../workers/engineWorkerTypes.ts";
 import type {
   EngineCommand,
   EngineWorkerResponse,
 } from "../workers/engineWorker.ts";
+import EngineWorker from "../workers/engineWorker?worker";
 import { ContextType } from "../../../engines/searchContext.ts";
 
 /**
@@ -21,10 +21,9 @@ export default function useEngineWorker() {
 
   // Create engine worker
   useEffect(() => {
-    const EngineWorker = new URL("../workers/engineWorker.ts", import.meta.url);
-    const w = new Worker(EngineWorker, { type: "module" });
+    const w = new EngineWorker();
 
-    w.onmessage = (e) => {
+    w.onmessage = (e: { data: EngineWorkerResponse }) => {
       const response: EngineWorkerResponse = e.data;
       if (response.type === "move") {
         playMove(response.move, response.timeRemainingMs);
@@ -32,7 +31,12 @@ export default function useEngineWorker() {
     };
     workerRef.current = w;
 
-    w.onerror = (e) => {
+    w.onerror = (e: {
+      message: string;
+      filename: string;
+      lineno: string;
+      colno: string;
+    }) => {
       console.error(
         "Worker runtime error:",
         e.message,
