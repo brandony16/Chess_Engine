@@ -31,12 +31,7 @@ export default function useEngineWorker() {
     };
     workerRef.current = w;
 
-    w.onerror = (e: {
-      message: string;
-      filename: string;
-      lineno: string;
-      colno: string;
-    }) => {
+    w.onerror = (e: ErrorEvent) => {
       console.error(
         "Worker runtime error:",
         e.message,
