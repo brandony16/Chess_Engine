@@ -40,7 +40,6 @@ export type HistoryEntry = {
   black: string;
   plyCount: number;
 };
-type ModalState = { isOpen: false } | { isOpen: true; type: ModalType };
 type PromotionState =
   | { isHappening: false }
   | { isHappening: true; square: Square };
@@ -83,7 +82,6 @@ interface GameSlice extends GameSliceVars {
 interface UISliceVars {
   selectedSquare: Square;
   legalMovesForSelected: Move[];
-  modalState: ModalState;
   promotion: PromotionState;
   timeSpentPerMove: number[];
   moveHighlights: Square[];
@@ -93,8 +91,6 @@ interface UISliceVars {
 interface UISlice extends UISliceVars {
   setSelectedSquare: (square: Square, legalMoves?: Move[]) => void;
   setPromotion: (state: PromotionState) => void;
-  openModal: (type: Exclude<ModalType, null>) => void;
-  closeModal: () => void;
   setSidebarMode: (mode: "setup" | "playing" | "history" | "battle") => void;
 }
 
@@ -138,7 +134,6 @@ export const INITIAL_GAME_SLICE: GameSliceVars = {
 export const INITIAL_UI_SLICE: UISliceVars = {
   selectedSquare: NO_SQUARE,
   legalMovesForSelected: [],
-  modalState: { isOpen: false },
   promotion: { isHappening: false },
   timeSpentPerMove: [],
   moveHighlights: [],
@@ -307,7 +302,6 @@ export const useGameStore = create<GameStoreState>()(
 
           selectedEngine: params.selectedEngine,
 
-          modalState: { isOpen: false },
           promotion: { isHappening: false },
 
           idxOfDisplayedMove: 0,
@@ -416,9 +410,6 @@ export const useGameStore = create<GameStoreState>()(
       setSelectedSquare: (square: Square, legalMoves: number[] = []) =>
         set({ selectedSquare: square, legalMovesForSelected: legalMoves }),
       setPromotion: (state: PromotionState) => set({ promotion: state }),
-      openModal: (type: ModalType) =>
-        set({ modalState: { isOpen: true, type } }),
-      closeModal: () => set({ modalState: { isOpen: false } }),
       setSidebarMode: (mode: "setup" | "playing" | "history" | "battle") =>
         set({ sidebarMode: mode }),
 

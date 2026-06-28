@@ -9,10 +9,10 @@ import {
   STALEMATE,
   WHITE,
   type Player,
-} from "../../../game/chessConstants.ts";
-import { game, useGameStore, type NewGameParams } from "../../gameStore.ts";
+} from "../../game/chessConstants.ts";
+import { game, useGameStore, type NewGameParams } from "../gameStore.ts";
 import "./GameOverModal.css";
-import { START_POS } from "../../../__tests__/game_tests/fens.ts";
+import { START_POS } from "../../__tests__/game_tests/fens.ts";
 
 export default function GameOverModal() {
   const isGameOver = useGameStore((s) => s.isGameOver);

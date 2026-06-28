@@ -1,14 +1,14 @@
 import "./PromotionModal.css";
 import { useCallback } from "react";
-import { useGameStore } from "../../../gameStore.ts";
+import { useGameStore } from "../../gameStore.ts";
 import {
   PLAYER_PIECES,
   REVERSED_FILES,
   WHITE,
   type Piece,
   type Square,
-} from "../../../../game/chessConstants.ts";
-import { getFile } from "../../../../game/helpers/boardUtils.ts";
+} from "../../../game/chessConstants.ts";
+import { getFile } from "../../../game/helpers/boardUtils.ts";
 
 const path = "./src/assets/pieces/";
 
@@ -55,8 +55,13 @@ const PromotionModal = ({ onPromote, square }: PromotionModalProps) => {
 
   return (
     <div
-      className="modalOverlay"
-      style={{ left: `calc(((70vh - 3rem) / 8) * ${file} + 1.5rem)` }}
+      className="modalOverlay promotionOverlay"
+      style={{
+        // 1.5rem padding + ((100% of board width - 3rem total padding) / 8 squares) * current file
+        left: `calc(1.5rem + ((100% - 3rem) / 8) * ${file})`,
+        top: isUserWhite ? "1.5rem" : "auto",
+        bottom: !isUserWhite ? "1.5rem" : "auto",
+      }}
     >
       <div className="promo--modal">
         <div className="promotionOptions">{buttons}</div>
