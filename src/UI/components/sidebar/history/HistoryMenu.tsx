@@ -17,7 +17,8 @@ export default function HistoryMenu() {
             <p className="empty-sub">Play a match to see it here.</p>
           </div>
         ) : (
-          pastGames.map((game, index) => {
+          // show most recent games first
+          [...pastGames].reverse().map((game, index) => {
             // 1. Extract the result from the PGN string
             const resultMatch = game.pgn.match(/\[Result\s+"([^"]+)"\]/);
             const result = resultMatch ? resultMatch[1] : "*";

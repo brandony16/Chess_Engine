@@ -111,7 +111,7 @@ export class MinimaxV11 implements Engine {
     ctx: SearchContext,
     log: boolean = false,
   ): Move {
-    ctx.startSearch();
+    ctx.startSearch(pos.ply);
 
     pos.searchPly = 0;
     this.nmpCuttoffs = 0;

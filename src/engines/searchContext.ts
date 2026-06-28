@@ -67,7 +67,7 @@ export class SearchContext {
 
   // Sets the soft and hard limits for the search
   // Should be called at the start of each search for an engine
-  startSearch(): void {
+  startSearch(ply: number): void {
     this.nodesSearched = 0;
     this.quiescenceNodes = 0;
     this.aborted = false;
@@ -76,10 +76,21 @@ export class SearchContext {
     if (this.searchType !== ContextType.TIME_CONTROL) return;
 
     const timeLeft = this.timeRemaining;
+
+    // aim to spend 1/20th of clock and half of the increment
     this.softLimit = timeLeft / 20 + this.increment / 2;
 
     // Dont burn more than 20% of remaining time, minus a buffer for lag
     this.hardLimit = Math.max(1, timeLeft / 5 - 25);
+
+    if (ply <= 20) {
+      // lower thinking times in opening
+      this.softLimit *= 0.4;
+      this.hardLimit *= 0.4;
+    } else if (ply >= 30 && ply <= 60) {
+      // allow longer thinking in middlegame
+      this.softLimit *= 1.2;
+    }
 
     // Panic mode
     if (timeLeft < 100) {

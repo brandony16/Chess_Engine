@@ -59,7 +59,7 @@ export class MinimaxV6 implements Engine {
     ctx: SearchContext,
     log: boolean = false,
   ): Move {
-    ctx.startSearch();
+    ctx.startSearch(pos.ply);
 
     pos.searchPly = 0;
     this.evaluate = evaluate;

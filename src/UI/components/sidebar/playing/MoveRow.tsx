@@ -11,6 +11,7 @@ const MoveRow = ({ halfMove, whiteMove, blackMove }: MoveRowProps) => {
   const goToMove = useGameStore((state) => state.goToMove);
   const currIdxOfDisplayed = useGameStore((state) => state.idxOfDisplayedMove);
   const timeSpent = useGameStore((state) => state.timeSpentPerMove);
+  const isReviewingHistory = useGameStore((state) => state.isReviewingHistory);
 
   const goToWhiteMove = useCallback(
     () => goToMove(halfMove),
@@ -63,22 +64,24 @@ const MoveRow = ({ halfMove, whiteMove, blackMove }: MoveRowProps) => {
         </button>
       )}
 
-      <div className="timeSpent">
-        <div className="timeWrap">
-          <div className="timeSpentText">
-            {formatTimeSpent(timeSpent[halfMove])}
-          </div>
-          <div className="moveBar white"></div>
-        </div>
-        {blackMove && (
+      {!isReviewingHistory && (
+        <div className="timeSpent">
           <div className="timeWrap">
             <div className="timeSpentText">
-              {formatTimeSpent(timeSpent[halfMove + 1])}
+              {formatTimeSpent(timeSpent[halfMove])}
             </div>
-            <div className="moveBar black"></div>
+            <div className="moveBar white"></div>
           </div>
-        )}
-      </div>
+          {blackMove && (
+            <div className="timeWrap">
+              <div className="timeSpentText">
+                {formatTimeSpent(timeSpent[halfMove + 1])}
+              </div>
+              <div className="moveBar black"></div>
+            </div>
+          )}
+        </div>
+      )}
     </li>
   );
 };

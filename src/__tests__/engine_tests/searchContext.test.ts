@@ -154,7 +154,7 @@ describe("time control settting should work", () => {
       increment: 0,
     });
 
-    ctx.startSearch();
+    ctx.startSearch(0);
 
     await sleep(100);
 

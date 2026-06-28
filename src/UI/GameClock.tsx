@@ -42,8 +42,7 @@ export default function GameClock() {
 
       if (timeLeft === 0) {
         clearInterval(interval);
-        // Fire the timeout action directly to the store
-        useGameStore.getState().handleTimeOut(isWhiteActive ? WHITE : BLACK);
+        useGameStore.getState().handleTimeOut(side === "w" ? WHITE : BLACK);
       }
     }, 50);
 

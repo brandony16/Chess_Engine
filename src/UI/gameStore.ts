@@ -20,9 +20,10 @@ import {
 import { START_POS } from "../__tests__/game_tests/fens.ts";
 import { MAX_SEARCH_PLY } from "../engines/Engine.ts";
 import { OpeningBook } from "../OpeningBook.ts";
-import { squareToIndex } from "../game/fenAndUCI/uciHelpers.ts";
+import { squareToIndex, uciToMove } from "../game/fenAndUCI/uciHelpers.ts";
 import { TC_3_2, type TimeControl } from "./timeControls.ts";
 import { persist } from "zustand/middleware";
+import { Position } from "../game/Position.ts";
 
 // ----- EXTERNAL VARIABLES -----
 export const game = new Game(START_POS);
@@ -36,7 +37,7 @@ export type HistoryEntry = {
   engineGame: boolean;
   reason: string;
   white: string;
-  black: string;  
+  black: string;
   plyCount: number;
 };
 type ModalState = { isOpen: false } | { isOpen: true; type: ModalType };
@@ -63,6 +64,7 @@ interface GameSliceVars {
   lastMoveTimestamp: number;
   userResigned: boolean;
   isGameOver: boolean;
+  isReviewingHistory: boolean;
 }
 
 interface GameSlice extends GameSliceVars {
@@ -130,6 +132,7 @@ export const INITIAL_GAME_SLICE: GameSliceVars = {
   lastMoveTimestamp: Date.now(),
   userResigned: false,
   isGameOver: false,
+  isReviewingHistory: false,
 };
 
 export const INITIAL_UI_SLICE: UISliceVars = {
@@ -204,7 +207,11 @@ export const useGameStore = create<GameStoreState>()(
         });
 
         if (game.isOver()) {
-          set({ isGameOver: true });
+          set({
+            isGameOver: true,
+            selectedSquare: NO_SQUARE,
+            legalMovesForSelected: [],
+          });
           get().saveGame();
         }
       },
@@ -222,21 +229,23 @@ export const useGameStore = create<GameStoreState>()(
 
         let updatedPast = pastGames;
         if (isGameOver) {
-          const result = game.result();
+          let result = game.result();
 
-          const whiteSide = userSide === WHITE ? "user" : selectedEngine;
-          const blackSide = userSide === BLACK ? "user" : selectedEngine;
+          const whiteSide = userSide === WHITE ? "You" : selectedEngine;
+          const blackSide = userSide === BLACK ? "You" : selectedEngine;
 
           let reason: string;
           if (userResigned) {
+            result.winner = (userSide ^ 1) as Player;
             reason = "Resignation";
           } else if (isTimeOut) {
+            result.winner = (userSide ^ 1) as Player;
             reason = "Time Out";
           } else {
             reason = endStateToString(result.method);
           }
 
-          const gamePGN = buildPGN(algebraicMoves, {
+          const gamePGN = buildPGN(game.moveHistory, {
             Event: "Normal Battle",
             White: whiteSide,
             Black: blackSide,
@@ -310,6 +319,7 @@ export const useGameStore = create<GameStoreState>()(
           isGameOver: false,
           moveHighlights: [],
           sidebarMode: "playing",
+          isReviewingHistory: false,
         });
       },
 
@@ -412,7 +422,64 @@ export const useGameStore = create<GameStoreState>()(
       setSidebarMode: (mode: "setup" | "playing" | "history" | "battle") =>
         set({ sidebarMode: mode }),
 
-      updateShownGame: (entry: HistoryEntry) => {},
+      updateShownGame: (entry: HistoryEntry) => {
+        const parsed = parsePGN(entry.pgn);
+
+        // 1. Reset the external logic board
+        game.loadFen(START_POS);
+        const pos = new Position();
+
+        const algebraicMoves: string[] = [];
+        const pastPositions: Snapshot[] = [game.getSnapshot()]; // Start with the initial position
+
+        // 2. Play through the moves to rebuild the history arrays
+        for (const uciMove of parsed.moves) {
+          const move = uciToMove(uciMove, pos);
+
+          game.playMove(move);
+          pos.makeMove(move);
+
+          algebraicMoves.push(
+            moveToAlgebraic(move, game.isInCheck(), game.isOver()),
+          );
+
+          // Capture the board state after every single move
+          pastPositions.push(game.getSnapshot());
+        }
+
+        // 3. Determine board perspective (flip to black if the user played black)
+        let perspective: Player = WHITE;
+        if (entry.black === "user") {
+          perspective = BLACK;
+        }
+
+        // 4. Push EVERYTHING to Zustand
+        set({
+          sidebarMode: "playing",
+          isGameOver: true,
+
+          // Core Board State
+          fen: game.fen(),
+          pastPositions,
+          algebraicMoves,
+          idxOfDisplayedMove: pastPositions.length - 1, // Set to the final move
+          boardPerspective: perspective,
+          userSide: perspective,
+
+          // Reset UI artifacts from any previously active game
+          moveHighlights: [],
+          selectedSquare: NO_SQUARE,
+          legalMovesForSelected: [],
+          promotion: { isHappening: false },
+          timeSpentPerMove: [],
+
+          // Reset clock/ending flags
+          isTimeOut: false,
+          timeOutLoser: null,
+          userResigned: false,
+          isReviewingHistory: true,
+        });
+      },
 
       // ----- ENGINE SLICE -----
       ...INITIAL_ENGINE_SLICE,
@@ -426,6 +493,8 @@ export const useGameStore = create<GameStoreState>()(
         set({
           isTimeOut: true,
           isGameOver: true,
+          selectedSquare: NO_SQUARE,
+          legalMovesForSelected: [],
           timeOutLoser: losingSide,
 
           // Hard-clamp the loser's time to 0 to prevent any lingering interval bugs
