@@ -28,6 +28,7 @@ export class BondmonkeyV19 implements Bondmonkey {
   }
 
   search(pos: Position, ctx: SearchContext): Move {
+    pos.searchPly = 0;
     return this.engine.search(pos, this.evaluation, ctx);
   }
 

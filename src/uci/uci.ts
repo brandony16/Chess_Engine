@@ -28,7 +28,7 @@ const rl = readline.createInterface({
   terminal: false,
 });
 
-const pos = new Position();
+let pos = new Position();
 const engine = getEngineByName(engineNames[0], MAX_SEARCH_PLY);
 let currentUciHistory: string[] = [];
 
@@ -82,6 +82,7 @@ rl.on("line", async (line: string) => {
 // --- HELPER FUNCTIONS ---
 
 function handlePosition(tokens: string[]) {
+  pos = new Position();
   let moveStartIndex = -1;
   currentUciHistory = []; // Reset history
 
@@ -109,6 +110,7 @@ function handlePosition(tokens: string[]) {
     for (const uciMove of currentUciHistory) {
       const move = uciToMove(uciMove, pos);
       pos.makeMove(move);
+      pos.searchPly = 0;
     }
   }
 }

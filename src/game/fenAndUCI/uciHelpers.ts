@@ -18,7 +18,6 @@ import {
   type Move,
 } from "../moveMaking/move.ts";
 import { MAX_MOVES, type Position } from "../Position.ts";
-import { isAlgebraicSquare } from "./fenHelpers.ts";
 
 /**
  * Converts a move object into UCI notation
@@ -48,30 +47,6 @@ function indexToSquare(index: Square): string {
  *
  */
 export function uciToMove(uciMove: string, pos: Position) {
-  if (uciMove.length < 4 || uciMove.length > 5) {
-    throw new Error(`Invalid uciMove: ${uciMove}`);
-  }
-
-  const sq1 = uciMove.slice(0, 2);
-  const sq2 = uciMove.slice(2, 4);
-
-  if (!isAlgebraicSquare(sq1) || !isAlgebraicSquare(sq2)) {
-    throw new Error(`Ivalid uciMove: ${uciMove}`);
-  }
-
-  const from = squareToIndex(sq1);
-  const to = squareToIndex(sq2);
-
-  let promotion: Piece = NO_PIECE;
-  if (uciMove.length === 5) {
-    const pieceChar =
-      pos.sideToMove === WHITE ? uciMove[4].toUpperCase() : uciMove[4];
-    if (!isValidPieceChar(pieceChar)) {
-      throw new Error(`Invalid piece character ${pieceChar}`);
-    }
-    promotion = PIECE_INDEXES[pieceChar];
-  }
-
   const start = pos.searchPly * MAX_MOVES;
   const num = pos.generatePseudoLegalMoves();
   const checkers = pos.getCheckers();
@@ -81,20 +56,12 @@ export function uciToMove(uciMove: string, pos: Position) {
     const move = pos.moveBuffer[start + i];
     if (!pos.isLegal(move, checkers, pinned, doubleCheck)) continue;
 
-    if (
-      from === moveFrom(move) &&
-      to === moveTo(move) &&
-      promotion === movePromotion(move)
-    ) {
+    if (moveToUCI(move) === uciMove) {
       return move;
     }
   }
 
   throw new Error(`UCI move not found: ${uciMove}`);
-}
-
-function isValidPieceChar(c: string): c is keyof typeof PIECE_INDEXES {
-  return c in PIECE_INDEXES;
 }
 
 export function squareToIndex(square: string) {
