@@ -2,12 +2,11 @@ export class OpeningBook {
   private book = new Map<string, { move: string; weight: number }[]>();
   private isLoaded = false;
 
-  async initialize() {
+  async initialize(bookData: any) {
     if (this.isLoaded) return;
 
     try {
-      const response = await fetch(`${import.meta.env.BASE_URL}openings.json`);
-      const openings: string[][] = await response.json();
+      const openings: string[][] = bookData;
 
       // Temporary map to easily tally up the counts
       // Key: "prefix", Value: Map<"nextMove", count>

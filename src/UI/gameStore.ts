@@ -27,8 +27,12 @@ import { Position } from "../game/Position.ts";
 
 // ----- EXTERNAL VARIABLES -----
 export const game = new Game(START_POS);
+
+const response = await fetch(`${import.meta.env.BASE_URL}openings.json`);
+const bookData = await response.json();
+
 export const openingBook = new OpeningBook();
-openingBook.initialize();
+openingBook.initialize(bookData);
 
 // ----- STATE INTERFACES -----
 export type ModalType = "history" | "battle" | "new";
